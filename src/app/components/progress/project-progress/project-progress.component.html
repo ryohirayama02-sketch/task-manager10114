@@ -1,0 +1,32 @@
+<h2>個別プロジェクト進捗</h2>
+
+<div *ngIf="project">
+  <h3 [style.color]="project.color">{{ project.projectName }}</h3>
+  <p><strong>概要:</strong> {{ project.overview }}</p>
+  <p><strong>期間:</strong> {{ project.startDate }} ～ {{ project.endDate }}</p>
+  <p><strong>メンバー:</strong> {{ project.members }}</p>
+</div>
+
+<hr />
+
+<h3>タスク一覧</h3>
+<div *ngIf="tasks.length > 0; else noTasks">
+  <div
+    *ngFor="let task of tasks"
+    style="
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 10px;
+    "
+  >
+    <p><strong>タスク名:</strong> {{ task.taskName }}</p>
+    <p><strong>担当:</strong> {{ task.assignee }}</p>
+    <p><strong>期限:</strong> {{ task.dueDate }}</p>
+    <p><strong>状態:</strong> {{ task.status }}</p>
+  </div>
+</div>
+
+<ng-template #noTasks>
+  <p>タスクが登録されていません。</p>
+</ng-template>

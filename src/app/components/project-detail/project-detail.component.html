@@ -1,0 +1,12 @@
+<h2>プロジェクト詳細</h2>
+
+<div *ngIf="project">
+  <h3 [style.color]="project.color">{{ project.projectName }}</h3>
+  <p><strong>概要:</strong> {{ project.overview }}</p>
+  <p><strong>期間:</strong> {{ project.startDate }} ～ {{ project.endDate }}</p>
+  <p><strong>メンバー:</strong> {{ project.members }}</p>
+</div>
+
+<div *ngIf="!project">
+  <p>プロジェクト情報を読み込み中...</p>
+</div>
