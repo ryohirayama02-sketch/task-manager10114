@@ -1,2 +1,15 @@
 <h2>全メンバーの進捗</h2>
-<p>ここに全メンバーの進捗を表示予定</p>
+
+<div
+  *ngFor="let member of members"
+  class="member-card"
+  [routerLink]="['/progress/members', member.id]"
+  style="cursor: pointer"
+>
+  <h3>{{ member.name }}</h3>
+  <p>役職: {{ member.role }}</p>
+  <p>メール: {{ member.email }}</p>
+  <p>完了タスク: {{ member.done }}件</p>
+  <p>作業中: {{ member.working }}件</p>
+  <p>未着手: {{ member.todo }}件</p>
+</div>

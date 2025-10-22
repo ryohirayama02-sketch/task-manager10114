@@ -1,2 +1,30 @@
-<h2>メンバーごとの進捗</h2>
-<p>ここにメンバーごとの進捗を表示予定</p>
+<h2>個別メンバーの進捗</h2>
+
+<!-- メンバー情報 -->
+<div *ngIf="member">
+  <h3>{{ member.name }}</h3>
+  <p>役職: {{ member.role }}</p>
+  <p>メール: {{ member.email }}</p>
+
+  <p>
+    完了タスク: {{ member.done }}件 / 作業中: {{ member.working }}件 / 未着手:
+    {{ member.todo }}件
+  </p>
+</div>
+
+<hr />
+
+<!-- タスク一覧 -->
+<div *ngIf="tasks.length > 0; else noTasks">
+  <h4>担当タスク一覧</h4>
+  <div *ngFor="let task of tasks" class="task-card">
+    <p><strong>タスク名:</strong> {{ task.taskName }}</p>
+    <p><strong>ステータス:</strong> {{ task.status }}</p>
+    <p><strong>期限:</strong> {{ task.dueDate }}</p>
+    <p><strong>優先度:</strong> {{ task.priority }}</p>
+  </div>
+</div>
+
+<ng-template #noTasks>
+  <p>担当タスクはまだ登録されていません。</p>
+</ng-template>
