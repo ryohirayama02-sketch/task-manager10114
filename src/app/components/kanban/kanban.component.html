@@ -1,0 +1,45 @@
+<h2>カンバン式課題管理</h2>
+
+<div style="display: flex; justify-content: flex-end; margin-bottom: 8px">
+  <button mat-raised-button color="primary" (click)="openAddTaskDialog()">
+    ＋ タスク
+  </button>
+</div>
+
+<div style="display: flex; justify-content: space-between">
+  <!-- 未着手 -->
+  <div style="width: 32%; background-color: #ffeaea; padding: 10px">
+    <h3>未着手</h3>
+    <div *ngFor="let t of filterByStatus('未着手')" class="task-card">
+      <b>{{ t.taskName }}</b
+      ><br />
+      {{ t.projectName }}<br />
+      期限: {{ t.dueDate }}<br />
+      担当: {{ t.assignee }}
+    </div>
+  </div>
+
+  <!-- 作業中 -->
+  <div style="width: 32%; background-color: #eaffea; padding: 10px">
+    <h3>作業中</h3>
+    <div *ngFor="let t of filterByStatus('作業中')" class="task-card">
+      <b>{{ t.taskName }}</b
+      ><br />
+      {{ t.projectName }}<br />
+      期限: {{ t.dueDate }}<br />
+      担当: {{ t.assignee }}
+    </div>
+  </div>
+
+  <!-- 完了 -->
+  <div style="width: 32%; background-color: #eaf1ff; padding: 10px">
+    <h3>完了</h3>
+    <div *ngFor="let t of filterByStatus('完了')" class="task-card">
+      <b>{{ t.taskName }}</b
+      ><br />
+      {{ t.projectName }}<br />
+      期限: {{ t.dueDate }}<br />
+      担当: {{ t.assignee }}
+    </div>
+  </div>
+</div>

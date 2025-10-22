@@ -1,0 +1,48 @@
+<h2>タスクを追加</h2>
+
+<div style="display: flex; flex-direction: column; gap: 8px; min-width: 280px">
+  <label>
+    プロジェクト名<br />
+    <input type="text" [(ngModel)]="model.projectName" />
+  </label>
+
+  <label>
+    タスク名（必須）<br />
+    <input type="text" [(ngModel)]="model.taskName" required />
+  </label>
+
+  <label>
+    ステータス<br />
+    <select [(ngModel)]="model.status">
+      <option>未着手</option>
+      <option>作業中</option>
+      <option>完了</option>
+    </select>
+  </label>
+
+  <label>
+    優先度<br />
+    <select [(ngModel)]="model.priority">
+      <option>高</option>
+      <option selected>中</option>
+      <option>低</option>
+    </select>
+  </label>
+
+  <label>
+    担当者<br />
+    <input type="text" [(ngModel)]="model.assignee" />
+  </label>
+
+  <label>
+    期限<br />
+    <input type="date" [(ngModel)]="model.dueDate" />
+  </label>
+
+  <div
+    style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px"
+  >
+    <button mat-button (click)="cancel()">キャンセル</button>
+    <button mat-raised-button color="primary" (click)="save()">保存</button>
+  </div>
+</div>
