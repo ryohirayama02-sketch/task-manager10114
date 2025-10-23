@@ -1,8 +1,9 @@
 <h2>全プロジェクト進捗</h2>
 
+<!-- ▼ プロジェクトカード一覧 -->
 <div
   *ngFor="let project of projects"
-  [routerLink]="['/progress/projects', project.id]"
+  (click)="goToProgress(project.id)"
   style="
     border: 1px solid #ccc;
     border-radius: 10px;
@@ -11,9 +12,16 @@
     cursor: pointer;
   "
 >
-  <h3 [style.color]="project.color">
+  <!-- ▼ プロジェクト名クリックで詳細へ -->
+  <h3
+    [routerLink]="['/project', project.id]"
+    (click)="$event.stopPropagation()"
+    [style.color]="project.color"
+    style="text-decoration: underline; cursor: pointer"
+  >
     {{ project.projectName || "（名称未設定）" }}
   </h3>
+
   <p><strong>概要:</strong> {{ project.overview }}</p>
   <p><strong>期間:</strong> {{ project.startDate }} ～ {{ project.endDate }}</p>
   <p><strong>メンバー:</strong> {{ project.members }}</p>

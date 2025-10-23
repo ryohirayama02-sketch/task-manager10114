@@ -1,0 +1,21 @@
+.form-container {
+  display: flex;
+  flex-direction: column;
+  width: 400px;
+}
+label {
+  margin-top: 10px;
+  font-weight: bold;
+}
+input,
+textarea {
+  margin-top: 4px;
+  padding: 6px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+.buttons {
+  margin-top: 15px;
+  display: flex;
+  justify-content: space-between;
+}

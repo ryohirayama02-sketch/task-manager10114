@@ -1,0 +1,34 @@
+<p>project-form-dialog works!</p>
+<h2>新規プロジェクト作成</h2>
+
+<form (ngSubmit)="onSubmit()" #form="ngForm" class="form-container">
+  <label>プロジェクト名:</label>
+  <input
+    type="text"
+    [(ngModel)]="project.projectName"
+    name="projectName"
+    required
+  />
+
+  <label>概要:</label>
+  <textarea [(ngModel)]="project.overview" name="overview" rows="3"></textarea>
+
+  <label>開始日:</label>
+  <input type="date" [(ngModel)]="project.startDate" name="startDate" />
+
+  <label>担当メンバー:</label>
+  <input type="text" [(ngModel)]="project.members" name="members" />
+
+  <label>タグ:</label>
+  <input
+    type="text"
+    [(ngModel)]="project.tags"
+    name="tags"
+    placeholder="#UI, #開発"
+  />
+
+  <div class="buttons">
+    <button type="submit">登録</button>
+    <button type="button" (click)="onCancel()">キャンセル</button>
+  </div>
+</form>

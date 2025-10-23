@@ -13,6 +13,7 @@ import { TaskSearchComponent } from './components/task-search/task-search.compon
 import { SettingsComponent } from './components/settings/settings.component';
 import { LogsComponent } from './components/logs/logs.component';
 import { LoginComponent } from './components/login/login.component';
+import { ProjectFormComponent } from './components/project-form/project-form.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'kanban', pathMatch: 'full' },
@@ -30,4 +31,5 @@ export const routes: Routes = [
   { path: 'settings', component: SettingsComponent },
   { path: 'logs', component: LogsComponent },
   { path: 'login', component: LoginComponent },
+  { path: 'project-form', component: ProjectFormComponent },
 ];
