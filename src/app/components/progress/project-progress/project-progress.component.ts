@@ -1,12 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ProjectService } from '../../../services/project.service';
 
 @Component({
   selector: 'app-project-progress',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   templateUrl: './project-progress.component.html',
   styleUrls: ['./project-progress.component.css'],
 })
@@ -14,25 +14,27 @@ export class ProjectProgressComponent implements OnInit {
   project: any;
   tasks: any[] = [];
 
+  projectId: string | null = null;
+
   constructor(
     private route: ActivatedRoute,
     private projectService: ProjectService
   ) {}
 
   ngOnInit() {
-    const projectId = this.route.snapshot.paramMap.get('projectId');
-    console.log('プロジェクトID:', projectId); // ← 確認ポイント
+    this.projectId = this.route.snapshot.paramMap.get('projectId');
+    console.log('プロジェクトID:', this.projectId); // ← 確認ポイント
 
-    if (projectId) {
+    if (this.projectId) {
       // プロジェクト本体の情報を取得
-      this.projectService.getProjectById(projectId).subscribe((data) => {
+      this.projectService.getProjectById(this.projectId).subscribe((data) => {
         console.log('選択されたプロジェクト:', data);
         this.project = data;
       });
 
       // 🔹 サブコレクション tasks を取得
       this.projectService
-        .getTasksByProjectId(projectId)
+        .getTasksByProjectId(this.projectId)
         .subscribe((taskList) => {
           console.log('Firestoreからタスク取得:', taskList);
           this.tasks = taskList;

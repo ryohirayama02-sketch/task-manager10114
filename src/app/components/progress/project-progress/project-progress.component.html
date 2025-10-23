@@ -1,7 +1,12 @@
 <h2>個別プロジェクト進捗</h2>
 
 <div *ngIf="project">
-  <h3 [style.color]="project.color">{{ project.projectName }}</h3>
+  <h3
+    [routerLink]="['/project', projectId]"
+    style="color: #007bff; cursor: pointer; text-decoration: underline"
+  >
+    {{ project.projectName }}
+  </h3>
   <p><strong>概要:</strong> {{ project.overview }}</p>
   <p><strong>期間:</strong> {{ project.startDate }} ～ {{ project.endDate }}</p>
   <p><strong>メンバー:</strong> {{ project.members }}</p>
