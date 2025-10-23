@@ -1,61 +1,43 @@
 <h2>プロジェクト詳細</h2>
 
-<div *ngIf="project; else loading">
-  <div class="project-card">
+<div *ngIf="project; else loading" class="project-card">
+  <div
+    style="display: flex; justify-content: space-between; align-items: center"
+  >
     <h3>{{ project.projectName }}</h3>
 
-    <p><strong>概要:</strong></p>
-    <p *ngIf="!isEditing">{{ project.overview }}</p>
-    <textarea *ngIf="isEditing" [(ngModel)]="project.overview"></textarea>
-
-    <p><strong>期間:</strong> {{ project.startDate || "未設定" }}</p>
-    <p><strong>メンバー:</strong> {{ project.members || "未設定" }}</p>
-    <p><strong>タグ:</strong> {{ project.tags || "-" }}</p>
-
-    <div style="margin-top: 10px">
-      <button mat-raised-button color="primary" (click)="toggleEdit()">
-        {{ isEditing ? "キャンセル" : "編集" }}
-      </button>
-      <button
-        mat-raised-button
-        color="accent"
-        *ngIf="isEditing"
-        (click)="saveChanges()"
-      >
-        保存
-      </button>
-    </div>
-  </div>
-
-  <!-- 🔹 タスク追加ボタン -->
-  <div style="margin-top: 20px">
-    <button mat-raised-button color="accent" (click)="openAddTaskDialog()">
-      ＋ タスクを追加
+    <!-- ✅ カード右下に＋タスクボタン -->
+    <button
+      mat-raised-button
+      color="accent"
+      class="add-task-button"
+      (click)="openAddTaskDialog()"
+    >
+      ＋ タスク
     </button>
   </div>
 
-  <!-- 🔹 タスク一覧の表示 -->
-  <div *ngIf="tasks.length > 0; else noTasks" style="margin-top: 15px">
-    <h3>タスク一覧</h3>
-    <div
-      *ngFor="let task of tasks"
-      style="
-        border: 1px solid #ccc;
-        border-radius: 8px;
-        padding: 10px;
-        margin-bottom: 10px;
-      "
-    >
-      <strong>{{ task.taskName }}</strong>
-      <p>担当者: {{ task.assignee || "未設定" }}</p>
-      <p>状態: {{ task.status || "未設定" }}</p>
-      <p>期限: {{ task.dueDate || "未設定" }}</p>
-    </div>
-  </div>
+  <p><strong>概要:</strong></p>
+  <p *ngIf="!isEditing">{{ project.overview }}</p>
+  <textarea *ngIf="isEditing" [(ngModel)]="project.overview"></textarea>
 
-  <ng-template #noTasks>
-    <p>まだタスクが登録されていません。</p>
-  </ng-template>
+  <p><strong>期間:</strong> {{ project.startDate || "未設定" }}</p>
+  <p><strong>メンバー:</strong> {{ project.members || "未設定" }}</p>
+  <p><strong>タグ:</strong> {{ project.tags || "-" }}</p>
+
+  <div style="margin-top: 10px">
+    <button mat-raised-button color="primary" (click)="toggleEdit()">
+      {{ isEditing ? "キャンセル" : "編集" }}
+    </button>
+    <button
+      mat-raised-button
+      color="accent"
+      *ngIf="isEditing"
+      (click)="saveChanges()"
+    >
+      保存
+    </button>
+  </div>
 </div>
 
 <ng-template #loading>

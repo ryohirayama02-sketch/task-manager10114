@@ -1,7 +1,11 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
+import {
+  MatDialogRef,
+  MatDialogModule,
+  MAT_DIALOG_DATA,
+} from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 
 @Component({
@@ -12,25 +16,34 @@ import { MatButtonModule } from '@angular/material/button';
   styleUrls: ['./task-form.component.css'],
 })
 export class TaskFormComponent {
+  // ✅ inject 構文を使った依存注入
   private dialogRef = inject(MatDialogRef<TaskFormComponent>);
+  private data = inject(MAT_DIALOG_DATA, { optional: true }); // ← 追加（projectNameを受け取る）
 
   // 入力モデル（双方向バインディング用）
   model = {
     projectName: '',
     taskName: '',
-    status: '未着手', // デフォルト
-    priority: '中', // デフォルト
+    status: '未着手',
+    priority: '中',
     assignee: '',
-    dueDate: '', // 'YYYY-MM-DD'
+    dueDate: '',
   };
 
+  constructor() {
+    // ✅ ダイアログ呼び出し時に受け取ったプロジェクト名を初期セット
+    console.log('受け取ったデータ:', this.data); // ← 一旦ログで確認
+    if (this.data?.projectName) {
+      this.model.projectName = this.data.projectName;
+    }
+  }
+
   save() {
-    // 必須チェック（最小限）
-    if (!this.model.taskName || !this.model.projectName) return;
-    this.dialogRef.close(this.model); // 呼び出し元へ結果を返す
+    if (!this.model.taskName) return;
+    this.dialogRef.close(this.model);
   }
 
   cancel() {
-    this.dialogRef.close(); // 何も返さず閉じる
+    this.dialogRef.close();
   }
 }

@@ -1,10 +1,8 @@
 <h2>タスクを追加</h2>
 
 <div style="display: flex; flex-direction: column; gap: 8px; min-width: 280px">
-  <label>
-    プロジェクト名<br />
-    <input type="text" [(ngModel)]="model.projectName" />
-  </label>
+  <label>プロジェクト名（自動設定）</label>
+  <div class="readonly">{{ model.projectName || "—" }}</div>
 
   <label>
     タスク名（必須）<br />

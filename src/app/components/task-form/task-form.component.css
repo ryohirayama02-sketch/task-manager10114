@@ -4,3 +4,11 @@ select {
   padding: 6px 8px;
   box-sizing: border-box;
 }
+
+.readonly {
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #f7f7f7;
+  color: #333;
+}

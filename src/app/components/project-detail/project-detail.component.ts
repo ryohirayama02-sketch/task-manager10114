@@ -18,12 +18,11 @@ export class ProjectDetailComponent implements OnInit {
   project: any;
   projectId: string | null = null;
   isEditing = false;
-  tasks: any[] = [];
 
   constructor(
     private route: ActivatedRoute,
     private projectService: ProjectService,
-    private dialog: MatDialog // ✅ ダイアログ追加
+    private dialog: MatDialog
   ) {}
 
   ngOnInit() {
@@ -31,19 +30,10 @@ export class ProjectDetailComponent implements OnInit {
     console.log('選択されたプロジェクトID:', this.projectId);
 
     if (this.projectId) {
-      // ✅ Firestoreからプロジェクト情報取得
       this.projectService.getProjectById(this.projectId).subscribe((data) => {
         this.project = data;
         console.log('Firestoreから取得したプロジェクト:', data);
       });
-
-      // ✅ 紐づくタスクを取得
-      this.projectService
-        .getTasksByProjectId(this.projectId)
-        .subscribe((tasks) => {
-          this.tasks = tasks;
-          console.log('Firestoreからタスク取得:', tasks);
-        });
     }
   }
 
@@ -60,7 +50,13 @@ export class ProjectDetailComponent implements OnInit {
 
   /** ✅ 「＋タスク」ボタン押下でフォームを開く */
   openAddTaskDialog() {
-    const dialogRef = this.dialog.open(TaskFormComponent, { width: '400px' });
+    if (!this.project) return;
+
+    console.log('📤 ダイアログに渡すprojectName:', this.project?.projectName);
+    const dialogRef = this.dialog.open(TaskFormComponent, {
+      width: '420px',
+      data: { projectName: this.project.projectName }, // ✅ 自動で渡す
+    });
 
     dialogRef.afterClosed().subscribe(async (result) => {
       if (!result || !this.projectId) return;

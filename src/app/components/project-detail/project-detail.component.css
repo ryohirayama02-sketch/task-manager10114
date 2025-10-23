@@ -1,10 +1,12 @@
 .project-card {
+  position: relative; /* ✅ これを追加：右下ボタンの基準にする */
+  width: 450px;
   border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 16px;
-  width: 400px;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
   margin: 20px auto;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 textarea {
@@ -14,4 +16,24 @@ textarea {
   border-radius: 6px;
   border: 1px solid #aaa;
   padding: 6px;
+}
+
+.project-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.button-row {
+  margin-top: 15px;
+  display: flex;
+  justify-content: flex-start;
+  gap: 10px;
+}
+
+/* ✅ カード右下に配置する「＋タスク」ボタン */
+.add-task-button {
+  position: absolute;
+  bottom: 15px;
+  right: 15px;
 }
