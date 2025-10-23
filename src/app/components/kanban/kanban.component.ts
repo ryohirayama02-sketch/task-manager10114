@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { TaskService } from '../../services/task.service';
 import { ProjectFormDialogComponent } from '../project-form-dialog/project-form-dialog.component';
+import { TaskFormComponent } from '../task-form/task-form.component';
 
 @Component({
   selector: 'app-kanban',
