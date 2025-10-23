@@ -6,6 +6,7 @@ import { ProjectsOverviewComponent } from './components/progress/projects-overvi
 import { ProjectProgressComponent } from './components/progress/project-progress/project-progress.component';
 import { MembersOverviewComponent } from './components/progress/members-overview/members-overview.component';
 import { MemberProgressComponent } from './components/progress/member-progress/member-progress.component';
+import { MemberDetailComponent } from './components/progress/member-detail/member-detail.component';
 import { ProjectDetailComponent } from './components/project-detail/project-detail.component';
 import { TaskDetailComponent } from './components/task-detail/task-detail.component';
 import { QuickTasksComponent } from './components/quick-tasks/quick-tasks.component';
@@ -22,10 +23,10 @@ export const routes: Routes = [
   { path: 'calendar', component: CalendarComponent },
   { path: 'progress/projects', component: ProjectsOverviewComponent },
   { path: 'progress/projects/:projectId', component: ProjectProgressComponent },
-  { path: 'progress/members', component: MembersOverviewComponent },
-  { path: 'progress/members/:memberId', component: MemberProgressComponent },
+  { path: 'progress/members', component: MemberProgressComponent },
+  { path: 'progress/members/:memberName', component: MemberDetailComponent },
   { path: 'project/:projectId', component: ProjectDetailComponent },
-  { path: 'task/:taskId', component: TaskDetailComponent },
+  { path: 'project/:projectId/task/:taskId', component: TaskDetailComponent },
   { path: 'quick', component: QuickTasksComponent },
   { path: 'search', component: TaskSearchComponent },
   { path: 'settings', component: SettingsComponent },

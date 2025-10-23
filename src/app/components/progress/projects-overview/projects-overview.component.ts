@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { ProjectService } from '../../../services/project.service';
+import { Project } from '../../../models/task.model';
 
 @Component({
   selector: 'app-projects-overview',
@@ -11,7 +12,7 @@ import { ProjectService } from '../../../services/project.service';
   styleUrls: ['./projects-overview.component.css'],
 })
 export class ProjectsOverviewComponent implements OnInit {
-  projects: any[] = [];
+  projects: Project[] = [];
 
   constructor(
     private router: Router, // ✅ Routerを追加

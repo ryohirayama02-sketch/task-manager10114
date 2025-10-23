@@ -1,2 +1,185 @@
-<h2>タスク検索</h2>
-<p>ここにタスク検索を表示予定</p>
+<div class="task-search-container">
+  <div class="header">
+    <h2>タスク検索</h2>
+    <p>アプリ内のタスクを検索できます</p>
+  </div>
+
+  <!-- 検索フィルター -->
+  <mat-card class="search-filters-card">
+    <mat-card-header>
+      <mat-card-title>検索条件</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="filters-grid">
+        <!-- 担当者 -->
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>担当者</mat-label>
+          <mat-select [(ngModel)]="filters.assignee">
+            <mat-option value="">すべて</mat-option>
+            <mat-option *ngFor="let assignee of assignees" [value]="assignee">
+              {{ assignee }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <!-- 優先度 -->
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>優先度</mat-label>
+          <mat-select [(ngModel)]="filters.priority">
+            <mat-option value="">すべて</mat-option>
+            <mat-option *ngFor="let priority of priorities" [value]="priority">
+              {{ priority }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <!-- ステータス -->
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>ステータス</mat-label>
+          <mat-select [(ngModel)]="filters.status">
+            <mat-option value="">すべて</mat-option>
+            <mat-option *ngFor="let status of statuses" [value]="status">
+              {{ status }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <!-- タグ -->
+        <div class="filter-field">
+          <label class="filter-label">タグ</label>
+          <div class="tag-selection">
+            <mat-chip-set>
+              <mat-chip
+                *ngFor="let tag of allTags"
+                [class.selected]="filters.tags.includes(tag)"
+                (click)="
+                  filters.tags.includes(tag) ? removeTag(tag) : addTag(tag)
+                "
+                class="tag-chip"
+              >
+                {{ tag }}
+              </mat-chip>
+            </mat-chip-set>
+          </div>
+        </div>
+
+        <!-- フリーワード -->
+        <mat-form-field appearance="outline" class="filter-field full-width">
+          <mat-label>フリーワード</mat-label>
+          <input
+            matInput
+            [(ngModel)]="filters.freeWord"
+            placeholder="タスク名、説明、プロジェクト名で検索"
+          />
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+      </div>
+
+      <!-- 検索ボタン -->
+      <div class="search-actions">
+        <button
+          mat-raised-button
+          color="primary"
+          (click)="searchTasks()"
+          [disabled]="isLoading"
+          class="search-button"
+        >
+          <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
+          <mat-icon *ngIf="!isLoading">search</mat-icon>
+          {{ isLoading ? "検索中..." : "検索" }}
+        </button>
+        <button mat-button (click)="clearFilters()" class="clear-button">
+          <mat-icon>clear</mat-icon>
+          クリア
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- 検索結果 -->
+  <div *ngIf="hasSearched" class="search-results">
+    <div class="results-header">
+      <h3>検索結果</h3>
+      <span class="results-count"
+        >{{ searchResults.length }}件のタスクが見つかりました</span
+      >
+    </div>
+
+    <!-- ローディング表示 -->
+    <div *ngIf="isLoading" class="loading-container">
+      <mat-spinner></mat-spinner>
+      <p>検索中...</p>
+    </div>
+
+    <!-- 検索結果一覧 -->
+    <div *ngIf="!isLoading && searchResults.length > 0" class="results-grid">
+      <mat-card
+        *ngFor="let task of searchResults"
+        class="task-card"
+        (click)="goToTaskDetail(task, $event)"
+      >
+        <mat-card-content>
+          <div class="task-header">
+            <h4 class="task-title">
+              {{ task.projectName }} - {{ task.taskName }}
+            </h4>
+            <div class="task-badges">
+              <span
+                class="status-badge"
+                [style.background-color]="getStatusColor(task.status)"
+              >
+                {{ task.status }}
+              </span>
+              <span
+                class="priority-badge"
+                [style.background-color]="getPriorityColor(task.priority)"
+              >
+                {{ task.priority }}
+              </span>
+            </div>
+          </div>
+
+          <div class="task-details">
+            <div class="task-detail-item">
+              <mat-icon class="detail-icon">schedule</mat-icon>
+              <span class="detail-label">期日:</span>
+              <span class="detail-value">{{ task.dueDate }}</span>
+            </div>
+            <div class="task-detail-item">
+              <mat-icon class="detail-icon">person</mat-icon>
+              <span class="detail-label">担当者:</span>
+              <span class="detail-value">{{ task.assignee }}</span>
+            </div>
+          </div>
+
+          <!-- タグ表示 -->
+          <div *ngIf="task.tags && task.tags.length > 0" class="task-tags">
+            <mat-chip-set>
+              <mat-chip *ngFor="let tag of task.tags" class="task-tag">
+                {{ tag }}
+              </mat-chip>
+            </mat-chip-set>
+          </div>
+
+          <!-- 説明表示 -->
+          <div *ngIf="task.description" class="task-description">
+            <p>{{ task.description }}</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- 検索結果なし -->
+    <div *ngIf="!isLoading && searchResults.length === 0" class="no-results">
+      <mat-card>
+        <mat-card-content>
+          <div class="no-results-content">
+            <mat-icon class="search-icon">search_off</mat-icon>
+            <h3>検索結果が見つかりません</h3>
+            <p>検索条件を変更して再度検索してください。</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>

@@ -1,41 +1,177 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
-import { MemberService } from '../../../services/member.service';
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { Router } from '@angular/router';
+import { ProjectService } from '../../../services/project.service';
+import { Task } from '../../../models/task.model';
+
+interface MemberProgress {
+  name: string;
+  totalTasks: number;
+  completedTasks: number;
+  inProgressTasks: number;
+  notStartedTasks: number;
+  completionRate: number;
+  tasks: Task[];
+  // 優先度別の詳細
+  completedByPriority: { high: number; medium: number; low: number };
+  inProgressByPriority: { high: number; medium: number; low: number };
+  notStartedByPriority: { high: number; medium: number; low: number };
+}
 
 @Component({
   selector: 'app-member-progress',
   standalone: true,
-  imports: [CommonModule],
+  imports: [
+    CommonModule,
+    MatCardModule,
+    MatButtonModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
+  ],
   templateUrl: './member-progress.component.html',
   styleUrls: ['./member-progress.component.css'],
 })
 export class MemberProgressComponent implements OnInit {
-  member: any; // メンバー情報
-  tasks: any[] = []; // タスク一覧
+  private projectService = inject(ProjectService);
+  private router = inject(Router);
 
-  constructor(
-    private route: ActivatedRoute,
-    private memberService: MemberService
-  ) {}
+  members: MemberProgress[] = [];
+  isLoading = true;
 
   ngOnInit() {
-    // URLの末尾にある /progress/members/:memberId の部分を取得
-    const memberId = this.route.snapshot.paramMap.get('memberId');
-    console.log('メンバーID:', memberId);
+    this.loadMemberProgress();
+  }
 
-    if (memberId) {
-      // Firestore からメンバー情報を取得
-      this.memberService.getMemberById(memberId).subscribe((data) => {
-        console.log('選択されたメンバー:', data);
-        this.member = data;
-      });
+  loadMemberProgress() {
+    this.isLoading = true;
+    console.log('メンバー進捗を読み込み中...');
 
-      // Firestore からサブコレクション tasks を取得
-      this.memberService.getTasksByMemberId(memberId).subscribe((taskList) => {
-        console.log('Firestoreからタスク取得:', taskList);
-        this.tasks = taskList;
+    // 全プロジェクトのタスクを取得
+    this.projectService.getProjects().subscribe((projects) => {
+      if (projects.length === 0) {
+        this.isLoading = false;
+        return;
+      }
+
+      const allTasks: Task[] = [];
+      let completedRequests = 0;
+
+      // 各プロジェクトのタスクを取得
+      projects.forEach((project) => {
+        if (project.id) {
+          this.projectService
+            .getTasksByProjectId(project.id)
+            .subscribe((tasks) => {
+              allTasks.push(...tasks);
+              completedRequests++;
+
+              // すべてのプロジェクトのタスクを取得したら処理を実行
+              if (completedRequests === projects.length) {
+                this.processMemberProgress(allTasks);
+              }
+            });
+        } else {
+          completedRequests++;
+          if (completedRequests === projects.length) {
+            this.processMemberProgress(allTasks);
+          }
+        }
       });
+    });
+  }
+
+  processMemberProgress(allTasks: Task[]) {
+    console.log('全タスク:', allTasks);
+
+    // 担当者ごとにタスクをグループ化
+    const memberTaskMap = new Map<string, Task[]>();
+
+    allTasks.forEach((task) => {
+      if (task.assignee) {
+        if (!memberTaskMap.has(task.assignee)) {
+          memberTaskMap.set(task.assignee, []);
+        }
+        memberTaskMap.get(task.assignee)!.push(task);
+      }
+    });
+
+    console.log('メンバー別タスク:', memberTaskMap);
+
+    // 各メンバーの進捗を計算
+    this.members = Array.from(memberTaskMap.entries()).map(
+      ([memberName, tasks]) => {
+        const totalTasks = tasks.length;
+        const completedTasks = tasks.filter((t) => t.status === '完了');
+        const inProgressTasks = tasks.filter((t) => t.status === '作業中');
+        const notStartedTasks = tasks.filter((t) => t.status === '未着手');
+        const completionRate =
+          totalTasks > 0
+            ? Math.round((completedTasks.length / totalTasks) * 100)
+            : 0;
+
+        // 優先度別の詳細計算
+        const completedByPriority =
+          this.calculatePriorityBreakdown(completedTasks);
+        const inProgressByPriority =
+          this.calculatePriorityBreakdown(inProgressTasks);
+        const notStartedByPriority =
+          this.calculatePriorityBreakdown(notStartedTasks);
+
+        return {
+          name: memberName,
+          totalTasks,
+          completedTasks: completedTasks.length,
+          inProgressTasks: inProgressTasks.length,
+          notStartedTasks: notStartedTasks.length,
+          completionRate,
+          tasks,
+          completedByPriority,
+          inProgressByPriority,
+          notStartedByPriority,
+        };
+      }
+    );
+
+    // 完了率でソート（高い順）
+    this.members.sort((a, b) => b.completionRate - a.completionRate);
+
+    console.log('メンバー進捗:', this.members);
+    this.isLoading = false;
+  }
+
+  getStatusColor(status: string): string {
+    switch (status) {
+      case '完了':
+        return '#4caf50';
+      case '作業中':
+        return '#2196f3';
+      case '未着手':
+        return '#f44336';
+      default:
+        return '#9e9e9e';
     }
+  }
+
+  /** 優先度別の内訳を計算 */
+  calculatePriorityBreakdown(tasks: Task[]): {
+    high: number;
+    medium: number;
+    low: number;
+  } {
+    return {
+      high: tasks.filter((t) => t.priority === '高').length,
+      medium: tasks.filter((t) => t.priority === '中').length,
+      low: tasks.filter((t) => t.priority === '低').length,
+    };
+  }
+
+  /** メンバーカードをクリックして個別メンバー進捗画面に遷移 */
+  goToMemberDetail(memberName: string) {
+    console.log('メンバー詳細画面に遷移:', memberName);
+    this.router.navigate(['/progress/members', memberName]);
   }
 }

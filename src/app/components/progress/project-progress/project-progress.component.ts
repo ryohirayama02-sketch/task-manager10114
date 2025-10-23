@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ProjectService } from '../../../services/project.service';
+import { Task } from '../../../models/task.model';
+import { IProject } from '../../../models/project.model'; //
 
 @Component({
   selector: 'app-project-progress',
@@ -11,13 +13,14 @@ import { ProjectService } from '../../../services/project.service';
   styleUrls: ['./project-progress.component.css'],
 })
 export class ProjectProgressComponent implements OnInit {
-  project: any;
-  tasks: any[] = [];
+  project: IProject | null = null;
+  tasks: Task[] = [];
 
   projectId: string | null = null;
 
   constructor(
     private route: ActivatedRoute,
+    private router: Router,
     private projectService: ProjectService
   ) {}
 
@@ -36,9 +39,15 @@ export class ProjectProgressComponent implements OnInit {
       this.projectService
         .getTasksByProjectId(this.projectId)
         .subscribe((taskList) => {
-          console.log('Firestoreからタスク取得:', taskList);
           this.tasks = taskList;
         });
+    }
+  }
+
+  /** タスク詳細画面を開く */
+  openTaskDetail(task: Task) {
+    if (this.projectId && task.id) {
+      this.router.navigate(['/project', this.projectId, 'task', task.id]);
     }
   }
 }

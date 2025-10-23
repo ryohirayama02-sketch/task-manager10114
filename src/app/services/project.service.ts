@@ -6,17 +6,21 @@ import {
   addDoc,
   doc,
   docData,
+  updateDoc,
 } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
+import { IProject } from '../models/project.model'; // 上の方に追加
 
 @Injectable({ providedIn: 'root' })
 export class ProjectService {
   constructor(private firestore: Firestore) {}
 
   /** 🔹 全プロジェクト一覧を取得 */
-  getProjects(): Observable<any[]> {
+  getProjects(): Observable<IProject[]> {
     const projectsRef = collection(this.firestore, 'projects');
-    return collectionData(projectsRef, { idField: 'id' }) as Observable<any[]>;
+    return collectionData(projectsRef, { idField: 'id' }) as Observable<
+      IProject[]
+    >;
   }
 
   /** 🔹 特定のプロジェクト内のタスクを取得 */
@@ -25,10 +29,9 @@ export class ProjectService {
     return collectionData(tasksRef, { idField: 'id' }) as Observable<any[]>;
   }
 
-  /** 🔹 ID指定でプロジェクトを取得 */
-  getProjectById(projectId: string): Observable<any> {
+  getProjectById(projectId: string): Observable<IProject> {
     const projectRef = doc(this.firestore, `projects/${projectId}`);
-    return docData(projectRef, { idField: 'id' }) as Observable<any>;
+    return docData(projectRef, { idField: 'id' }) as Observable<IProject>;
   }
 
   /** 🔹 プロジェクトIDを指定してタスクを取得 */
@@ -48,5 +51,14 @@ export class ProjectService {
   addTaskToProject(projectId: string, taskData: any) {
     const tasksRef = collection(this.firestore, `projects/${projectId}/tasks`);
     return addDoc(tasksRef, taskData);
+  }
+
+  /** ✅ タスクを更新 */
+  updateTask(projectId: string, taskId: string, taskData: any) {
+    const taskRef = doc(
+      this.firestore,
+      `projects/${projectId}/tasks/${taskId}`
+    );
+    return updateDoc(taskRef, taskData);
   }
 }

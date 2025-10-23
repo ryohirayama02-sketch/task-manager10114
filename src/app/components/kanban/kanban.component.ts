@@ -10,11 +10,13 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatChipsModule } from '@angular/material/chips';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { doc, updateDoc } from '@angular/fire/firestore';
 import { TaskService } from '../../services/task.service';
 import { ProjectService } from '../../services/project.service';
 import { ProjectFormDialogComponent } from '../project-form-dialog/project-form-dialog.component';
 import { TaskFormComponent } from '../task-form/task-form.component';
+import { Task, Project } from '../../models/task.model';
 
 @Component({
   selector: 'app-kanban',
@@ -36,16 +38,17 @@ import { TaskFormComponent } from '../task-form/task-form.component';
   styleUrls: ['./kanban.component.css'],
 })
 export class KanbanComponent implements OnInit {
-  tasks: any[] = [];
-  projects: any[] = [];
+  tasks: Task[] = [];
+  projects: Project[] = [];
   selectedProjectIds: string[] = [];
-  allTasks: any[] = []; // 全プロジェクトのタスクを保持
+  allTasks: Task[] = []; // 全プロジェクトのタスクを保持
   statuses = ['未着手', '作業中', '完了'];
 
   constructor(
     private taskService: TaskService,
     private projectService: ProjectService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -72,21 +75,27 @@ export class KanbanComponent implements OnInit {
   loadAllTasks() {
     this.allTasks = [];
     this.projects.forEach((project) => {
-      this.projectService.getTasksByProjectId(project.id).subscribe((tasks) => {
-        // プロジェクト情報をタスクに追加
-        const tasksWithProject = tasks.map((task) => ({
-          ...task,
-          projectId: project.id,
-          projectName: project.projectName,
-        }));
+      if (project.id) {
+        this.projectService
+          .getTasksByProjectId(project.id)
+          .subscribe((tasks) => {
+            // プロジェクト情報をタスクに追加
+            const tasksWithProject = tasks.map((task) => ({
+              ...task,
+              projectId: project.id!,
+              projectName: project.projectName,
+            }));
 
-        // 既存のタスクを更新または追加
-        this.allTasks = this.allTasks.filter((t) => t.projectId !== project.id);
-        this.allTasks = [...this.allTasks, ...tasksWithProject];
+            // 既存のタスクを更新または追加
+            this.allTasks = this.allTasks.filter(
+              (t) => t.projectId !== project.id
+            );
+            this.allTasks = [...this.allTasks, ...tasksWithProject];
 
-        // 選択されたプロジェクトのタスクをフィルタリング
-        this.filterTasksBySelectedProjects();
-      });
+            // 選択されたプロジェクトのタスクをフィルタリング
+            this.filterTasksBySelectedProjects();
+          });
+      }
     });
   }
 
@@ -136,6 +145,17 @@ export class KanbanComponent implements OnInit {
 
   /** タスクのステータスを変更 */
   changeTaskStatus(taskId: string, newStatus: string) {
+    // 有効なステータスかチェック
+    const validStatuses: ('未着手' | '作業中' | '完了')[] = [
+      '未着手',
+      '作業中',
+      '完了',
+    ];
+    if (!validStatuses.includes(newStatus as '未着手' | '作業中' | '完了')) {
+      console.error('無効なステータス:', newStatus);
+      return;
+    }
+
     // タスクのプロジェクトIDを取得
     const task = this.allTasks.find((t) => t.id === taskId);
     if (!task) return;
@@ -151,7 +171,10 @@ export class KanbanComponent implements OnInit {
         // ローカルのタスクも更新
         const taskIndex = this.allTasks.findIndex((t) => t.id === taskId);
         if (taskIndex > -1) {
-          this.allTasks[taskIndex].status = newStatus;
+          this.allTasks[taskIndex].status = newStatus as
+            | '未着手'
+            | '作業中'
+            | '完了';
           this.filterTasksBySelectedProjects();
         }
       })
@@ -186,11 +209,19 @@ export class KanbanComponent implements OnInit {
       return;
     }
 
+    // 選択されたプロジェクトの名前を取得
+    const selectedProject = this.projects.find(
+      (p) => p.id === this.selectedProjectIds[0]
+    );
+    const projectName = selectedProject ? selectedProject.projectName : '';
+
     const ref = this.dialog.open(TaskFormComponent, {
       width: '450px',
+      data: { projectName: projectName }, // プロジェクト名を渡す
     });
     ref.afterClosed().subscribe((result) => {
       if (result && this.selectedProjectIds.length === 1) {
+        console.log('保存するタスクデータ:', result); // デバッグ用ログ
         this.projectService
           .addTaskToProject(this.selectedProjectIds[0], result)
           .then(() => {
@@ -203,5 +234,12 @@ export class KanbanComponent implements OnInit {
           });
       }
     });
+  }
+
+  /** タスク詳細画面を開く */
+  openTaskDetail(task: Task) {
+    if (task.projectId && task.id) {
+      this.router.navigate(['/project', task.projectId, 'task', task.id]);
+    }
   }
 }

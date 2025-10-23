@@ -12,6 +12,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { FormsModule } from '@angular/forms';
 import { ProjectService } from '../../services/project.service';
 import { ProjectFormDialogComponent } from '../project-form-dialog/project-form-dialog.component';
+import { Task, Project } from '../../models/task.model';
 
 @Component({
   selector: 'app-gantt',
@@ -33,10 +34,10 @@ import { ProjectFormDialogComponent } from '../project-form-dialog/project-form-
   styleUrls: ['./gantt.component.css'],
 })
 export class GanttComponent implements OnInit {
-  tasks: any[] = [];
-  projects: any[] = [];
+  tasks: Task[] = [];
+  projects: Project[] = [];
   selectedProjectIds: string[] = [];
-  allTasks: any[] = [];
+  allTasks: Task[] = [];
 
   // フィルター用
   filterPriority: string = '';
@@ -104,17 +105,23 @@ export class GanttComponent implements OnInit {
   loadAllTasks() {
     this.allTasks = [];
     this.projects.forEach((project) => {
-      this.projectService.getTasksByProjectId(project.id).subscribe((tasks) => {
-        const tasksWithProject = tasks.map((task) => ({
-          ...task,
-          projectId: project.id,
-          projectName: project.projectName,
-        }));
+      if (project.id) {
+        this.projectService
+          .getTasksByProjectId(project.id)
+          .subscribe((tasks) => {
+            const tasksWithProject = tasks.map((task) => ({
+              ...task,
+              projectId: project.id!,
+              projectName: project.projectName,
+            }));
 
-        this.allTasks = this.allTasks.filter((t) => t.projectId !== project.id);
-        this.allTasks = [...this.allTasks, ...tasksWithProject];
-        this.filterTasksBySelectedProjects();
-      });
+            this.allTasks = this.allTasks.filter(
+              (t) => t.projectId !== project.id
+            );
+            this.allTasks = [...this.allTasks, ...tasksWithProject];
+            this.filterTasksBySelectedProjects();
+          });
+      }
     });
   }
 
@@ -176,17 +183,17 @@ export class GanttComponent implements OnInit {
   }
 
   /** タスクの開始日を取得 */
-  getTaskStartDate(task: any): Date {
+  getTaskStartDate(task: Task): Date {
     return task.startDate ? new Date(task.startDate) : new Date();
   }
 
   /** タスクの終了日を取得 */
-  getTaskEndDate(task: any): Date {
-    return task.endDate ? new Date(task.endDate) : new Date();
+  getTaskEndDate(task: Task): Date {
+    return task.dueDate ? new Date(task.dueDate) : new Date();
   }
 
   /** タスクの期間を計算 */
-  getTaskDuration(task: any): number {
+  getTaskDuration(task: Task): number {
     const start = this.getTaskStartDate(task);
     const end = this.getTaskEndDate(task);
     return (
@@ -195,7 +202,7 @@ export class GanttComponent implements OnInit {
   }
 
   /** タスクの開始位置を計算 */
-  getTaskStartPosition(task: any): number {
+  getTaskStartPosition(task: Task): number {
     const start = this.getTaskStartDate(task);
     const daysDiff = Math.floor(
       (start.getTime() - this.startDate.getTime()) / (1000 * 60 * 60 * 24)
@@ -242,29 +249,29 @@ export class GanttComponent implements OnInit {
   }
 
   /** 日付がタスクの期間内かチェック */
-  isDateInTaskRange(date: Date, task: any): boolean {
+  isDateInTaskRange(date: Date, task: Task): boolean {
     const taskStart = this.getTaskStartDate(task);
     const taskEnd = this.getTaskEndDate(task);
     return date >= taskStart && date <= taskEnd;
   }
 
-  /** タスクバーの位置を計算 */
-  getTaskBarPosition(date: Date, task: any): number {
+  /** タスクバーの開始位置を計算（ピクセル単位） */
+  getTaskBarStartPosition(task: Task): number {
     const taskStart = this.getTaskStartDate(task);
     const daysDiff = Math.floor(
-      (date.getTime() - taskStart.getTime()) / (1000 * 60 * 60 * 24)
+      (taskStart.getTime() - this.startDate.getTime()) / (1000 * 60 * 60 * 24)
     );
-    return Math.max(0, (daysDiff * 100) / this.dateRange.length);
+    return Math.max(0, daysDiff * 30); // 1日 = 30px
   }
 
-  /** タスクバーの幅を計算 */
-  getTaskBarWidth(date: Date, task: any): number {
+  /** タスクバーの幅を計算（ピクセル単位） */
+  getTaskBarWidth(task: Task): number {
     const taskStart = this.getTaskStartDate(task);
     const taskEnd = this.getTaskEndDate(task);
     const totalDays =
       Math.ceil(
         (taskEnd.getTime() - taskStart.getTime()) / (1000 * 60 * 60 * 24)
       ) + 1;
-    return (totalDays * 100) / this.dateRange.length;
+    return totalDays * 30; // 1日 = 30px
   }
 }

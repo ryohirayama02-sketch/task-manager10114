@@ -13,6 +13,7 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { FormsModule } from '@angular/forms';
 import { ProjectService } from '../../services/project.service';
 import { ProjectFormDialogComponent } from '../project-form-dialog/project-form-dialog.component';
+import { Task, Project } from '../../models/task.model';
 
 @Component({
   selector: 'app-calendar',
@@ -35,10 +36,10 @@ import { ProjectFormDialogComponent } from '../project-form-dialog/project-form-
   styleUrls: ['./calendar.component.css'],
 })
 export class CalendarComponent implements OnInit {
-  tasks: any[] = [];
-  projects: any[] = [];
+  tasks: Task[] = [];
+  projects: Project[] = [];
   selectedProjectIds: string[] = [];
-  allTasks: any[] = [];
+  allTasks: Task[] = [];
 
   // カレンダー表示用
   currentDate: Date = new Date();
@@ -133,17 +134,23 @@ export class CalendarComponent implements OnInit {
   loadAllTasks() {
     this.allTasks = [];
     this.projects.forEach((project) => {
-      this.projectService.getTasksByProjectId(project.id).subscribe((tasks) => {
-        const tasksWithProject = tasks.map((task) => ({
-          ...task,
-          projectId: project.id,
-          projectName: project.projectName,
-        }));
+      if (project.id) {
+        this.projectService
+          .getTasksByProjectId(project.id)
+          .subscribe((tasks) => {
+            const tasksWithProject = tasks.map((task) => ({
+              ...task,
+              projectId: project.id!,
+              projectName: project.projectName,
+            }));
 
-        this.allTasks = this.allTasks.filter((t) => t.projectId !== project.id);
-        this.allTasks = [...this.allTasks, ...tasksWithProject];
-        this.filterTasksBySelectedProjects();
-      });
+            this.allTasks = this.allTasks.filter(
+              (t) => t.projectId !== project.id
+            );
+            this.allTasks = [...this.allTasks, ...tasksWithProject];
+            this.filterTasksBySelectedProjects();
+          });
+      }
     });
   }
 
@@ -205,7 +212,7 @@ export class CalendarComponent implements OnInit {
   }
 
   /** 指定された日付のタスクを取得（期限ベース） */
-  getTasksForDate(date: Date): any[] {
+  getTasksForDate(date: Date): Task[] {
     return this.tasks.filter((task) => {
       // 期限日でフィルタリング
       const dueDate = task.dueDate ? new Date(task.dueDate) : null;
@@ -246,9 +253,13 @@ export class CalendarComponent implements OnInit {
   }
 
   /** 表示モードを変更 */
-  changeViewMode(event: any) {
-    this.viewMode = event.value;
-    this.generateCalendarDays();
+  changeViewMode(event: Event) {
+    const target = event.target as HTMLSelectElement;
+    const value = target.value as 'day' | 'week' | 'month';
+    if (value === 'day' || value === 'week' || value === 'month') {
+      this.viewMode = value;
+      this.generateCalendarDays();
+    }
   }
 
   /** 表示名を取得 */

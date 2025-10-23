@@ -1,2 +1,419 @@
-<h2>タスク詳細</h2>
-<p>ここにタスク詳細を表示予定</p>
+<div class="task-detail-container">
+  <!-- ヘッダー -->
+  <div class="task-header">
+    <button mat-button (click)="goBack()" class="back-button">
+      <mat-icon>arrow_back</mat-icon>
+      戻る
+    </button>
+    <h1>{{ taskData.taskName || "タスク詳細" }}</h1>
+    <div class="header-actions">
+      <button mat-button (click)="toggleEdit()" *ngIf="!isEditing">
+        <mat-icon>edit</mat-icon>
+        編集
+      </button>
+      <button
+        mat-button
+        (click)="saveTask()"
+        *ngIf="isEditing"
+        color="primary"
+        [disabled]="isSaving"
+      >
+        <mat-spinner *ngIf="isSaving" diameter="20"></mat-spinner>
+        <mat-icon *ngIf="!isSaving">save</mat-icon>
+        {{ isSaving ? "保存中..." : "保存" }}
+      </button>
+      <button mat-button (click)="cancel()" *ngIf="isEditing">
+        <mat-icon>cancel</mat-icon>
+        キャンセル
+      </button>
+    </div>
+  </div>
+
+  <!-- ローディング状態 -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>タスク情報を読み込み中...</p>
+  </div>
+
+  <!-- メインコンテンツ -->
+  <div class="task-content" *ngIf="!isLoading && task; else taskNotFound">
+    <!-- 基本情報 -->
+    <mat-card class="info-card">
+      <mat-card-header>
+        <mat-card-title>基本情報</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="form-row">
+          <div class="form-field">
+            <label>プロジェクト名</label>
+            <div class="readonly-field">
+              {{ taskData.projectName || project?.projectName || "—" }}
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label>タスク名</label>
+            <input
+              *ngIf="isEditing"
+              matInput
+              [(ngModel)]="taskData.taskName"
+              placeholder="タスク名を入力"
+            />
+            <div *ngIf="!isEditing" class="readonly-field">
+              {{ taskData.taskName }}
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label>タスクの説明</label>
+            <textarea
+              *ngIf="isEditing"
+              matInput
+              [(ngModel)]="taskData.description"
+              placeholder="タスクの説明を入力"
+              rows="3"
+            ></textarea>
+            <div *ngIf="!isEditing" class="readonly-field">
+              {{ taskData.description || "説明なし" }}
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label>期間</label>
+            <div *ngIf="isEditing" class="date-inputs">
+              <input
+                type="date"
+                [(ngModel)]="taskData.startDate"
+                placeholder="開始日"
+              />
+              <span>～</span>
+              <input
+                type="date"
+                [(ngModel)]="taskData.endDate"
+                placeholder="期限日"
+              />
+            </div>
+            <div *ngIf="!isEditing" class="readonly-field">
+              {{
+                taskData.startDate
+                  ? (taskData.startDate | date : "yyyy/MM/dd")
+                  : "—"
+              }}
+              ～
+              {{
+                taskData.endDate
+                  ? (taskData.endDate | date : "yyyy/MM/dd")
+                  : "—"
+              }}
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label>担当者</label>
+            <input
+              *ngIf="isEditing"
+              matInput
+              [(ngModel)]="taskData.assignee"
+              placeholder="担当者を入力"
+            />
+            <div *ngIf="!isEditing" class="readonly-field">
+              {{ taskData.assignee || "—" }}
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label>ステータス</label>
+            <mat-select *ngIf="isEditing" [(ngModel)]="taskData.status">
+              <mat-option *ngFor="let status of statusOptions" [value]="status">
+                {{ status }}
+              </mat-option>
+            </mat-select>
+            <div *ngIf="!isEditing" class="readonly-field">
+              {{ taskData.status }}
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label>優先度</label>
+            <mat-select *ngIf="isEditing" [(ngModel)]="taskData.priority">
+              <mat-option
+                *ngFor="let priority of priorityOptions"
+                [value]="priority"
+              >
+                {{ priority }}
+              </mat-option>
+            </mat-select>
+            <div *ngIf="!isEditing" class="readonly-field">
+              {{ taskData.priority }}
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- タグと関連資料 -->
+    <mat-card class="info-card">
+      <mat-card-header>
+        <mat-card-title>タグ・関連資料</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="form-row">
+          <div class="form-field">
+            <label>タグ</label>
+            <div *ngIf="isEditing" class="tag-input">
+              <input
+                matInput
+                #tagInput
+                placeholder="タグを入力してEnter"
+                (keyup.enter)="addTag(tagInput.value); tagInput.value = ''"
+              />
+            </div>
+            <mat-chip-set *ngIf="taskData.tags && taskData.tags.length > 0">
+              <mat-chip
+                *ngFor="let tag of taskData.tags || []"
+                [removable]="isEditing"
+                (removed)="removeTag(tag)"
+              >
+                {{ tag }}
+                <mat-icon matChipRemove *ngIf="isEditing">cancel</mat-icon>
+              </mat-chip>
+            </mat-chip-set>
+            <div
+              *ngIf="!isEditing && (taskData.tags?.length || 0) === 0"
+              class="readonly-field"
+            >
+              タグなし
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label>格納済み関連資料</label>
+            <div *ngIf="isEditing" class="file-input">
+              <input
+                matInput
+                #fileInput
+                placeholder="ファイル名を入力してEnter"
+                (keyup.enter)="
+                  addRelatedFile(fileInput.value); fileInput.value = ''
+                "
+              />
+            </div>
+            <mat-chip-set
+              *ngIf="taskData.relatedFiles && taskData.relatedFiles.length > 0"
+            >
+              <mat-chip
+                *ngFor="let file of taskData.relatedFiles || []"
+                [removable]="isEditing"
+                (removed)="removeRelatedFile(file)"
+              >
+                <mat-icon>attach_file</mat-icon>
+                {{ file }}
+                <mat-icon matChipRemove *ngIf="isEditing">cancel</mat-icon>
+              </mat-chip>
+            </mat-chip-set>
+            <div
+              *ngIf="!isEditing && (taskData.relatedFiles?.length || 0) === 0"
+              class="readonly-field"
+            >
+              関連資料なし
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- アクションボタン -->
+    <mat-card class="action-card">
+      <mat-card-content>
+        <div class="action-buttons">
+          <button
+            mat-raised-button
+            (click)="syncWithCalendar()"
+            color="primary"
+          >
+            <mat-icon>event</mat-icon>
+            カレンダー連携
+          </button>
+          <button mat-raised-button (click)="createSubtask()">
+            <mat-icon>add</mat-icon>
+            +タスク
+          </button>
+          <button mat-raised-button (click)="duplicateTask()">
+            <mat-icon>content_copy</mat-icon>
+            複製
+          </button>
+          <button mat-raised-button (click)="openDetailSettings()">
+            <mat-icon>settings</mat-icon>
+            詳細設定
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- タスク内チャット -->
+    <mat-card class="chat-card">
+      <mat-card-header>
+        <mat-card-title>タスク内チャット</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="chat-messages">
+          <div
+            *ngFor="let message of taskData.chatMessages || []"
+            class="chat-message"
+          >
+            <div class="message-content">{{ message.content }}</div>
+            <div class="message-time">
+              {{ message.timestamp | date : "MM/dd HH:mm" }}
+            </div>
+          </div>
+          <div
+            *ngIf="!taskData.chatMessages || taskData.chatMessages.length === 0"
+            class="no-messages"
+          >
+            まだメッセージがありません
+          </div>
+        </div>
+        <div class="chat-input">
+          <input
+            matInput
+            placeholder="メッセージを入力..."
+            #chatInput
+            (keyup.enter)="
+              addChatMessage(chatInput.value); chatInput.value = ''
+            "
+          />
+          <button mat-icon-button>
+            <mat-icon>send</mat-icon>
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- 詳細設定ダイアログ -->
+  <div
+    class="detail-settings-overlay"
+    *ngIf="isDetailSettingsOpen"
+    (click)="closeDetailSettings()"
+  >
+    <div class="detail-settings-dialog" (click)="$event.stopPropagation()">
+      <div class="settings-header">
+        <h2>詳細設定</h2>
+        <button mat-icon-button (click)="closeDetailSettings()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="settings-content">
+        <!-- 通知設定 -->
+        <mat-expansion-panel>
+          <mat-expansion-panel-header>
+            <mat-panel-title>通知設定</mat-panel-title>
+          </mat-expansion-panel-header>
+          <div class="setting-item">
+            <mat-checkbox
+              [(ngModel)]="detailSettings.notifications.beforeDeadline"
+            >
+              期限前通知
+            </mat-checkbox>
+          </div>
+          <div class="setting-item">
+            <mat-checkbox
+              [(ngModel)]="detailSettings.notifications.dailyReminder"
+            >
+              日次リマインダー
+            </mat-checkbox>
+          </div>
+          <div class="setting-item">
+            <mat-checkbox
+              [(ngModel)]="detailSettings.notifications.weeklyReport"
+            >
+              週次レポート
+            </mat-checkbox>
+          </div>
+        </mat-expansion-panel>
+
+        <!-- タスクの順番管理 -->
+        <mat-expansion-panel>
+          <mat-expansion-panel-header>
+            <mat-panel-title>タスクの順番管理</mat-panel-title>
+          </mat-expansion-panel-header>
+          <div class="setting-item">
+            <mat-checkbox
+              [(ngModel)]="detailSettings.taskOrder.requireSubtaskCompletion"
+            >
+              子タスク完了まで完了ステータスにできない
+            </mat-checkbox>
+          </div>
+        </mat-expansion-panel>
+
+        <!-- 作業時間記録 -->
+        <mat-expansion-panel>
+          <mat-expansion-panel-header>
+            <mat-panel-title>作業時間記録</mat-panel-title>
+          </mat-expansion-panel-header>
+          <div class="setting-item">
+            <label>予定時間（時間）</label>
+            <input
+              type="number"
+              [(ngModel)]="detailSettings.workTime.estimatedHours"
+              min="0"
+            />
+          </div>
+          <div class="setting-item">
+            <label>実績時間（時間）</label>
+            <input
+              type="number"
+              [(ngModel)]="detailSettings.workTime.actualHours"
+              min="0"
+            />
+          </div>
+        </mat-expansion-panel>
+      </div>
+
+      <div class="settings-actions">
+        <button mat-button (click)="closeDetailSettings()">キャンセル</button>
+        <button
+          mat-raised-button
+          color="primary"
+          (click)="saveDetailSettings()"
+        >
+          保存
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- タスクが見つからない場合 -->
+<ng-template #taskNotFound>
+  <div class="task-not-found">
+    <mat-card>
+      <mat-card-content>
+        <div class="not-found-content">
+          <mat-icon class="error-icon">error_outline</mat-icon>
+          <h2>タスクが見つかりません</h2>
+          <p>指定されたタスクが存在しないか、アクセス権限がありません。</p>
+          <button mat-button (click)="goBack()" color="primary">
+            <mat-icon>arrow_back</mat-icon>
+            戻る
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</ng-template>

@@ -7,8 +7,8 @@
     <div class="project-checkboxes">
       <mat-checkbox
         *ngFor="let project of projects"
-        [checked]="isProjectSelected(project.id)"
-        (change)="toggleProjectSelection(project.id)"
+        [checked]="project.id ? isProjectSelected(project.id) : false"
+        (change)="project.id ? toggleProjectSelection(project.id) : null"
         class="project-checkbox"
       >
         {{ project.projectName }}
@@ -126,16 +126,27 @@
         <div class="gantt-bars">
           <div class="date-cells">
             <div *ngFor="let date of dateRange" class="date-cell">
-              <!-- タスク期間の表示 -->
-              <div
-                *ngIf="isDateInTaskRange(date, task)"
-                class="task-bar"
-                [style.background-color]="statusColors[task.status]"
-                [style.left]="getTaskBarPosition(date, task) + '%'"
-                [style.width]="getTaskBarWidth(date, task) + '%'"
-                [title]="task.taskName + ' (' + task.status + ')'"
-              ></div>
+              <!-- 日付セル -->
             </div>
+          </div>
+          <!-- タスク期間バー -->
+          <div
+            *ngIf="task.startDate && task.dueDate"
+            class="task-bar"
+            [style.background-color]="statusColors[task.status]"
+            [style.left]="getTaskBarStartPosition(task) + 'px'"
+            [style.width]="getTaskBarWidth(task) + 'px'"
+            [title]="
+              task.taskName +
+              ' (' +
+              task.status +
+              ') - ' +
+              task.startDate +
+              ' ～ ' +
+              task.dueDate
+            "
+          >
+            <span class="task-bar-text">{{ task.taskName }}</span>
           </div>
         </div>
       </div>

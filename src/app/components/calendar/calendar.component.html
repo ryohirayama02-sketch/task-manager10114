@@ -7,8 +7,8 @@
     <div class="project-checkboxes">
       <mat-checkbox
         *ngFor="let project of projects"
-        [checked]="isProjectSelected(project.id)"
-        (change)="toggleProjectSelection(project.id)"
+        [checked]="project.id ? isProjectSelected(project.id) : false"
+        (change)="project.id ? toggleProjectSelection(project.id) : null"
         class="project-checkbox"
       >
         {{ project.projectName }}

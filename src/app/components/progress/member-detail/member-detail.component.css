@@ -1,40 +1,29 @@
-.member-progress-container {
+.member-detail-container {
   padding: 20px;
-  max-width: 1000px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
 .header {
-  text-align: center;
+  display: flex;
+  align-items: center;
   margin-bottom: 30px;
-  position: relative;
+  gap: 20px;
+}
+
+.back-button {
+  background: #f5f5f5;
+  color: #333;
+  border-radius: 20px;
+}
+
+.back-button:hover {
+  background: #e0e0e0;
 }
 
 .header h2 {
   color: #1976d2;
-  margin-bottom: 10px;
-}
-
-.header p {
-  color: #666;
-  font-size: 14px;
-  margin-bottom: 20px;
-}
-
-.header-actions {
-  position: absolute;
-  top: 0;
-  right: 0;
-}
-
-.period-button {
-  background: #1976d2;
-  color: white;
-  border-radius: 20px;
-}
-
-.period-button:hover {
-  background: #1565c0;
+  margin: 0;
 }
 
 .loading-container {
@@ -50,40 +39,34 @@
   color: #666;
 }
 
-.members-list {
+.member-detail-content {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-.member-card {
+.member-info-card {
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  cursor: pointer;
-  border-left: 4px solid #1976d2;
 }
 
-.member-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  border-left-color: #42a5f5;
-}
-
-.member-header {
+.member-info {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 15px;
-  border-bottom: 2px solid #e0e0e0;
+  flex-direction: column;
+  gap: 15px;
 }
 
 .member-name {
-  font-size: 20px;
+  font-size: 24px;
   font-weight: 600;
   color: #333;
   margin: 0;
+}
+
+.member-meta {
+  display: flex;
+  gap: 20px;
+  align-items: center;
 }
 
 .completion-rate {
@@ -93,6 +76,73 @@
   border-radius: 20px;
   font-weight: 600;
   font-size: 14px;
+}
+
+.total-tasks {
+  background: #f5f5f5;
+  color: #333;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.projects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.project-chip {
+  background: #e3f2fd;
+  color: #1976d2;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.priority-stats-card,
+.tasks-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.priority-stats-card mat-card-header,
+.tasks-card mat-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.period-button,
+.filter-button,
+.export-button {
+  border-radius: 20px;
+  font-size: 12px;
+}
+
+.period-button {
+  background: #1976d2;
+  color: white;
+}
+
+.filter-button {
+  background: #ff9800;
+  color: white;
+}
+
+.export-button {
+  background: #4caf50;
+  color: white;
 }
 
 .priority-breakdown {
@@ -204,11 +254,50 @@
   color: #4caf50;
 }
 
-.no-members {
+.table-container {
+  overflow-x: auto;
+}
+
+.tasks-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tasks-table th {
+  background: #f5f5f5;
+  font-weight: 600;
+  color: #333;
+  padding: 12px 8px;
+  text-align: left;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.tasks-table td {
+  padding: 12px 8px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.tasks-table tr:hover {
+  background: #f9f9f9;
+}
+
+.status-chip,
+.priority-chip {
+  padding: 4px 12px;
+  border-radius: 12px;
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  min-width: 60px;
+  display: inline-block;
+}
+
+.no-member {
   margin-top: 40px;
 }
 
-.no-members-content {
+.no-member-content {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -216,34 +305,35 @@
   padding: 40px;
 }
 
-.info-icon {
+.error-icon {
   font-size: 48px;
-  color: #1976d2;
+  color: #f44336;
   margin-bottom: 16px;
 }
 
-.no-members-content h3 {
+.no-member-content h3 {
   color: #333;
   margin-bottom: 8px;
 }
 
-.no-members-content p {
+.no-member-content p {
   color: #666;
-  max-width: 400px;
+  margin-bottom: 20px;
 }
 
 /* レスポンシブデザイン */
 @media (max-width: 768px) {
-  .member-progress-container {
+  .member-detail-container {
     padding: 15px;
   }
 
-  .header-actions {
-    position: static;
-    margin-top: 15px;
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
   }
 
-  .member-header {
+  .member-meta {
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
@@ -256,6 +346,14 @@
   .priority-item {
     width: 35px;
     height: 35px;
+    font-size: 12px;
+  }
+
+  .header-actions {
+    flex-wrap: wrap;
+  }
+
+  .table-container {
     font-size: 12px;
   }
 }

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { ProjectService } from '../../services/project.service';
+import { IProject } from '../../models/project.model';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { TaskFormComponent } from '../task-form/task-form.component';
@@ -15,7 +16,7 @@ import { TaskFormComponent } from '../task-form/task-form.component';
   styleUrls: ['./project-detail.component.css'],
 })
 export class ProjectDetailComponent implements OnInit {
-  project: any;
+  project: IProject | null = null;
   projectId: string | null = null;
   isEditing = false;
 

@@ -6,8 +6,8 @@
   <div class="project-checkboxes">
     <mat-checkbox
       *ngFor="let project of projects"
-      [checked]="isProjectSelected(project.id)"
-      (change)="toggleProjectSelection(project.id)"
+      [checked]="project.id ? isProjectSelected(project.id) : false"
+      (change)="project.id ? toggleProjectSelection(project.id) : null"
       class="project-checkbox"
     >
       {{ project.projectName }}
@@ -54,15 +54,22 @@
       <span class="task-count">({{ filterByStatus(status).length }})</span>
     </div>
     <div class="task-list">
-      <div *ngFor="let task of filterByStatus(status)" class="task-card">
+      <div
+        *ngFor="let task of filterByStatus(status)"
+        class="task-card"
+        (click)="openTaskDetail(task)"
+      >
         <div class="task-header">
-          <b>{{ task.taskName }}</b>
+          <b class="task-name-link">{{ task.taskName }}</b>
           <div class="status-buttons">
             <button
               *ngFor="let status of statuses"
               mat-mini-fab
               [color]="task.status === status ? 'primary' : 'basic'"
-              (click)="changeTaskStatus(task.id, status)"
+              (click)="
+                task.id ? changeTaskStatus(task.id, status) : null;
+                $event.stopPropagation()
+              "
               [disabled]="task.status === status"
               class="status-button"
             >

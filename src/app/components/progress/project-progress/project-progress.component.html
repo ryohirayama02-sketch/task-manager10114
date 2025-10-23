@@ -18,12 +18,8 @@
 <div *ngIf="tasks.length > 0; else noTasks">
   <div
     *ngFor="let task of tasks"
-    style="
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      padding: 10px;
-      margin-bottom: 10px;
-    "
+    (click)="openTaskDetail(task)"
+    class="task-card"
   >
     <p><strong>タスク名:</strong> {{ task.taskName }}</p>
     <p><strong>担当:</strong> {{ task.assignee }}</p>

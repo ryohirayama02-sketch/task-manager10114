@@ -13,14 +13,14 @@ export interface Task {
   tags?: string[];
   relatedFiles?: string[];
   chatMessages?: ChatMessage[];
-  createdAt?: Date;
-  updatedAt?: Date;
+  createdAt?: Date | string; // Firestoreとの互換性のため
+  updatedAt?: Date | string; // Firestoreとの互換性のため
 }
 
 export interface ChatMessage {
   id: string;
   content: string;
-  timestamp: Date;
+  timestamp: Date | string; // Firestoreとの互換性のため
   sender: string;
 }
 
@@ -31,8 +31,8 @@ export interface Project {
   startDate?: string;
   endDate?: string;
   milestones?: Milestone[];
-  createdAt?: Date;
-  updatedAt?: Date;
+  createdAt?: Date | string; // Firestoreとの互換性のため
+  updatedAt?: Date | string; // Firestoreとの互換性のため
 }
 
 export interface Milestone {
