@@ -55,10 +55,30 @@ export class ProjectService {
 
   /** ✅ タスクを更新 */
   updateTask(projectId: string, taskId: string, taskData: any) {
+    console.log('ProjectService.updateTask called with:', {
+      projectId,
+      taskId,
+      taskData,
+      taskDataKeys: Object.keys(taskData),
+    });
+
     const taskRef = doc(
       this.firestore,
       `projects/${projectId}/tasks/${taskId}`
     );
-    return updateDoc(taskRef, taskData);
+
+    console.log('Firestore document reference:', taskRef.path);
+
+    return updateDoc(taskRef, taskData).catch((error) => {
+      console.error('ProjectService.updateTask error:', error);
+      console.error('Error details:', {
+        code: error.code,
+        message: error.message,
+        projectId,
+        taskId,
+        taskData,
+      });
+      throw error;
+    });
   }
 }

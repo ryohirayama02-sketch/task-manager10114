@@ -121,12 +121,17 @@ export class TaskDetailComponent implements OnInit {
     this.projectService.getTasksByProjectId(projectId).subscribe({
       next: (tasks) => {
         console.log('取得したタスク一覧:', tasks);
-        this.task = tasks.find((t) => t.id === taskId);
+        // タスクデータにprojectIdを追加
+        const tasksWithProjectId = tasks.map((task) => ({
+          ...task,
+          projectId: projectId,
+        }));
+        this.task = tasksWithProjectId.find((t) => t.id === taskId);
         console.log('見つかったタスク:', this.task);
 
         if (this.task) {
           this.taskData = {
-            projectId: this.task.projectId || '',
+            projectId: this.task.projectId || projectId,
             projectName: this.task.projectName || '',
             taskName: this.task.taskName || '',
             description: this.task.description || '',
@@ -185,9 +190,15 @@ export class TaskDetailComponent implements OnInit {
     console.log('タスクを保存中...', this.taskData);
 
     // 更新するタスクデータを準備
+    // バリデーション
+    if (!this.taskData.taskName?.trim()) {
+      alert('タスク名を入力してください');
+      return;
+    }
+
     const updatedTask = {
-      taskName: this.taskData.taskName,
-      description: this.taskData.description,
+      taskName: this.taskData.taskName.trim(),
+      description: this.taskData.description || '',
       startDate: this.taskData.startDate,
       dueDate: this.taskData.dueDate,
       assignee: this.taskData.assignee,
@@ -205,17 +216,46 @@ export class TaskDetailComponent implements OnInit {
       updatedAt: new Date().toISOString(), // Date型を文字列に変換
     };
 
+    // データの型チェック
+    console.log('保存前のデータ検証:', {
+      taskName: typeof updatedTask.taskName,
+      description: typeof updatedTask.description,
+      startDate: typeof updatedTask.startDate,
+      dueDate: typeof updatedTask.dueDate,
+      assignee: typeof updatedTask.assignee,
+      status: typeof updatedTask.status,
+      priority: typeof updatedTask.priority,
+      tags: Array.isArray(updatedTask.tags),
+      relatedFiles: Array.isArray(updatedTask.relatedFiles),
+      chatMessages: Array.isArray(updatedTask.chatMessages),
+      updatedAt: typeof updatedTask.updatedAt,
+    });
+
     // タスクを更新
-    if (this.task.projectId && this.task.id) {
+    const projectId =
+      this.task?.projectId || this.route.snapshot.paramMap.get('projectId');
+    const taskId = this.task?.id;
+
+    console.log('保存時のID確認:', { projectId, taskId, task: this.task });
+
+    if (projectId && taskId) {
       this.isSaving = true;
       console.log('更新対象のタスク情報:', {
-        projectId: this.task.projectId,
-        taskId: this.task.id,
+        projectId: projectId,
+        taskId: taskId,
         updatedTask: updatedTask,
       });
 
+      console.log('Firestoreに送信するデータ:', {
+        projectId: projectId,
+        taskId: taskId,
+        updatedTask: updatedTask,
+        dataType: typeof updatedTask,
+        dataKeys: Object.keys(updatedTask),
+      });
+
       this.projectService
-        .updateTask(this.task.projectId, this.task.id, updatedTask)
+        .updateTask(projectId, taskId, updatedTask)
         .then(() => {
           console.log('タスクが更新されました');
           // ローカルのタスクデータも更新
@@ -233,13 +273,20 @@ export class TaskDetailComponent implements OnInit {
           console.error('タスク更新エラーの詳細:', error);
           console.error('エラーコード:', error.code);
           console.error('エラーメッセージ:', error.message);
+          console.error('エラーのスタックトレース:', error.stack);
+          console.error('送信しようとしたデータ:', updatedTask);
           this.isSaving = false;
           alert(`タスクの保存に失敗しました: ${error.message}`);
         });
     } else {
       console.error('プロジェクトIDまたはタスクIDが不足しています:', {
-        projectId: this.task?.projectId,
-        taskId: this.task?.id,
+        projectId: projectId,
+        taskId: taskId,
+        task: this.task,
+        routeParams: {
+          projectId: this.route.snapshot.paramMap.get('projectId'),
+          taskId: this.route.snapshot.paramMap.get('taskId'),
+        },
       });
       alert('タスクの保存に失敗しました');
     }

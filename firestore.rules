@@ -1,0 +1,16 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // プロジェクトコレクション
+    match /projects/{projectId} {
+      // プロジェクトドキュメントへのアクセス
+      allow read, write: if true; // 開発用：全ユーザーがアクセス可能
+      
+      // プロジェクト内のタスクコレクション
+      match /tasks/{taskId} {
+        // タスクドキュメントへのアクセス
+        allow read, write: if true; // 開発用：全ユーザーがアクセス可能
+      }
+    }
+  }
+}
