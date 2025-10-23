@@ -4,6 +4,8 @@ import {
   collection,
   collectionData,
   addDoc,
+  doc,
+  updateDoc,
 } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 
@@ -21,5 +23,11 @@ export class TaskService {
   addTask(task: any) {
     const tasksRef = collection(this.firestore, 'tasks');
     return addDoc(tasksRef, task); // ✅ addDocをここで使用
+  }
+
+  /** タスクのステータスを更新 */
+  updateTaskStatus(taskId: string, newStatus: string) {
+    const taskRef = doc(this.firestore, 'tasks', taskId);
+    return updateDoc(taskRef, { status: newStatus });
   }
 }

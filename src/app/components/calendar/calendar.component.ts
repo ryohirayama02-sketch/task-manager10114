@@ -1,12 +1,317 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { FormsModule } from '@angular/forms';
+import { ProjectService } from '../../services/project.service';
+import { ProjectFormDialogComponent } from '../project-form-dialog/project-form-dialog.component';
 
 @Component({
   selector: 'app-calendar',
   standalone: true,
-  imports: [],
+  imports: [
+    CommonModule,
+    MatCardModule,
+    MatButtonModule,
+    MatDialogModule,
+    MatIconModule,
+    MatSelectModule,
+    MatFormFieldModule,
+    MatCheckboxModule,
+    MatChipsModule,
+    MatMenuModule,
+    MatButtonToggleModule,
+    FormsModule,
+  ],
   templateUrl: './calendar.component.html',
-  styleUrl: './calendar.component.css'
+  styleUrls: ['./calendar.component.css'],
 })
-export class CalendarComponent {
+export class CalendarComponent implements OnInit {
+  tasks: any[] = [];
+  projects: any[] = [];
+  selectedProjectIds: string[] = [];
+  allTasks: any[] = [];
 
+  // カレンダー表示用
+  currentDate: Date = new Date();
+  calendarDays: Date[] = [];
+  weekDays = ['日', '月', '火', '水', '木', '金', '土'];
+
+  // 表示モード
+  viewMode: 'day' | 'week' | 'month' = 'month';
+
+  // フィルター用
+  filterPriority: string = '';
+  filterAssignee: string = '';
+  filterStatus: string = '';
+
+  // ステータス色
+  statusColors: { [key: string]: string } = {
+    未着手: '#ffcdd2',
+    作業中: '#bbdefb',
+    完了: '#c8e6c9',
+  };
+
+  constructor(
+    private projectService: ProjectService,
+    private dialog: MatDialog
+  ) {}
+
+  ngOnInit(): void {
+    this.generateCalendarDays();
+    this.loadProjects();
+  }
+
+  /** カレンダーの日付を生成 */
+  generateCalendarDays() {
+    this.calendarDays = [];
+
+    if (this.viewMode === 'day') {
+      // 日表示：当日のみ
+      this.calendarDays = [new Date(this.currentDate)];
+    } else if (this.viewMode === 'week') {
+      // 週表示：現在の週の7日間
+      const startOfWeek = new Date(this.currentDate);
+      startOfWeek.setDate(
+        this.currentDate.getDate() - this.currentDate.getDay()
+      );
+
+      for (let i = 0; i < 7; i++) {
+        const day = new Date(startOfWeek);
+        day.setDate(startOfWeek.getDate() + i);
+        this.calendarDays.push(day);
+      }
+    } else {
+      // 月表示：月のカレンダー
+      const year = this.currentDate.getFullYear();
+      const month = this.currentDate.getMonth();
+
+      // 月の最初の日
+      const firstDay = new Date(year, month, 1);
+      // カレンダーの開始日（前月の日付も含む）
+      const startDate = new Date(firstDay);
+      startDate.setDate(startDate.getDate() - firstDay.getDay());
+
+      // カレンダーの終了日（6週間分）
+      const endDate = new Date(startDate);
+      endDate.setDate(endDate.getDate() + 41); // 6週間分
+
+      const current = new Date(startDate);
+      while (current <= endDate) {
+        this.calendarDays.push(new Date(current));
+        current.setDate(current.getDate() + 1);
+      }
+    }
+  }
+
+  /** プロジェクト一覧を読み込み */
+  loadProjects() {
+    this.projectService.getProjects().subscribe((projects) => {
+      this.projects = projects;
+      this.loadAllTasks();
+
+      // 最初のプロジェクトを選択
+      const appProject = projects.find(
+        (p) => p.projectName === 'アプリ A改善プロジェクト'
+      );
+      if (appProject) {
+        this.selectedProjectIds = [appProject.id];
+        this.filterTasksBySelectedProjects();
+      }
+    });
+  }
+
+  /** 全プロジェクトのタスクを読み込み */
+  loadAllTasks() {
+    this.allTasks = [];
+    this.projects.forEach((project) => {
+      this.projectService.getTasksByProjectId(project.id).subscribe((tasks) => {
+        const tasksWithProject = tasks.map((task) => ({
+          ...task,
+          projectId: project.id,
+          projectName: project.projectName,
+        }));
+
+        this.allTasks = this.allTasks.filter((t) => t.projectId !== project.id);
+        this.allTasks = [...this.allTasks, ...tasksWithProject];
+        this.filterTasksBySelectedProjects();
+      });
+    });
+  }
+
+  /** 選択されたプロジェクトのタスクをフィルタリング */
+  filterTasksBySelectedProjects() {
+    if (this.selectedProjectIds.length === 0) {
+      this.tasks = [];
+    } else {
+      this.tasks = this.allTasks.filter((task) =>
+        this.selectedProjectIds.includes(task.projectId)
+      );
+    }
+    this.applyFilters();
+  }
+
+  /** フィルターを適用 */
+  applyFilters() {
+    let filteredTasks = [...this.tasks];
+
+    if (this.filterPriority) {
+      filteredTasks = filteredTasks.filter(
+        (task) => task.priority === this.filterPriority
+      );
+    }
+    if (this.filterAssignee) {
+      filteredTasks = filteredTasks.filter(
+        (task) => task.assignee === this.filterAssignee
+      );
+    }
+    if (this.filterStatus) {
+      filteredTasks = filteredTasks.filter(
+        (task) => task.status === this.filterStatus
+      );
+    }
+
+    this.tasks = filteredTasks;
+  }
+
+  /** プロジェクト選択をトグル */
+  toggleProjectSelection(projectId: string) {
+    const index = this.selectedProjectIds.indexOf(projectId);
+    if (index > -1) {
+      this.selectedProjectIds.splice(index, 1);
+    } else {
+      this.selectedProjectIds.push(projectId);
+    }
+    this.filterTasksBySelectedProjects();
+  }
+
+  /** プロジェクトが選択されているかチェック */
+  isProjectSelected(projectId: string): boolean {
+    return this.selectedProjectIds.includes(projectId);
+  }
+
+  /** プロジェクトIDからプロジェクト名を取得 */
+  getProjectName(projectId: string): string {
+    const project = this.projects.find((p) => p.id === projectId);
+    return project ? project.projectName : '';
+  }
+
+  /** 指定された日付のタスクを取得（期限ベース） */
+  getTasksForDate(date: Date): any[] {
+    return this.tasks.filter((task) => {
+      // 期限日でフィルタリング
+      const dueDate = task.dueDate ? new Date(task.dueDate) : null;
+      if (!dueDate) return false;
+
+      // 日付が一致するかチェック
+      return dueDate.toDateString() === date.toDateString();
+    });
+  }
+
+  /** 日付が今日かチェック */
+  isToday(date: Date): boolean {
+    const today = new Date();
+    return date.toDateString() === today.toDateString();
+  }
+
+  /** 日付が現在の月かチェック */
+  isCurrentMonth(date: Date): boolean {
+    return date.getMonth() === this.currentDate.getMonth();
+  }
+
+  /** 日付を変更 */
+  changeDate(direction: number) {
+    if (this.viewMode === 'day') {
+      this.currentDate.setDate(this.currentDate.getDate() + direction);
+    } else if (this.viewMode === 'week') {
+      this.currentDate.setDate(this.currentDate.getDate() + direction * 7);
+    } else {
+      this.currentDate.setMonth(this.currentDate.getMonth() + direction);
+    }
+    this.generateCalendarDays();
+  }
+
+  /** 現在の日付に戻る */
+  goToCurrentDate() {
+    this.currentDate = new Date();
+    this.generateCalendarDays();
+  }
+
+  /** 表示モードを変更 */
+  changeViewMode(event: any) {
+    this.viewMode = event.value;
+    this.generateCalendarDays();
+  }
+
+  /** 表示名を取得 */
+  getDisplayName(): string {
+    if (this.viewMode === 'day') {
+      return this.currentDate.toLocaleDateString('ja-JP', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+    } else if (this.viewMode === 'week') {
+      const startOfWeek = new Date(this.currentDate);
+      startOfWeek.setDate(
+        this.currentDate.getDate() - this.currentDate.getDay()
+      );
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+      return `${startOfWeek.toLocaleDateString('ja-JP', {
+        month: 'short',
+        day: 'numeric',
+      })} - ${endOfWeek.toLocaleDateString('ja-JP', {
+        month: 'short',
+        day: 'numeric',
+      })}`;
+    } else {
+      return this.currentDate.toLocaleDateString('ja-JP', {
+        year: 'numeric',
+        month: 'long',
+      });
+    }
+  }
+
+  /** プロジェクト作成ダイアログを開く */
+  openProjectDialog() {
+    const ref = this.dialog.open(ProjectFormDialogComponent, {
+      width: '450px',
+    });
+    ref.afterClosed().subscribe((result) => {
+      if (result === 'success') {
+        console.log('新しいプロジェクトが登録されました');
+        this.loadProjects();
+      }
+    });
+  }
+
+  /** フィルターをリセット */
+  resetFilters() {
+    this.filterPriority = '';
+    this.filterAssignee = '';
+    this.filterStatus = '';
+    this.filterTasksBySelectedProjects();
+  }
+
+  /** ユニークな担当者一覧を取得 */
+  getUniqueAssignees(): string[] {
+    const assignees = [
+      ...new Set(
+        this.allTasks
+          .map((task) => task.assignee)
+          .filter((assignee) => assignee)
+      ),
+    ];
+    return assignees;
+  }
 }

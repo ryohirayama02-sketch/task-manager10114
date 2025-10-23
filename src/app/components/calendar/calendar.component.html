@@ -1,3 +1,146 @@
-<p>calendar works!</p>
-<h2>カレンダー式の進捗</h2>
-<p>ここにカレンダー式を表示予定</p>
+<h2>カレンダー式課題管理</h2>
+
+<!-- プロジェクト選択とフィルター -->
+<div class="controls-section">
+  <div class="project-selector">
+    <h3>表示するプロジェクトを選択</h3>
+    <div class="project-checkboxes">
+      <mat-checkbox
+        *ngFor="let project of projects"
+        [checked]="isProjectSelected(project.id)"
+        (change)="toggleProjectSelection(project.id)"
+        class="project-checkbox"
+      >
+        {{ project.projectName }}
+      </mat-checkbox>
+    </div>
+  </div>
+
+  <!-- フィルター -->
+  <div class="filter-section">
+    <mat-form-field appearance="outline" style="width: 150px">
+      <mat-label>優先度</mat-label>
+      <mat-select
+        [(ngModel)]="filterPriority"
+        (selectionChange)="applyFilters()"
+      >
+        <mat-option value="">すべて</mat-option>
+        <mat-option value="高">高</mat-option>
+        <mat-option value="中">中</mat-option>
+        <mat-option value="低">低</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" style="width: 150px">
+      <mat-label>担当者</mat-label>
+      <mat-select
+        [(ngModel)]="filterAssignee"
+        (selectionChange)="applyFilters()"
+      >
+        <mat-option value="">すべて</mat-option>
+        <mat-option
+          *ngFor="let assignee of getUniqueAssignees()"
+          [value]="assignee"
+        >
+          {{ assignee }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" style="width: 150px">
+      <mat-label>ステータス</mat-label>
+      <mat-select [(ngModel)]="filterStatus" (selectionChange)="applyFilters()">
+        <mat-option value="">すべて</mat-option>
+        <mat-option value="未着手">未着手</mat-option>
+        <mat-option value="作業中">作業中</mat-option>
+        <mat-option value="完了">完了</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <button mat-button (click)="resetFilters()">フィルターリセット</button>
+  </div>
+</div>
+
+<!-- アクションボタン -->
+<div class="action-buttons">
+  <div class="view-controls">
+    <button
+      mat-button-toggle-group
+      [(ngModel)]="viewMode"
+      (change)="changeViewMode($event)"
+    >
+      <button mat-button-toggle value="day">日</button>
+      <button mat-button-toggle value="week">週</button>
+      <button mat-button-toggle value="month">月</button>
+    </button>
+  </div>
+  <button mat-raised-button color="primary" (click)="openProjectDialog()">
+    + プロジェクト
+  </button>
+</div>
+
+<!-- カレンダー -->
+<div class="calendar-container">
+  <!-- カレンダーヘッダー -->
+  <div class="calendar-header">
+    <button mat-icon-button (click)="changeDate(-1)">
+      <mat-icon>chevron_left</mat-icon>
+    </button>
+    <h3>{{ getDisplayName() }}</h3>
+    <button mat-icon-button (click)="changeDate(1)">
+      <mat-icon>chevron_right</mat-icon>
+    </button>
+    <button mat-button (click)="goToCurrentDate()">今日</button>
+  </div>
+
+  <!-- 曜日ヘッダー（月表示のみ） -->
+  <div class="week-header" *ngIf="viewMode === 'month'">
+    <div *ngFor="let day of weekDays" class="week-day">{{ day }}</div>
+  </div>
+
+  <!-- カレンダーグリッド -->
+  <div class="calendar-grid" [ngClass]="'view-' + viewMode">
+    <div
+      *ngFor="let date of calendarDays"
+      class="calendar-day"
+      [ngClass]="{
+        today: isToday(date),
+        'other-month': !isCurrentMonth(date) && viewMode === 'month'
+      }"
+    >
+      <div class="day-number">{{ date.getDate() }}</div>
+      <div class="day-tasks">
+        <div
+          *ngFor="let task of getTasksForDate(date)"
+          class="task-item"
+          [style.background-color]="statusColors[task.status]"
+          [title]="
+            task.taskName + ' (' + task.status + ') - 期限: ' + task.dueDate
+          "
+        >
+          <div class="task-name">{{ task.taskName }}</div>
+          <div class="task-project">{{ task.projectName }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 凡例 -->
+<div class="legend">
+  <h4>ステータス</h4>
+  <div class="legend-items">
+    <div class="legend-item">
+      <div class="legend-color" style="background-color: #ffcdd2"></div>
+      <span>未着手</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background-color: #bbdefb"></div>
+      <span>作業中</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background-color: #c8e6c9"></div>
+      <span>完了</span>
+    </div>
+  </div>
+</div>

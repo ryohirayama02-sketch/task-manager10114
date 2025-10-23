@@ -1,3 +1,144 @@
-<p>gantt works!</p>
-<h2>ガントチャート式の進捗</h2>
-<p>ここにガントチャート式を表示予定</p>
+<h2>ガントチャート式課題管理</h2>
+
+<!-- プロジェクト選択とフィルター -->
+<div class="controls-section">
+  <div class="project-selector">
+    <h3>表示するプロジェクトを選択</h3>
+    <div class="project-checkboxes">
+      <mat-checkbox
+        *ngFor="let project of projects"
+        [checked]="isProjectSelected(project.id)"
+        (change)="toggleProjectSelection(project.id)"
+        class="project-checkbox"
+      >
+        {{ project.projectName }}
+      </mat-checkbox>
+    </div>
+  </div>
+
+  <!-- フィルター -->
+  <div class="filter-section">
+    <mat-form-field appearance="outline" style="width: 150px">
+      <mat-label>優先度</mat-label>
+      <mat-select
+        [(ngModel)]="filterPriority"
+        (selectionChange)="applyFilters()"
+      >
+        <mat-option value="">すべて</mat-option>
+        <mat-option value="高">高</mat-option>
+        <mat-option value="中">中</mat-option>
+        <mat-option value="低">低</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" style="width: 150px">
+      <mat-label>担当者</mat-label>
+      <mat-select
+        [(ngModel)]="filterAssignee"
+        (selectionChange)="applyFilters()"
+      >
+        <mat-option value="">すべて</mat-option>
+        <mat-option
+          *ngFor="let assignee of getUniqueAssignees()"
+          [value]="assignee"
+        >
+          {{ assignee }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" style="width: 150px">
+      <mat-label>ステータス</mat-label>
+      <mat-select [(ngModel)]="filterStatus" (selectionChange)="applyFilters()">
+        <mat-option value="">すべて</mat-option>
+        <mat-option value="未着手">未着手</mat-option>
+        <mat-option value="作業中">作業中</mat-option>
+        <mat-option value="完了">完了</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <button mat-button (click)="resetFilters()">フィルターリセット</button>
+  </div>
+</div>
+
+<!-- アクションボタン -->
+<div class="action-buttons">
+  <button mat-raised-button color="primary" (click)="openProjectDialog()">
+    + プロジェクト
+  </button>
+</div>
+
+<!-- ガントチャート -->
+<div class="gantt-container">
+  <!-- 凡例 -->
+  <div class="legend">
+    <h4>ステータス</h4>
+    <div class="legend-items">
+      <div class="legend-item">
+        <div class="legend-color" style="background-color: #ffcdd2"></div>
+        <span>未着手</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background-color: #bbdefb"></div>
+        <span>作業中</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background-color: #c8e6c9"></div>
+        <span>完了</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ガントチャート本体 -->
+  <div class="gantt-chart">
+    <!-- ヘッダー行 -->
+    <div class="gantt-header">
+      <div class="task-info-header">
+        <div class="header-cell">プロジェクト名</div>
+        <div class="header-cell">タスク名</div>
+        <div class="header-cell">優先度</div>
+        <div class="header-cell">担当者</div>
+      </div>
+      <div class="date-header">
+        <div *ngFor="let date of dateRange" class="date-cell">
+          {{ formatDate(date) }}
+        </div>
+      </div>
+    </div>
+
+    <!-- タスク行 -->
+    <div class="gantt-body">
+      <div *ngFor="let task of tasks" class="task-row">
+        <!-- タスク情報 -->
+        <div class="task-info">
+          <div class="info-cell project-name">{{ task.projectName }}</div>
+          <div class="info-cell task-name">{{ task.taskName }}</div>
+          <div
+            class="info-cell priority"
+            [ngClass]="'priority-' + task.priority"
+          >
+            {{ task.priority }}
+          </div>
+          <div class="info-cell assignee">{{ task.assignee }}</div>
+        </div>
+
+        <!-- ガントバー -->
+        <div class="gantt-bars">
+          <div class="date-cells">
+            <div *ngFor="let date of dateRange" class="date-cell">
+              <!-- タスク期間の表示 -->
+              <div
+                *ngIf="isDateInTaskRange(date, task)"
+                class="task-bar"
+                [style.background-color]="statusColors[task.status]"
+                [style.left]="getTaskBarPosition(date, task) + '%'"
+                [style.width]="getTaskBarWidth(date, task) + '%'"
+                [title]="task.taskName + ' (' + task.status + ')'"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
