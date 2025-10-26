@@ -13,24 +13,53 @@ import { QuickTasksComponent } from './components/quick-tasks/quick-tasks.compon
 import { TaskSearchComponent } from './components/task-search/task-search.component';
 import { SettingsComponent } from './components/settings/settings.component';
 import { LogsComponent } from './components/logs/logs.component';
-import { LoginComponent } from './components/login/login.component';
+import { LoginComponent } from './components/auth/login/login.component';
 import { ProjectFormComponent } from './components/project-form/project-form.component';
+import { AuthGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'kanban', pathMatch: 'full' },
-  { path: 'kanban', component: KanbanComponent },
-  { path: 'gantt', component: GanttComponent },
-  { path: 'calendar', component: CalendarComponent },
-  { path: 'progress/projects', component: ProjectsOverviewComponent },
-  { path: 'progress/projects/:projectId', component: ProjectProgressComponent },
-  { path: 'progress/members', component: MemberProgressComponent },
-  { path: 'progress/members/:memberName', component: MemberDetailComponent },
-  { path: 'project/:projectId', component: ProjectDetailComponent },
-  { path: 'project/:projectId/task/:taskId', component: TaskDetailComponent },
-  { path: 'quick', component: QuickTasksComponent },
-  { path: 'search', component: TaskSearchComponent },
-  { path: 'settings', component: SettingsComponent },
-  { path: 'logs', component: LogsComponent },
   { path: 'login', component: LoginComponent },
-  { path: 'project-form', component: ProjectFormComponent },
+  { path: '', redirectTo: 'kanban', pathMatch: 'full' },
+  { path: 'kanban', component: KanbanComponent, canActivate: [AuthGuard] },
+  { path: 'gantt', component: GanttComponent, canActivate: [AuthGuard] },
+  { path: 'calendar', component: CalendarComponent, canActivate: [AuthGuard] },
+  {
+    path: 'progress/projects',
+    component: ProjectsOverviewComponent,
+    canActivate: [AuthGuard],
+  },
+  {
+    path: 'progress/projects/:projectId',
+    component: ProjectProgressComponent,
+    canActivate: [AuthGuard],
+  },
+  {
+    path: 'progress/members',
+    component: MemberProgressComponent,
+    canActivate: [AuthGuard],
+  },
+  {
+    path: 'progress/members/:memberName',
+    component: MemberDetailComponent,
+    canActivate: [AuthGuard],
+  },
+  {
+    path: 'project/:projectId',
+    component: ProjectDetailComponent,
+    canActivate: [AuthGuard],
+  },
+  {
+    path: 'project/:projectId/task/:taskId',
+    component: TaskDetailComponent,
+    canActivate: [AuthGuard],
+  },
+  { path: 'quick', component: QuickTasksComponent, canActivate: [AuthGuard] },
+  { path: 'search', component: TaskSearchComponent, canActivate: [AuthGuard] },
+  { path: 'settings', component: SettingsComponent, canActivate: [AuthGuard] },
+  { path: 'logs', component: LogsComponent, canActivate: [AuthGuard] },
+  {
+    path: 'project-form',
+    component: ProjectFormComponent,
+    canActivate: [AuthGuard],
+  },
 ];

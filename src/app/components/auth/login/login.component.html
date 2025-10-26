@@ -1,0 +1,84 @@
+<div class="login-container">
+  <mat-card class="login-card">
+    <mat-card-header>
+      <mat-card-title>タスク管理アプリ</mat-card-title>
+      <mat-card-subtitle>ログイン</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <!-- エラーメッセージ -->
+      <div *ngIf="errorMessage" class="error-message">
+        {{ errorMessage }}
+      </div>
+
+      <!-- メール・パスワードフォーム -->
+      <form (ngSubmit)="signInWithEmail()" class="login-form">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>メールアドレス</mat-label>
+          <input
+            matInput
+            type="email"
+            [(ngModel)]="email"
+            name="email"
+            placeholder="example@email.com"
+            required
+          />
+          <mat-icon matSuffix>email</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>パスワード</mat-label>
+          <input
+            matInput
+            type="password"
+            [(ngModel)]="password"
+            name="password"
+            placeholder="パスワードを入力"
+            required
+          />
+          <mat-icon matSuffix>lock</mat-icon>
+        </mat-form-field>
+
+        <!-- ログインボタン -->
+        <div class="button-group">
+          <button
+            mat-raised-button
+            color="primary"
+            type="submit"
+            [disabled]="isLoading"
+            class="full-width"
+          >
+            <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
+            <span *ngIf="!isLoading">ログイン</span>
+          </button>
+
+          <button
+            mat-stroked-button
+            type="button"
+            (click)="signUpWithEmail()"
+            [disabled]="isLoading"
+            class="full-width"
+          >
+            新規登録
+          </button>
+        </div>
+      </form>
+
+      <!-- 区切り線 -->
+      <div class="divider">
+        <span>または</span>
+      </div>
+
+      <!-- Googleログインボタン -->
+      <button
+        mat-raised-button
+        class="google-button full-width"
+        (click)="signInWithGoogle()"
+        [disabled]="isLoading"
+      >
+        <mat-icon>account_circle</mat-icon>
+        Googleでログイン
+      </button>
+    </mat-card-content>
+  </mat-card>
+</div>
