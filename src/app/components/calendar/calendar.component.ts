@@ -11,6 +11,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { ProjectService } from '../../services/project.service';
 import { ProjectFormDialogComponent } from '../project-form-dialog/project-form-dialog.component';
 import { Task, Project } from '../../models/task.model';
@@ -63,7 +64,8 @@ export class CalendarComponent implements OnInit {
 
   constructor(
     private projectService: ProjectService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -324,5 +326,19 @@ export class CalendarComponent implements OnInit {
       ),
     ];
     return assignees;
+  }
+
+  /** タスク詳細画面に遷移 */
+  openTaskDetail(task: Task) {
+    console.log('タスク詳細画面に遷移:', task);
+    if (task.projectId && task.id) {
+      this.router.navigate(['/project', task.projectId, 'task', task.id]);
+    } else {
+      console.error('タスクのprojectIdまたはidが不足しています:', {
+        projectId: task.projectId,
+        id: task.id,
+        task: task,
+      });
+    }
   }
 }

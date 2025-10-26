@@ -432,6 +432,18 @@
   max-width: 100%;
 }
 
+/* クリック可能な要素のスタイル */
+.clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clickable:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  z-index: 5;
+}
+
 /* スクロールバーのスタイリング */
 .gantt-chart::-webkit-scrollbar {
   height: 8px;

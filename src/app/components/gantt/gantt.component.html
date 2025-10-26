@@ -112,7 +112,12 @@
         <!-- タスク情報 -->
         <div class="task-info">
           <div class="info-cell project-name">{{ task.projectName }}</div>
-          <div class="info-cell task-name">{{ task.taskName }}</div>
+          <div
+            class="info-cell task-name clickable"
+            (click)="openTaskDetail(task)"
+          >
+            {{ task.taskName }}
+          </div>
           <div
             class="info-cell priority"
             [ngClass]="'priority-' + task.priority"
@@ -132,7 +137,7 @@
           <!-- タスク期間バー -->
           <div
             *ngIf="task.startDate && task.dueDate"
-            class="task-bar"
+            class="task-bar clickable"
             [style.background-color]="statusColors[task.status]"
             [style.left]="getTaskBarStartPosition(task) + 'px'"
             [style.width]="getTaskBarWidth(task) + 'px'"
@@ -145,6 +150,7 @@
               ' ～ ' +
               task.dueDate
             "
+            (click)="openTaskDetail(task)"
           >
             <span class="task-bar-text">{{ task.taskName }}</span>
           </div>

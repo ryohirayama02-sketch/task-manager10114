@@ -117,6 +117,7 @@
           [title]="
             task.taskName + ' (' + task.status + ') - 期限: ' + task.dueDate
           "
+          (click)="openTaskDetail(task)"
         >
           <div class="task-name">{{ task.taskName }}</div>
           <div class="task-project">{{ task.projectName }}</div>
