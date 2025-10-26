@@ -1,5 +1,5 @@
 <p>project-form-dialog works!</p>
-<h2>新規プロジェクト作成</h2>
+<h2>{{ isEditMode ? "プロジェクト編集" : "新規プロジェクト作成" }}</h2>
 
 <form (ngSubmit)="onSubmit()" #form="ngForm" class="form-container">
   <label>プロジェクト名:</label>
@@ -27,8 +27,43 @@
     placeholder="#UI, #開発"
   />
 
+  <!-- マイルストーン設定 -->
+  <div class="milestones-section">
+    <label>マイルストーン:</label>
+    <div class="milestones-container">
+      <div
+        *ngFor="let milestone of project.milestones; let i = index"
+        class="milestone-item"
+      >
+        <input
+          type="date"
+          [(ngModel)]="milestone.date"
+          name="milestoneDate{{ i }}"
+          class="milestone-date"
+        />
+        <input
+          type="text"
+          [(ngModel)]="milestone.name"
+          name="milestoneName{{ i }}"
+          placeholder="マイルストーン名"
+          class="milestone-name"
+        />
+        <button
+          type="button"
+          (click)="removeMilestone(i)"
+          class="remove-milestone"
+        >
+          削除
+        </button>
+      </div>
+      <button type="button" (click)="addMilestone()" class="add-milestone">
+        マイルストーンを追加
+      </button>
+    </div>
+  </div>
+
   <div class="buttons">
-    <button type="submit">登録</button>
+    <button type="submit">{{ isEditMode ? "更新" : "登録" }}</button>
     <button type="button" (click)="onCancel()">キャンセル</button>
   </div>
 </form>

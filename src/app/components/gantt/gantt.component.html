@@ -93,69 +93,149 @@
   <div class="gantt-chart">
     <!-- ヘッダー行 -->
     <div class="gantt-header">
-      <div class="task-info-header">
+      <div
+        class="task-info-header"
+        [style.width.px]="totalInfoWidth"
+        [style.min-width.px]="totalInfoWidth"
+        [style.max-width.px]="totalInfoWidth"
+      >
         <div class="header-cell">プロジェクト名</div>
         <div class="header-cell">タスク名</div>
         <div class="header-cell">優先度</div>
-        <div class="header-cell">担当者</div>
+        <div
+          class="header-cell"
+          [style.width.px]="assigneeColumnWidth"
+          [style.min-width.px]="assigneeColumnWidth"
+          [style.max-width.px]="assigneeColumnWidth"
+          style="white-space: nowrap"
+        >
+          担当者
+        </div>
       </div>
       <div class="date-header">
-        <div *ngFor="let date of dateRange" class="date-cell">
-          {{ formatDate(date) }}
+        <!-- 年月ヘッダー（固定表示） -->
+        <div class="year-month-header">
+          <div class="year-month-cell-fixed">
+            {{ getVisibleYearMonth() }}
+          </div>
+        </div>
+        <!-- 日付ヘッダー -->
+        <div class="day-header">
+          <div *ngFor="let date of dateRange" class="date-cell">
+            {{ formatDay(date) }}
+            <!-- マイルストーン表示 -->
+            <div
+              *ngFor="let milestone of getMilestonesForDate(date)"
+              class="milestone-flag"
+              (mouseenter)="showMilestoneTooltip($event, milestone)"
+              (mouseleave)="hideMilestoneTooltip()"
+            >
+              🚩
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- タスク行 -->
     <div class="gantt-body">
-      <div *ngFor="let task of tasks" class="task-row">
-        <!-- タスク情報 -->
-        <div class="task-info">
-          <div class="info-cell project-name">{{ task.projectName }}</div>
-          <div
-            class="info-cell task-name clickable"
-            (click)="openTaskDetail(task)"
-          >
-            {{ task.taskName }}
-          </div>
-          <div
-            class="info-cell priority"
-            [ngClass]="'priority-' + task.priority"
-          >
-            {{ task.priority }}
-          </div>
-          <div class="info-cell assignee">{{ task.assignee }}</div>
-        </div>
-
-        <!-- ガントバー -->
-        <div class="gantt-bars">
-          <div class="date-cells">
-            <div *ngFor="let date of dateRange" class="date-cell">
-              <!-- 日付セル -->
+      <div class="gantt-content">
+        <!-- タスク情報列 -->
+        <div
+          class="task-info-column"
+          [style.width.px]="totalInfoWidth"
+          [style.min-width.px]="totalInfoWidth"
+          [style.max-width.px]="totalInfoWidth"
+        >
+          <div *ngFor="let task of tasks" class="task-row">
+            <div
+              class="task-info"
+              [style.width.px]="totalInfoWidth"
+              [style.min-width.px]="totalInfoWidth"
+              [style.max-width.px]="totalInfoWidth"
+            >
+              <div class="info-cell project-name">{{ task.projectName }}</div>
+              <div
+                class="info-cell task-name clickable"
+                (click)="openTaskDetail(task)"
+              >
+                {{ task.taskName }}
+              </div>
+              <div
+                class="info-cell priority"
+                [ngClass]="'priority-' + task.priority"
+              >
+                {{ task.priority }}
+              </div>
+              <div
+                class="info-cell assignee"
+                [style.width.px]="assigneeColumnWidth"
+                [style.min-width.px]="assigneeColumnWidth"
+                [style.max-width.px]="assigneeColumnWidth"
+                style="white-space: nowrap"
+              >
+                {{ task.assignee }}
+              </div>
             </div>
           </div>
-          <!-- タスク期間バー -->
-          <div
-            *ngIf="task.startDate && task.dueDate"
-            class="task-bar clickable"
-            [style.background-color]="statusColors[task.status]"
-            [style.left]="getTaskBarStartPosition(task) + 'px'"
-            [style.width]="getTaskBarWidth(task) + 'px'"
-            [title]="
-              task.taskName +
-              ' (' +
-              task.status +
-              ') - ' +
-              task.startDate +
-              ' ～ ' +
-              task.dueDate
-            "
-            (click)="openTaskDetail(task)"
-          >
-            <span class="task-bar-text">{{ task.taskName }}</span>
+        </div>
+
+        <!-- ガントバー列 -->
+        <div class="gantt-bars-column">
+          <div class="gantt-bars">
+            <!-- 背景の日付セル -->
+            <div class="date-cells-background">
+              <div *ngFor="let date of dateRange" class="date-cell">
+                <!-- 日付セル -->
+              </div>
+            </div>
+            <!-- タスク期間バー -->
+            <ng-container *ngFor="let task of tasks; let i = index">
+              <div
+                *ngIf="task.startDate && task.dueDate"
+                class="task-bar clickable"
+                [style.background-color]="statusColors[task.status]"
+                [style.left]="getTaskBarStartPosition(task) + 'px'"
+                [style.width]="getTaskBarWidth(task) + 'px'"
+                [style.top]="i * 40 + 4 + 'px'"
+                [title]="
+                  task.taskName +
+                  ' (' +
+                  task.status +
+                  ') - ' +
+                  task.startDate +
+                  ' ～ ' +
+                  task.dueDate
+                "
+                (click)="openTaskDetail(task)"
+              >
+                <span class="task-bar-text">{{ task.taskName }}</span>
+              </div>
+            </ng-container>
           </div>
         </div>
       </div>
     </div>
   </div>
+</div>
+
+<!-- カスタムツールチップ -->
+<div
+  *ngIf="tooltipVisible"
+  class="milestone-tooltip"
+  [style.left.px]="tooltipPosition.x"
+  [style.top.px]="tooltipPosition.y"
+>
+  <div class="tooltip-header">
+    <span class="tooltip-icon">🚩</span>
+    <span class="tooltip-title">マイルストーン</span>
+  </div>
+  <div class="tooltip-content">
+    <div class="tooltip-project">{{ tooltipMilestone?.projectName }}</div>
+    <div class="tooltip-name">{{ tooltipMilestone?.name }}</div>
+    <div class="tooltip-date">
+      {{ tooltipMilestone?.date | date : "yyyy/MM/dd" }}
+    </div>
+  </div>
+  <div class="tooltip-arrow"></div>
 </div>

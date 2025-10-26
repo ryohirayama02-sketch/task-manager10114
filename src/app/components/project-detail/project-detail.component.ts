@@ -7,6 +7,7 @@ import { IProject } from '../../models/project.model';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { TaskFormComponent } from '../task-form/task-form.component';
+import { ProjectFormDialogComponent } from '../project-form-dialog/project-form-dialog.component';
 
 @Component({
   selector: 'app-project-detail',
@@ -18,7 +19,6 @@ import { TaskFormComponent } from '../task-form/task-form.component';
 export class ProjectDetailComponent implements OnInit {
   project: IProject | null = null;
   projectId: string | null = null;
-  isEditing = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -38,15 +38,29 @@ export class ProjectDetailComponent implements OnInit {
     }
   }
 
-  /** 編集モードのON/OFF切替 */
-  toggleEdit() {
-    this.isEditing = !this.isEditing;
-  }
+  /** プロジェクト編集ダイアログを開く */
+  openEditProjectDialog() {
+    if (!this.project) return;
 
-  /** 編集内容を保存（今は仮） */
-  saveChanges() {
-    alert('保存機能はこのあと実装します！');
-    this.isEditing = false;
+    const dialogRef = this.dialog.open(ProjectFormDialogComponent, {
+      width: '500px',
+      data: { project: this.project },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result === 'success') {
+        console.log('プロジェクトが更新されました');
+        // プロジェクト情報を再読み込み
+        if (this.projectId) {
+          this.projectService
+            .getProjectById(this.projectId)
+            .subscribe((data) => {
+              this.project = data;
+              console.log('更新されたプロジェクト:', data);
+            });
+        }
+      }
+    });
   }
 
   /** ✅ 「＋タスク」ボタン押下でフォームを開く */

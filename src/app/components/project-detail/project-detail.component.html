@@ -17,25 +17,29 @@
     </button>
   </div>
 
-  <p><strong>概要:</strong></p>
-  <p *ngIf="!isEditing">{{ project.overview }}</p>
-  <textarea *ngIf="isEditing" [(ngModel)]="project.overview"></textarea>
+  <p><strong>概要:</strong> {{ project.overview || "未設定" }}</p>
 
   <p><strong>期間:</strong> {{ project.startDate || "未設定" }}</p>
   <p><strong>メンバー:</strong> {{ project.members || "未設定" }}</p>
   <p><strong>タグ:</strong> {{ project.tags || "-" }}</p>
 
-  <div style="margin-top: 10px">
-    <button mat-raised-button color="primary" (click)="toggleEdit()">
-      {{ isEditing ? "キャンセル" : "編集" }}
-    </button>
-    <button
-      mat-raised-button
-      color="accent"
-      *ngIf="isEditing"
-      (click)="saveChanges()"
-    >
-      保存
+  <!-- マイルストーン表示 -->
+  <div
+    *ngIf="project.milestones && project.milestones.length > 0"
+    style="margin-top: 20px"
+  >
+    <h4>マイルストーン</h4>
+    <div *ngFor="let milestone of project.milestones" class="milestone-item">
+      <div class="milestone-date">
+        {{ milestone.date | date : "yyyy/MM/dd" }}
+      </div>
+      <div class="milestone-name">{{ milestone.name }}</div>
+    </div>
+  </div>
+
+  <div style="margin-top: 20px">
+    <button mat-raised-button color="primary" (click)="openEditProjectDialog()">
+      プロジェクト編集
     </button>
   </div>
 </div>

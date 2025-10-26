@@ -62,6 +62,14 @@ export class CalendarComponent implements OnInit {
     完了: '#c8e6c9',
   };
 
+  // マイルストーン
+  allMilestones: any[] = [];
+
+  // ツールチップ
+  tooltipVisible: boolean = false;
+  tooltipPosition: { x: number; y: number } = { x: 0, y: 0 };
+  tooltipMilestone: any = null;
+
   constructor(
     private projectService: ProjectService,
     private dialog: MatDialog,
@@ -120,6 +128,7 @@ export class CalendarComponent implements OnInit {
     this.projectService.getProjects().subscribe((projects) => {
       this.projects = projects;
       this.loadAllTasks();
+      this.loadAllMilestones();
 
       // 最初のプロジェクトを選択
       const appProject = projects.find(
@@ -152,6 +161,22 @@ export class CalendarComponent implements OnInit {
             this.allTasks = [...this.allTasks, ...tasksWithProject];
             this.filterTasksBySelectedProjects();
           });
+      }
+    });
+  }
+
+  /** 全プロジェクトのマイルストーンを読み込み */
+  loadAllMilestones() {
+    this.allMilestones = [];
+    this.projects.forEach((project) => {
+      if (project.milestones && project.milestones.length > 0) {
+        project.milestones.forEach((milestone) => {
+          this.allMilestones.push({
+            ...milestone,
+            projectId: project.id,
+            projectName: project.projectName,
+          });
+        });
       }
     });
   }
@@ -340,5 +365,27 @@ export class CalendarComponent implements OnInit {
         task: task,
       });
     }
+  }
+
+  /** 指定された日付にマイルストーンがあるかチェック */
+  getMilestonesForDate(date: Date): any[] {
+    const dateStr = date.toISOString().split('T')[0];
+    return this.allMilestones.filter((milestone) => milestone.date === dateStr);
+  }
+
+  /** マイルストーンツールチップを表示 */
+  showMilestoneTooltip(event: MouseEvent, milestone: any) {
+    this.tooltipMilestone = milestone;
+    this.tooltipPosition = {
+      x: event.clientX + 10,
+      y: event.clientY - 10,
+    };
+    this.tooltipVisible = true;
+  }
+
+  /** マイルストーンツールチップを非表示 */
+  hideMilestoneTooltip() {
+    this.tooltipVisible = false;
+    this.tooltipMilestone = null;
   }
 }

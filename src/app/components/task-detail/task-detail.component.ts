@@ -137,7 +137,6 @@ export class TaskDetailComponent implements OnInit {
             description: this.task.description || '',
             startDate: this.task.startDate || '',
             dueDate: this.task.dueDate || '',
-            endDate: this.task.endDate || '',
             assignee: this.task.assignee || '',
             status: this.task.status || '未着手',
             priority: this.task.priority || '中',
@@ -231,6 +230,14 @@ export class TaskDetailComponent implements OnInit {
       updatedAt: typeof updatedTask.updatedAt,
     });
 
+    // 期間の詳細ログ
+    console.log('期間データの詳細:', {
+      originalStartDate: this.taskData.startDate,
+      originalDueDate: this.taskData.dueDate,
+      updatedStartDate: updatedTask.startDate,
+      updatedDueDate: updatedTask.dueDate,
+    });
+
     // タスクを更新
     const projectId =
       this.task?.projectId || this.route.snapshot.paramMap.get('projectId');
@@ -306,7 +313,6 @@ export class TaskDetailComponent implements OnInit {
         description: this.task.description || '',
         startDate: this.task.startDate || '',
         dueDate: this.task.dueDate || '',
-        endDate: this.task.endDate || '',
         assignee: this.task.assignee || '',
         status: this.task.status || '未着手',
         priority: this.task.priority || '中',

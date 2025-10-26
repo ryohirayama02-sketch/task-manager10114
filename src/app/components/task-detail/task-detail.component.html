@@ -95,7 +95,7 @@
               <span>～</span>
               <input
                 type="date"
-                [(ngModel)]="taskData.endDate"
+                [(ngModel)]="taskData.dueDate"
                 placeholder="期限日"
               />
             </div>
@@ -107,8 +107,8 @@
               }}
               ～
               {{
-                taskData.endDate
-                  ? (taskData.endDate | date : "yyyy/MM/dd")
+                taskData.dueDate
+                  ? (taskData.dueDate | date : "yyyy/MM/dd")
                   : "—"
               }}
             </div>

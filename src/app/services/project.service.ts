@@ -47,6 +47,30 @@ export class ProjectService {
     return addDoc(projectsRef, project);
   }
 
+  /** ✅ プロジェクトを更新 */
+  updateProject(projectId: string, projectData: any) {
+    console.log('ProjectService.updateProject called with:', {
+      projectId,
+      projectData,
+      projectDataKeys: Object.keys(projectData),
+    });
+
+    const projectRef = doc(this.firestore, `projects/${projectId}`);
+
+    console.log('Firestore document reference:', projectRef.path);
+
+    return updateDoc(projectRef, projectData).catch((error) => {
+      console.error('ProjectService.updateProject error:', error);
+      console.error('Error details:', {
+        code: error.code,
+        message: error.message,
+        projectId,
+        projectData,
+      });
+      throw error;
+    });
+  }
+
   /** ✅ 特定プロジェクトにタスクを追加 */
   addTaskToProject(projectId: string, taskData: any) {
     const tasksRef = collection(this.firestore, `projects/${projectId}/tasks`);

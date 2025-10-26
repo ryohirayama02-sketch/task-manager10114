@@ -1,3 +1,5 @@
+import { Milestone } from './task.model';
+
 export interface IProject {
   id: string;
   projectName: string;
@@ -7,4 +9,5 @@ export interface IProject {
   members: string; // メンバー（文字列 or カンマ区切り）
   tags: string; // タグ
   color?: string; // 任意フィールド
+  milestones?: Milestone[]; // マイルストーン
 }

@@ -19,3 +19,68 @@ textarea {
   display: flex;
   justify-content: space-between;
 }
+
+/* マイルストーン設定 */
+.milestones-section {
+  margin-top: 15px;
+}
+
+.milestones-container {
+  margin-top: 8px;
+}
+
+.milestone-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding: 8px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background-color: #f9f9f9;
+}
+
+.milestone-date {
+  width: 120px;
+  padding: 4px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.milestone-name {
+  flex: 1;
+  padding: 4px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.remove-milestone {
+  padding: 4px 8px;
+  background-color: #ff4444;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.remove-milestone:hover {
+  background-color: #cc3333;
+}
+
+.add-milestone {
+  padding: 8px 12px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.add-milestone:hover {
+  background-color: #45a049;
+}

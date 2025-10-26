@@ -50,6 +50,23 @@ export class GanttComponent implements OnInit {
   endDate: Date = new Date();
   dateRange: Date[] = [];
 
+  // スクロール位置追跡
+  currentScrollLeft: number = 0;
+
+  // 担当者列の動的幅
+  assigneeColumnWidth: number = 118;
+
+  // 全体の動的幅
+  totalInfoWidth: number = 525;
+
+  // マイルストーン
+  allMilestones: any[] = [];
+
+  // ツールチップ
+  tooltipVisible: boolean = false;
+  tooltipPosition: { x: number; y: number } = { x: 0, y: 0 };
+  tooltipMilestone: any = null;
+
   // ステータス色
   statusColors: { [key: string]: string } = {
     未着手: '#ffcdd2',
@@ -66,6 +83,7 @@ export class GanttComponent implements OnInit {
   ngOnInit(): void {
     this.initializeDateRange();
     this.loadProjects();
+    this.setupScrollSync();
   }
 
   /** 日付範囲を初期化 */
@@ -91,6 +109,7 @@ export class GanttComponent implements OnInit {
     this.projectService.getProjects().subscribe((projects) => {
       this.projects = projects;
       this.loadAllTasks();
+      this.loadAllMilestones();
 
       // 最初のプロジェクトを選択
       const appProject = projects.find(
@@ -127,6 +146,22 @@ export class GanttComponent implements OnInit {
     });
   }
 
+  /** 全プロジェクトのマイルストーンを読み込み */
+  loadAllMilestones() {
+    this.allMilestones = [];
+    this.projects.forEach((project) => {
+      if (project.milestones && project.milestones.length > 0) {
+        project.milestones.forEach((milestone) => {
+          this.allMilestones.push({
+            ...milestone,
+            projectId: project.id,
+            projectName: project.projectName,
+          });
+        });
+      }
+    });
+  }
+
   /** 選択されたプロジェクトのタスクをフィルタリング */
   filterTasksBySelectedProjects() {
     if (this.selectedProjectIds.length === 0) {
@@ -137,6 +172,7 @@ export class GanttComponent implements OnInit {
       );
     }
     this.applyFilters();
+    this.calculateAssigneeColumnWidth(); // 担当者列の幅を計算
   }
 
   /** フィルターを適用 */
@@ -160,6 +196,7 @@ export class GanttComponent implements OnInit {
     }
 
     this.tasks = filteredTasks;
+    this.calculateAssigneeColumnWidth(); // フィルター適用後も担当者列の幅を計算
   }
 
   /** プロジェクト選択をトグル */
@@ -215,6 +252,163 @@ export class GanttComponent implements OnInit {
   /** 日付をフォーマット */
   formatDate(date: Date): string {
     return date.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' });
+  }
+
+  /** 年月をフォーマット */
+  formatYearMonth(date: Date): string {
+    return date.toLocaleDateString('ja-JP', {
+      year: 'numeric',
+      month: 'numeric',
+    });
+  }
+
+  /** 日付のみをフォーマット */
+  formatDay(date: Date): string {
+    return date.getDate().toString();
+  }
+
+  /** 日付範囲を年月でグループ化 */
+  getGroupedDates(): {
+    yearMonth: string;
+    dates: Date[];
+    startIndex: number;
+    endIndex: number;
+  }[] {
+    const groups: { [key: string]: Date[] } = {};
+
+    this.dateRange.forEach((date) => {
+      const key = this.formatYearMonth(date);
+      if (!groups[key]) {
+        groups[key] = [];
+      }
+      groups[key].push(date);
+    });
+
+    let currentIndex = 0;
+    return Object.keys(groups).map((yearMonth) => {
+      const dates = groups[yearMonth];
+      const startIndex = currentIndex;
+      const endIndex = currentIndex + dates.length - 1;
+      currentIndex += dates.length;
+
+      return {
+        yearMonth,
+        dates,
+        startIndex,
+        endIndex,
+      };
+    });
+  }
+
+  /** 年月ヘッダーの表示位置を計算 */
+  getYearMonthPosition(group: { startIndex: number; endIndex: number }): {
+    left: string;
+    width: string;
+    display: string;
+  } {
+    const cellWidth = 30; // 1日 = 30px
+    const left = group.startIndex * cellWidth;
+    const width = (group.endIndex - group.startIndex + 1) * cellWidth;
+
+    return {
+      left: left + 'px',
+      width: width + 'px',
+      display: 'block',
+    };
+  }
+
+  /** 現在表示されている年月を取得 */
+  getVisibleYearMonth(): string {
+    // 現在のスクロール位置を取得（簡易実装）
+    // 実際のスクロール位置に基づいて表示する年月を決定
+    const scrollLeft = this.getCurrentScrollLeft();
+    const cellWidth = 30;
+    const visibleStartIndex = Math.floor(scrollLeft / cellWidth);
+
+    // 表示開始位置を含む年月グループを検索
+    const groups = this.getGroupedDates();
+    for (const group of groups) {
+      if (
+        visibleStartIndex >= group.startIndex &&
+        visibleStartIndex <= group.endIndex
+      ) {
+        return group.yearMonth;
+      }
+    }
+
+    // フォールバック：最初のグループを返す
+    return groups.length > 0 ? groups[0].yearMonth : '';
+  }
+
+  /** 現在のスクロール位置を取得 */
+  private getCurrentScrollLeft(): number {
+    return this.currentScrollLeft;
+  }
+
+  /** スクロール位置を更新 */
+  updateScrollPosition(scrollLeft: number): void {
+    this.currentScrollLeft = scrollLeft;
+  }
+
+  /** 担当者列の幅を動的に計算 */
+  calculateAssigneeColumnWidth(): void {
+    if (!this.tasks || this.tasks.length === 0) {
+      this.assigneeColumnWidth = 118; // デフォルト幅
+      this.calculateTotalInfoWidth();
+      return;
+    }
+
+    // 担当者名の最大長を計算
+    const maxLength = Math.max(
+      ...this.tasks.map((task) => (task.assignee ? task.assignee.length : 0)),
+      3 // 最小値は「担当者」の3文字
+    );
+
+    // より正確な幅計算（日本語文字は約14px、英数字は約8px、パディング16px + ボーダー1px）
+    const calculatedWidth = Math.max(
+      maxLength * 14 + 16 + 1, // 日本語文字を考慮して14px/文字
+      118 // 最小幅
+    );
+
+    this.assigneeColumnWidth = Math.min(calculatedWidth, 300); // 最大300pxに拡張
+    this.calculateTotalInfoWidth();
+  }
+
+  /** 全体の情報列幅を計算 */
+  calculateTotalInfoWidth(): void {
+    // プロジェクト名(148) + タスク名(198) + 優先度(58) + 担当者(動的) + ボーダー(3)
+    this.totalInfoWidth = 148 + 198 + 58 + this.assigneeColumnWidth + 3;
+  }
+
+  /** マイルストーンの位置を計算 */
+  getMilestonePosition(milestone: any): number {
+    const milestoneDate = new Date(milestone.date);
+    const startDate = new Date(this.startDate);
+    const diffTime = milestoneDate.getTime() - startDate.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays * 30; // 1日 = 30px
+  }
+
+  /** 指定された日付にマイルストーンがあるかチェック */
+  getMilestonesForDate(date: Date): any[] {
+    const dateStr = date.toISOString().split('T')[0];
+    return this.allMilestones.filter((milestone) => milestone.date === dateStr);
+  }
+
+  /** マイルストーンツールチップを表示 */
+  showMilestoneTooltip(event: MouseEvent, milestone: any) {
+    this.tooltipMilestone = milestone;
+    this.tooltipPosition = {
+      x: event.clientX + 10,
+      y: event.clientY - 10,
+    };
+    this.tooltipVisible = true;
+  }
+
+  /** マイルストーンツールチップを非表示 */
+  hideMilestoneTooltip() {
+    this.tooltipVisible = false;
+    this.tooltipMilestone = null;
   }
 
   /** プロジェクト作成ダイアログを開く */
@@ -289,5 +483,30 @@ export class GanttComponent implements OnInit {
         task: task,
       });
     }
+  }
+
+  /** スクロール同期を設定 */
+  setupScrollSync() {
+    // DOMが完全に読み込まれた後に実行
+    setTimeout(() => {
+      const dateHeader = document.querySelector('.date-header') as HTMLElement;
+      const ganttBarsColumn = document.querySelector(
+        '.gantt-bars-column'
+      ) as HTMLElement;
+
+      if (dateHeader && ganttBarsColumn) {
+        // 日付ヘッダーのスクロールをガントバー列に同期
+        dateHeader.addEventListener('scroll', () => {
+          ganttBarsColumn.scrollLeft = dateHeader.scrollLeft;
+          this.updateScrollPosition(dateHeader.scrollLeft);
+        });
+
+        // ガントバー列のスクロールを日付ヘッダーに同期
+        ganttBarsColumn.addEventListener('scroll', () => {
+          dateHeader.scrollLeft = ganttBarsColumn.scrollLeft;
+          this.updateScrollPosition(ganttBarsColumn.scrollLeft);
+        });
+      }
+    }, 100);
   }
 }
