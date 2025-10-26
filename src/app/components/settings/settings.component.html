@@ -1,2 +1,425 @@
-<h2>設定</h2>
-<p>ここに設定を表示予定</p>
+<div class="settings-container">
+  <h1>設定</h1>
+
+  <!-- ローディング表示 -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>設定を読み込み中...</p>
+  </div>
+
+  <!-- 設定メニュー -->
+  <div *ngIf="!isLoading" class="settings-menu">
+    <mat-card class="menu-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>settings</mat-icon>
+          設定メニュー
+        </mat-card-title>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="menu-buttons">
+          <button
+            mat-raised-button
+            color="primary"
+            class="menu-button"
+            (click)="showNotificationSettings = true"
+          >
+            <mat-icon>notifications</mat-icon>
+            通知設定
+          </button>
+
+          <button
+            mat-raised-button
+            color="accent"
+            class="menu-button"
+            (click)="showNotificationSettings = false"
+          >
+            <mat-icon>account_circle</mat-icon>
+            アカウント設定
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- 通知設定 -->
+  <div
+    *ngIf="!isLoading && showNotificationSettings && notificationSettings"
+    class="settings-content"
+  >
+    <mat-card class="settings-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>notifications</mat-icon>
+          通知設定
+        </mat-card-title>
+        <mat-card-subtitle
+          >タスクの期限や作業時間に関する通知を設定できます</mat-card-subtitle
+        >
+      </mat-card-header>
+
+      <mat-card-content>
+        <!-- 通知先設定 -->
+        <mat-expansion-panel class="expansion-panel">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <mat-icon>send</mat-icon>
+              通知先設定
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+
+          <div class="notification-channels">
+            <!-- メール通知設定 -->
+            <div class="channel-section">
+              <div class="channel-header">
+                <mat-slide-toggle
+                  [(ngModel)]="
+                    notificationSettings.notificationChannels.email.enabled
+                  "
+                  name="emailEnabled"
+                >
+                  <mat-icon>email</mat-icon>
+                  メール通知
+                </mat-slide-toggle>
+              </div>
+
+              <div
+                *ngIf="notificationSettings.notificationChannels.email.enabled"
+                class="channel-settings"
+              >
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>メールアドレス</mat-label>
+                  <input
+                    matInput
+                    type="email"
+                    [(ngModel)]="
+                      notificationSettings.notificationChannels.email.address
+                    "
+                    name="emailAddress"
+                    placeholder="example@email.com"
+                  />
+                </mat-form-field>
+              </div>
+            </div>
+
+            <!-- Slack通知設定 -->
+            <div class="channel-section">
+              <div class="channel-header">
+                <mat-slide-toggle
+                  [(ngModel)]="
+                    notificationSettings.notificationChannels.slack.enabled
+                  "
+                  name="slackEnabled"
+                >
+                  <mat-icon>chat</mat-icon>
+                  Slack通知
+                </mat-slide-toggle>
+              </div>
+
+              <div
+                *ngIf="notificationSettings.notificationChannels.slack.enabled"
+                class="channel-settings"
+              >
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Webhook URL</mat-label>
+                  <input
+                    matInput
+                    type="url"
+                    [(ngModel)]="
+                      notificationSettings.notificationChannels.slack.webhookUrl
+                    "
+                    name="slackWebhook"
+                    placeholder="https://hooks.slack.com/services/..."
+                  />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>チャンネル</mat-label>
+                  <input
+                    matInput
+                    [(ngModel)]="
+                      notificationSettings.notificationChannels.slack.channel
+                    "
+                    name="slackChannel"
+                    placeholder="#general"
+                  />
+                </mat-form-field>
+              </div>
+            </div>
+          </div>
+        </mat-expansion-panel>
+
+        <!-- タスク期限通知設定 -->
+        <mat-expansion-panel class="expansion-panel">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <mat-icon>schedule</mat-icon>
+              タスク期限通知
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+
+          <div class="deadline-settings">
+            <div class="setting-row">
+              <mat-slide-toggle
+                [(ngModel)]="
+                  notificationSettings.taskDeadlineNotifications.enabled
+                "
+                name="deadlineEnabled"
+              >
+                期限通知を有効にする
+              </mat-slide-toggle>
+            </div>
+
+            <div
+              *ngIf="notificationSettings.taskDeadlineNotifications.enabled"
+              class="deadline-options"
+            >
+              <div class="setting-row">
+                <label>通知タイミング（期限の何日前）:</label>
+                <div class="checkbox-group">
+                  <mat-checkbox
+                    *ngFor="let day of deadlineNotificationDays"
+                    [checked]="isDeadlineDaySelected(day)"
+                    (change)="updateDeadlineDays(day, $event.checked)"
+                  >
+                    {{ day }}日前
+                  </mat-checkbox>
+                </div>
+              </div>
+
+              <div class="setting-row">
+                <mat-form-field appearance="outline">
+                  <mat-label>通知時間</mat-label>
+                  <mat-select
+                    [(ngModel)]="
+                      notificationSettings.taskDeadlineNotifications.timeOfDay
+                    "
+                    name="deadlineTime"
+                  >
+                    <mat-option *ngFor="let time of timeOptions" [value]="time">
+                      {{ time }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+            </div>
+          </div>
+        </mat-expansion-panel>
+
+        <!-- 通知オフ期間設定 -->
+        <mat-expansion-panel class="expansion-panel">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <mat-icon>bedtime</mat-icon>
+              通知オフ期間
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+
+          <div class="quiet-hours-settings">
+            <div class="setting-row">
+              <mat-slide-toggle
+                [(ngModel)]="notificationSettings.quietHours.enabled"
+                name="quietHoursEnabled"
+              >
+                通知オフ期間を設定する
+              </mat-slide-toggle>
+            </div>
+
+            <div
+              *ngIf="notificationSettings.quietHours.enabled"
+              class="quiet-hours-options"
+            >
+              <div class="time-range">
+                <mat-form-field appearance="outline">
+                  <mat-label>開始時間</mat-label>
+                  <mat-select
+                    [(ngModel)]="notificationSettings.quietHours.startTime"
+                    name="startTime"
+                  >
+                    <mat-option *ngFor="let time of timeOptions" [value]="time">
+                      {{ time }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>終了時間</mat-label>
+                  <mat-select
+                    [(ngModel)]="notificationSettings.quietHours.endTime"
+                    name="endTime"
+                  >
+                    <mat-option *ngFor="let time of timeOptions" [value]="time">
+                      {{ time }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+
+              <div class="setting-row">
+                <mat-checkbox
+                  [(ngModel)]="notificationSettings.quietHours.weekends"
+                  name="weekendsOff"
+                >
+                  週末も通知をオフにする
+                </mat-checkbox>
+              </div>
+            </div>
+          </div>
+        </mat-expansion-panel>
+
+        <!-- 作業時間オーバー通知設定 -->
+        <mat-expansion-panel class="expansion-panel">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <mat-icon>timer</mat-icon>
+              作業時間オーバー通知
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+
+          <div class="work-time-settings">
+            <div class="setting-row">
+              <mat-slide-toggle
+                [(ngModel)]="
+                  notificationSettings.workTimeOverflowNotifications.enabled
+                "
+                name="workTimeEnabled"
+              >
+                作業時間オーバー通知を有効にする
+              </mat-slide-toggle>
+            </div>
+
+            <div
+              *ngIf="notificationSettings.workTimeOverflowNotifications.enabled"
+              class="work-time-options"
+            >
+              <div class="setting-row">
+                <mat-form-field appearance="outline">
+                  <mat-label>チェック期間</mat-label>
+                  <mat-select
+                    [(ngModel)]="
+                      notificationSettings.workTimeOverflowNotifications
+                        .checkPeriodDays
+                    "
+                    name="checkPeriod"
+                  >
+                    <mat-option
+                      *ngFor="let days of checkPeriodOptions"
+                      [value]="days"
+                    >
+                      {{ days }}日間
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>最大作業時間</mat-label>
+                  <mat-select
+                    [(ngModel)]="
+                      notificationSettings.workTimeOverflowNotifications
+                        .maxWorkHours
+                    "
+                    name="maxWorkHours"
+                  >
+                    <mat-option
+                      *ngFor="let hours of workTimeOptions"
+                      [value]="hours"
+                    >
+                      {{ hours }}時間
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+
+              <div class="notification-targets">
+                <mat-checkbox
+                  [(ngModel)]="
+                    notificationSettings.workTimeOverflowNotifications
+                      .notifyManager
+                  "
+                  name="notifyManager"
+                >
+                  マネージャーに通知
+                </mat-checkbox>
+
+                <mat-checkbox
+                  [(ngModel)]="
+                    notificationSettings.workTimeOverflowNotifications
+                      .notifyAssignee
+                  "
+                  name="notifyAssignee"
+                >
+                  担当者に通知
+                </mat-checkbox>
+              </div>
+            </div>
+          </div>
+        </mat-expansion-panel>
+
+        <!-- 日次リマインダー設定 -->
+        <mat-expansion-panel class="expansion-panel">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <mat-icon>today</mat-icon>
+              日次リマインダー
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+
+          <div class="daily-reminder-settings">
+            <div class="setting-row">
+              <mat-slide-toggle
+                [(ngModel)]="notificationSettings.dailyDeadlineReminder.enabled"
+                name="dailyReminderEnabled"
+              >
+                日次リマインダーを有効にする
+              </mat-slide-toggle>
+            </div>
+
+            <div
+              *ngIf="notificationSettings.dailyDeadlineReminder.enabled"
+              class="daily-reminder-options"
+            >
+              <div class="setting-row">
+                <mat-form-field appearance="outline">
+                  <mat-label>通知時間</mat-label>
+                  <mat-select
+                    [(ngModel)]="
+                      notificationSettings.dailyDeadlineReminder.timeOfDay
+                    "
+                    name="dailyReminderTime"
+                  >
+                    <mat-option *ngFor="let time of timeOptions" [value]="time">
+                      {{ time }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+            </div>
+          </div>
+        </mat-expansion-panel>
+      </mat-card-content>
+
+      <mat-card-actions>
+        <button
+          mat-raised-button
+          color="accent"
+          (click)="sendTestNotification()"
+          [disabled]="isSaving"
+        >
+          <mat-icon>send</mat-icon>
+          テスト通知送信
+        </button>
+
+        <button
+          mat-raised-button
+          color="primary"
+          (click)="saveNotificationSettings()"
+          [disabled]="isSaving"
+        >
+          <mat-icon>save</mat-icon>
+          {{ isSaving ? "保存中..." : "設定を保存" }}
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>
