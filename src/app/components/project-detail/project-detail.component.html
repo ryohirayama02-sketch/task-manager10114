@@ -53,6 +53,10 @@
       プロジェクト編集
     </button>
   </div>
+
+  <!-- プロジェクトチャット -->
+  <app-project-chat *ngIf="projectId" [projectId]="projectId">
+  </app-project-chat>
 </div>
 
 <!-- タスク一覧セクション -->

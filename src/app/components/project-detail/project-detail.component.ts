@@ -20,6 +20,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { TaskFormComponent } from '../task-form/task-form.component';
 import { ProjectFormDialogComponent } from '../project-form-dialog/project-form-dialog.component';
 import { ProgressCircleComponent } from '../progress/projects-overview/progress-circle.component';
+import { ProjectChatComponent } from '../project-chat/project-chat.component';
 
 @Component({
   selector: 'app-project-detail',
@@ -36,6 +37,7 @@ import { ProgressCircleComponent } from '../progress/projects-overview/progress-
     MatCardModule,
     MatChipsModule,
     ProgressCircleComponent,
+    ProjectChatComponent,
   ],
   templateUrl: './project-detail.component.html',
   styleUrls: ['./project-detail.component.css'],
