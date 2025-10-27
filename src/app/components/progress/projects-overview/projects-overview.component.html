@@ -4,27 +4,37 @@
 <div
   *ngFor="let project of projects"
   (click)="project.id ? goToProgress(project.id) : null"
-  style="
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    padding: 15px;
-    margin-bottom: 15px;
-    cursor: pointer;
-  "
+  class="project-card"
 >
-  <!-- ▼ プロジェクト名クリックで詳細へ -->
-  <h3
-    [routerLink]="project.id ? ['/project', project.id] : []"
-    (click)="$event.stopPropagation()"
-    style="text-decoration: underline; cursor: pointer; color: #1976d2"
-  >
-    {{ project.projectName || "（名称未設定）" }}
-  </h3>
+  <div class="project-info">
+    <!-- ▼ プロジェクト名クリックで詳細へ -->
+    <h3
+      [routerLink]="project.id ? ['/project', project.id] : []"
+      (click)="$event.stopPropagation()"
+      class="project-title"
+    >
+      {{ project.projectName || "（名称未設定）" }}
+    </h3>
 
-  <p><strong>概要:</strong> {{ project.description || "（概要未設定）" }}</p>
-  <p>
-    <strong>期間:</strong> {{ project.startDate || "（開始日未設定）" }} ～
-    {{ project.endDate || "（終了日未設定）" }}
-  </p>
-  <p><strong>メンバー:</strong> （メンバー情報未設定）</p>
+    <p><strong>概要:</strong> {{ project.description || "（概要未設定）" }}</p>
+    <p>
+      <strong>期間:</strong> {{ project.startDate || "（開始日未設定）" }} ～
+      {{ project.endDate || "（終了日未設定）" }}
+    </p>
+    <p><strong>メンバー:</strong> （メンバー情報未設定）</p>
+  </div>
+
+  <!-- ▼ 進捗率円グラフ -->
+  <div
+    class="progress-section"
+    *ngIf="project.id && projectProgress[project.id]"
+  >
+    <app-progress-circle
+      [percentage]="projectProgress[project.id].progressPercentage"
+      [completedTasks]="projectProgress[project.id].completedTasks"
+      [totalTasks]="projectProgress[project.id].totalTasks"
+      [size]="80"
+      [strokeWidth]="6"
+    ></app-progress-circle>
+  </div>
 </div>
