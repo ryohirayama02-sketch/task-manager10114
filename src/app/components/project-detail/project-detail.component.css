@@ -57,9 +57,7 @@ textarea {
 }
 
 /* ✅ プロジェクトアクションエリアの「＋タスク」ボタン */
-.add-task-button {
-  /* position: absolute; を削除して通常のフローに */
-}
+/* .add-task-button のスタイルは不要（通常のフローで表示） */
 
 /* マイルストーン表示 */
 .milestone-item {
@@ -84,4 +82,118 @@ textarea {
   flex: 1;
   color: #333;
   font-size: 14px;
+}
+
+/* タスク一覧セクション */
+.tasks-section {
+  margin-top: 30px;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 10px;
+}
+
+.tasks-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.tasks-header h3 {
+  margin: 0;
+  color: #333;
+}
+
+.tasks-actions {
+  display: flex;
+  gap: 10px;
+}
+
+/* フィルターセクション */
+.filter-section {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.filter-section mat-form-field {
+  min-width: 150px;
+}
+
+/* タスク一覧 */
+.tasks-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.task-card {
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  width: 100%;
+  max-width: none;
+}
+
+.task-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.task-details {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.task-detail-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #666;
+  min-width: 0;
+  flex-shrink: 0;
+}
+
+.task-detail-item mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.task-detail-item:last-child {
+  flex: 1;
+  min-width: 200px;
+}
+
+.task-detail-item:last-child span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 300px;
+}
+
+/* タスクが存在しない場合 */
+.no-tasks {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+}
+
+.no-tasks mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 16px;
+  color: #ccc;
+}
+
+.no-tasks p {
+  margin: 0 0 20px 0;
+  font-size: 16px;
 }
