@@ -407,7 +407,7 @@
           [disabled]="isSaving"
         >
           <mat-icon>send</mat-icon>
-          テスト通知送信
+          {{ isSaving ? "送信中..." : "テスト通知送信" }}
         </button>
 
         <button

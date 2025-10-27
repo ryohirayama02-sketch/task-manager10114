@@ -1,50 +1,95 @@
-import * as functions from 'firebase-functions';
+import { onCall, HttpsError } from 'firebase-functions/v2/https';
+import { defineSecret } from 'firebase-functions/params';
 import * as admin from 'firebase-admin';
-import * as nodemailer from 'nodemailer';
-import axios from 'axios';
+import sgMail from '@sendgrid/mail';
 
 // Firebase Admin SDK を初期化
 admin.initializeApp();
 
-// メール送信用のトランスポーター（実際の設定は環境変数で管理）
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: functions.config().email?.user,
-    pass: functions.config().email?.password,
-  },
-});
+// シークレットの定義
+const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
+const sendgridFromEmail = defineSecret('SENDGRID_FROM_EMAIL');
 
-// メール通知を送信するCloud Function
-export const sendEmailNotification = functions.https.onCall(
-  async (data: any, context: any) => {
+// テスト通知を送信するCloud Function
+export const sendTestEmail = onCall(
+  { secrets: [sendgridApiKey, sendgridFromEmail] },
+  async (request) => {
     // 認証チェック
-    if (!context.auth) {
-      throw new functions.https.HttpsError('unauthenticated', '認証が必要です');
+    if (!request.auth) {
+      throw new HttpsError('unauthenticated', '認証が必要です');
     }
 
-    const { to, subject, message } = data;
+    // SendGridの設定（改行文字を確実に除去）
+    const rawApiKey = sendgridApiKey.value();
+    const apiKey = rawApiKey
+      .trim()
+      .replace(/[\r\n\t\s]+/g, '')
+      .replace(/\0/g, '');
+    console.log('Raw API Key length:', rawApiKey.length);
+    console.log(
+      'Raw API Key chars:',
+      rawApiKey
+        .split('')
+        .map((c) => c.charCodeAt(0))
+        .slice(-10)
+    );
+    console.log('Cleaned API Key length:', apiKey.length);
+    console.log('API Key starts with SG:', apiKey.startsWith('SG.'));
+    console.log('API Key ends with:', apiKey.slice(-5));
 
-    if (!to || !subject || !message) {
-      throw new functions.https.HttpsError(
-        'invalid-argument',
-        '必要なパラメータが不足しています'
-      );
+    // APIキーの検証
+    if (!apiKey || !apiKey.startsWith('SG.')) {
+      console.error('Invalid SendGrid API key');
+      throw new HttpsError('internal', 'SendGrid APIキーが無効です');
+    }
+
+    sgMail.setApiKey(apiKey);
+
+    const { email } = request.data;
+
+    if (!email) {
+      throw new HttpsError('invalid-argument', 'メールアドレスが必要です');
     }
 
     try {
-      const mailOptions = {
-        from: functions.config().email?.user,
-        to: to,
-        subject: subject,
+      const rawFromEmail =
+        sendgridFromEmail.value() || 'noreply@taskmanager.com';
+      const fromEmail = rawFromEmail
+        .trim()
+        .replace(/[\r\n\t\s]+/g, '')
+        .replace(/\0/g, '');
+      console.log('Sending email to:', email);
+      console.log('From email:', fromEmail);
+
+      // 送信者と受信者が同じ場合はエラー
+      if (fromEmail === email) {
+        throw new HttpsError(
+          'invalid-argument',
+          '送信者と受信者のメールアドレスが同じです'
+        );
+      }
+
+      const msg = {
+        to: email,
+        from: fromEmail,
+        subject: '【テスト通知】タスク管理アプリ',
         html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; 
              margin: 0 auto;">
           <h2 style="color: #1976d2;">タスク管理アプリ</h2>
           <div style="background-color: #f5f5f5; padding: 20px; 
                border-radius: 8px; margin: 20px 0;">
-            <h3 style="color: #333; margin-top: 0;">${subject}</h3>
-            <p style="color: #666; line-height: 1.6;">${message}</p>
+            <h3 style="color: #333; margin-top: 0;">テスト通知</h3>
+            <p style="color: #666; line-height: 1.6;">
+              このメールは通知設定のテスト送信です。<br>
+              メールが正常に受信できていることを確認してください。
+            </p>
+            <div style="background-color: #e8f5e8; padding: 15px; 
+                 border-radius: 5px; margin: 15px 0;">
+              <p style="color: #2e7d32; margin: 0;">
+                ✅ 通知設定が正常に動作しています！
+              </p>
+            </div>
           </div>
           <p style="color: #999; font-size: 12px;">
             このメールはタスク管理アプリから自動送信されました。
@@ -53,320 +98,71 @@ export const sendEmailNotification = functions.https.onCall(
       `,
       };
 
-      await transporter.sendMail(mailOptions);
+      console.log('Attempting to send email...');
+      console.log('Message details:', JSON.stringify(msg, null, 2));
+      console.log(
+        'SendGrid API Key (first 10 chars):',
+        apiKey.substring(0, 10)
+      );
+      console.log(
+        'SendGrid API Key (last 10 chars):',
+        apiKey.substring(apiKey.length - 10)
+      );
 
-      // 通知ログを記録
+      // SendGridの設定を確認
+      console.log('SendGrid client configured:', !!sgMail);
+
+      const result = await sgMail.send(msg);
+      console.log('Email sent successfully:', result);
+
+      // テスト通知ログを記録
       await admin.firestore().collection('notificationLogs').add({
-        userId: context.auth.uid,
-        type: 'email_notification',
+        userId: request.auth.uid,
+        type: 'test_email_notification',
         channel: 'email',
         status: 'sent',
-        message: message,
+        message: 'テスト通知送信',
         sentAt: admin.firestore.FieldValue.serverTimestamp(),
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
       });
 
-      return { success: true };
+      return { success: true, message: 'テスト通知を送信しました' };
     } catch (error) {
-      console.error('メール送信エラー:', error);
+      console.error('テストメール送信エラー:', error);
+      console.error('Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        name: error instanceof Error ? error.name : undefined,
+      });
+
+      // SendGridのエラー詳細を表示
+      if (error && typeof error === 'object' && 'response' in error) {
+        const sendgridError = error as {
+          response?: { body?: unknown; headers?: unknown };
+        };
+        console.error('SendGrid Error Response:', sendgridError.response?.body);
+        console.error(
+          'SendGrid Error Headers:',
+          sendgridError.response?.headers
+        );
+      }
 
       // エラーログを記録
       await admin
         .firestore()
         .collection('notificationLogs')
         .add({
-          userId: context.auth.uid,
-          type: 'email_notification',
+          userId: request.auth.uid,
+          type: 'test_email_notification',
           channel: 'email',
           status: 'failed',
-          message: message,
+          message: 'テスト通知送信',
           errorMessage:
             error instanceof Error ? error.message : 'Unknown error',
           createdAt: admin.firestore.FieldValue.serverTimestamp(),
         });
 
-      throw new functions.https.HttpsError(
-        'internal',
-        'メール送信に失敗しました'
-      );
+      throw new HttpsError('internal', 'テスト通知の送信に失敗しました');
     }
   }
 );
-
-// Slack通知を送信するCloud Function
-export const sendSlackNotification = functions.https.onCall(
-  async (data: any, context: any) => {
-    // 認証チェック
-    if (!context.auth) {
-      throw new functions.https.HttpsError('unauthenticated', '認証が必要です');
-    }
-
-    const { webhookUrl, message, channel } = data;
-
-    if (!webhookUrl || !message) {
-      throw new functions.https.HttpsError(
-        'invalid-argument',
-        '必要なパラメータが不足しています'
-      );
-    }
-
-    try {
-      const payload = {
-        text: message,
-        channel: channel || '#general',
-        username: 'Task Manager Bot',
-        icon_emoji: ':robot_face:',
-      };
-
-      const response = await axios.post(webhookUrl, payload, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.status === 200) {
-        // 通知ログを記録
-        await admin.firestore().collection('notificationLogs').add({
-          userId: context.auth.uid,
-          type: 'slack_notification',
-          channel: 'slack',
-          status: 'sent',
-          message: message,
-          sentAt: admin.firestore.FieldValue.serverTimestamp(),
-          createdAt: admin.firestore.FieldValue.serverTimestamp(),
-        });
-
-        return { success: true };
-      } else {
-        throw new Error(`Slack API returned status: ${response.status}`);
-      }
-    } catch (error) {
-      console.error('Slack通知エラー:', error);
-
-      // エラーログを記録
-      await admin
-        .firestore()
-        .collection('notificationLogs')
-        .add({
-          userId: context.auth.uid,
-          type: 'slack_notification',
-          channel: 'slack',
-          status: 'failed',
-          message: message,
-          errorMessage:
-            error instanceof Error ? error.message : 'Unknown error',
-          createdAt: admin.firestore.FieldValue.serverTimestamp(),
-        });
-
-      throw new functions.https.HttpsError(
-        'internal',
-        'Slack通知に失敗しました'
-      );
-    }
-  }
-);
-
-// 定期実行でタスク期限をチェックするCloud Function
-export const checkTaskDeadlines = functions.pubsub
-  .schedule('0 9 * * *')
-  .timeZone('Asia/Tokyo')
-  .onRun(async (context: any) => {
-    console.log('タスク期限チェックを開始します');
-
-    try {
-      const db = admin.firestore();
-      const today = new Date();
-      const todayStr = today.toISOString().split('T')[0];
-
-      // 期限切れタスクを取得
-      const overdueTasks = await db
-        .collection('tasks')
-        .where('dueDate', '<', todayStr)
-        .where('status', 'in', ['未着手', '作業中'])
-        .get();
-
-      // 期限が近いタスクを取得（1日後、3日後、7日後）
-      const upcomingDates = [1, 3, 7].map((days) => {
-        const date = new Date(today);
-        date.setDate(today.getDate() + days);
-        return date.toISOString().split('T')[0];
-      });
-
-      const upcomingTasks = await db
-        .collection('tasks')
-        .where('dueDate', 'in', upcomingDates)
-        .where('status', 'in', ['未着手', '作業中'])
-        .get();
-
-      console.log(`期限切れタスク: ${overdueTasks.size}件`);
-      console.log(`期限が近いタスク: ${upcomingTasks.size}件`);
-
-      // 各ユーザーの通知設定を取得して通知を送信
-      const allTasks = [...overdueTasks.docs, ...upcomingTasks.docs];
-      const userIds = new Set<string>();
-
-      allTasks.forEach((doc) => {
-        const taskData = doc.data();
-        if (taskData.assignee) {
-          userIds.add(taskData.assignee);
-        }
-      });
-
-      for (const userId of userIds) {
-        try {
-          const settingsDoc = await db
-            .collection('notificationSettings')
-            .where('userId', '==', userId)
-            .limit(1)
-            .get();
-
-          if (settingsDoc.empty) continue;
-
-          const settings = settingsDoc.docs[0].data();
-
-          // 期限切れタスクの通知
-          const userOverdueTasks = overdueTasks.docs.filter(
-            (doc) => doc.data().assignee === userId
-          );
-
-          for (const taskDoc of userOverdueTasks) {
-            const taskData = taskDoc.data();
-            await sendTaskNotification(settings, taskData, 'deadline_passed');
-          }
-
-          // 期限が近いタスクの通知
-          const userUpcomingTasks = upcomingTasks.docs.filter(
-            (doc) => doc.data().assignee === userId
-          );
-
-          for (const taskDoc of userUpcomingTasks) {
-            const taskData = taskDoc.data();
-            const daysUntilDeadline = calculateDaysUntilDeadline(
-              taskData.dueDate
-            );
-
-            if (
-              settings.taskDeadlineNotifications?.daysBeforeDeadline?.includes(
-                daysUntilDeadline
-              )
-            ) {
-              await sendTaskNotification(
-                settings,
-                taskData,
-                'deadline_approaching'
-              );
-            }
-          }
-        } catch (error) {
-          console.error(`ユーザー ${userId} の通知処理エラー:`, error);
-        }
-      }
-
-      console.log('タスク期限チェックが完了しました');
-    } catch (error) {
-      console.error('タスク期限チェックエラー:', error);
-    }
-  });
-
-/**
- * タスク通知を送信するヘルパー関数
- * @param {any} settings - 通知設定
- * @param {any} taskData - タスクデータ
- * @param {string} type - 通知タイプ
- */
-async function sendTaskNotification(
-  settings: any,
-  taskData: any,
-  type: string
-) {
-  const template = getNotificationTemplate(type, taskData);
-
-  // メール通知
-  if (settings.notificationChannels?.email?.enabled) {
-    try {
-      await transporter.sendMail({
-        from: functions.config().email?.user,
-        to: settings.notificationChannels.email.address,
-        subject: template.title,
-        html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; 
-             margin: 0 auto;">
-          <h2 style="color: #1976d2;">タスク管理アプリ</h2>
-          <div style="background-color: #f5f5f5; padding: 20px; 
-               border-radius: 8px; margin: 20px 0;">
-            <h3 style="color: #333; margin-top: 0;">${template.title}</h3>
-            <p style="color: #666; line-height: 1.6;">${template.message}</p>
-          </div>
-          <p style="color: #999; font-size: 12px;">
-            このメールはタスク管理アプリから自動送信されました。
-          </p>
-        </div>
-        `,
-      });
-    } catch (error) {
-      console.error('メール通知エラー:', error);
-    }
-  }
-
-  // Slack通知
-  if (settings.notificationChannels?.slack?.enabled) {
-    try {
-      const payload = {
-        text: `*${template.title}*\n${template.message}`,
-        channel: settings.notificationChannels.slack.channel || '#general',
-        username: 'Task Manager Bot',
-        icon_emoji: ':robot_face:',
-      };
-
-      await axios.post(
-        settings.notificationChannels.slack.webhookUrl,
-        payload,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-    } catch (error) {
-      console.error('Slack通知エラー:', error);
-    }
-  }
-}
-
-/**
- * 通知テンプレートを取得するヘルパー関数
- * @param {string} type - 通知タイプ
- * @param {any} taskData - タスクデータ
- * @return {any} 通知テンプレート
- */
-function getNotificationTemplate(type: string, taskData: any) {
-  const templates: { [key: string]: any } = {
-    deadline_approaching: {
-      title: 'タスク期限が近づいています',
-      message:
-        `【${taskData.projectName}】${taskData.taskName} の期限が近づいています。` +
-        `期限: ${taskData.dueDate}`,
-    },
-    deadline_passed: {
-      title: 'タスク期限が過ぎています',
-      message:
-        `【${taskData.projectName}】${taskData.taskName} の期限が過ぎています。` +
-        `期限: ${taskData.dueDate}`,
-    },
-  };
-
-  return templates[type] || templates.deadline_approaching;
-}
-
-/**
- * 期限までの日数を計算するヘルパー関数
- * @param {string} dueDate - 期限日
- * @return {number} 期限までの日数
- */
-function calculateDaysUntilDeadline(dueDate: string): number {
-  const today = new Date();
-  const due = new Date(dueDate);
-  const diffTime = due.getTime() - today.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  return diffDays;
-}

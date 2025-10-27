@@ -157,34 +157,66 @@ export class SettingsComponent implements OnInit {
   async sendTestNotification() {
     if (!this.notificationSettings) return;
 
+    // 連続クリックを防ぐ
+    if (this.isSaving) {
+      console.log('既に処理中です');
+      return;
+    }
+
+    this.isSaving = true;
+    console.log('テスト通知送信開始');
     try {
-      const testMessage =
-        'これはテスト通知です。通知設定が正常に動作しています。';
-
+      // メール通知のテスト
       if (this.notificationSettings.notificationChannels.email.enabled) {
-        await this.notificationService.sendEmailNotification(
-          this.notificationSettings.notificationChannels.email.address,
-          'テスト通知',
-          testMessage
-        );
-      }
+        const emailAddress =
+          this.notificationSettings.notificationChannels.email.address;
+        if (!emailAddress) {
+          this.snackBar.open('メールアドレスを入力してください', '閉じる', {
+            duration: 3000,
+          });
+          return;
+        }
 
-      if (this.notificationSettings.notificationChannels.slack.enabled) {
-        await this.notificationService.sendSlackNotification(
-          this.notificationSettings.notificationChannels.slack.webhookUrl,
-          testMessage,
-          this.notificationSettings.notificationChannels.slack.channel
-        );
-      }
+        console.log('メールアドレス:', emailAddress);
 
-      this.snackBar.open('テスト通知を送信しました', '閉じる', {
-        duration: 3000,
-      });
+        // メールアドレスの検証
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(emailAddress)) {
+          this.snackBar.open(
+            '有効なメールアドレスを入力してください',
+            '閉じる',
+            {
+              duration: 3000,
+            }
+          );
+          return;
+        }
+
+        const success = await this.notificationService.sendTestNotification(
+          emailAddress
+        );
+        console.log('送信結果:', success);
+        if (success) {
+          this.snackBar.open('テスト通知を送信しました', '閉じる', {
+            duration: 3000,
+          });
+        } else {
+          this.snackBar.open('テスト通知の送信に失敗しました', '閉じる', {
+            duration: 3000,
+          });
+        }
+      } else {
+        this.snackBar.open('メール通知を有効にしてください', '閉じる', {
+          duration: 3000,
+        });
+      }
     } catch (error) {
       console.error('テスト通知エラー:', error);
       this.snackBar.open('テスト通知の送信に失敗しました', '閉じる', {
         duration: 3000,
       });
+    } finally {
+      this.isSaving = false;
     }
   }
 }

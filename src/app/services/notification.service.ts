@@ -290,6 +290,21 @@ export class NotificationService {
     }
   }
 
+  /** テスト通知を送信（Firebase Cloud Functions経由） */
+  async sendTestNotification(email: string): Promise<boolean> {
+    try {
+      const sendTestEmail = httpsCallable(this.functions, 'sendTestEmail');
+      const result = await sendTestEmail({ email });
+
+      // 型安全なレスポンス処理
+      const response = result.data as CloudFunctionResponse;
+      return response?.success || false;
+    } catch (error) {
+      console.error('テスト通知エラー:', error);
+      return false;
+    }
+  }
+
   /** 通知ログを記録 */
   async logNotification(
     log: Omit<NotificationLog, 'id' | 'createdAt'>
