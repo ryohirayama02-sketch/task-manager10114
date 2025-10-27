@@ -1,11 +1,28 @@
 <h2>プロジェクト詳細</h2>
 
 <div *ngIf="project; else loading" class="project-card">
-  <div
-    style="display: flex; justify-content: space-between; align-items: center"
-  >
-    <h3>{{ project.projectName }}</h3>
+  <div class="project-header">
+    <div class="project-info">
+      <h3>{{ project.projectName }}</h3>
+      <p><strong>概要:</strong> {{ project.overview || "未設定" }}</p>
+      <p><strong>期間:</strong> {{ project.startDate || "未設定" }}</p>
+      <p><strong>メンバー:</strong> {{ project.members || "未設定" }}</p>
+      <p><strong>タグ:</strong> {{ project.tags || "-" }}</p>
+    </div>
 
+    <!-- 進捗率円グラフ -->
+    <div class="progress-section" *ngIf="projectProgress">
+      <app-progress-circle
+        [percentage]="projectProgress.progressPercentage"
+        [completedTasks]="projectProgress.completedTasks"
+        [totalTasks]="projectProgress.totalTasks"
+        [size]="120"
+        [strokeWidth]="8"
+      ></app-progress-circle>
+    </div>
+  </div>
+
+  <div class="project-actions">
     <!-- ✅ カード右下に＋タスクボタン -->
     <button
       mat-raised-button
@@ -16,12 +33,6 @@
       ＋ タスク
     </button>
   </div>
-
-  <p><strong>概要:</strong> {{ project.overview || "未設定" }}</p>
-
-  <p><strong>期間:</strong> {{ project.startDate || "未設定" }}</p>
-  <p><strong>メンバー:</strong> {{ project.members || "未設定" }}</p>
-  <p><strong>タグ:</strong> {{ project.tags || "-" }}</p>
 
   <!-- マイルストーン表示 -->
   <div

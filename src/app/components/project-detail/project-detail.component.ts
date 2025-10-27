@@ -3,26 +3,39 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { ProjectService } from '../../services/project.service';
+import {
+  ProgressService,
+  ProjectProgress,
+} from '../../services/progress.service';
 import { IProject } from '../../models/project.model';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { TaskFormComponent } from '../task-form/task-form.component';
 import { ProjectFormDialogComponent } from '../project-form-dialog/project-form-dialog.component';
+import { ProgressCircleComponent } from '../progress/projects-overview/progress-circle.component';
 
 @Component({
   selector: 'app-project-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatButtonModule, MatDialogModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatButtonModule,
+    MatDialogModule,
+    ProgressCircleComponent,
+  ],
   templateUrl: './project-detail.component.html',
   styleUrls: ['./project-detail.component.css'],
 })
 export class ProjectDetailComponent implements OnInit {
   project: IProject | null = null;
   projectId: string | null = null;
+  projectProgress: ProjectProgress | null = null;
 
   constructor(
     private route: ActivatedRoute,
     private projectService: ProjectService,
+    private progressService: ProgressService,
     private dialog: MatDialog
   ) {}
 
@@ -31,10 +44,19 @@ export class ProjectDetailComponent implements OnInit {
     console.log('選択されたプロジェクトID:', this.projectId);
 
     if (this.projectId) {
-      this.projectService.getProjectById(this.projectId).subscribe((data) => {
-        this.project = data;
-        console.log('Firestoreから取得したプロジェクト:', data);
-      });
+      this.projectService
+        .getProjectById(this.projectId)
+        .subscribe(async (data) => {
+          this.project = data;
+          console.log('Firestoreから取得したプロジェクト:', data);
+
+          // プロジェクトの進捗率を取得
+          const progress = await this.progressService.getProjectProgress(
+            this.projectId!
+          );
+          this.projectProgress = progress;
+          console.log('プロジェクト進捗:', progress);
+        });
     }
   }
 
