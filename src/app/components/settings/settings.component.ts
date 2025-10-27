@@ -192,14 +192,21 @@ export class SettingsComponent implements OnInit {
           return;
         }
 
-        const success = await this.notificationService.sendTestNotification(
+        const result = await this.notificationService.sendTestNotification(
           emailAddress
         );
-        console.log('送信結果:', success);
-        if (success) {
-          this.snackBar.open('テスト通知を送信しました', '閉じる', {
-            duration: 3000,
-          });
+        console.log('送信結果:', result);
+
+        // Functions側の戻り値が { success: true, message: "..." } の想定
+        const data = (result as any)?.data ?? result; // onCallの戻りを安全に取得
+        if (data?.success) {
+          this.snackBar.open(
+            data.message || 'テスト通知を送信しました ✅',
+            '閉じる',
+            {
+              duration: 3000,
+            }
+          );
         } else {
           this.snackBar.open('テスト通知の送信に失敗しました', '閉じる', {
             duration: 3000,

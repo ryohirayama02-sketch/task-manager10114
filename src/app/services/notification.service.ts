@@ -293,14 +293,33 @@ export class NotificationService {
   /** テスト通知を送信（Firebase Cloud Functions経由） */
   async sendTestNotification(email: string): Promise<boolean> {
     try {
-      const sendTestEmail = httpsCallable(this.functions, 'sendTestEmail');
-      const result = await sendTestEmail({ email });
+      // ✅ リージョンを明示的に指定（あなたの関数は us-central1 にデプロイされている）
+      const { getFunctions, httpsCallable } = await import(
+        'firebase/functions'
+      );
+      const { getApp } = await import('firebase/app');
+      const functions = getFunctions(getApp(), 'us-central1');
 
-      // 型安全なレスポンス処理
-      const response = result.data as CloudFunctionResponse;
-      return response?.success || false;
-    } catch (error) {
-      console.error('テスト通知エラー:', error);
+      // ✅ sendTestEmail 関数呼び出し
+      const callable = httpsCallable<
+        { email: string },
+        { success?: boolean; message?: string }
+      >(functions, 'sendTestEmail');
+
+      const result = await callable({ email });
+
+      // ✅ result.data が undefined の場合にも対応（SDK差異対応）
+      const data = (result as any)?.data ?? result;
+      console.log('[sendTestNotification] 結果:', data);
+
+      // ✅ success が true なら OK
+      return !!data?.success;
+    } catch (error: any) {
+      console.error('[sendTestNotification] エラー:', {
+        code: error?.code,
+        message: error?.message,
+        details: error?.details,
+      });
       return false;
     }
   }
