@@ -270,36 +270,9 @@
         <mat-card-title>タスク内チャット</mat-card-title>
       </mat-card-header>
       <mat-card-content>
-        <div class="chat-messages">
-          <div
-            *ngFor="let message of taskData.chatMessages || []"
-            class="chat-message"
-          >
-            <div class="message-content">{{ message.content }}</div>
-            <div class="message-time">
-              {{ message.timestamp | date : "MM/dd HH:mm" }}
-            </div>
-          </div>
-          <div
-            *ngIf="!taskData.chatMessages || taskData.chatMessages.length === 0"
-            class="no-messages"
-          >
-            まだメッセージがありません
-          </div>
-        </div>
-        <div class="chat-input">
-          <input
-            matInput
-            placeholder="メッセージを入力..."
-            #chatInput
-            (keyup.enter)="
-              addChatMessage(chatInput.value); chatInput.value = ''
-            "
-          />
-          <button mat-icon-button>
-            <mat-icon>send</mat-icon>
-          </button>
-        </div>
+        <!-- プロジェクトチャットコンポーネントを使用 -->
+        <app-project-chat *ngIf="task?.id" [projectId]="task.id!">
+        </app-project-chat>
       </mat-card-content>
     </mat-card>
   </div>

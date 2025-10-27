@@ -18,6 +18,7 @@ import { ProjectService } from '../../services/project.service';
 import { TaskService } from '../../services/task.service';
 import { TaskFormComponent } from '../task-form/task-form.component';
 import { Task, Project, ChatMessage } from '../../models/task.model';
+import { ProjectChatComponent } from '../project-chat/project-chat.component';
 
 @Component({
   selector: 'app-task-detail',
@@ -37,6 +38,7 @@ import { Task, Project, ChatMessage } from '../../models/task.model';
     MatExpansionModule,
     MatCheckboxModule,
     MatProgressSpinnerModule,
+    ProjectChatComponent,
   ],
   templateUrl: './task-detail.component.html',
   styleUrl: './task-detail.component.css',
@@ -70,7 +72,6 @@ export class TaskDetailComponent implements OnInit {
     priority: '中',
     tags: [],
     relatedFiles: [],
-    chatMessages: [],
   };
 
   // 詳細設定
@@ -142,13 +143,6 @@ export class TaskDetailComponent implements OnInit {
             priority: this.task.priority || '中',
             tags: this.task.tags || [],
             relatedFiles: this.task.relatedFiles || [],
-            chatMessages: (this.task.chatMessages || []).map((msg) => ({
-              ...msg,
-              timestamp:
-                typeof msg.timestamp === 'string'
-                  ? new Date(msg.timestamp)
-                  : msg.timestamp,
-            })),
           };
           console.log('設定されたタスクデータ:', this.taskData);
         } else {
@@ -205,13 +199,6 @@ export class TaskDetailComponent implements OnInit {
       priority: this.taskData.priority,
       tags: this.taskData.tags || [],
       relatedFiles: this.taskData.relatedFiles || [],
-      chatMessages: (this.taskData.chatMessages || []).map((msg) => ({
-        ...msg,
-        timestamp:
-          msg.timestamp instanceof Date
-            ? msg.timestamp.toISOString()
-            : msg.timestamp,
-      })),
       updatedAt: new Date().toISOString(), // Date型を文字列に変換
     };
 
@@ -226,7 +213,6 @@ export class TaskDetailComponent implements OnInit {
       priority: typeof updatedTask.priority,
       tags: Array.isArray(updatedTask.tags),
       relatedFiles: Array.isArray(updatedTask.relatedFiles),
-      chatMessages: Array.isArray(updatedTask.chatMessages),
       updatedAt: typeof updatedTask.updatedAt,
     });
 
@@ -318,13 +304,6 @@ export class TaskDetailComponent implements OnInit {
         priority: this.task.priority || '中',
         tags: this.task.tags || [],
         relatedFiles: this.task.relatedFiles || [],
-        chatMessages: (this.task.chatMessages || []).map((msg) => ({
-          ...msg,
-          timestamp:
-            typeof msg.timestamp === 'string'
-              ? new Date(msg.timestamp)
-              : msg.timestamp,
-        })),
       };
       console.log('データを元に戻しました');
     }
@@ -426,33 +405,6 @@ export class TaskDetailComponent implements OnInit {
       this.taskData.relatedFiles = this.taskData.relatedFiles.filter(
         (f: string) => f !== file
       );
-    }
-  }
-
-  /** チャットメッセージを追加 */
-  addChatMessage(content: string) {
-    if (!content.trim()) return;
-
-    const message: ChatMessage = {
-      id: Date.now().toString(),
-      content: content.trim(),
-      timestamp: new Date().toISOString(), // 文字列として保存
-      sender: '現在のユーザー', // 実際の実装では認証されたユーザー名を使用
-    };
-
-    if (this.taskData.chatMessages) {
-      this.taskData.chatMessages.push(message);
-    }
-
-    // タスクを更新
-    if (this.task && this.task.projectId && this.task.id) {
-      this.projectService
-        .updateTask(this.task.projectId, this.task.id, {
-          chatMessages: this.taskData.chatMessages,
-        })
-        .then(() => {
-          console.log('チャットメッセージが追加されました');
-        });
     }
   }
 
