@@ -164,37 +164,46 @@ export class GanttComponent implements OnInit {
 
   /** 選択されたプロジェクトのタスクをフィルタリング */
   filterTasksBySelectedProjects() {
-    if (this.selectedProjectIds.length === 0) {
-      this.tasks = [];
-    } else {
-      this.tasks = this.allTasks.filter((task) =>
-        this.selectedProjectIds.includes(task.projectId)
-      );
-    }
+    // プロジェクト選択が変わったらフィルターをリセットして再適用
     this.applyFilters();
-    this.calculateAssigneeColumnWidth(); // 担当者列の幅を計算
   }
 
   /** フィルターを適用 */
   applyFilters() {
-    let filteredTasks = [...this.tasks];
+    let filteredTasks = [...this.allTasks];
 
+    // プロジェクトフィルター
+    if (this.selectedProjectIds.length > 0) {
+      filteredTasks = filteredTasks.filter((task) =>
+        this.selectedProjectIds.includes(task.projectId)
+      );
+    } else {
+      // プロジェクトが選択されていない場合は空配列
+      filteredTasks = [];
+    }
+
+    // 優先度フィルター
     if (this.filterPriority) {
       filteredTasks = filteredTasks.filter(
         (task) => task.priority === this.filterPriority
       );
     }
+
+    // 担当者フィルター
     if (this.filterAssignee) {
       filteredTasks = filteredTasks.filter(
         (task) => task.assignee === this.filterAssignee
       );
     }
+
+    // ステータスフィルター
     if (this.filterStatus) {
       filteredTasks = filteredTasks.filter(
         (task) => task.status === this.filterStatus
       );
     }
 
+    // フィルター後の結果を表示
     this.tasks = filteredTasks;
     this.calculateAssigneeColumnWidth(); // フィルター適用後も担当者列の幅を計算
   }
