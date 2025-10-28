@@ -207,9 +207,13 @@ async function getUpcomingTasks(): Promise<any[]> {
     const projectsSnapshot = await db.collection('projects').get();
     const allTasks: any[] = [];
 
+    console.log('プロジェクト数:', projectsSnapshot.docs.length);
+
     for (const projectDoc of projectsSnapshot.docs) {
       const projectId = projectDoc.id;
       const projectData = projectDoc.data();
+
+      console.log(`プロジェクト: ${projectData.projectName} (${projectId})`);
 
       const tasksSnapshot = await db
         .collection(`projects/${projectId}/tasks`)
@@ -217,8 +221,15 @@ async function getUpcomingTasks(): Promise<any[]> {
         .where('dueDate', '<=', tomorrowStr)
         .get();
 
+      console.log(`  期限間近のタスク数: ${tasksSnapshot.docs.length}`);
+
       tasksSnapshot.docs.forEach((taskDoc) => {
         const taskData = taskDoc.data();
+        console.log(
+          `    タスク: ${taskData.taskName}, 期限: ${taskData.dueDate}, ` +
+            `ステータス: ${taskData.status}, 担当者: ${taskData.assignee}`
+        );
+
         // ステータスでフィルタリング（クライアント側）
         if (taskData.status === '未着手' || taskData.status === '作業中') {
           allTasks.push({
@@ -227,6 +238,11 @@ async function getUpcomingTasks(): Promise<any[]> {
             projectName: projectData.projectName || 'プロジェクト',
             ...taskData,
           });
+          console.log(`      ✅ 追加: ${taskData.taskName}`);
+        } else {
+          console.log(
+            `      ❌ スキップ: ステータスが条件外 (${taskData.status})`
+          );
         }
       });
     }
@@ -254,20 +270,35 @@ async function getUpcomingTasks(): Promise<any[]> {
 function groupTasksByUser(tasks: any[]): { [email: string]: any[] } {
   const grouped: { [email: string]: any[] } = {};
 
+  console.log('グループ化前のタスク数:', tasks.length);
+
   tasks.forEach((task) => {
-    if (task.assignee) {
-      if (!grouped[task.assignee]) {
-        grouped[task.assignee] = [];
+    console.log(
+      `タスク: ${task.taskName}, 担当者: ${task.assignee}, ` +
+        `メール: ${task.assigneeEmail}`
+    );
+
+    // assigneeEmailが設定されている場合はそれを使用、なければassigneeを使用
+    const email = task.assigneeEmail || task.assignee;
+
+    if (email) {
+      if (!grouped[email]) {
+        grouped[email] = [];
       }
-      grouped[task.assignee].push(task);
+      grouped[email].push(task);
+      console.log(`  → ${email} に追加`);
+    } else {
+      console.log('  → 担当者が設定されていないためスキップ');
     }
   });
 
   // 各ユーザーのタスクを上位3件に制限
   Object.keys(grouped).forEach((email) => {
     grouped[email] = grouped[email].slice(0, 3);
+    console.log(`ユーザー ${email}: ${grouped[email].length}件のタスク`);
   });
 
+  console.log('グループ化後のユーザー数:', Object.keys(grouped).length);
   return grouped;
 }
 
@@ -487,13 +518,15 @@ export const sendTaskRemindersManual = onCall(
           success: true,
           message: '期限が近いタスクはありません',
           taskCount: 0,
+          userCount: 0,
         };
       }
 
       // ユーザーごとにタスクをグループ化
       const tasksByUser = groupTasksByUser(upcomingTasks);
+      const userCount = Object.keys(tasksByUser).length;
 
-      console.log('通知対象ユーザー数:', Object.keys(tasksByUser).length);
+      console.log('通知対象ユーザー数:', userCount);
 
       // 各ユーザーにメール送信
       const fromEmail = sendgridFromEmail.value() || 'noreply@taskmanager.com';
@@ -556,9 +589,11 @@ export const sendTaskRemindersManual = onCall(
 
       return {
         success: true,
-        message: '期限が近いタスクのメール通知を送信しました',
+        message:
+          '期限が近いタスクのメール通知を送信しました ' +
+          `(${upcomingTasks.length}件のタスク、${userCount}人のユーザー)`,
         taskCount: upcomingTasks.length,
-        userCount: Object.keys(tasksByUser).length,
+        userCount: userCount,
       };
     } catch (error) {
       console.error('❌ 手動での期限が近いタスクのメール通知エラー:', error);

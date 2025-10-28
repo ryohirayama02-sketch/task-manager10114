@@ -7,6 +7,7 @@ export interface Task {
   status: '未着手' | '作業中' | '完了';
   priority: '高' | '中' | '低';
   assignee: string;
+  assigneeEmail?: string;
   startDate: string;
   dueDate: string;
   endDate?: string;

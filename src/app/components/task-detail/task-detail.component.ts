@@ -200,6 +200,7 @@ export class TaskDetailComponent implements OnInit {
 
     if (!memberId) {
       this.taskData.assignee = '';
+      this.taskData.assigneeEmail = '';
       return;
     }
 
@@ -209,10 +210,12 @@ export class TaskDetailComponent implements OnInit {
 
     if (selectedMember) {
       this.taskData.assignee = selectedMember.name;
+      this.taskData.assigneeEmail = selectedMember.email;
       console.log('選択された担当者:', selectedMember);
     } else {
       console.warn('メンバーが見つかりません:', memberId);
       this.taskData.assignee = '';
+      this.taskData.assigneeEmail = '';
     }
   }
 
