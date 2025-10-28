@@ -274,3 +274,99 @@ mat-card-actions button {
     border-color: #444;
   }
 }
+
+/* ホーム画面設定のスタイル */
+.home-screen-selection {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.home-screen-preview {
+  margin-top: 16px;
+}
+
+.home-screen-preview h4 {
+  color: #333;
+  margin-bottom: 12px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.preview-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  transition: all 0.3s ease;
+}
+
+.preview-card.preview-kanban {
+  border-color: #2196f3;
+  background-color: #e3f2fd;
+}
+
+.preview-card.preview-gantt {
+  border-color: #4caf50;
+  background-color: #e8f5e8;
+}
+
+.preview-card.preview-calendar {
+  border-color: #ff9800;
+  background-color: #fff3e0;
+}
+
+.preview-icon {
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+}
+
+.preview-kanban .preview-icon {
+  color: #2196f3;
+}
+
+.preview-gantt .preview-icon {
+  color: #4caf50;
+}
+
+.preview-calendar .preview-icon {
+  color: #ff9800;
+}
+
+.preview-label {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+}
+
+/* ダークモード対応 */
+@media (prefers-color-scheme: dark) {
+  .home-screen-preview h4 {
+    color: #fff;
+  }
+
+  .preview-card {
+    background-color: #2a2a2a;
+    border-color: #444;
+  }
+
+  .preview-card.preview-kanban {
+    background-color: #1a237e;
+  }
+
+  .preview-card.preview-gantt {
+    background-color: #1b5e20;
+  }
+
+  .preview-card.preview-calendar {
+    background-color: #e65100;
+  }
+
+  .preview-label {
+    color: #fff;
+  }
+}

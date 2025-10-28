@@ -15,7 +15,13 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { NotificationService } from '../../services/notification.service';
 import { AuthService } from '../../services/auth.service';
 import { TaskReminderService } from '../../services/task-reminder.service';
+import { HomeScreenSettingsService } from '../../services/home-screen-settings.service';
 import { NotificationSettings } from '../../models/notification.model';
+import {
+  HomeScreenSettings,
+  HomeScreenType,
+  HOME_SCREEN_OPTIONS,
+} from '../../models/home-screen-settings.model';
 
 @Component({
   selector: 'app-settings',
@@ -44,6 +50,11 @@ export class SettingsComponent implements OnInit {
   isSaving = false;
   showNotificationSettings = true; // デフォルトで通知設定を表示
 
+  // ホーム画面設定
+  homeScreenSettings: HomeScreenSettings | null = null;
+  selectedHomeScreen: HomeScreenType = 'kanban';
+  homeScreenOptions = HOME_SCREEN_OPTIONS;
+
   // 通知日数オプション
   deadlineNotificationDays = [1, 2, 3, 5, 7, 14, 30];
   selectedDeadlineDays: number[] = [1, 3, 7];
@@ -57,6 +68,7 @@ export class SettingsComponent implements OnInit {
     private notificationService: NotificationService,
     private authService: AuthService,
     private taskReminderService: TaskReminderService,
+    private homeScreenSettingsService: HomeScreenSettingsService,
     private snackBar: MatSnackBar
   ) {
     // 時間オプションを生成（00:00 - 23:30）
@@ -75,6 +87,7 @@ export class SettingsComponent implements OnInit {
     this.notificationSettings =
       this.notificationService.createDefaultNotificationSettings();
     await this.loadNotificationSettings();
+    await this.loadHomeScreenSettings();
   }
 
   /** 通知設定を読み込み */
@@ -309,5 +322,73 @@ export class SettingsComponent implements OnInit {
     } finally {
       this.isSaving = false;
     }
+  }
+
+  /** ホーム画面設定を読み込み */
+  async loadHomeScreenSettings() {
+    try {
+      this.homeScreenSettingsService.getHomeScreenSettings().subscribe({
+        next: (settings) => {
+          if (settings) {
+            this.homeScreenSettings = settings;
+            this.selectedHomeScreen = settings.homeScreen;
+          } else {
+            this.selectedHomeScreen =
+              this.homeScreenSettingsService.getDefaultHomeScreen();
+          }
+        },
+        error: (error) => {
+          console.error('ホーム画面設定の読み込みエラー:', error);
+          this.selectedHomeScreen =
+            this.homeScreenSettingsService.getDefaultHomeScreen();
+        },
+      });
+    } catch (error) {
+      console.error('ホーム画面設定の読み込みエラー:', error);
+      this.selectedHomeScreen =
+        this.homeScreenSettingsService.getDefaultHomeScreen();
+    }
+  }
+
+  /** ホーム画面設定を保存 */
+  async saveHomeScreenSettings() {
+    this.isSaving = true;
+    try {
+      await this.homeScreenSettingsService.saveHomeScreenSettings(
+        this.selectedHomeScreen
+      );
+      this.snackBar.open('ホーム画面設定を保存しました', '閉じる', {
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error('ホーム画面設定の保存エラー:', error);
+      this.snackBar.open('ホーム画面設定の保存に失敗しました', '閉じる', {
+        duration: 3000,
+      });
+    } finally {
+      this.isSaving = false;
+    }
+  }
+
+  /** ホーム画面選択変更 */
+  onHomeScreenChange() {
+    // 即座に保存
+    this.saveHomeScreenSettings();
+  }
+
+  /** 選択されたホーム画面のアイコンを取得 */
+  getSelectedHomeScreenIcon(): string {
+    const option = this.homeScreenOptions.find(
+      (opt) => opt.value === this.selectedHomeScreen
+    );
+    return option?.icon || 'home';
+  }
+
+  /** 選択されたホーム画面のラベルを取得 */
+  getSelectedHomeScreenLabel(): string {
+    const option = this.homeScreenOptions.find(
+      (opt) => opt.value === this.selectedHomeScreen
+    );
+    return option?.label || 'ホーム画面';
   }
 }

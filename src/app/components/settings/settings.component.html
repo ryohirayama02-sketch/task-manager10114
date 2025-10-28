@@ -35,8 +35,8 @@
             class="menu-button"
             (click)="showNotificationSettings = false"
           >
-            <mat-icon>account_circle</mat-icon>
-            アカウント設定
+            <mat-icon>home</mat-icon>
+            ホーム画面設定
           </button>
         </div>
       </mat-card-content>
@@ -440,6 +440,58 @@
           {{ isSaving ? "保存中..." : "設定を保存" }}
         </button>
       </mat-card-actions>
+    </mat-card>
+  </div>
+
+  <!-- ホーム画面設定 -->
+  <div *ngIf="!isLoading && !showNotificationSettings" class="settings-content">
+    <mat-card class="settings-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>home</mat-icon>
+          ホーム画面設定
+        </mat-card-title>
+        <mat-card-subtitle>
+          サインイン後のデフォルト画面を選択してください
+        </mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="home-screen-selection">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>ホーム画面</mat-label>
+            <mat-select
+              [(ngModel)]="selectedHomeScreen"
+              (selectionChange)="onHomeScreenChange()"
+              [disabled]="isSaving"
+              name="homeScreen"
+            >
+              <mat-option
+                *ngFor="let option of homeScreenOptions"
+                [value]="option.value"
+              >
+                <mat-icon>{{ option.icon }}</mat-icon>
+                {{ option.label }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <div class="home-screen-preview">
+            <h4>プレビュー</h4>
+            <div
+              class="preview-card"
+              [ngClass]="'preview-' + selectedHomeScreen"
+            >
+              <mat-icon class="preview-icon">
+                {{ getSelectedHomeScreenIcon() }}
+              </mat-icon>
+              <span class="preview-label">
+                {{ getSelectedHomeScreenLabel() }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
     </mat-card>
   </div>
 </div>

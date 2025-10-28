@@ -1,9 +1,10 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { RouterOutlet, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { NavbarComponent } from './components/navbar/navbar.component';
 import { NotificationSchedulerService } from './services/notification-scheduler.service';
 import { AuthService } from './services/auth.service';
+import { HomeScreenSettingsService } from './services/home-screen-settings.service';
 
 @Component({
   selector: 'app-root',
@@ -17,7 +18,9 @@ export class AppComponent implements OnInit, OnDestroy {
 
   constructor(
     private notificationScheduler: NotificationSchedulerService,
-    private authService: AuthService
+    private authService: AuthService,
+    private homeScreenSettingsService: HomeScreenSettingsService,
+    private router: Router
   ) {}
 
   ngOnInit() {
@@ -26,10 +29,61 @@ export class AppComponent implements OnInit, OnDestroy {
       if (user) {
         // ログイン時は通知スケジューラーを開始
         this.notificationScheduler.startScheduler();
+        // ホーム画面設定に基づいてリダイレクト
+        this.redirectToHomeScreen();
       } else {
         // ログアウト時は通知スケジューラーを停止
         this.notificationScheduler.stopScheduler();
       }
+    });
+  }
+
+  /**
+   * ホーム画面設定に基づいてリダイレクト
+   */
+  private redirectToHomeScreen() {
+    console.log('🏠 ホーム画面設定を読み込み中...');
+    this.homeScreenSettingsService.getHomeScreenSettings().subscribe({
+      next: (settings) => {
+        const homeScreen =
+          settings?.homeScreen ||
+          this.homeScreenSettingsService.getDefaultHomeScreen();
+        const currentPath = this.router.url;
+
+        console.log('🏠 ホーム画面設定:', settings);
+        console.log('🏠 選択されたホーム画面:', homeScreen);
+        console.log('🏠 現在のパス:', currentPath);
+
+        // ホーム画面設定がデフォルト（カンバン）と異なる場合のみリダイレクト
+        const defaultHomeScreen =
+          this.homeScreenSettingsService.getDefaultHomeScreen();
+        const shouldRedirect =
+          homeScreen !== defaultHomeScreen &&
+          (currentPath === '/' ||
+            currentPath === '' ||
+            currentPath === `/${defaultHomeScreen}`);
+
+        if (shouldRedirect) {
+          console.log(
+            '🏠 ホーム画面設定に基づいてリダイレクト実行:',
+            `/${homeScreen}`
+          );
+          this.router.navigate([`/${homeScreen}`]);
+        } else {
+          console.log(
+            '🏠 リダイレクトスキップ（デフォルト設定または条件に合わない）'
+          );
+        }
+      },
+      error: (error) => {
+        console.error('❌ ホーム画面設定の読み込みエラー:', error);
+        // エラーの場合はデフォルトのカンバン画面にリダイレクト
+        const currentPath = this.router.url;
+        if (currentPath === '/' || currentPath === '') {
+          console.log('🏠 エラー時のデフォルトリダイレクト: /kanban');
+          this.router.navigate(['/kanban']);
+        }
+      },
     });
   }
 
