@@ -149,10 +149,6 @@ import { TaskDeleteConfirmDialogComponent } from './task-delete-confirm-dialog.c
 
       <!-- ボタン -->
       <div class="dialog-actions">
-        <button mat-button type="button" (click)="onCancel()">
-          キャンセル
-        </button>
-
         <!-- 削除ボタン -->
         <button
           mat-raised-button
@@ -162,6 +158,15 @@ import { TaskDeleteConfirmDialogComponent } from './task-delete-confirm-dialog.c
         >
           <mat-icon>delete</mat-icon>
           タスク削除
+        </button>
+
+        <button
+          mat-raised-button
+          type="button"
+          (click)="onCancel()"
+          class="cancel-button"
+        >
+          キャンセル
         </button>
 
         <button
@@ -276,7 +281,8 @@ import { TaskDeleteConfirmDialogComponent } from './task-delete-confirm-dialog.c
         flex-shrink: 0;
         display: flex;
         gap: 12px;
-        justify-content: flex-end;
+        justify-content: flex-start;
+        align-items: center;
         padding: 20px 24px;
         border-top: 1px solid #e0e0e0;
         background-color: #f8f9fa;
@@ -297,10 +303,20 @@ import { TaskDeleteConfirmDialogComponent } from './task-delete-confirm-dialog.c
       .delete-button {
         background-color: #f44336;
         color: white;
+        margin-right: auto;
       }
 
       .delete-button:hover {
         background-color: #d32f2f;
+      }
+
+      .cancel-button {
+        background-color: #e0e0e0;
+        color: #333;
+      }
+
+      .cancel-button:hover {
+        background-color: #d0d0d0;
       }
 
       /* レスポンシブデザイン */
