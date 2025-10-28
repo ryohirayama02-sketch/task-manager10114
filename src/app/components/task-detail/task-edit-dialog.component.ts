@@ -10,6 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { firstValueFrom } from 'rxjs';
 import { TaskService } from '../../services/task.service';
 import { MemberManagementService } from '../../services/member-management.service';
 import { Task } from '../../models/task.model';
@@ -388,29 +389,26 @@ export class TaskEditDialogComponent implements OnInit {
     private dialogRef: MatDialogRef<TaskEditDialogComponent>,
     private dialog: MatDialog,
     @Inject(MAT_DIALOG_DATA)
-    public data: { task: Task; projectId: string; projectName: string }
+    public data: {
+      task: Task;
+      projectId: string;
+      projectName: string;
+      oldTaskData?: Task;
+    }
   ) {
     this.task = { ...data.task };
-    this.loadMembers();
   }
 
-  ngOnInit(): void {
-    // 既存の担当者を選択状態に設定
-    if (this.task.assigneeEmail) {
-      const member = this.members.find(
-        (m) => m.email === this.task.assigneeEmail
-      );
-      if (member) {
-        this.selectedMemberId = member.id;
-      }
-    }
+  async ngOnInit(): Promise<void> {
+    await this.loadMembers();
   }
 
   /** メンバー一覧を読み込み */
   async loadMembers(): Promise<void> {
     this.membersLoading = true;
     try {
-      this.members = (await this.memberService.getMembers().toPromise()) || [];
+      this.members =
+        (await firstValueFrom(this.memberService.getMembers())) || [];
 
       // 既存の担当者を選択状態に設定
       if (this.task.assigneeEmail) {
@@ -507,8 +505,8 @@ export class TaskEditDialogComponent implements OnInit {
       await this.taskService.updateTask(
         this.task.id!,
         this.task,
-        this.data.projectId,
-        this.data.projectName || ''
+        this.data.oldTaskData, // 古いタスクデータ
+        this.data.projectId // プロジェクトID
       );
 
       this.snackBar.open('タスクを更新しました', '閉じる', { duration: 3000 });
