@@ -1,2 +1,220 @@
-<h2>すぐやる課題</h2>
-<p>ここにすぐやる課題を表示予定</p>
+<div class="quick-tasks-container">
+  <!-- ヘッダー -->
+  <div class="header">
+    <h1>すぐやるタスク</h1>
+    <div class="filter-controls">
+      <mat-form-field appearance="outline" class="days-filter">
+        <mat-label>期日設定</mat-label>
+        <mat-select
+          [(value)]="daysFilter"
+          (selectionChange)="onDaysFilterChange()"
+        >
+          <mat-option *ngFor="let days of daysOptions" [value]="days">
+            {{ days }}日以内
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <!-- 一時的にデバッグボタンを有効化 -->
+      <button mat-button color="accent" (click)="toggleDebugMode()">
+        <mat-icon>bug_report</mat-icon>
+        {{ debugMode ? "デバッグOFF" : "デバッグON" }}
+      </button>
+    </div>
+  </div>
+
+  <!-- ローディング表示 -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>タスクを読み込み中...</p>
+  </div>
+
+  <!-- 一時的にデバッグ情報を有効化 -->
+  <div *ngIf="debugMode && !loading" class="debug-container">
+    <h3>🔍 デバッグ情報</h3>
+    <div class="debug-info">
+      <p><strong>全タスク数:</strong> {{ allTasks.length }}件</p>
+      <p>
+        <strong>現在のユーザーに関連するタスク数:</strong>
+        {{ filteredTasksByUser.length }}件
+      </p>
+      <p *ngIf="currentUser">
+        <strong>現在のユーザー:</strong> {{ currentUser.email }} ({{
+          currentUser.displayName
+        }})
+      </p>
+
+      <div *ngIf="filteredTasksByUser.length > 0" class="debug-tasks">
+        <h4>現在のユーザーに関連するタスク一覧:</h4>
+        <div class="tasks-grid">
+          <mat-card
+            *ngFor="let task of filteredTasksByUser; trackBy: trackByTaskId"
+            class="task-card debug-task-card"
+            [class.overdue]="isOverdue(task.dueDate)"
+            [class.due-soon]="isDueSoon(task.dueDate)"
+            (click)="onTaskClick(task)"
+          >
+            <!-- タスクヘッダー -->
+            <mat-card-header>
+              <div class="task-header">
+                <h3 class="task-title">{{ task.taskName }}</h3>
+                <div class="task-badges">
+                  <mat-chip [color]="getPriorityColor(task.priority)" selected>
+                    {{ task.priority }}
+                  </mat-chip>
+                  <mat-chip [color]="getStatusColor(task.status)" selected>
+                    {{ task.status }}
+                  </mat-chip>
+                </div>
+              </div>
+            </mat-card-header>
+
+            <!-- タスク内容 -->
+            <mat-card-content>
+              <div class="task-info">
+                <div class="project-info">
+                  <mat-icon>folder</mat-icon>
+                  <span>{{ task.projectName }}</span>
+                </div>
+
+                <div class="assignee-info">
+                  <mat-icon>person</mat-icon>
+                  <span>{{ task.assignee }}</span>
+                </div>
+
+                <div
+                  class="due-date-info"
+                  [class.overdue]="isOverdue(task.dueDate)"
+                  [class.due-soon]="isDueSoon(task.dueDate)"
+                >
+                  <mat-icon>schedule</mat-icon>
+                  <span>{{ task.dueDate }}</span>
+                  <span class="days-until" *ngIf="!isOverdue(task.dueDate)">
+                    ({{ getDaysUntilDue(task.dueDate) }}日後)
+                  </span>
+                  <span
+                    class="days-until overdue-text"
+                    *ngIf="isOverdue(task.dueDate)"
+                  >
+                    ({{
+                      getAbsoluteValue(getDaysUntilDue(task.dueDate))
+                    }}日遅れ)
+                  </span>
+                </div>
+              </div>
+
+              <!-- タスク説明 -->
+              <div *ngIf="task.description" class="task-description">
+                <p>{{ task.description }}</p>
+              </div>
+            </mat-card-content>
+
+            <!-- タスクアクション -->
+            <mat-card-actions>
+              <button mat-button color="primary">
+                <mat-icon>visibility</mat-icon>
+                詳細を見る
+              </button>
+            </mat-card-actions>
+          </mat-card>
+        </div>
+      </div>
+
+      <div
+        *ngIf="filteredTasksByUser.length === 0 && allTasks.length > 0"
+        class="debug-no-user-tasks"
+      >
+        <h4>⚠️ 現在のユーザーに関連するタスクが見つかりません</h4>
+        <p>全タスクの担当者情報を確認してください：</p>
+        <div *ngFor="let task of allTasks; let i = index" class="debug-task">
+          <strong>{{ i + 1 }}.</strong> {{ task.taskName }}
+          <span class="debug-details">
+            (担当者: {{ task.assignee }}, 担当者メール:
+            {{ task.assigneeEmail }})
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- タスク一覧（デバッグモード時は非表示） -->
+  <div *ngIf="!loading && !debugMode" class="tasks-container">
+    <!-- タスクが見つからない場合 -->
+    <div *ngIf="filteredTasks.length === 0" class="no-tasks">
+      <mat-icon>task_alt</mat-icon>
+      <h3>該当するタスクがありません</h3>
+      <p>{{ daysFilter }}日以内に期限が来る未完了のタスクはありません。</p>
+    </div>
+
+    <!-- タスクカード一覧 -->
+    <div *ngIf="filteredTasks.length > 0" class="tasks-grid">
+      <mat-card
+        *ngFor="let task of filteredTasks; trackBy: trackByTaskId"
+        class="task-card"
+        [class.overdue]="isOverdue(task.dueDate)"
+        [class.due-soon]="isDueSoon(task.dueDate)"
+        (click)="onTaskClick(task)"
+      >
+        <!-- タスクヘッダー -->
+        <mat-card-header>
+          <div class="task-header">
+            <h3 class="task-title">{{ task.taskName }}</h3>
+            <div class="task-badges">
+              <mat-chip [color]="getPriorityColor(task.priority)" selected>
+                {{ task.priority }}
+              </mat-chip>
+              <mat-chip [color]="getStatusColor(task.status)" selected>
+                {{ task.status }}
+              </mat-chip>
+            </div>
+          </div>
+        </mat-card-header>
+
+        <!-- タスク内容 -->
+        <mat-card-content>
+          <div class="task-info">
+            <div class="project-info">
+              <mat-icon>folder</mat-icon>
+              <span>{{ task.projectName }}</span>
+            </div>
+
+            <div class="assignee-info">
+              <mat-icon>person</mat-icon>
+              <span>{{ task.assignee }}</span>
+            </div>
+
+            <div
+              class="due-date-info"
+              [class.overdue]="isOverdue(task.dueDate)"
+              [class.due-soon]="isDueSoon(task.dueDate)"
+            >
+              <mat-icon>schedule</mat-icon>
+              <span>{{ task.dueDate }}</span>
+              <span class="days-until" *ngIf="!isOverdue(task.dueDate)">
+                ({{ getDaysUntilDue(task.dueDate) }}日後)
+              </span>
+              <span
+                class="days-until overdue-text"
+                *ngIf="isOverdue(task.dueDate)"
+              >
+                ({{ getAbsoluteValue(getDaysUntilDue(task.dueDate)) }}日遅れ)
+              </span>
+            </div>
+          </div>
+
+          <!-- タスク説明 -->
+          <div *ngIf="task.description" class="task-description">
+            <p>{{ task.description }}</p>
+          </div>
+        </mat-card-content>
+
+        <!-- タスクアクション -->
+        <mat-card-actions>
+          <button mat-button color="primary">
+            <mat-icon>visibility</mat-icon>
+            詳細を見る
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+  </div>
+</div>

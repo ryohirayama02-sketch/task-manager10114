@@ -7,10 +7,15 @@ import {
   doc,
   updateDoc,
   deleteDoc,
+  query,
+  where,
+  getDocs,
+  orderBy,
 } from '@angular/fire/firestore';
-import { Observable } from 'rxjs';
+import { Observable, forkJoin, map } from 'rxjs';
 import { EditLogService } from './edit-log.service';
 import { AuthService } from './auth.service';
+import { Task } from '../models/task.model';
 
 @Injectable({ providedIn: 'root' })
 export class TaskService {
@@ -24,6 +29,228 @@ export class TaskService {
   getTasks(): Observable<any[]> {
     const tasksRef = collection(this.firestore, 'tasks');
     return collectionData(tasksRef, { idField: 'id' }) as Observable<any[]>;
+  }
+
+  /** デバッグ用：すべてのタスクを取得 */
+  getAllTasksForDebug(): Observable<any[]> {
+    console.log('🔍 デバッグ用：すべてのタスクを取得中...');
+    const projectsRef = collection(this.firestore, 'projects');
+    const projectsQuery = query(projectsRef);
+
+    return new Observable((observer) => {
+      getDocs(projectsQuery)
+        .then((projectsSnapshot) => {
+          console.log(`📁 全プロジェクト数: ${projectsSnapshot.docs.length}`);
+          const allTasks: any[] = [];
+          const taskPromises: Promise<void>[] = [];
+
+          projectsSnapshot.docs.forEach((projectDoc) => {
+            const projectId = projectDoc.id;
+            const projectData = projectDoc.data();
+            console.log(
+              `📁 プロジェクト: ${projectData['projectName']} (${projectId})`
+            );
+
+            const tasksRef = collection(
+              this.firestore,
+              `projects/${projectId}/tasks`
+            );
+            const tasksQuery = query(tasksRef);
+
+            const taskPromise = getDocs(tasksQuery).then((tasksSnapshot) => {
+              console.log(
+                `  📋 プロジェクト ${projectData['projectName']} の全タスク数: ${tasksSnapshot.docs.length}`
+              );
+              tasksSnapshot.docs.forEach((taskDoc) => {
+                const taskData = taskDoc.data();
+                console.log(
+                  `    📋 タスク: ${taskData['taskName']}, 期日: ${taskData['dueDate']}, ステータス: ${taskData['status']}, 担当者: ${taskData['assignee']}`
+                );
+                allTasks.push({
+                  id: taskDoc.id,
+                  projectId: projectId,
+                  projectName: projectData['projectName'] || 'プロジェクト',
+                  ...taskData,
+                });
+              });
+            });
+
+            taskPromises.push(taskPromise);
+          });
+
+          Promise.all(taskPromises)
+            .then(() => {
+              console.log(`📊 全タスク数: ${allTasks.length}`);
+              observer.next(allTasks);
+              observer.complete();
+            })
+            .catch((error) => {
+              console.error('❌ 全タスク取得エラー:', error);
+              observer.error(error);
+            });
+        })
+        .catch((error) => {
+          console.error('❌ プロジェクト取得エラー:', error);
+          observer.error(error);
+        });
+    });
+  }
+
+  /** 指定した日数以内の未完了タスクを取得 */
+  getQuickTasks(days: number = 7, userEmail?: string): Observable<Task[]> {
+    const today = new Date();
+    const targetDate = new Date(today.getTime() + days * 24 * 60 * 60 * 1000);
+    const todayStr = today.toISOString().split('T')[0];
+    const targetDateStr = targetDate.toISOString().split('T')[0];
+
+    console.log('🔍 すぐやるタスク取得開始');
+    console.log(`📅 今日: ${todayStr}`);
+    console.log(`📅 対象日: ${targetDateStr} (${days}日後)`);
+    console.log(`📅 検索範囲: ${todayStr} から ${targetDateStr} まで`);
+    if (userEmail) {
+      console.log(`👤 ユーザーフィルタ: ${userEmail}`);
+    }
+
+    // 全プロジェクトを取得
+    const projectsRef = collection(this.firestore, 'projects');
+    const projectsQuery = query(projectsRef);
+
+    return new Observable((observer) => {
+      getDocs(projectsQuery)
+        .then((projectsSnapshot) => {
+          console.log(`📁 プロジェクト数: ${projectsSnapshot.docs.length}`);
+          const allTasks: Task[] = [];
+          const taskPromises: Promise<void>[] = [];
+
+          projectsSnapshot.docs.forEach((projectDoc) => {
+            const projectId = projectDoc.id;
+            const projectData = projectDoc.data();
+            console.log(
+              `📁 プロジェクト: ${projectData['projectName']} (${projectId})`
+            );
+
+            // 各プロジェクトのタスクを取得
+            const tasksRef = collection(
+              this.firestore,
+              `projects/${projectId}/tasks`
+            );
+            // インデックスエラーを回避するため、フィルタリングなしで全取得
+            const tasksQuery = query(tasksRef);
+
+            const taskPromise = getDocs(tasksQuery).then((tasksSnapshot) => {
+              console.log(
+                `  📋 プロジェクト ${projectData['projectName']} のタスク数: ${tasksSnapshot.docs.length}`
+              );
+              tasksSnapshot.docs.forEach((taskDoc) => {
+                const taskData = taskDoc.data();
+                console.log(
+                  `    📋 タスク: ${taskData['taskName']}, 期日: ${taskData['dueDate']}, ステータス: ${taskData['status']}, 担当者: ${taskData['assignee']}`
+                );
+                allTasks.push({
+                  id: taskDoc.id,
+                  projectId: projectId,
+                  projectName: projectData['projectName'] || 'プロジェクト',
+                  ...taskData,
+                } as Task);
+              });
+            });
+
+            taskPromises.push(taskPromise);
+          });
+
+          Promise.all(taskPromises)
+            .then(() => {
+              console.log(
+                `📊 全タスク数（フィルタリング前）: ${allTasks.length}`
+              );
+
+              // 期日順→優先度順でソート
+              const sortedTasks = allTasks.sort((a, b) => {
+                // 期日順
+                if (a.dueDate < b.dueDate) return -1;
+                if (a.dueDate > b.dueDate) return 1;
+
+                // 優先度順（高 > 中 > 低）
+                const priorityOrder = { 高: 3, 中: 2, 低: 1 };
+                const aPriority = priorityOrder[a.priority] || 0;
+                const bPriority = priorityOrder[b.priority] || 0;
+
+                return bPriority - aPriority;
+              });
+
+              // クライアント側でフィルタリング
+              let filteredTasks = sortedTasks.filter((task) => {
+                // 期日フィルタリング
+                const taskDueDate = task.dueDate;
+                const isWithinDateRange =
+                  taskDueDate >= todayStr && taskDueDate <= targetDateStr;
+
+                // ステータスフィルタリング
+                const isIncomplete =
+                  task.status === '未着手' || task.status === '作業中';
+
+                // ユーザーフィルタリング
+                let isAssignedToUser = true;
+                if (userEmail) {
+                  const assigneeEmail = task.assigneeEmail || task.assignee;
+                  isAssignedToUser =
+                    assigneeEmail === userEmail || task.assignee === userEmail;
+                }
+
+                const shouldInclude =
+                  isWithinDateRange && isIncomplete && isAssignedToUser;
+
+                if (shouldInclude) {
+                  console.log(`✅ タスク「${task.taskName}」が条件に合致`);
+                } else {
+                  console.log(
+                    `❌ タスク「${task.taskName}」が条件に合致しない:`,
+                    {
+                      isWithinDateRange,
+                      isIncomplete,
+                      isAssignedToUser,
+                      dueDate: taskDueDate,
+                      status: task.status,
+                      assignee: task.assignee,
+                    }
+                  );
+                }
+
+                return shouldInclude;
+              });
+
+              console.log(`📊 フィルタリング後: ${filteredTasks.length}件`);
+
+              console.log(
+                `✅ すぐやるタスクを取得完了: ${filteredTasks.length}件`
+              );
+              if (filteredTasks.length > 0) {
+                console.log('📋 取得されたタスク一覧:');
+                filteredTasks.forEach((task, index) => {
+                  console.log(
+                    `  ${index + 1}. ${task.taskName} (${
+                      task.projectName
+                    }) - 期日: ${task.dueDate}, ステータス: ${
+                      task.status
+                    }, 担当者: ${task.assignee}`
+                  );
+                });
+              } else {
+                console.log('⚠️ 該当するタスクが見つかりませんでした');
+              }
+              observer.next(filteredTasks);
+              observer.complete();
+            })
+            .catch((error) => {
+              console.error('❌ すぐやるタスク取得エラー:', error);
+              observer.error(error);
+            });
+        })
+        .catch((error) => {
+          console.error('❌ プロジェクト取得エラー:', error);
+          observer.error(error);
+        });
+    });
   }
 
   /** Firestoreに新しいタスクを追加 */

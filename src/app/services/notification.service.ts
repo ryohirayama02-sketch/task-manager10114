@@ -195,9 +195,9 @@ export class NotificationService {
           const querySnapshot = await getDocs(q);
           querySnapshot.forEach((doc) => {
             const taskData = doc.data();
-            
+
             // 担当者が現在のユーザーかチェック（メールアドレスまたは名前）
-            const isAssignedToUser = 
+            const isAssignedToUser =
               taskData['assigneeEmail'] === currentUser.email ||
               taskData['assignee'] === currentUser.displayName ||
               taskData['assignee'] === currentUser.email;
@@ -256,9 +256,9 @@ export class NotificationService {
         const querySnapshot = await getDocs(q);
         querySnapshot.forEach((doc) => {
           const taskData = doc.data();
-          
+
           // 担当者が現在のユーザーかチェック（メールアドレスまたは名前）
-          const isAssignedToUser = 
+          const isAssignedToUser =
             taskData['assigneeEmail'] === currentUser.email ||
             taskData['assignee'] === currentUser.displayName ||
             taskData['assignee'] === currentUser.email;

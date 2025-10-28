@@ -192,7 +192,11 @@ export class ProjectDetailComponent implements OnInit {
 
   /** タスク詳細画面に遷移 */
   goToTaskDetail(taskId: string) {
-    this.router.navigate(['/task', taskId]);
+    if (!this.projectId) {
+      console.error('プロジェクトIDが設定されていません');
+      return;
+    }
+    this.router.navigate(['/project', this.projectId, 'task', taskId]);
   }
 
   /** CSV出力 */
