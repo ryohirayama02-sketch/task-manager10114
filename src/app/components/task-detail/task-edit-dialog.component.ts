@@ -1,0 +1,530 @@
+import { Component, Inject, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDialog } from '@angular/material/dialog';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { TaskService } from '../../services/task.service';
+import { MemberManagementService } from '../../services/member-management.service';
+import { Task } from '../../models/task.model';
+import { Member } from '../../models/member.model';
+import { TaskDeleteConfirmDialogComponent } from './task-delete-confirm-dialog.component';
+
+@Component({
+  selector: 'app-task-edit-dialog',
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatButtonModule,
+    MatIconModule,
+    MatSnackBarModule,
+    MatProgressSpinnerModule,
+  ],
+  template: `
+    <div class="task-edit-dialog">
+      <div class="dialog-header">
+        <h2>タスク編集</h2>
+      </div>
+
+      <div class="dialog-content">
+        <form (ngSubmit)="onSubmit()" #form="ngForm" class="form-container">
+          <!-- タスク名 -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>タスク名 *</mat-label>
+            <input
+              matInput
+              [(ngModel)]="task.taskName"
+              name="taskName"
+              placeholder="タスク名を入力してください"
+              required
+            />
+            <mat-icon matSuffix>assignment</mat-icon>
+          </mat-form-field>
+
+          <!-- 説明 -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>説明</mat-label>
+            <textarea
+              matInput
+              [(ngModel)]="task.description"
+              name="description"
+              placeholder="タスクの詳細説明を入力してください"
+              rows="3"
+            ></textarea>
+            <mat-icon matSuffix>description</mat-icon>
+          </mat-form-field>
+
+          <!-- 担当者選択 -->
+          <div class="assignee-selection">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>担当者</mat-label>
+              <mat-select
+                [(ngModel)]="selectedMemberId"
+                (selectionChange)="onMemberSelectionChange($event.value)"
+                name="assignee"
+              >
+                <mat-option value="">担当者なし</mat-option>
+                <mat-option *ngFor="let member of members" [value]="member.id">
+                  {{ member.name }}
+                </mat-option>
+              </mat-select>
+              <mat-icon matSuffix>person</mat-icon>
+            </mat-form-field>
+
+            <div *ngIf="membersLoading" class="loading-members">
+              <mat-spinner diameter="20"></mat-spinner>
+              <span>メンバーを読み込み中...</span>
+            </div>
+
+            <div
+              *ngIf="!membersLoading && members.length === 0"
+              class="no-members"
+            >
+              <p>
+                メンバーが登録されていません。先にメンバー管理画面でメンバーを登録してください。
+              </p>
+            </div>
+          </div>
+
+          <!-- ステータス -->
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>ステータス</mat-label>
+            <mat-select [(ngModel)]="task.status" name="status">
+              <mat-option value="未着手">未着手</mat-option>
+              <mat-option value="作業中">作業中</mat-option>
+              <mat-option value="完了">完了</mat-option>
+            </mat-select>
+            <mat-icon matSuffix>flag</mat-icon>
+          </mat-form-field>
+
+          <!-- 優先度 -->
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>優先度</mat-label>
+            <mat-select [(ngModel)]="task.priority" name="priority">
+              <mat-option value="高">高</mat-option>
+              <mat-option value="中">中</mat-option>
+              <mat-option value="低">低</mat-option>
+            </mat-select>
+            <mat-icon matSuffix>priority_high</mat-icon>
+          </mat-form-field>
+
+          <!-- 開始日 -->
+          <div class="date-field">
+            <label for="startDate">開始日</label>
+            <div class="date-input-wrapper">
+              <input
+                id="startDate"
+                type="date"
+                [(ngModel)]="task.startDate"
+                name="startDate"
+                placeholder="開始日を選択"
+                class="date-input"
+              />
+              <mat-icon class="date-icon">event</mat-icon>
+            </div>
+          </div>
+
+          <!-- 期日 -->
+          <div class="date-field">
+            <label for="dueDate">期日</label>
+            <div class="date-input-wrapper">
+              <input
+                id="dueDate"
+                type="date"
+                [(ngModel)]="task.dueDate"
+                name="dueDate"
+                placeholder="期日を選択"
+                class="date-input"
+              />
+              <mat-icon class="date-icon">event</mat-icon>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- ボタン -->
+      <div class="dialog-actions">
+        <button mat-button type="button" (click)="onCancel()">
+          キャンセル
+        </button>
+
+        <!-- 削除ボタン -->
+        <button
+          mat-raised-button
+          color="warn"
+          class="delete-button"
+          (click)="confirmDeleteTask()"
+        >
+          <mat-icon>delete</mat-icon>
+          タスク削除
+        </button>
+
+        <button
+          mat-raised-button
+          type="submit"
+          color="primary"
+          [disabled]="!task.taskName || isSaving"
+          (click)="onSubmit()"
+        >
+          <mat-spinner *ngIf="isSaving" diameter="20"></mat-spinner>
+          <mat-icon *ngIf="!isSaving">save</mat-icon>
+          {{ isSaving ? '保存中...' : '保存' }}
+        </button>
+      </div>
+    </div>
+  `,
+  styles: [
+    `
+      .task-edit-dialog {
+        display: flex;
+        flex-direction: column;
+        max-height: 90vh;
+        width: 100%;
+        max-width: 600px;
+      }
+
+      .dialog-header {
+        flex-shrink: 0;
+        padding: 20px 24px 0;
+        border-bottom: 1px solid #e0e0e0;
+      }
+
+      .dialog-header h2 {
+        margin: 0;
+        color: #333;
+        font-size: 24px;
+        font-weight: 500;
+      }
+
+      .dialog-content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 24px;
+      }
+
+      .form-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+
+      .full-width {
+        grid-column: 1 / -1;
+      }
+
+      .half-width {
+        grid-column: span 1;
+      }
+
+      .date-field {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .date-field label {
+        font-size: 14px;
+        font-weight: 500;
+        color: #666;
+      }
+
+      .date-input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+      }
+
+      .date-input {
+        width: 100%;
+        padding: 12px 40px 12px 12px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 16px;
+        background-color: white;
+        cursor: pointer;
+      }
+
+      .date-input:focus {
+        outline: none;
+        border-color: #1976d2;
+        box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+      }
+
+      .date-icon {
+        position: absolute;
+        right: 12px;
+        color: #666;
+        pointer-events: none;
+      }
+
+      .assignee-selection {
+        position: relative;
+      }
+
+      .loading-members {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 0;
+        color: #666;
+        font-size: 14px;
+      }
+
+      .no-members {
+        padding: 8px 0;
+        color: #666;
+        font-size: 14px;
+      }
+
+      .no-members p {
+        margin: 0;
+      }
+
+      .dialog-actions {
+        flex-shrink: 0;
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        padding: 20px 24px;
+        border-top: 1px solid #e0e0e0;
+        background-color: #f8f9fa;
+      }
+
+      .dialog-actions button {
+        min-width: 120px;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+      }
+
+      .delete-button {
+        background-color: #f44336;
+        color: white;
+      }
+
+      .delete-button:hover {
+        background-color: #d32f2f;
+      }
+
+      /* レスポンシブデザイン */
+      @media (max-width: 768px) {
+        .form-container {
+          grid-template-columns: 1fr;
+          gap: 16px;
+        }
+
+        .half-width {
+          grid-column: span 1;
+        }
+
+        .dialog-actions {
+          flex-direction: column;
+          padding: 16px;
+        }
+
+        .dialog-actions button {
+          width: 100%;
+        }
+      }
+
+      /* ダークモード対応 */
+      @media (prefers-color-scheme: dark) {
+        .dialog-header h2 {
+          color: #fff;
+        }
+
+        .date-field label {
+          color: #ccc;
+        }
+
+        .date-input {
+          background-color: #2a2a2a;
+          border-color: #555;
+          color: #fff;
+        }
+
+        .date-input:focus {
+          border-color: #1976d2;
+        }
+
+        .date-icon {
+          color: #ccc;
+        }
+
+        .loading-members,
+        .no-members {
+          color: #ccc;
+        }
+      }
+    `,
+  ],
+})
+export class TaskEditDialogComponent implements OnInit {
+  task: Task;
+  members: Member[] = [];
+  selectedMemberId: string = '';
+  membersLoading = false;
+  isSaving = false;
+
+  constructor(
+    private taskService: TaskService,
+    private memberService: MemberManagementService,
+    private snackBar: MatSnackBar,
+    private dialogRef: MatDialogRef<TaskEditDialogComponent>,
+    private dialog: MatDialog,
+    @Inject(MAT_DIALOG_DATA)
+    public data: { task: Task; projectId: string; projectName: string }
+  ) {
+    this.task = { ...data.task };
+    this.loadMembers();
+  }
+
+  ngOnInit(): void {
+    // 既存の担当者を選択状態に設定
+    if (this.task.assigneeEmail) {
+      const member = this.members.find(
+        (m) => m.email === this.task.assigneeEmail
+      );
+      if (member) {
+        this.selectedMemberId = member.id;
+      }
+    }
+  }
+
+  /** メンバー一覧を読み込み */
+  async loadMembers(): Promise<void> {
+    this.membersLoading = true;
+    try {
+      this.members = (await this.memberService.getMembers().toPromise()) || [];
+
+      // 既存の担当者を選択状態に設定
+      if (this.task.assigneeEmail) {
+        const member = this.members.find(
+          (m) => m.email === this.task.assigneeEmail
+        );
+        if (member) {
+          this.selectedMemberId = member.id;
+        }
+      }
+    } catch (error) {
+      console.error('メンバー読み込みエラー:', error);
+      this.snackBar.open('メンバーの読み込みに失敗しました', '閉じる', {
+        duration: 3000,
+      });
+    } finally {
+      this.membersLoading = false;
+    }
+  }
+
+  /** メンバー選択変更 */
+  onMemberSelectionChange(memberId: string): void {
+    if (!memberId) {
+      this.task.assignee = '';
+      this.task.assigneeEmail = '';
+      return;
+    }
+
+    const selectedMember = this.members.find(
+      (member) => member.id === memberId
+    );
+    if (selectedMember) {
+      this.task.assignee = selectedMember.name;
+      this.task.assigneeEmail = selectedMember.email;
+    }
+  }
+
+  /** タスク削除の確認ダイアログ */
+  confirmDeleteTask(): void {
+    const dialogRef = this.dialog.open(TaskDeleteConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        taskName: this.task.taskName,
+        taskId: this.task.id,
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result === true) {
+        this.deleteTask();
+      }
+    });
+  }
+
+  /** タスクを削除 */
+  async deleteTask(): Promise<void> {
+    if (!this.task.id) {
+      return;
+    }
+
+    try {
+      await this.taskService.deleteTask(
+        this.task.id,
+        this.data.projectId,
+        this.data.projectName || ''
+      );
+      this.snackBar.open(
+        `タスク「${this.task.taskName}」を削除しました`,
+        '閉じる',
+        { duration: 3000 }
+      );
+
+      // ダイアログを閉じて削除完了を通知
+      this.dialogRef.close({ deleted: true });
+    } catch (error) {
+      console.error('タスク削除エラー:', error);
+      this.snackBar.open('タスクの削除に失敗しました', '閉じる', {
+        duration: 3000,
+      });
+    }
+  }
+
+  /** 保存 */
+  async onSubmit(): Promise<void> {
+    if (!this.task.taskName) {
+      this.snackBar.open('タスク名を入力してください', '閉じる', {
+        duration: 3000,
+      });
+      return;
+    }
+
+    this.isSaving = true;
+    try {
+      await this.taskService.updateTask(
+        this.task.id!,
+        this.task,
+        this.data.projectId,
+        this.data.projectName || ''
+      );
+
+      this.snackBar.open('タスクを更新しました', '閉じる', { duration: 3000 });
+      this.dialogRef.close({ success: true });
+    } catch (error) {
+      console.error('タスク更新エラー:', error);
+      this.snackBar.open('タスクの更新に失敗しました', '閉じる', {
+        duration: 3000,
+      });
+    } finally {
+      this.isSaving = false;
+    }
+  }
+
+  /** キャンセル */
+  onCancel(): void {
+    this.dialogRef.close();
+  }
+}

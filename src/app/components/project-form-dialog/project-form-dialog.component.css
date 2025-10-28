@@ -384,6 +384,15 @@ input[type="date"]::-moz-calendar-picker-indicator {
   box-shadow: 0 4px 12px rgba(25, 118, 210, 0.4);
 }
 
+.delete-button {
+  background-color: #f44336;
+  color: white;
+}
+
+.delete-button:hover {
+  background-color: #d32f2f;
+}
+
 /* レスポンシブデザイン */
 @media (max-width: 768px) {
   .dialog-container {

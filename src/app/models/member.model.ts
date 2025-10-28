@@ -1,5 +1,5 @@
 export interface Member {
-  id?: string;
+  id: string;
   name: string;
   email: string;
   createdAt?: Date | string | any; // FirestoreのTimestampも許可

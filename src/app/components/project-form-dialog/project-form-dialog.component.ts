@@ -11,8 +11,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDialog } from '@angular/material/dialog';
 import { ProjectService } from '../../services/project.service';
 import { MemberManagementService } from '../../services/member-management.service';
+import { ProjectDeleteConfirmDialogComponent } from '../project-detail/project-delete-confirm-dialog.component';
 import { Milestone } from '../../models/task.model';
 import { IProject } from '../../models/project.model';
 import { Member } from '../../models/member.model';
@@ -60,6 +62,7 @@ export class ProjectFormDialogComponent implements OnInit {
     private memberService: MemberManagementService,
     private snackBar: MatSnackBar,
     private dialogRef: MatDialogRef<ProjectFormDialogComponent>,
+    private dialog: MatDialog,
     @Inject(MAT_DIALOG_DATA) public data: { project?: IProject }
   ) {
     if (data && data.project) {
@@ -169,5 +172,53 @@ export class ProjectFormDialogComponent implements OnInit {
   /** IDを生成 */
   private generateId(): string {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
+  }
+
+  /** プロジェクト削除の確認ダイアログ */
+  confirmDeleteProject(): void {
+    if (!this.originalProject) {
+      return;
+    }
+
+    const dialogRef = this.dialog.open(ProjectDeleteConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        projectName: this.originalProject.projectName,
+        projectId: this.originalProject.id,
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result === true) {
+        this.deleteProject();
+      }
+    });
+  }
+
+  /** プロジェクトを削除 */
+  async deleteProject(): Promise<void> {
+    if (!this.originalProject?.id) {
+      return;
+    }
+
+    try {
+      await this.projectService.deleteProject(
+        this.originalProject.id,
+        this.originalProject
+      );
+      this.snackBar.open(
+        `プロジェクト「${this.originalProject.projectName}」を削除しました`,
+        '閉じる',
+        { duration: 3000 }
+      );
+
+      // ダイアログを閉じて削除完了を通知
+      this.dialogRef.close({ deleted: true });
+    } catch (error) {
+      console.error('プロジェクト削除エラー:', error);
+      this.snackBar.open('プロジェクトの削除に失敗しました', '閉じる', {
+        duration: 3000,
+      });
+    }
   }
 }

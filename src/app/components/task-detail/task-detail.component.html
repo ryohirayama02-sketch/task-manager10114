@@ -1,36 +1,15 @@
-<div class="task-detail-container" [class.editing-mode]="isEditing">
+<div class="task-detail-container">
   <!-- ヘッダー -->
   <div class="task-header">
     <button mat-button (click)="goBack()" class="back-button">
       <mat-icon>arrow_back</mat-icon>
       戻る
     </button>
-    <h1>
-      {{ taskData.taskName || "タスク詳細" }}
-      <span *ngIf="isEditing" class="editing-indicator">
-        <mat-icon>edit</mat-icon>
-        編集中
-      </span>
-    </h1>
+    <h1>{{ taskData.taskName || "タスク詳細" }}</h1>
     <div class="header-actions">
-      <button mat-button (click)="toggleEdit()" *ngIf="!isEditing">
+      <button mat-button (click)="toggleEdit()">
         <mat-icon>edit</mat-icon>
         編集
-      </button>
-      <button
-        mat-button
-        (click)="saveTask()"
-        *ngIf="isEditing"
-        color="primary"
-        [disabled]="isSaving"
-      >
-        <mat-spinner *ngIf="isSaving" diameter="20"></mat-spinner>
-        <mat-icon *ngIf="!isSaving">save</mat-icon>
-        {{ isSaving ? "保存中..." : "保存" }}
-      </button>
-      <button mat-button (click)="cancel()" *ngIf="isEditing">
-        <mat-icon>cancel</mat-icon>
-        キャンセル
       </button>
     </div>
   </div>
@@ -61,13 +40,7 @@
         <div class="form-row">
           <div class="form-field">
             <label>タスク名</label>
-            <input
-              *ngIf="isEditing"
-              matInput
-              [(ngModel)]="taskData.taskName"
-              placeholder="タスク名を入力"
-            />
-            <div *ngIf="!isEditing" class="readonly-field">
+            <div class="readonly-field">
               {{ taskData.taskName }}
             </div>
           </div>
@@ -76,14 +49,7 @@
         <div class="form-row">
           <div class="form-field">
             <label>タスクの説明</label>
-            <textarea
-              *ngIf="isEditing"
-              matInput
-              [(ngModel)]="taskData.description"
-              placeholder="タスクの説明を入力"
-              rows="3"
-            ></textarea>
-            <div *ngIf="!isEditing" class="readonly-field">
+            <div class="readonly-field">
               {{ taskData.description || "説明なし" }}
             </div>
           </div>
@@ -92,20 +58,7 @@
         <div class="form-row">
           <div class="form-field">
             <label>期間</label>
-            <div *ngIf="isEditing" class="date-inputs">
-              <input
-                type="date"
-                [(ngModel)]="taskData.startDate"
-                placeholder="開始日"
-              />
-              <span>～</span>
-              <input
-                type="date"
-                [(ngModel)]="taskData.dueDate"
-                placeholder="期限日"
-              />
-            </div>
-            <div *ngIf="!isEditing" class="readonly-field">
+            <div class="readonly-field">
               {{
                 taskData.startDate
                   ? (taskData.startDate | date : "yyyy/MM/dd")
@@ -123,40 +76,8 @@
 
         <div class="form-row">
           <div class="form-field">
-            <label>
-              担当者
-              <span *ngIf="isEditing" class="field-hint">クリックして選択</span>
-            </label>
-            <div *ngIf="isEditing">
-              <!-- ローディング表示 -->
-              <div *ngIf="membersLoading" class="loading-members">
-                <mat-spinner diameter="20"></mat-spinner>
-                <span>メンバーを読み込み中...</span>
-              </div>
-
-              <!-- メンバー選択 -->
-              <mat-select
-                *ngIf="!membersLoading && members.length > 0"
-                [(ngModel)]="selectedMemberId"
-                (selectionChange)="onMemberSelectionChange($event.value)"
-                placeholder="担当者を選択してください"
-              >
-                <mat-option value="">担当者なし</mat-option>
-                <mat-option *ngFor="let member of members" [value]="member.id">
-                  {{ member.name }}
-                </mat-option>
-              </mat-select>
-
-              <!-- メンバーがいない場合 -->
-              <div
-                *ngIf="!membersLoading && members.length === 0"
-                class="no-members"
-              >
-                <p>メンバーが登録されていません</p>
-                <p>先にメンバー管理画面でメンバーを登録してください。</p>
-              </div>
-            </div>
-            <div *ngIf="!isEditing" class="readonly-field">
+            <label>担当者</label>
+            <div class="readonly-field">
               {{ taskData.assignee || "—" }}
             </div>
           </div>
@@ -164,16 +85,8 @@
 
         <div class="form-row">
           <div class="form-field">
-            <label>
-              ステータス
-              <span *ngIf="isEditing" class="field-hint">クリックして選択</span>
-            </label>
-            <mat-select *ngIf="isEditing" [(ngModel)]="taskData.status">
-              <mat-option *ngFor="let status of statusOptions" [value]="status">
-                {{ status }}
-              </mat-option>
-            </mat-select>
-            <div *ngIf="!isEditing" class="readonly-field">
+            <label>ステータス</label>
+            <div class="readonly-field">
               {{ taskData.status }}
             </div>
           </div>
@@ -181,19 +94,8 @@
 
         <div class="form-row">
           <div class="form-field">
-            <label>
-              優先度
-              <span *ngIf="isEditing" class="field-hint">クリックして選択</span>
-            </label>
-            <mat-select *ngIf="isEditing" [(ngModel)]="taskData.priority">
-              <mat-option
-                *ngFor="let priority of priorityOptions"
-                [value]="priority"
-              >
-                {{ priority }}
-              </mat-option>
-            </mat-select>
-            <div *ngIf="!isEditing" class="readonly-field">
+            <label>優先度</label>
+            <div class="readonly-field">
               {{ taskData.priority }}
             </div>
           </div>

@@ -186,6 +186,19 @@
   <!-- ボタン -->
   <div class="dialog-actions">
     <button mat-button type="button" (click)="onCancel()">キャンセル</button>
+
+    <!-- 編集モードの場合のみ削除ボタンを表示 -->
+    <button
+      *ngIf="isEditMode"
+      mat-raised-button
+      color="warn"
+      class="delete-button"
+      (click)="confirmDeleteProject()"
+    >
+      <mat-icon>delete</mat-icon>
+      プロジェクト削除
+    </button>
+
     <button
       mat-raised-button
       type="submit"

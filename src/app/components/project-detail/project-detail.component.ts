@@ -17,6 +17,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { TaskFormComponent } from '../task-form/task-form.component';
 import { ProjectFormDialogComponent } from '../project-form-dialog/project-form-dialog.component';
 import { ProgressCircleComponent } from '../progress/projects-overview/progress-circle.component';
@@ -36,6 +37,7 @@ import { ProjectChatComponent } from '../project-chat/project-chat.component';
     MatIconModule,
     MatCardModule,
     MatChipsModule,
+    MatSnackBarModule,
     ProgressCircleComponent,
     ProjectChatComponent,
   ],
@@ -64,7 +66,8 @@ export class ProjectDetailComponent implements OnInit {
     private router: Router,
     private projectService: ProjectService,
     private progressService: ProgressService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit() {
@@ -105,7 +108,10 @@ export class ProjectDetailComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe((result) => {
-      if (result === 'success') {
+      if (result?.deleted) {
+        // プロジェクトが削除された場合、一覧画面にリダイレクト
+        this.router.navigate(['/projects-overview']);
+      } else if (result === 'success') {
         console.log('プロジェクトが更新されました');
         // プロジェクト情報を再読み込み
         if (this.projectId) {

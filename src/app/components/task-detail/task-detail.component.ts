@@ -18,6 +18,7 @@ import { ProjectService } from '../../services/project.service';
 import { TaskService } from '../../services/task.service';
 import { MemberManagementService } from '../../services/member-management.service';
 import { TaskFormComponent } from '../task-form/task-form.component';
+import { TaskEditDialogComponent } from './task-edit-dialog.component';
 import { Task, Project, ChatMessage } from '../../models/task.model';
 import { Member } from '../../models/member.model';
 import { ProjectChatComponent } from '../project-chat/project-chat.component';
@@ -40,6 +41,7 @@ import { ProjectChatComponent } from '../project-chat/project-chat.component';
     MatExpansionModule,
     MatCheckboxModule,
     MatProgressSpinnerModule,
+    TaskEditDialogComponent,
     ProjectChatComponent,
   ],
   templateUrl: './task-detail.component.html',
@@ -221,8 +223,36 @@ export class TaskDetailComponent implements OnInit {
 
   /** 編集モードを切り替え */
   toggleEdit() {
-    this.isEditing = !this.isEditing;
-    console.log('編集モード:', this.isEditing ? 'ON' : 'OFF');
+    // 編集ダイアログを開く
+    this.openEditDialog();
+  }
+
+  /** タスク編集ダイアログを開く */
+  openEditDialog() {
+    if (!this.task || !this.project) {
+      return;
+    }
+
+    const dialogRef = this.dialog.open(TaskEditDialogComponent, {
+      width: '90vw',
+      maxWidth: '600px',
+      maxHeight: '90vh',
+      data: {
+        task: this.task,
+        projectId: this.project.id!,
+        projectName: this.project.projectName || '',
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result?.deleted) {
+        // タスクが削除された場合、プロジェクト詳細画面にリダイレクト
+        this.router.navigate(['/project-detail', this.project!.id]);
+      } else if (result?.success) {
+        // タスクが更新された場合、データを再読み込み
+        this.loadTaskDetails(this.project!.id!, this.task!.id!);
+      }
+    });
   }
 
   /** タスクを保存 */
