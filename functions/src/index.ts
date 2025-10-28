@@ -1,79 +1,81 @@
-import { onCall, HttpsError } from 'firebase-functions/v2/https';
-import { onSchedule } from 'firebase-functions/v2/scheduler';
-import { defineSecret } from 'firebase-functions/params';
-import * as admin from 'firebase-admin';
-import sgMail from '@sendgrid/mail';
-
+import {onCall, HttpsError} from "firebase-functions/v2/https";
+import {onSchedule} from "firebase-functions/v2/scheduler";
+import {defineSecret} from "firebase-functions/params";
+import * as admin from "firebase-admin";
+import sgMail from "@sendgrid/mail";
 // Firebase Admin SDK を初期化
 admin.initializeApp();
 
 // シークレットの定義
-const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
-const sendgridFromEmail = defineSecret('SENDGRID_FROM_EMAIL');
+const sendgridApiKey = defineSecret("SENDGRID_API_KEY");
+const sendgridFromEmail = defineSecret("SENDGRID_FROM_EMAIL");
 
 // テスト通知を送信するCloud Function
 export const sendTestEmail = onCall(
-  { secrets: [sendgridApiKey, sendgridFromEmail] },
+  {
+    secrets: [sendgridApiKey, sendgridFromEmail],
+    cors: true,
+  },
   async (request) => {
     // 認証チェック
     if (!request.auth) {
-      throw new HttpsError('unauthenticated', '認証が必要です');
+      throw new HttpsError("unauthenticated", "認証が必要です");
     }
 
     // SendGridの設定（改行文字を確実に除去）
     const rawApiKey = sendgridApiKey.value();
     const apiKey = rawApiKey
       .trim()
-      .replace(/[\r\n\t\s]+/g, '')
-      .replace(/\0/g, '');
-    console.log('Raw API Key length:', rawApiKey.length);
+      .replace(/[\r\n\t\s]+/g, "")
+      .replace(/\0/g, "");
+    console.log("Raw API Key length:", rawApiKey.length);
     console.log(
-      'Raw API Key chars:',
+      "Raw API Key chars:",
       rawApiKey
-        .split('')
+        .split("")
         .map((c) => c.charCodeAt(0))
         .slice(-10)
     );
-    console.log('Cleaned API Key length:', apiKey.length);
-    console.log('API Key starts with SG:', apiKey.startsWith('SG.'));
-    console.log('API Key ends with:', apiKey.slice(-5));
+    console.log("Cleaned API Key length:", apiKey.length);
+    console.log("API Key starts with SG:", apiKey.startsWith("SG."));
+    console.log("API Key ends with:", apiKey.slice(-5));
 
     // APIキーの検証
-    if (!apiKey || !apiKey.startsWith('SG.')) {
-      console.error('Invalid SendGrid API key');
-      throw new HttpsError('internal', 'SendGrid APIキーが無効です');
+    if (!apiKey || !apiKey.startsWith("SG.")) {
+      console.error("Invalid SendGrid API key");
+      throw new HttpsError("internal", "SendGrid APIキーが無効です");
     }
 
     sgMail.setApiKey(apiKey);
 
-    const { email } = request.data;
+    const {email} = request.data;
 
     if (!email) {
-      throw new HttpsError('invalid-argument', 'メールアドレスが必要です');
+      throw new HttpsError("invalid-argument", "メールアドレスが必要です");
     }
 
     try {
       const rawFromEmail =
-        sendgridFromEmail.value() || 'noreply@taskmanager.com';
+        sendgridFromEmail.value() || "noreply@taskmanager.com";
       const fromEmail = rawFromEmail
         .trim()
-        .replace(/[\r\n\t\s]+/g, '')
-        .replace(/\0/g, '');
-      console.log('Sending email to:', email);
-      console.log('From email:', fromEmail);
+        .replace(/[\r\n\t\s]+/g, "")
+        .replace(/\0/g, "");
+      console.log("Sending email to:", email);
+      console.log("From email:", fromEmail);
 
       // 送信者と受信者が同じ場合はエラー
       if (fromEmail === email) {
         throw new HttpsError(
-          'invalid-argument',
-          '送信者と受信者のメールアドレスが同じです'
+          "invalid-argument",
+          "送信者と受信者のメールアドレスが同じです"
         );
       }
 
       const msg = {
         to: email,
         from: fromEmail,
-        subject: '【テスト通知】タスク管理アプリ',
+        subject: "【テスト通知】タスク管理アプリ",
         html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; 
              margin: 0 auto;">
@@ -99,90 +101,90 @@ export const sendTestEmail = onCall(
       `,
       };
 
-      console.log('Attempting to send email...');
-      console.log('Message details:', JSON.stringify(msg, null, 2));
+      console.log("Attempting to send email...");
+      console.log("Message details:", JSON.stringify(msg, null, 2));
       console.log(
-        'SendGrid API Key (first 10 chars):',
+        "SendGrid API Key (first 10 chars):",
         apiKey.substring(0, 10)
       );
       console.log(
-        'SendGrid API Key (last 10 chars):',
+        "SendGrid API Key (last 10 chars):",
         apiKey.substring(apiKey.length - 10)
       );
 
       // SendGridの設定を確認
-      console.log('SendGrid client configured:', !!sgMail);
+      console.log("SendGrid client configured:", !!sgMail);
 
       const [response] = await sgMail.send(msg);
 
       if (response && response.statusCode === 202) {
-        console.log('✅ SendGrid送信成功: statusCode 202');
+        console.log("✅ SendGrid送信成功: statusCode 202");
       } else {
-        console.warn('⚠️ SendGrid送信応答:', response?.statusCode);
+        console.warn("⚠️ SendGrid送信応答:", response?.statusCode);
       }
 
       // テスト通知ログを記録（失敗しても関数全体を落とさない）
       await admin
         .firestore()
-        .collection('notificationLogs')
+        .collection("notificationLogs")
         .add({
-          userId: request.auth?.uid || 'anonymous',
-          type: 'test_email_notification',
-          channel: 'email',
-          status: 'sent',
-          message: 'テスト通知送信',
+          userId: request.auth?.uid || "anonymous",
+          type: "test_email_notification",
+          channel: "email",
+          status: "sent",
+          message: "テスト通知送信",
           sentAt: admin.firestore.FieldValue.serverTimestamp(),
           createdAt: admin.firestore.FieldValue.serverTimestamp(),
         })
         .catch((e) => {
           console.warn(
-            '⚠️ Firestore sent-log failed (non fatal):',
+            "⚠️ Firestore sent-log failed (non fatal):",
             e?.message || e
           );
         });
 
-      return { success: true, message: 'テスト通知を送信しました' };
+      return {success: true, message: "テスト通知を送信しました"};
     } catch (error) {
-      console.error('テストメール送信エラー:', error);
-      console.error('Error details:', {
-        message: error instanceof Error ? error.message : 'Unknown error',
+      console.error("テストメール送信エラー:", error);
+      console.error("Error details:", {
+        message: error instanceof Error ? error.message : "Unknown error",
         stack: error instanceof Error ? error.stack : undefined,
         name: error instanceof Error ? error.name : undefined,
       });
 
       // SendGridのエラー詳細を表示
-      if (error && typeof error === 'object' && 'response' in error) {
+      if (error && typeof error === "object" && "response" in error) {
         const sendgridError = error as {
           response?: { body?: unknown; headers?: unknown };
         };
-        console.error('SendGrid Error Response:', sendgridError.response?.body);
+        console.error("SendGrid Error Response:", sendgridError.response?.body);
         console.error(
-          'SendGrid Error Headers:',
+          "SendGrid Error Headers:",
           sendgridError.response?.headers
         );
       }
 
       await admin
         .firestore()
-        .collection('notificationLogs')
+        .collection("notificationLogs")
         .add({
-          userId: request.auth?.uid || 'anonymous',
-          type: 'test_email_notification',
-          channel: 'email',
-          status: 'failed',
-          message: 'テスト通知送信',
+          userId: request.auth?.uid || "anonymous",
+          type: "test_email_notification",
+          channel: "email",
+          status: "failed",
+          message: "テスト通知送信",
           errorMessage:
-            error instanceof Error ? error.message : 'Unknown error',
+            error instanceof Error ? error.message : "Unknown error",
           createdAt: admin.firestore.FieldValue.serverTimestamp(),
         })
         .catch((e) => {
           console.warn(
-            '⚠️ Firestore error-log failed (non fatal):',
+            "⚠️ Firestore error-log failed (non fatal):",
             e?.message || e
           );
         });
 
-      throw new HttpsError('internal', 'テスト通知の送信に失敗しました');
+      throw new HttpsError("internal", "テスト通知の送信に失敗しました");
     }
   }
 );
@@ -198,16 +200,16 @@ async function getUpcomingTasks(): Promise<any[]> {
     const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
 
     // 今日から明日までの期限のタスクを取得
-    const todayStr = today.toISOString().split('T')[0];
-    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+    const todayStr = today.toISOString().split("T")[0];
+    const tomorrowStr = tomorrow.toISOString().split("T")[0];
 
-    console.log('期限チェック範囲:', todayStr, '〜', tomorrowStr);
+    console.log("期限チェック範囲:", todayStr, "〜", tomorrowStr);
 
     // 全プロジェクトのタスクを取得
-    const projectsSnapshot = await db.collection('projects').get();
+    const projectsSnapshot = await db.collection("projects").get();
     const allTasks: any[] = [];
 
-    console.log('プロジェクト数:', projectsSnapshot.docs.length);
+    console.log("プロジェクト数:", projectsSnapshot.docs.length);
 
     for (const projectDoc of projectsSnapshot.docs) {
       const projectId = projectDoc.id;
@@ -217,8 +219,8 @@ async function getUpcomingTasks(): Promise<any[]> {
 
       const tasksSnapshot = await db
         .collection(`projects/${projectId}/tasks`)
-        .where('dueDate', '>=', todayStr)
-        .where('dueDate', '<=', tomorrowStr)
+        .where("dueDate", ">=", todayStr)
+        .where("dueDate", "<=", tomorrowStr)
         .get();
 
       console.log(`  期限間近のタスク数: ${tasksSnapshot.docs.length}`);
@@ -231,11 +233,11 @@ async function getUpcomingTasks(): Promise<any[]> {
         );
 
         // ステータスでフィルタリング（クライアント側）
-        if (taskData.status === '未着手' || taskData.status === '作業中') {
+        if (taskData.status === "未着手" || taskData.status === "作業中") {
           allTasks.push({
             id: taskDoc.id,
             projectId: projectId,
-            projectName: projectData.projectName || 'プロジェクト',
+            projectName: projectData.projectName || "プロジェクト",
             ...taskData,
           });
           console.log(`      ✅ 追加: ${taskData.taskName}`);
@@ -254,10 +256,10 @@ async function getUpcomingTasks(): Promise<any[]> {
       return 0;
     });
 
-    console.log('期限が近いタスク数:', allTasks.length);
+    console.log("期限が近いタスク数:", allTasks.length);
     return allTasks.slice(0, 3);
   } catch (error) {
-    console.error('期限が近いタスクの取得エラー:', error);
+    console.error("期限が近いタスクの取得エラー:", error);
     return [];
   }
 }
@@ -270,7 +272,7 @@ async function getUpcomingTasks(): Promise<any[]> {
 function groupTasksByUser(tasks: any[]): { [email: string]: any[] } {
   const grouped: { [email: string]: any[] } = {};
 
-  console.log('グループ化前のタスク数:', tasks.length);
+  console.log("グループ化前のタスク数:", tasks.length);
 
   tasks.forEach((task) => {
     console.log(
@@ -288,7 +290,7 @@ function groupTasksByUser(tasks: any[]): { [email: string]: any[] } {
       grouped[email].push(task);
       console.log(`  → ${email} に追加`);
     } else {
-      console.log('  → 担当者が設定されていないためスキップ');
+      console.log("  → 担当者が設定されていないためスキップ");
     }
   });
 
@@ -298,7 +300,7 @@ function groupTasksByUser(tasks: any[]): { [email: string]: any[] } {
     console.log(`ユーザー ${email}: ${grouped[email].length}件のタスク`);
   });
 
-  console.log('グループ化後のユーザー数:', Object.keys(grouped).length);
+  console.log("グループ化後のユーザー数:", Object.keys(grouped).length);
   return grouped;
 }
 
@@ -314,26 +316,26 @@ function generateTaskReminderHTML(tasks: any[]): string {
     <div style="background-color: #f8f9fa; padding: 15px; margin: 10px 0; 
                 border-radius: 8px; border-left: 4px solid #007bff;">
       <h3 style="color: #333; margin: 0 0 10px 0; font-size: 16px;">
-        ${index + 1}. ${task.taskName || 'タスク名なし'}
+        ${index + 1}. ${task.taskName || "タスク名なし"}
       </h3>
       <p style="color: #666; margin: 5px 0; font-size: 14px;">
         <strong>プロジェクト:</strong> ${
-          task.projectName || 'プロジェクト名なし'
-        }
+  task.projectName || "プロジェクト名なし"
+}
       </p>
       <p style="color: #666; margin: 5px 0; font-size: 14px;">
-        <strong>期限:</strong> ${task.dueDate || '期限なし'}
+        <strong>期限:</strong> ${task.dueDate || "期限なし"}
       </p>
       <p style="color: #666; margin: 5px 0; font-size: 14px;">
-        <strong>ステータス:</strong> ${task.status || '未設定'}
+        <strong>ステータス:</strong> ${task.status || "未設定"}
       </p>
       <p style="color: #666; margin: 5px 0; font-size: 14px;">
-        <strong>優先度:</strong> ${task.priority || '未設定'}
+        <strong>優先度:</strong> ${task.priority || "未設定"}
       </p>
     </div>
   `
     )
-    .join('');
+    .join("");
 
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; 
@@ -384,24 +386,24 @@ function generateTaskReminderHTML(tasks: any[]): string {
 // 毎朝10時に期限が近いタスクのメール通知を送信
 export const sendDailyTaskReminders = onSchedule(
   {
-    schedule: '0 10 * * *', // 毎日10:00
-    timeZone: 'Asia/Tokyo',
-    memory: '512MiB',
+    schedule: "0 10 * * *", // 毎日10:00
+    timeZone: "Asia/Tokyo",
+    memory: "512MiB",
     timeoutSeconds: 300,
   },
   async () => {
-    console.log('🕙 期限が近いタスクのメール通知を開始');
+    console.log("🕙 期限が近いタスクのメール通知を開始");
 
     try {
       // SendGridの設定
       const rawApiKey = sendgridApiKey.value();
       const apiKey = rawApiKey
         .trim()
-        .replace(/[\r\n\t\s]+/g, '')
-        .replace(/\0/g, '');
+        .replace(/[\r\n\t\s]+/g, "")
+        .replace(/\0/g, "");
 
-      if (!apiKey || !apiKey.startsWith('SG.')) {
-        console.error('Invalid SendGrid API key');
+      if (!apiKey || !apiKey.startsWith("SG.")) {
+        console.error("Invalid SendGrid API key");
         return;
       }
 
@@ -411,17 +413,17 @@ export const sendDailyTaskReminders = onSchedule(
       const upcomingTasks = await getUpcomingTasks();
 
       if (upcomingTasks.length === 0) {
-        console.log('期限が近いタスクはありません');
+        console.log("期限が近いタスクはありません");
         return;
       }
 
       // ユーザーごとにタスクをグループ化
       const tasksByUser = groupTasksByUser(upcomingTasks);
 
-      console.log('通知対象ユーザー数:', Object.keys(tasksByUser).length);
+      console.log("通知対象ユーザー数:", Object.keys(tasksByUser).length);
 
       // 各ユーザーにメール送信
-      const fromEmail = sendgridFromEmail.value() || 'noreply@taskmanager.com';
+      const fromEmail = sendgridFromEmail.value() || "noreply@taskmanager.com";
       const sendPromises = Object.entries(tasksByUser).map(
         async ([email, userTasks]) => {
           try {
@@ -440,12 +442,12 @@ export const sendDailyTaskReminders = onSchedule(
             // 送信ログを記録
             await admin
               .firestore()
-              .collection('notificationLogs')
+              .collection("notificationLogs")
               .add({
-                userId: 'system',
-                type: 'daily_task_reminder',
-                channel: 'email',
-                status: 'sent',
+                userId: "system",
+                type: "daily_task_reminder",
+                channel: "email",
+                status: "sent",
                 message: `期限間近タスク通知を送信 (${userTasks.length}件)`,
                 recipientEmail: email,
                 taskCount: userTasks.length,
@@ -458,16 +460,16 @@ export const sendDailyTaskReminders = onSchedule(
             // エラーログを記録
             await admin
               .firestore()
-              .collection('notificationLogs')
+              .collection("notificationLogs")
               .add({
-                userId: 'system',
-                type: 'daily_task_reminder',
-                channel: 'email',
-                status: 'failed',
-                message: '期限間近タスク通知送信失敗',
+                userId: "system",
+                type: "daily_task_reminder",
+                channel: "email",
+                status: "failed",
+                message: "期限間近タスク通知送信失敗",
                 recipientEmail: email,
                 errorMessage:
-                  error instanceof Error ? error.message : 'Unknown error',
+                  error instanceof Error ? error.message : "Unknown error",
                 createdAt: admin.firestore.FieldValue.serverTimestamp(),
               });
           }
@@ -477,35 +479,203 @@ export const sendDailyTaskReminders = onSchedule(
       // すべてのメール送信を並列実行
       await Promise.all(sendPromises);
 
-      console.log('✅ 期限が近いタスクのメール通知完了');
+      console.log("✅ 期限が近いタスクのメール通知完了");
     } catch (error) {
-      console.error('❌ 期限が近いタスクのメール通知エラー:', error);
+      console.error("❌ 期限が近いタスクのメール通知エラー:", error);
     }
   }
 );
 
+/**
+ * ユーザー個別の通知設定に基づいてタスク通知を送信する関数
+ * @param {string} userId ユーザーID
+ * @param {string} userEmail ユーザーのメールアドレス
+ * @param {any} settings 通知設定
+ * @return {Promise<any[]>} 通知対象のタスク配列
+ */
+async function getUserUpcomingTasks(
+  userId: string,
+  userEmail: string,
+  settings: any
+): Promise<any[]> {
+  try {
+    const db = admin.firestore();
+    const today = new Date();
+    const upcomingTasks: any[] = [];
+
+    console.log(`ユーザー ${userId} の期限間近タスクをチェック中...`);
+
+    // 全プロジェクトからタスクを取得
+    const projectsSnapshot = await db.collection("projects").get();
+
+    // 各通知日数でタスクをチェック
+    for (const daysBefore of settings.taskDeadlineNotifications
+      .daysBeforeDeadline) {
+      const targetDate = new Date(today);
+      targetDate.setDate(today.getDate() + daysBefore);
+      const targetDateStr = targetDate.toISOString().split("T")[0];
+
+      console.log(`${daysBefore}日前のタスクをチェック: ${targetDateStr}`);
+
+      // 各プロジェクトのタスクをチェック
+      for (const projectDoc of projectsSnapshot.docs) {
+        const projectId = projectDoc.id;
+        const projectData = projectDoc.data();
+
+        const tasksSnapshot = await db
+          .collection(`projects/${projectId}/tasks`)
+          .where("dueDate", "==", targetDateStr)
+          .where("status", "in", ["未着手", "作業中"])
+          .get();
+
+        tasksSnapshot.docs.forEach((taskDoc) => {
+          const taskData = taskDoc.data();
+
+          // 担当者が現在のユーザーかチェック
+          const isAssignedToUser =
+            taskData.assigneeEmail === userEmail ||
+            taskData.assignee === userEmail;
+
+          if (isAssignedToUser) {
+            upcomingTasks.push({
+              id: taskDoc.id,
+              projectId: projectId,
+              projectName: projectData.projectName || "プロジェクト",
+              ...taskData,
+              daysBefore: daysBefore,
+            });
+            console.log(
+              `  → タスク追加: ${taskData.taskName} (${daysBefore}日前)`
+            );
+          }
+        });
+      }
+    }
+
+    console.log(
+      `ユーザー ${userId} の期限間近タスク数: ${upcomingTasks.length}`
+    );
+    return upcomingTasks;
+  } catch (error) {
+    console.error("ユーザー個別タスク取得エラー:", error);
+    return [];
+  }
+}
+
+/**
+ * ユーザー個別のタスク通知メールを生成する関数
+ * @param {any[]} tasks タスクの配列
+ * @param {any} settings 通知設定
+ * @return {string} HTML文字列
+ */
+function generateUserTaskNotificationHTML(tasks: any[], settings: any): string {
+  if (tasks.length === 0) {
+    return "";
+  }
+
+  // 日数ごとにタスクをグループ化
+  const tasksByDays: { [key: number]: any[] } = {};
+  tasks.forEach((task) => {
+    if (!tasksByDays[task.daysBefore]) {
+      tasksByDays[task.daysBefore] = [];
+    }
+    tasksByDays[task.daysBefore].push(task);
+  });
+
+  const taskSections = Object.keys(tasksByDays)
+    .sort((a, b) => parseInt(a) - parseInt(b))
+    .map((days) => {
+      const dayTasks = tasksByDays[parseInt(days)];
+      const sectionTitle =
+        days === "1" ? "明日期限のタスク" : `${days}日後に期限のタスク`;
+
+      const taskList = dayTasks
+        .map(
+          (task, index) => `
+        <div style="background-color: #f8f9fa; padding: 15px; margin: 10px 0; 
+                    border-radius: 8px; border-left: 4px solid #007bff;">
+          <h3 style="color: #333; margin: 0 0 10px 0; font-size: 16px;">
+            ${index + 1}. ${task.taskName || "タスク名なし"}
+          </h3>
+          <p style="color: #666; margin: 5px 0; font-size: 14px;">
+            <strong>プロジェクト:</strong> ${
+  task.projectName || "プロジェクト名なし"
+}
+          </p>
+          <p style="color: #666; margin: 5px 0; font-size: 14px;">
+            <strong>期限:</strong> ${task.dueDate || "期限なし"}
+          </p>
+          <p style="color: #666; margin: 5px 0; font-size: 14px;">
+            <strong>ステータス:</strong> ${task.status || "未設定"}
+          </p>
+          <p style="color: #666; margin: 5px 0; font-size: 14px;">
+            <strong>優先度:</strong> ${task.priority || "未設定"}
+          </p>
+        </div>
+      `
+        )
+        .join("");
+
+      return `
+        <div style="margin: 20px 0;">
+          <h2 style="color: #1976d2; border-bottom: 2px solid #1976d2; 
+                     padding-bottom: 10px;">${sectionTitle}</h2>
+          ${taskList}
+        </div>
+      `;
+    })
+    .join("");
+
+  return `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; 
+         margin: 0 auto;">
+      <h1 style="color: #1976d2;">タスク期限通知</h1>
+      <div style="background-color: #f5f5f5; padding: 20px; 
+           border-radius: 8px; margin: 20px 0;">
+        <p style="color: #333; line-height: 1.6; margin: 0;">
+          以下のタスクの期限が近づいています。<br>
+          確認をお願いします。
+        </p>
+      </div>
+      ${taskSections}
+      <div style="background-color: #e8f5e8; padding: 15px; 
+           border-radius: 5px; margin: 20px 0;">
+        <p style="color: #2e7d32; margin: 0;">
+          📋 詳細はタスク管理アプリで確認してください。
+        </p>
+      </div>
+      <p style="color: #999; font-size: 12px;">
+        このメールはタスク管理アプリから自動送信されました。
+      </p>
+    </div>
+  `;
+}
+
 // 手動で期限が近いタスクのメール通知を送信（テスト用）
 export const sendTaskRemindersManual = onCall(
-  { secrets: [sendgridApiKey, sendgridFromEmail] },
+  {
+    secrets: [sendgridApiKey, sendgridFromEmail],
+    cors: true,
+  },
   async (request) => {
     // 認証チェック
     if (!request.auth) {
-      throw new HttpsError('unauthenticated', '認証が必要です');
+      throw new HttpsError("unauthenticated", "認証が必要です");
     }
 
-    console.log('🕙 手動で期限が近いタスクのメール通知を開始');
+    console.log("🕙 手動で期限が近いタスクのメール通知を開始");
 
     try {
       // SendGridの設定
       const rawApiKey = sendgridApiKey.value();
       const apiKey = rawApiKey
         .trim()
-        .replace(/[\r\n\t\s]+/g, '')
-        .replace(/\0/g, '');
+        .replace(/[\r\n\t\s]+/g, "")
+        .replace(/\0/g, "");
 
-      if (!apiKey || !apiKey.startsWith('SG.')) {
-        console.error('Invalid SendGrid API key');
-        throw new HttpsError('internal', 'SendGrid APIキーが無効です');
+      if (!apiKey || !apiKey.startsWith("SG.")) {
+        console.error("Invalid SendGrid API key");
+        throw new HttpsError("internal", "SendGrid APIキーが無効です");
       }
 
       sgMail.setApiKey(apiKey);
@@ -516,7 +686,7 @@ export const sendTaskRemindersManual = onCall(
       if (upcomingTasks.length === 0) {
         return {
           success: true,
-          message: '期限が近いタスクはありません',
+          message: "期限が近いタスクはありません",
           taskCount: 0,
           userCount: 0,
         };
@@ -526,10 +696,10 @@ export const sendTaskRemindersManual = onCall(
       const tasksByUser = groupTasksByUser(upcomingTasks);
       const userCount = Object.keys(tasksByUser).length;
 
-      console.log('通知対象ユーザー数:', userCount);
+      console.log("通知対象ユーザー数:", userCount);
 
       // 各ユーザーにメール送信
-      const fromEmail = sendgridFromEmail.value() || 'noreply@taskmanager.com';
+      const fromEmail = sendgridFromEmail.value() || "noreply@taskmanager.com";
       const sendPromises = Object.entries(tasksByUser).map(
         async ([email, userTasks]) => {
           try {
@@ -548,12 +718,12 @@ export const sendTaskRemindersManual = onCall(
             // 送信ログを記録
             await admin
               .firestore()
-              .collection('notificationLogs')
+              .collection("notificationLogs")
               .add({
-                userId: request.auth?.uid || 'manual',
-                type: 'manual_task_reminder',
-                channel: 'email',
-                status: 'sent',
+                userId: request.auth?.uid || "manual",
+                type: "manual_task_reminder",
+                channel: "email",
+                status: "sent",
                 message: `期限間近タスク通知を手動送信 (${userTasks.length}件)`,
                 recipientEmail: email,
                 taskCount: userTasks.length,
@@ -566,16 +736,16 @@ export const sendTaskRemindersManual = onCall(
             // エラーログを記録
             await admin
               .firestore()
-              .collection('notificationLogs')
+              .collection("notificationLogs")
               .add({
-                userId: request.auth?.uid || 'manual',
-                type: 'manual_task_reminder',
-                channel: 'email',
-                status: 'failed',
-                message: '期限間近タスク通知手動送信失敗',
+                userId: request.auth?.uid || "manual",
+                type: "manual_task_reminder",
+                channel: "email",
+                status: "failed",
+                message: "期限間近タスク通知手動送信失敗",
                 recipientEmail: email,
                 errorMessage:
-                  error instanceof Error ? error.message : 'Unknown error',
+                  error instanceof Error ? error.message : "Unknown error",
                 createdAt: admin.firestore.FieldValue.serverTimestamp(),
               });
           }
@@ -585,21 +755,292 @@ export const sendTaskRemindersManual = onCall(
       // すべてのメール送信を並列実行
       await Promise.all(sendPromises);
 
-      console.log('✅ 手動での期限が近いタスクのメール通知完了');
+      console.log("✅ 手動での期限が近いタスクのメール通知完了");
 
       return {
         success: true,
         message:
-          '期限が近いタスクのメール通知を送信しました ' +
+          "期限が近いタスクのメール通知を送信しました " +
           `(${upcomingTasks.length}件のタスク、${userCount}人のユーザー)`,
         taskCount: upcomingTasks.length,
         userCount: userCount,
       };
     } catch (error) {
-      console.error('❌ 手動での期限が近いタスクのメール通知エラー:', error);
+      console.error("❌ 手動での期限が近いタスクのメール通知エラー:", error);
       throw new HttpsError(
-        'internal',
-        '期限が近いタスクのメール通知送信に失敗しました'
+        "internal",
+        "期限が近いタスクのメール通知送信に失敗しました"
+      );
+    }
+  }
+);
+
+// ユーザー個別の通知設定に基づく自動タスク通知（毎日実行）
+export const sendUserTaskNotifications = onSchedule(
+  {
+    schedule: "0 9 * * *", // 毎日9:00
+    timeZone: "Asia/Tokyo",
+    memory: "512MiB",
+    timeoutSeconds: 300,
+  },
+  async () => {
+    console.log("🕙 ユーザー個別のタスク通知を開始");
+
+    try {
+      // SendGridの設定
+      const rawApiKey = sendgridApiKey.value();
+      const apiKey = rawApiKey
+        .trim()
+        .replace(/[\r\n\t\s]+/g, "")
+        .replace(/\0/g, "");
+
+      if (!apiKey || !apiKey.startsWith("SG.")) {
+        console.error("Invalid SendGrid API key");
+        return;
+      }
+
+      sgMail.setApiKey(apiKey);
+
+      const db = admin.firestore();
+      const fromEmail = sendgridFromEmail.value() || "noreply@taskmanager.com";
+
+      // 全ユーザーの通知設定を取得
+      const settingsSnapshot = await db
+        .collection("notificationSettings")
+        .where("taskDeadlineNotifications.enabled", "==", true)
+        .get();
+
+      console.log(
+        `通知設定が有効なユーザー数: ${settingsSnapshot.docs.length}`
+      );
+
+      const sendPromises = settingsSnapshot.docs.map(async (settingsDoc) => {
+        const settings = settingsDoc.data();
+        const userId = settings.userId;
+        const userEmail = settings.notificationChannels?.email?.address;
+
+        if (!userEmail) {
+          console.log(
+            `ユーザー ${userId} のメールアドレスが設定されていません`
+          );
+          return;
+        }
+
+        try {
+          // ユーザーの期限間近タスクを取得
+          const upcomingTasks = await getUserUpcomingTasks(
+            userId,
+            userEmail,
+            settings
+          );
+
+          if (upcomingTasks.length === 0) {
+            console.log(`ユーザー ${userId} の期限間近タスクはありません`);
+            return;
+          }
+
+          // 通知時間をチェック
+          const now = new Date();
+          const currentTime =
+            now.getHours().toString().padStart(2, "0") +
+            ":" +
+            now.getMinutes().toString().padStart(2, "0");
+          const notificationTime =
+            settings.taskDeadlineNotifications?.timeOfDay || "09:00";
+
+          if (currentTime !== notificationTime) {
+            console.log(
+              `ユーザー ${userId} の通知時間ではありません ` +
+                `(現在: ${currentTime}, 設定: ${notificationTime})`
+            );
+            return;
+          }
+
+          // メール送信
+          const msg = {
+            to: userEmail,
+            from: fromEmail,
+            subject: `【タスク期限通知】${upcomingTasks.length}件のタスクが期限間近です`,
+            html: generateUserTaskNotificationHTML(upcomingTasks, settings),
+          };
+
+          await sgMail.send(msg);
+          console.log(
+            `✅ メール送信成功: ${userEmail} (${upcomingTasks.length}件のタスク)`
+          );
+
+          // 送信ログを記録
+          await db.collection("notificationLogs").add({
+            userId: userId,
+            type: "user_task_deadline_notification",
+            channel: "email",
+            status: "sent",
+            message: `ユーザー個別タスク期限通知を送信 (${upcomingTasks.length}件)`,
+            recipientEmail: userEmail,
+            taskCount: upcomingTasks.length,
+            sentAt: admin.firestore.FieldValue.serverTimestamp(),
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          });
+        } catch (error) {
+          console.error(`❌ ユーザー ${userId} のメール送信失敗:`, error);
+
+          // エラーログを記録
+          await db.collection("notificationLogs").add({
+            userId: userId,
+            type: "user_task_deadline_notification",
+            channel: "email",
+            status: "failed",
+            message: "ユーザー個別タスク期限通知送信失敗",
+            recipientEmail: userEmail,
+            errorMessage:
+              error instanceof Error ? error.message : "Unknown error",
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          });
+        }
+      });
+
+      // すべてのメール送信を並列実行
+      await Promise.all(sendPromises);
+
+      console.log("✅ ユーザー個別のタスク通知完了");
+    } catch (error) {
+      console.error("❌ ユーザー個別のタスク通知エラー:", error);
+    }
+  }
+);
+
+// ユーザー個別のタスク通知を手動で送信（テスト用）
+export const sendUserTaskNotificationsManual = onCall(
+  {
+    secrets: [sendgridApiKey, sendgridFromEmail],
+    cors: true,
+  },
+  async (request) => {
+    // 認証チェック
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "認証が必要です");
+    }
+
+    console.log("🕙 ユーザー個別のタスク通知を手動送信開始");
+
+    try {
+      // SendGridの設定
+      const rawApiKey = sendgridApiKey.value();
+      const apiKey = rawApiKey
+        .trim()
+        .replace(/[\r\n\t\s]+/g, "")
+        .replace(/\0/g, "");
+
+      if (!apiKey || !apiKey.startsWith("SG.")) {
+        console.error("Invalid SendGrid API key");
+        throw new HttpsError("internal", "SendGrid APIキーが無効です");
+      }
+
+      sgMail.setApiKey(apiKey);
+
+      const db = admin.firestore();
+      const fromEmail = sendgridFromEmail.value() || "noreply@taskmanager.com";
+
+      // 全ユーザーの通知設定を取得
+      const settingsSnapshot = await db
+        .collection("notificationSettings")
+        .where("taskDeadlineNotifications.enabled", "==", true)
+        .get();
+
+      console.log(
+        `通知設定が有効なユーザー数: ${settingsSnapshot.docs.length}`
+      );
+
+      let totalTasks = 0;
+      let totalUsers = 0;
+
+      const sendPromises = settingsSnapshot.docs.map(async (settingsDoc) => {
+        const settings = settingsDoc.data();
+        const userId = settings.userId;
+        const userEmail = settings.notificationChannels?.email?.address;
+
+        if (!userEmail) {
+          console.log(
+            `ユーザー ${userId} のメールアドレスが設定されていません`
+          );
+          return;
+        }
+
+        try {
+          // ユーザーの期限間近タスクを取得
+          const upcomingTasks = await getUserUpcomingTasks(
+            userId,
+            userEmail,
+            settings
+          );
+
+          if (upcomingTasks.length === 0) {
+            console.log(`ユーザー ${userId} の期限間近タスクはありません`);
+            return;
+          }
+
+          totalTasks += upcomingTasks.length;
+          totalUsers++;
+
+          // メール送信
+          const msg = {
+            to: userEmail,
+            from: fromEmail,
+            subject: `【タスク期限通知】${upcomingTasks.length}件のタスクが期限間近です`,
+            html: generateUserTaskNotificationHTML(upcomingTasks, settings),
+          };
+
+          await sgMail.send(msg);
+          console.log(
+            `✅ メール送信成功: ${userEmail} (${upcomingTasks.length}件のタスク)`
+          );
+
+          // 送信ログを記録
+          await db.collection("notificationLogs").add({
+            userId: userId,
+            type: "manual_user_task_deadline_notification",
+            channel: "email",
+            status: "sent",
+            message: `ユーザー個別タスク期限通知を手動送信 (${upcomingTasks.length}件)`,
+            recipientEmail: userEmail,
+            taskCount: upcomingTasks.length,
+            sentAt: admin.firestore.FieldValue.serverTimestamp(),
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          });
+        } catch (error) {
+          console.error(`❌ ユーザー ${userId} のメール送信失敗:`, error);
+
+          // エラーログを記録
+          await db.collection("notificationLogs").add({
+            userId: userId,
+            type: "manual_user_task_deadline_notification",
+            channel: "email",
+            status: "failed",
+            message: "ユーザー個別タスク期限通知手動送信失敗",
+            recipientEmail: userEmail,
+            errorMessage:
+              error instanceof Error ? error.message : "Unknown error",
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          });
+        }
+      });
+
+      // すべてのメール送信を並列実行
+      await Promise.all(sendPromises);
+
+      console.log("✅ ユーザー個別のタスク通知手動送信完了");
+
+      return {
+        success: true,
+        message: `ユーザー個別のタスク通知を送信しました (${totalTasks}件のタスク、${totalUsers}人のユーザー)`,
+        taskCount: totalTasks,
+        userCount: totalUsers,
+      };
+    } catch (error) {
+      console.error("❌ ユーザー個別のタスク通知手動送信エラー:", error);
+      throw new HttpsError(
+        "internal",
+        "ユーザー個別のタスク通知送信に失敗しました"
       );
     }
   }

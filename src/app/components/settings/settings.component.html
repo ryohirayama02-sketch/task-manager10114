@@ -422,6 +422,16 @@
 
         <button
           mat-raised-button
+          color="accent"
+          (click)="sendUserTaskNotificationsTest()"
+          [disabled]="isSaving"
+        >
+          <mat-icon>notifications</mat-icon>
+          {{ isSaving ? "送信中..." : "ユーザー個別通知テスト" }}
+        </button>
+
+        <button
+          mat-raised-button
           color="primary"
           (click)="saveNotificationSettings()"
           [disabled]="isSaving"

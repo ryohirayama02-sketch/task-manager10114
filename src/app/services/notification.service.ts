@@ -163,9 +163,12 @@ export class NotificationService {
       const settings = await this.getNotificationSettings(currentUser.uid);
       if (!settings?.taskDeadlineNotifications.enabled) return [];
 
-      const tasksRef = collection(this.firestore, this.TASKS_COLLECTION);
       const today = new Date();
       const upcomingTasks: TaskNotificationData[] = [];
+
+      // 全プロジェクトからタスクを取得
+      const projectsRef = collection(this.firestore, 'projects');
+      const projectsSnapshot = await getDocs(projectsRef);
 
       // 各通知日数でタスクをチェック
       for (const daysBefore of settings.taskDeadlineNotifications
@@ -174,27 +177,45 @@ export class NotificationService {
         targetDate.setDate(today.getDate() + daysBefore);
         const targetDateStr = targetDate.toISOString().split('T')[0];
 
-        const q = query(
-          tasksRef,
-          where('assignee', '==', currentUser.email || currentUser.displayName),
-          where('dueDate', '==', targetDateStr),
-          where('status', 'in', ['未着手', '作業中'])
-        );
+        // 各プロジェクトのタスクをチェック
+        for (const projectDoc of projectsSnapshot.docs) {
+          const projectId = projectDoc.id;
+          const projectData = projectDoc.data();
 
-        const querySnapshot = await getDocs(q);
-        querySnapshot.forEach((doc) => {
-          const taskData = doc.data();
-          upcomingTasks.push({
-            taskId: doc.id,
-            taskName: taskData['taskName'],
-            projectName: taskData['projectName'],
-            assignee: taskData['assignee'],
-            dueDate: taskData['dueDate'],
-            status: taskData['status'],
-            priority: taskData['priority'],
-            estimatedHours: taskData['estimatedHours'],
+          const tasksRef = collection(
+            this.firestore,
+            `projects/${projectId}/tasks`
+          );
+          const q = query(
+            tasksRef,
+            where('dueDate', '==', targetDateStr),
+            where('status', 'in', ['未着手', '作業中'])
+          );
+
+          const querySnapshot = await getDocs(q);
+          querySnapshot.forEach((doc) => {
+            const taskData = doc.data();
+            
+            // 担当者が現在のユーザーかチェック（メールアドレスまたは名前）
+            const isAssignedToUser = 
+              taskData['assigneeEmail'] === currentUser.email ||
+              taskData['assignee'] === currentUser.displayName ||
+              taskData['assignee'] === currentUser.email;
+
+            if (isAssignedToUser) {
+              upcomingTasks.push({
+                taskId: doc.id,
+                taskName: taskData['taskName'],
+                projectName: projectData['projectName'] || 'プロジェクト',
+                assignee: taskData['assignee'],
+                dueDate: taskData['dueDate'],
+                status: taskData['status'],
+                priority: taskData['priority'],
+                estimatedHours: taskData['estimatedHours'],
+              });
+            }
           });
-        });
+        }
       }
 
       return upcomingTasks;
@@ -210,32 +231,52 @@ export class NotificationService {
       const currentUser = this.authService.getCurrentUser();
       if (!currentUser) return [];
 
-      const tasksRef = collection(this.firestore, this.TASKS_COLLECTION);
       const today = new Date().toISOString().split('T')[0];
-
-      const q = query(
-        tasksRef,
-        where('assignee', '==', currentUser.email || currentUser.displayName),
-        where('dueDate', '<', today),
-        where('status', 'in', ['未着手', '作業中'])
-      );
-
-      const querySnapshot = await getDocs(q);
       const overdueTasks: TaskNotificationData[] = [];
 
-      querySnapshot.forEach((doc) => {
-        const taskData = doc.data();
-        overdueTasks.push({
-          taskId: doc.id,
-          taskName: taskData['taskName'],
-          projectName: taskData['projectName'],
-          assignee: taskData['assignee'],
-          dueDate: taskData['dueDate'],
-          status: taskData['status'],
-          priority: taskData['priority'],
-          estimatedHours: taskData['estimatedHours'],
+      // 全プロジェクトからタスクを取得
+      const projectsRef = collection(this.firestore, 'projects');
+      const projectsSnapshot = await getDocs(projectsRef);
+
+      // 各プロジェクトのタスクをチェック
+      for (const projectDoc of projectsSnapshot.docs) {
+        const projectId = projectDoc.id;
+        const projectData = projectDoc.data();
+
+        const tasksRef = collection(
+          this.firestore,
+          `projects/${projectId}/tasks`
+        );
+        const q = query(
+          tasksRef,
+          where('dueDate', '<', today),
+          where('status', 'in', ['未着手', '作業中'])
+        );
+
+        const querySnapshot = await getDocs(q);
+        querySnapshot.forEach((doc) => {
+          const taskData = doc.data();
+          
+          // 担当者が現在のユーザーかチェック（メールアドレスまたは名前）
+          const isAssignedToUser = 
+            taskData['assigneeEmail'] === currentUser.email ||
+            taskData['assignee'] === currentUser.displayName ||
+            taskData['assignee'] === currentUser.email;
+
+          if (isAssignedToUser) {
+            overdueTasks.push({
+              taskId: doc.id,
+              taskName: taskData['taskName'],
+              projectName: projectData['projectName'] || 'プロジェクト',
+              assignee: taskData['assignee'],
+              dueDate: taskData['dueDate'],
+              status: taskData['status'],
+              priority: taskData['priority'],
+              estimatedHours: taskData['estimatedHours'],
+            });
+          }
         });
-      });
+      }
 
       return overdueTasks;
     } catch (error) {

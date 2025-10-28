@@ -260,4 +260,54 @@ export class SettingsComponent implements OnInit {
       this.isSaving = false;
     }
   }
+
+  /**
+   * ユーザー個別のタスク通知を手動送信（テスト用）
+   */
+  async sendUserTaskNotificationsTest(): Promise<void> {
+    this.isSaving = true;
+
+    try {
+      console.log('🔔 ユーザー個別のタスク通知をテスト送信');
+
+      const { getFunctions, httpsCallable } = await import(
+        'firebase/functions'
+      );
+      const { getApp } = await import('firebase/app');
+      const functions = getFunctions(getApp(), 'us-central1');
+
+      const callable = httpsCallable(
+        functions,
+        'sendUserTaskNotificationsManual'
+      );
+      const result = (await callable({})) as any;
+
+      if (result.data?.success) {
+        this.snackBar.open(
+          `ユーザー個別のタスク通知を送信しました (${result.data.taskCount}件のタスク、${result.data.userCount}人のユーザー)`,
+          '閉じる',
+          { duration: 5000 }
+        );
+      } else {
+        this.snackBar.open(
+          'ユーザー個別のタスク通知の送信に失敗しました',
+          '閉じる',
+          {
+            duration: 3000,
+          }
+        );
+      }
+    } catch (error) {
+      console.error('ユーザー個別のタスク通知テストエラー:', error);
+      this.snackBar.open(
+        'ユーザー個別のタスク通知の送信に失敗しました',
+        '閉じる',
+        {
+          duration: 3000,
+        }
+      );
+    } finally {
+      this.isSaving = false;
+    }
+  }
 }
