@@ -5,6 +5,9 @@
   *ngFor="let project of projects"
   (click)="project.id ? goToProgress(project.id) : null"
   class="project-card"
+  [class.completed]="
+    project.id && projectProgress[project.id]?.progressPercentage === 100
+  "
 >
   <div class="project-info">
     <!-- ▼ プロジェクト名クリックで詳細へ -->
@@ -28,6 +31,9 @@
   <div
     class="progress-section"
     *ngIf="project.id && projectProgress[project.id]"
+    [style.opacity]="
+      projectProgress[project.id]?.progressPercentage === 100 ? '0.6' : '1'
+    "
   >
     <app-progress-circle
       [percentage]="projectProgress[project.id].progressPercentage"

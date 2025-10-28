@@ -47,6 +47,9 @@ export class ProjectsOverviewComponent implements OnInit {
           this.projectProgress[progress.projectId] = progress;
         });
         console.log('全プロジェクト進捗マップ:', this.projectProgress);
+
+        // プロジェクトを進捗率でソート（100%完了は下に）
+        this.sortProjectsByProgress();
       }
     });
   }
@@ -54,5 +57,34 @@ export class ProjectsOverviewComponent implements OnInit {
   /** カードクリック時に個別進捗画面へ遷移 */
   goToProgress(projectId: string) {
     this.router.navigate(['/progress/projects', projectId]);
+  }
+
+  /** プロジェクトを進捗率でソート（100%完了は下に表示） */
+  private sortProjectsByProgress(): void {
+    this.projects.sort((a, b) => {
+      const progressA =
+        this.projectProgress[a.id || '']?.progressPercentage || 0;
+      const progressB =
+        this.projectProgress[b.id || '']?.progressPercentage || 0;
+
+      // 100%完了のプロジェクトは下に表示
+      if (progressA === 100 && progressB !== 100) {
+        return 1; // aをbより後に
+      }
+      if (progressB === 100 && progressA !== 100) {
+        return -1; // bをaより後に
+      }
+
+      // 両方とも100%または両方とも100%でない場合は、進捗率の昇順でソート
+      return progressA - progressB;
+    });
+
+    console.log(
+      'ソート後のプロジェクト一覧:',
+      this.projects.map((p) => ({
+        name: p.projectName,
+        progress: this.projectProgress[p.id || '']?.progressPercentage || 0,
+      }))
+    );
   }
 }
