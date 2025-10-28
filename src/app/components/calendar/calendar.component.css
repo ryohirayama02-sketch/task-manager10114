@@ -1,3 +1,24 @@
+/* オフライン時のタスク追加 */
+.offline-task-add {
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.offline-task-add button {
+  margin-bottom: 8px;
+}
+
+.offline-note {
+  margin: 0;
+  font-size: 14px;
+  color: #856404;
+  font-style: italic;
+}
+
 .controls-section {
   display: flex;
   gap: 20px;

@@ -122,33 +122,27 @@ import { TaskDeleteConfirmDialogComponent } from './task-delete-confirm-dialog.c
           <!-- 開始日 -->
           <div class="date-field">
             <label for="startDate">開始日</label>
-            <div class="date-input-wrapper">
-              <input
-                id="startDate"
-                type="date"
-                [(ngModel)]="task.startDate"
-                name="startDate"
-                placeholder="開始日を選択"
-                class="date-input"
-              />
-              <mat-icon class="date-icon">event</mat-icon>
-            </div>
+            <input
+              id="startDate"
+              type="date"
+              [(ngModel)]="task.startDate"
+              name="startDate"
+              placeholder="開始日を選択"
+              class="date-input"
+            />
           </div>
 
           <!-- 期日 -->
           <div class="date-field">
             <label for="dueDate">期日</label>
-            <div class="date-input-wrapper">
-              <input
-                id="dueDate"
-                type="date"
-                [(ngModel)]="task.dueDate"
-                name="dueDate"
-                placeholder="期日を選択"
-                class="date-input"
-              />
-              <mat-icon class="date-icon">event</mat-icon>
-            </div>
+            <input
+              id="dueDate"
+              type="date"
+              [(ngModel)]="task.dueDate"
+              name="dueDate"
+              placeholder="期日を選択"
+              class="date-input"
+            />
           </div>
         </form>
       </div>
@@ -239,15 +233,9 @@ import { TaskDeleteConfirmDialogComponent } from './task-delete-confirm-dialog.c
         color: #666;
       }
 
-      .date-input-wrapper {
-        position: relative;
-        display: flex;
-        align-items: center;
-      }
-
       .date-input {
         width: 100%;
-        padding: 12px 40px 12px 12px;
+        padding: 12px;
         border: 1px solid #ccc;
         border-radius: 4px;
         font-size: 16px;
@@ -259,13 +247,6 @@ import { TaskDeleteConfirmDialogComponent } from './task-delete-confirm-dialog.c
         outline: none;
         border-color: #1976d2;
         box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
-      }
-
-      .date-icon {
-        position: absolute;
-        right: 12px;
-        color: #666;
-        pointer-events: none;
       }
 
       .assignee-selection {
@@ -361,10 +342,6 @@ import { TaskDeleteConfirmDialogComponent } from './task-delete-confirm-dialog.c
 
         .date-input:focus {
           border-color: #1976d2;
-        }
-
-        .date-icon {
-          color: #ccc;
         }
 
         .loading-members,

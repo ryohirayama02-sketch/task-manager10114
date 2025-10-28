@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { RouterOutlet, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { NavbarComponent } from './components/navbar/navbar.component';
+import { OfflineIndicatorComponent } from './components/offline-indicator/offline-indicator.component';
 import { NotificationSchedulerService } from './services/notification-scheduler.service';
 import { AuthService } from './services/auth.service';
 import { HomeScreenSettingsService } from './services/home-screen-settings.service';
@@ -9,7 +10,12 @@ import { HomeScreenSettingsService } from './services/home-screen-settings.servi
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, MatButtonModule, NavbarComponent],
+  imports: [
+    RouterOutlet,
+    MatButtonModule,
+    NavbarComponent,
+    OfflineIndicatorComponent,
+  ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
 })

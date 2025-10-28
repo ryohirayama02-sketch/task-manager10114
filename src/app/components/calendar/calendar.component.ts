@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -10,9 +10,12 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
 import { ProjectService } from '../../services/project.service';
+import { OfflineService } from '../../services/offline.service';
 import { ProjectFormDialogComponent } from '../project-form-dialog/project-form-dialog.component';
 import { Task, Project } from '../../models/task.model';
 
@@ -31,16 +34,19 @@ import { Task, Project } from '../../models/task.model';
     MatChipsModule,
     MatMenuModule,
     MatButtonToggleModule,
+    MatSnackBarModule,
     FormsModule,
   ],
   templateUrl: './calendar.component.html',
   styleUrls: ['./calendar.component.css'],
 })
-export class CalendarComponent implements OnInit {
+export class CalendarComponent implements OnInit, OnDestroy {
   tasks: Task[] = [];
   projects: Project[] = [];
   selectedProjectIds: string[] = [];
   allTasks: Task[] = [];
+  isOnline = true;
+  private destroy$ = new Subject<void>();
 
   // カレンダー表示用
   currentDate: Date = new Date();
@@ -73,12 +79,26 @@ export class CalendarComponent implements OnInit {
   constructor(
     private projectService: ProjectService,
     private dialog: MatDialog,
-    private router: Router
+    private router: Router,
+    private offlineService: OfflineService,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
     this.generateCalendarDays();
     this.loadProjects();
+
+    // オフライン状態を監視
+    this.offlineService.isOnline$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((isOnline) => {
+        this.isOnline = isOnline;
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   /** カレンダーの日付を生成 */
@@ -391,5 +411,54 @@ export class CalendarComponent implements OnInit {
   hideMilestoneTooltip() {
     this.tooltipVisible = false;
     this.tooltipMilestone = null;
+  }
+
+  /** オフライン時のタスク追加ダイアログを開く */
+  openOfflineTaskDialog() {
+    this.snackBar.open(
+      'オフライン時は簡易的なタスク追加のみ可能です。オンライン復帰後に詳細な編集ができます。',
+      '閉じる',
+      {
+        duration: 5000,
+        panelClass: ['info-snackbar'],
+      }
+    );
+
+    // 簡易的なタスク追加フォームを表示
+    const taskName = prompt('タスク名を入力してください:');
+    if (taskName) {
+      const dueDate = prompt('期日を入力してください (YYYY-MM-DD):');
+      if (dueDate) {
+        // ローカルストレージに保存（オフライン時の一時保存）
+        this.saveOfflineTask(taskName, dueDate);
+      }
+    }
+  }
+
+  /** オフライン時のタスクをローカルストレージに保存 */
+  private saveOfflineTask(taskName: string, dueDate: string) {
+    const offlineTasks = JSON.parse(
+      localStorage.getItem('offlineTasks') || '[]'
+    );
+    const newTask = {
+      id: 'offline_' + Date.now(),
+      taskName: taskName,
+      dueDate: dueDate,
+      status: '未着手',
+      priority: '中',
+      assignee: '未設定',
+      projectName: 'オフラインタスク',
+      createdAt: new Date().toISOString(),
+      isOffline: true,
+    };
+
+    offlineTasks.push(newTask);
+    localStorage.setItem('offlineTasks', JSON.stringify(offlineTasks));
+
+    this.snackBar.open(
+      'タスクをオフラインで保存しました。オンライン復帰後に同期されます。',
+      '閉じる',
+      { duration: 3000 }
+    );
   }
 }

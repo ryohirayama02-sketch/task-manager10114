@@ -16,6 +16,7 @@ import { LogsComponent } from './components/logs/logs.component';
 import { MemberManagementComponent } from './components/member-management/member-management.component';
 import { LoginComponent } from './components/auth/login/login.component';
 import { ProjectFormComponent } from './components/project-form/project-form.component';
+import { OfflineTestComponent } from './components/offline-test/offline-test.component';
 import { AuthGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
@@ -66,6 +67,11 @@ export const routes: Routes = [
   {
     path: 'project-form',
     component: ProjectFormComponent,
+    canActivate: [AuthGuard],
+  },
+  {
+    path: 'offline-test',
+    component: OfflineTestComponent,
     canActivate: [AuthGuard],
   },
 ];

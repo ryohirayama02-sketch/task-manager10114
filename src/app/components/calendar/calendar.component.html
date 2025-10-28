@@ -1,5 +1,14 @@
 <h2>カレンダー式課題管理</h2>
 
+<!-- オフライン時のタスク追加ボタン -->
+<div *ngIf="!isOnline" class="offline-task-add">
+  <button mat-raised-button color="primary" (click)="openOfflineTaskDialog()">
+    <mat-icon>add</mat-icon>
+    オフラインでタスク追加
+  </button>
+  <p class="offline-note">オフライン時は簡易的なタスク追加のみ可能です</p>
+</div>
+
 <!-- プロジェクト選択とフィルター -->
 <div class="controls-section">
   <div class="project-selector">
