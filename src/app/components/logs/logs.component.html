@@ -1,2 +1,68 @@
-<h2>編集ログ</h2>
-<p>ここに編集ログを表示予定</p>
+<div class="logs-container">
+  <div class="logs-header">
+    <h2>編集ログ</h2>
+    <button
+      class="csv-export-btn"
+      (click)="exportToCSV()"
+      [disabled]="editLogs.length === 0"
+    >
+      📊 CSV出力
+    </button>
+  </div>
+
+  <!-- ローディング表示 -->
+  <div *ngIf="loading" class="loading">
+    <p>読み込み中...</p>
+  </div>
+
+  <!-- ログ一覧 -->
+  <div *ngIf="!loading && editLogs.length > 0" class="logs-list">
+    <div *ngFor="let log of editLogs; trackBy: trackByLogId" class="log-item">
+      <div class="log-header">
+        <span class="log-date">{{ formatDate(log.createdAt) }}</span>
+        <span class="log-action" [class]="'action-' + log.action">
+          {{ getActionLabel(log.action) }}
+        </span>
+      </div>
+
+      <div class="log-content">
+        <div class="log-user">
+          <strong>👤 {{ log.userName }}</strong>
+        </div>
+
+        <div class="log-project">
+          <strong>📁 プロジェクト:</strong> {{ log.projectName }}
+        </div>
+
+        <div *ngIf="log.taskName" class="log-task">
+          <strong>📝 タスク:</strong> {{ log.taskName }}
+        </div>
+
+        <div class="log-description">
+          <strong>📋 変更内容:</strong> {{ log.changeDescription }}
+        </div>
+
+        <div *ngIf="log.oldValue || log.newValue" class="log-changes">
+          <div *ngIf="log.oldValue" class="change-old">
+            <strong>変更前:</strong> {{ log.oldValue }}
+          </div>
+          <div *ngIf="log.newValue" class="change-new">
+            <strong>変更後:</strong> {{ log.newValue }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ログが無い場合 -->
+  <div *ngIf="!loading && editLogs.length === 0" class="no-logs">
+    <p>編集ログがありません</p>
+  </div>
+
+  <!-- さらに読み込みボタン -->
+  <div *ngIf="!loading && hasMoreLogs && editLogs.length > 0" class="load-more">
+    <button class="load-more-btn" (click)="loadMoreLogs()">
+      📄 さらに読み込む
+    </button>
+  </div>
+</div>

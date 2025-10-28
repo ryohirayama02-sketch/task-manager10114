@@ -41,3 +41,18 @@ export interface Milestone {
   date: string;
   description?: string;
 }
+
+export interface EditLog {
+  id?: string;
+  userId: string;
+  userName: string;
+  projectId: string;
+  projectName: string;
+  taskId?: string;
+  taskName?: string;
+  action: 'create' | 'update' | 'delete';
+  changeDescription: string;
+  oldValue?: string;
+  newValue?: string;
+  createdAt: Date | string;
+}

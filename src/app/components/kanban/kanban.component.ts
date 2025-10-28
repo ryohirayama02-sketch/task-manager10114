@@ -11,7 +11,6 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatChipsModule } from '@angular/material/chips';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { doc, updateDoc } from '@angular/fire/firestore';
 import { TaskService } from '../../services/task.service';
 import { ProjectService } from '../../services/project.service';
 import { ProjectFormDialogComponent } from '../project-form-dialog/project-form-dialog.component';
@@ -144,7 +143,7 @@ export class KanbanComponent implements OnInit {
   }
 
   /** タスクのステータスを変更 */
-  changeTaskStatus(taskId: string, newStatus: string) {
+  async changeTaskStatus(taskId: string, newStatus: string) {
     // 有効なステータスかチェック
     const validStatuses: ('未着手' | '作業中' | '完了')[] = [
       '未着手',
@@ -160,27 +159,33 @@ export class KanbanComponent implements OnInit {
     const task = this.allTasks.find((t) => t.id === taskId);
     if (!task) return;
 
-    // プロジェクト内のタスクのステータスを更新
-    const taskRef = doc(
-      this.projectService['firestore'],
-      `projects/${task.projectId}/tasks/${taskId}`
-    );
-    updateDoc(taskRef, { status: newStatus })
-      .then(() => {
-        console.log('タスクのステータスを更新しました');
-        // ローカルのタスクも更新
-        const taskIndex = this.allTasks.findIndex((t) => t.id === taskId);
-        if (taskIndex > -1) {
-          this.allTasks[taskIndex].status = newStatus as
-            | '未着手'
-            | '作業中'
-            | '完了';
-          this.filterTasksBySelectedProjects();
-        }
-      })
-      .catch((error) => {
-        console.error('ステータス更新エラー:', error);
-      });
+    // 古いステータスを保存
+    const oldStatus = task.status;
+
+    try {
+      // TaskServiceを使用してステータスを更新（編集ログも記録される）
+      await this.taskService.updateTaskStatus(
+        taskId,
+        newStatus,
+        oldStatus,
+        task.projectId,
+        task.projectName
+      );
+
+      console.log('✅ カンバンでタスクのステータスを更新しました');
+
+      // ローカルのタスクも更新
+      const taskIndex = this.allTasks.findIndex((t) => t.id === taskId);
+      if (taskIndex > -1) {
+        this.allTasks[taskIndex].status = newStatus as
+          | '未着手'
+          | '作業中'
+          | '完了';
+        this.filterTasksBySelectedProjects();
+      }
+    } catch (error) {
+      console.error('❌ ステータス更新エラー:', error);
+    }
   }
 
   /** ＋プロジェクト：ダイアログを開く */

@@ -1,0 +1,185 @@
+.logs-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.logs-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.logs-header h2 {
+  margin: 0;
+  color: #333;
+  font-size: 28px;
+}
+
+.csv-export-btn {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.csv-export-btn:hover:not(:disabled) {
+  background-color: #218838;
+}
+
+.csv-export-btn:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+}
+
+.logs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.log-item {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 20px;
+  transition: box-shadow 0.3s ease;
+}
+
+.log-item:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.log-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.log-date {
+  color: #666;
+  font-size: 14px;
+}
+
+.log-action {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: bold;
+  color: white;
+}
+
+.action-create {
+  background-color: #28a745;
+}
+
+.action-update {
+  background-color: #007bff;
+}
+
+.action-delete {
+  background-color: #dc3545;
+}
+
+.log-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.log-user {
+  color: #495057;
+  font-size: 16px;
+}
+
+.log-project,
+.log-task,
+.log-description {
+  color: #6c757d;
+  font-size: 14px;
+}
+
+.log-changes {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #ffffff;
+  border-radius: 5px;
+  border-left: 4px solid #007bff;
+}
+
+.change-old {
+  color: #dc3545;
+  font-size: 13px;
+  margin-bottom: 5px;
+}
+
+.change-new {
+  color: #28a745;
+  font-size: 13px;
+}
+
+.no-logs {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6c757d;
+  font-size: 18px;
+}
+
+.load-more {
+  text-align: center;
+  margin-top: 30px;
+}
+
+.load-more-btn {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.load-more-btn:hover {
+  background-color: #5a6268;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .logs-header {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+  }
+
+  .logs-header h2 {
+    text-align: center;
+  }
+
+  .log-header {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .log-content {
+    gap: 12px;
+  }
+}
