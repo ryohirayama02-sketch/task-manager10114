@@ -14,6 +14,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { NotificationService } from '../../services/notification.service';
 import { AuthService } from '../../services/auth.service';
+import { TaskReminderService } from '../../services/task-reminder.service';
 import { NotificationSettings } from '../../models/notification.model';
 
 @Component({
@@ -55,6 +56,7 @@ export class SettingsComponent implements OnInit {
   constructor(
     private notificationService: NotificationService,
     private authService: AuthService,
+    private taskReminderService: TaskReminderService,
     private snackBar: MatSnackBar
   ) {
     // 時間オプションを生成（00:00 - 23:30）
@@ -220,6 +222,38 @@ export class SettingsComponent implements OnInit {
     } catch (error) {
       console.error('テスト通知エラー:', error);
       this.snackBar.open('テスト通知の送信に失敗しました', '閉じる', {
+        duration: 3000,
+      });
+    } finally {
+      this.isSaving = false;
+    }
+  }
+
+  /**
+   * 期限が近いタスクのメール通知を手動送信（テスト用）
+   */
+  async sendTaskRemindersTest(): Promise<void> {
+    this.isSaving = true;
+
+    try {
+      console.log('🔔 期限が近いタスクのメール通知をテスト送信');
+
+      const result = await this.taskReminderService.sendTaskReminders();
+
+      if (result.success) {
+        this.snackBar.open(
+          `期限が近いタスクのメール通知を送信しました (${result.taskCount}件のタスク、${result.userCount}人のユーザー)`,
+          '閉じる',
+          { duration: 5000 }
+        );
+      } else {
+        this.snackBar.open('メール通知の送信に失敗しました', '閉じる', {
+          duration: 3000,
+        });
+      }
+    } catch (error) {
+      console.error('期限が近いタスクのメール通知テストエラー:', error);
+      this.snackBar.open('メール通知の送信に失敗しました', '閉じる', {
         duration: 3000,
       });
     } finally {

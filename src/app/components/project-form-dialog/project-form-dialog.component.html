@@ -1,69 +1,200 @@
-<p>project-form-dialog works!</p>
-<h2>{{ isEditMode ? "プロジェクト編集" : "新規プロジェクト作成" }}</h2>
+<div class="dialog-container">
+  <div class="dialog-header">
+    <h2>{{ isEditMode ? "プロジェクト編集" : "新規プロジェクト作成" }}</h2>
+  </div>
 
-<form (ngSubmit)="onSubmit()" #form="ngForm" class="form-container">
-  <label>プロジェクト名:</label>
-  <input
-    type="text"
-    [(ngModel)]="project.projectName"
-    name="projectName"
-    required
-  />
-
-  <label>概要:</label>
-  <textarea [(ngModel)]="project.overview" name="overview" rows="3"></textarea>
-
-  <label>開始日:</label>
-  <input type="date" [(ngModel)]="project.startDate" name="startDate" />
-
-  <label>担当メンバー:</label>
-  <input type="text" [(ngModel)]="project.members" name="members" />
-
-  <label>タグ:</label>
-  <input
-    type="text"
-    [(ngModel)]="project.tags"
-    name="tags"
-    placeholder="#UI, #開発"
-  />
-
-  <!-- マイルストーン設定 -->
-  <div class="milestones-section">
-    <label>マイルストーン:</label>
-    <div class="milestones-container">
-      <div
-        *ngFor="let milestone of project.milestones; let i = index"
-        class="milestone-item"
-      >
+  <div class="dialog-content">
+    <form (ngSubmit)="onSubmit()" #form="ngForm" class="form-container">
+      <!-- プロジェクト名 -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>プロジェクト名 *</mat-label>
         <input
-          type="date"
-          [(ngModel)]="milestone.date"
-          name="milestoneDate{{ i }}"
-          class="milestone-date"
+          matInput
+          [(ngModel)]="project.projectName"
+          name="projectName"
+          placeholder="例: 新商品開発プロジェクト"
+          required
         />
-        <input
-          type="text"
-          [(ngModel)]="milestone.name"
-          name="milestoneName{{ i }}"
-          placeholder="マイルストーン名"
-          class="milestone-name"
-        />
-        <button
-          type="button"
-          (click)="removeMilestone(i)"
-          class="remove-milestone"
-        >
-          削除
-        </button>
+        <mat-icon matSuffix>folder</mat-icon>
+      </mat-form-field>
+
+      <!-- 概要 -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>概要</mat-label>
+        <textarea
+          matInput
+          [(ngModel)]="project.overview"
+          name="overview"
+          placeholder="プロジェクトの詳細説明を入力してください"
+          rows="3"
+        ></textarea>
+        <mat-icon matSuffix>description</mat-icon>
+      </mat-form-field>
+
+      <!-- 開始日 -->
+      <div class="date-field">
+        <label for="startDate">開始日</label>
+        <div class="date-input-wrapper">
+          <input
+            id="startDate"
+            type="date"
+            [(ngModel)]="project.startDate"
+            name="startDate"
+            placeholder="開始日を選択"
+            class="date-input"
+          />
+          <mat-icon class="date-icon">event</mat-icon>
+        </div>
       </div>
-      <button type="button" (click)="addMilestone()" class="add-milestone">
-        マイルストーンを追加
-      </button>
-    </div>
+
+      <!-- メンバー選択 -->
+      <div class="member-selection">
+        <div class="member-selection-header">
+          <h3>
+            担当メンバー
+            <span class="member-count" *ngIf="selectedMembers.length > 0">
+              ({{ selectedMembers.length }}人選択中)
+            </span>
+          </h3>
+        </div>
+
+        <!-- ローディング表示 -->
+        <div *ngIf="membersLoading" class="loading-members">
+          <mat-spinner diameter="24"></mat-spinner>
+          <span>メンバーを読み込み中...</span>
+        </div>
+
+        <!-- メンバー選択 -->
+        <div *ngIf="!membersLoading && members.length > 0">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>メンバーを選択</mat-label>
+            <mat-select
+              [(ngModel)]="selectedMemberIds"
+              name="members"
+              multiple
+              (selectionChange)="onMemberSelectionChange($event.value)"
+              placeholder="メンバーを選択してください（複数選択可）"
+            >
+              <mat-option *ngFor="let member of members" [value]="member.id">
+                {{ member.name }}
+              </mat-option>
+            </mat-select>
+            <mat-icon matSuffix>people</mat-icon>
+          </mat-form-field>
+
+          <!-- 選択されたメンバー（入力欄内に表示） -->
+          <div
+            *ngIf="selectedMembers.length > 0"
+            class="selected-members-inline"
+          >
+            <div class="selected-members-header">
+              <span class="member-count-text"
+                >{{ selectedMembers.length }}人選択中</span
+              >
+            </div>
+            <div class="member-chips-inline">
+              <mat-chip-set>
+                <mat-chip
+                  *ngFor="let member of selectedMembers"
+                  [removable]="true"
+                  (removed)="removeMember(member)"
+                  class="member-chip-inline"
+                >
+                  <mat-icon matChipAvatar>person</mat-icon>
+                  <span class="member-chip-name">{{ member.name }}</span>
+                  <button matChipRemove>
+                    <mat-icon>cancel</mat-icon>
+                  </button>
+                </mat-chip>
+              </mat-chip-set>
+            </div>
+          </div>
+        </div>
+
+        <!-- メンバーがいない場合 -->
+        <div *ngIf="!membersLoading && members.length === 0" class="no-members">
+          <mat-icon class="no-members-icon">people_outline</mat-icon>
+          <p>メンバーが登録されていません</p>
+          <p>先にメンバー管理画面でメンバーを登録してください。</p>
+        </div>
+      </div>
+
+      <!-- タグ -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>タグ</mat-label>
+        <input
+          matInput
+          [(ngModel)]="project.tags"
+          name="tags"
+          placeholder="#UI, #開発"
+        />
+        <mat-icon matSuffix>tag</mat-icon>
+      </mat-form-field>
+
+      <!-- マイルストーン設定 -->
+      <div class="milestones-section">
+        <h3>マイルストーン</h3>
+        <div class="milestones-container">
+          <div
+            *ngFor="let milestone of project.milestones; let i = index"
+            class="milestone-item"
+          >
+            <mat-form-field appearance="outline" class="milestone-date">
+              <mat-label>日付</mat-label>
+              <input
+                matInput
+                type="date"
+                [(ngModel)]="milestone.date"
+                name="milestoneDate{{ i }}"
+              />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="milestone-name">
+              <mat-label>マイルストーン名</mat-label>
+              <input
+                matInput
+                type="text"
+                [(ngModel)]="milestone.name"
+                name="milestoneName{{ i }}"
+                placeholder="マイルストーン名"
+              />
+            </mat-form-field>
+            <button
+              mat-icon-button
+              type="button"
+              (click)="removeMilestone(i)"
+              class="remove-milestone"
+              color="warn"
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+          <button
+            mat-button
+            type="button"
+            (click)="addMilestone()"
+            class="add-milestone"
+            color="primary"
+          >
+            <mat-icon>add</mat-icon>
+            マイルストーンを追加
+          </button>
+        </div>
+      </div>
+    </form>
   </div>
 
-  <div class="buttons">
-    <button type="submit">{{ isEditMode ? "更新" : "登録" }}</button>
-    <button type="button" (click)="onCancel()">キャンセル</button>
+  <!-- ボタン -->
+  <div class="dialog-actions">
+    <button mat-button type="button" (click)="onCancel()">キャンセル</button>
+    <button
+      mat-raised-button
+      type="submit"
+      color="primary"
+      [disabled]="!project.projectName"
+      (click)="onSubmit()"
+    >
+      <mat-icon>{{ isEditMode ? "edit" : "add" }}</mat-icon>
+      {{ isEditMode ? "更新" : "登録" }}
+    </button>
   </div>
-</form>
+</div>

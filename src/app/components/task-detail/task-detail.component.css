@@ -357,6 +357,219 @@ mat-chip mat-icon {
   }
 }
 
+/* メンバー選択関連のスタイル */
+.loading-members {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #666;
+  margin-bottom: 12px;
+}
+
+.no-members {
+  text-align: center;
+  padding: 16px;
+  color: #666;
+}
+
+.no-members p {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+}
+
+.no-members button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 編集中のUI改善 */
+.editing-mode .form-field {
+  background-color: #f8f9fa;
+  border: 2px solid #e3f2fd;
+  border-radius: 8px;
+  padding: 16px;
+  transition: all 0.3s ease;
+}
+
+.editing-mode .form-field:hover {
+  background-color: #f0f7ff;
+  border-color: #1976d2;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.1);
+}
+
+.editing-mode .form-field label {
+  color: #1976d2;
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.editing-mode .form-field input,
+.editing-mode .form-field textarea,
+.editing-mode .form-field mat-select {
+  background-color: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 12px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.editing-mode .form-field input:focus,
+.editing-mode .form-field textarea:focus,
+.editing-mode .form-field mat-select:focus {
+  border-color: #1976d2;
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+  outline: none;
+}
+
+.editing-mode .form-field mat-select {
+  min-height: 48px;
+}
+
+/* 編集可能なボタンのスタイル */
+.editing-mode .form-field button {
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.editing-mode .form-field button:hover {
+  background-color: #1565c0;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(25, 118, 210, 0.3);
+}
+
+.editing-mode .form-field button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(25, 118, 210, 0.3);
+}
+
+/* 編集モードのヘッダー */
+.editing-mode .task-header {
+  background: linear-gradient(135deg, #e3f2fd 0%, #f0f7ff 100%);
+  border: 2px solid #1976d2;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 30px;
+}
+
+.editing-mode .task-header h1 {
+  color: #1976d2;
+  font-weight: 600;
+}
+
+/* 編集モードのカード */
+.editing-mode .info-card {
+  border: 2px solid #e3f2fd;
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.1);
+}
+
+.editing-mode .info-card mat-card-header {
+  background-color: #f0f7ff;
+  border-bottom: 1px solid #e3f2fd;
+}
+
+.editing-mode .info-card mat-card-title {
+  color: #1976d2;
+  font-weight: 600;
+}
+
+/* 編集モードのアクションボタン */
+.editing-mode .header-actions button[color="primary"] {
+  background-color: #4caf50;
+  color: white;
+  font-weight: 600;
+  padding: 12px 24px;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.editing-mode .header-actions button[color="primary"]:hover {
+  background-color: #45a049;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+}
+
+.editing-mode .header-actions button:not([color="primary"]) {
+  background-color: #f5f5f5;
+  color: #666;
+  border: 1px solid #e0e0e0;
+}
+
+.editing-mode .header-actions button:not([color="primary"]):hover {
+  background-color: #eeeeee;
+  color: #333;
+}
+
+/* 編集中インジケーター */
+.editing-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #ff9800;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-left: 12px;
+  animation: pulse 2s infinite;
+}
+
+.editing-indicator mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(255, 152, 0, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 152, 0, 0);
+  }
+}
+
+/* フィールドヒント */
+.field-hint {
+  display: inline-block;
+  background-color: #e3f2fd;
+  color: #1976d2;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 12px;
+  margin-left: 8px;
+  border: 1px solid #bbdefb;
+  animation: fadeInOut 3s infinite;
+}
+
+@keyframes fadeInOut {
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
 /* タスクが見つからない場合 */
 .task-not-found {
   max-width: 600px;

@@ -323,7 +323,11 @@ export class CalendarComponent implements OnInit {
   /** プロジェクト作成ダイアログを開く */
   openProjectDialog() {
     const ref = this.dialog.open(ProjectFormDialogComponent, {
-      width: '450px',
+      width: '90vw',
+      maxWidth: '800px',
+      maxHeight: '90vh',
+      disableClose: false,
+      autoFocus: true,
     });
     ref.afterClosed().subscribe((result) => {
       if (result === 'success') {

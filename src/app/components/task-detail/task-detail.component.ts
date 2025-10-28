@@ -16,8 +16,10 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ProjectService } from '../../services/project.service';
 import { TaskService } from '../../services/task.service';
+import { MemberManagementService } from '../../services/member-management.service';
 import { TaskFormComponent } from '../task-form/task-form.component';
 import { Task, Project, ChatMessage } from '../../models/task.model';
+import { Member } from '../../models/member.model';
 import { ProjectChatComponent } from '../project-chat/project-chat.component';
 
 @Component({
@@ -48,6 +50,7 @@ export class TaskDetailComponent implements OnInit {
   private router = inject(Router);
   private projectService = inject(ProjectService);
   private taskService = inject(TaskService);
+  private memberService = inject(MemberManagementService);
   private dialog = inject(MatDialog);
 
   @Output() taskUpdated = new EventEmitter<any>();
@@ -58,6 +61,11 @@ export class TaskDetailComponent implements OnInit {
   isDetailSettingsOpen = false;
   isLoading = true;
   isSaving = false;
+
+  // メンバー関連
+  members: Member[] = [];
+  selectedMemberId: string = '';
+  membersLoading = false;
 
   // タスクの基本情報
   taskData: Task = {
@@ -103,6 +111,7 @@ export class TaskDetailComponent implements OnInit {
 
     if (taskId && projectId) {
       this.loadTaskDetails(projectId, taskId);
+      this.loadMembers();
     } else {
       console.error('必要なパラメータが不足しています:', { taskId, projectId });
     }
@@ -159,6 +168,52 @@ export class TaskDetailComponent implements OnInit {
         console.error('タスク取得エラー:', error);
       },
     });
+  }
+
+  /** メンバー一覧を読み込み */
+  loadMembers(): void {
+    this.membersLoading = true;
+    this.memberService.getMembers().subscribe({
+      next: (members) => {
+        this.members = members;
+        this.membersLoading = false;
+        console.log('メンバー一覧を読み込みました:', members.length, '件');
+
+        // 現在の担当者に基づいてselectedMemberIdを設定
+        if (this.taskData.assignee) {
+          const member = members.find((m) => m.name === this.taskData.assignee);
+          if (member) {
+            this.selectedMemberId = member.id || '';
+          }
+        }
+      },
+      error: (error) => {
+        console.error('メンバー一覧の読み込みエラー:', error);
+        this.membersLoading = false;
+      },
+    });
+  }
+
+  /** 担当者選択の変更 */
+  onMemberSelectionChange(memberId: string): void {
+    console.log('担当者選択変更:', memberId);
+
+    if (!memberId) {
+      this.taskData.assignee = '';
+      return;
+    }
+
+    const selectedMember = this.members.find(
+      (member) => member.id === memberId
+    );
+
+    if (selectedMember) {
+      this.taskData.assignee = selectedMember.name;
+      console.log('選択された担当者:', selectedMember);
+    } else {
+      console.warn('メンバーが見つかりません:', memberId);
+      this.taskData.assignee = '';
+    }
   }
 
   /** 編集モードを切り替え */
@@ -350,7 +405,9 @@ export class TaskDetailComponent implements OnInit {
   /** タスクを複製 */
   duplicateTask() {
     const ref = this.dialog.open(TaskFormComponent, {
-      width: '450px',
+      width: '90vw',
+      maxWidth: '800px',
+      maxHeight: '90vh',
       data: {
         projectName: this.project?.projectName,
         duplicateData: this.taskData,

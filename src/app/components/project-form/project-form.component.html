@@ -1,1 +1,170 @@
-<p>project-form works!</p>
+<div class="project-form-container">
+  <div class="header">
+    <h1>プロジェクトを作成</h1>
+  </div>
+
+  <mat-card class="form-card">
+    <mat-card-content>
+      <form [formGroup]="projectForm" (ngSubmit)="onSubmit()">
+        <!-- プロジェクト名 -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>プロジェクト名 *</mat-label>
+          <input
+            matInput
+            formControlName="projectName"
+            placeholder="例: 新商品開発プロジェクト"
+            autocomplete="off"
+          />
+          <mat-icon matSuffix>folder</mat-icon>
+          <mat-error
+            *ngIf="
+              projectForm.get('projectName')?.invalid &&
+              projectForm.get('projectName')?.touched
+            "
+          >
+            {{ getErrorMessage("projectName") }}
+          </mat-error>
+        </mat-form-field>
+
+        <!-- 説明 -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>説明</mat-label>
+          <textarea
+            matInput
+            formControlName="description"
+            placeholder="プロジェクトの詳細説明を入力してください"
+            rows="3"
+          ></textarea>
+          <mat-icon matSuffix>description</mat-icon>
+        </mat-form-field>
+
+        <!-- 開始日・終了日 -->
+        <div class="date-fields">
+          <div class="date-field half-width">
+            <label for="startDate">開始日</label>
+            <div class="date-input-wrapper">
+              <input
+                id="startDate"
+                type="date"
+                formControlName="startDate"
+                placeholder="開始日を選択"
+                class="date-input"
+              />
+              <mat-icon class="date-icon">event</mat-icon>
+            </div>
+          </div>
+
+          <div class="date-field half-width">
+            <label for="endDate">終了日</label>
+            <div class="date-input-wrapper">
+              <input
+                id="endDate"
+                type="date"
+                formControlName="endDate"
+                placeholder="終了日を選択"
+                class="date-input"
+              />
+              <mat-icon class="date-icon">event</mat-icon>
+            </div>
+          </div>
+        </div>
+
+        <!-- メンバー選択 -->
+        <div class="member-selection">
+          <div class="member-selection-header">
+            <h3>
+              プロジェクトメンバー
+              <span class="member-count" *ngIf="selectedMembers.length > 0">
+                ({{ selectedMembers.length }}人選択中)
+              </span>
+            </h3>
+            <button
+              mat-icon-button
+              color="primary"
+              routerLink="/members"
+              matTooltip="メンバーを追加"
+            >
+              <mat-icon>person_add</mat-icon>
+            </button>
+          </div>
+
+          <!-- ローディング表示 -->
+          <div *ngIf="loading" class="loading-members">
+            <mat-spinner diameter="24"></mat-spinner>
+            <span>メンバーを読み込み中...</span>
+          </div>
+
+          <!-- メンバー選択 -->
+          <div *ngIf="!loading && members.length > 0">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>メンバーを選択</mat-label>
+              <mat-select
+                formControlName="members"
+                multiple
+                (selectionChange)="onMemberSelectionChange($event.value)"
+                placeholder="メンバーを選択してください（複数選択可）"
+              >
+                <mat-option *ngFor="let member of members" [value]="member.id">
+                  {{ member.name }}
+                </mat-option>
+              </mat-select>
+              <mat-icon matSuffix>people</mat-icon>
+            </mat-form-field>
+
+            <!-- 選択されたメンバー -->
+            <div *ngIf="selectedMembers.length > 0" class="selected-members">
+              <div class="selected-members-header">
+                <span class="member-count-text"
+                  >{{ selectedMembers.length }}人選択中</span
+                >
+              </div>
+              <div class="member-chips-inline">
+                <mat-chip-set>
+                  <mat-chip
+                    *ngFor="let member of selectedMembers"
+                    [removable]="true"
+                    (removed)="removeMember(member)"
+                    class="member-chip-inline"
+                  >
+                    <mat-icon matChipAvatar>person</mat-icon>
+                    <span class="member-chip-name">{{ member.name }}</span>
+                    <button matChipRemove>
+                      <mat-icon>cancel</mat-icon>
+                    </button>
+                  </mat-chip>
+                </mat-chip-set>
+              </div>
+            </div>
+          </div>
+
+          <!-- メンバーがいない場合 -->
+          <div *ngIf="!loading && members.length === 0" class="no-members">
+            <mat-icon class="no-members-icon">people_outline</mat-icon>
+            <p>メンバーが登録されていません</p>
+            <p>
+              先に<button mat-button color="primary" routerLink="/members">
+                メンバー管理</button
+              >でメンバーを登録してください。
+            </p>
+          </div>
+        </div>
+      </form>
+    </mat-card-content>
+
+    <mat-card-actions align="end">
+      <button mat-button (click)="onCancel()" [disabled]="isSubmitting">
+        キャンセル
+      </button>
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="onSubmit()"
+        [disabled]="projectForm.invalid || isSubmitting"
+      >
+        <mat-icon *ngIf="!isSubmitting">add</mat-icon>
+        <mat-spinner *ngIf="isSubmitting" diameter="20"></mat-spinner>
+        {{ isSubmitting ? "作成中..." : "プロジェクトを作成" }}
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</div>

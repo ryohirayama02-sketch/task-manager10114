@@ -1,3 +1,23 @@
+.projects-overview-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.header h2 {
+  margin: 0;
+  color: #333;
+  font-size: 28px;
+  font-weight: 500;
+}
+
 .project-card {
   border: 1px solid #ccc;
   border-radius: 10px;

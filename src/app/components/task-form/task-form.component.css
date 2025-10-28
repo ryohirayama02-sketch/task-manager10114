@@ -1,14 +1,261 @@
-input,
-select {
-  width: 100%;
-  padding: 6px 8px;
-  box-sizing: border-box;
+.task-form-dialog {
+  min-width: 600px;
+  max-width: 800px;
+  width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
-.readonly {
-  padding: 8px 10px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  background: #f7f7f7;
+h2[mat-dialog-title] {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 16px 0;
   color: #333;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+h2[mat-dialog-title] mat-icon {
+  color: #1976d2;
+}
+
+mat-dialog-content {
+  padding: 16px 0;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.half-width {
+  width: calc(50% - 8px);
+}
+
+.date-fields {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+}
+
+.date-field {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0; /* フレックスアイテムの最小幅を0に設定 */
+  position: relative; /* カレンダーアイコンの絶対位置の基準 */
+}
+
+.date-field label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.date-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.date-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #1976d2;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.date-input {
+  width: 100%;
+  padding: 12px 40px 12px 16px; /* 右側にカレンダーアイコンのスペースを確保 */
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  color-scheme: light;
+  background-color: white;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box; /* パディングを含めた幅計算 */
+}
+
+.date-input:focus {
+  outline: none;
+  border-color: #1976d2;
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+}
+
+.date-input:hover {
+  border-color: #1976d2;
+}
+
+.date-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 1;
+  width: 24px;
+  height: 24px;
+  background: transparent;
+  color: #1976d2;
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+}
+
+.date-input::-webkit-inner-spin-button,
+.date-input::-webkit-clear-button {
+  display: none;
+}
+
+/* Firefox用 */
+.date-input::-moz-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 1;
+  width: 24px;
+  height: 24px;
+  background: transparent;
+  color: #1976d2;
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+}
+
+.assignee-selection {
+  margin: 8px 0;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  min-height: 120px;
+}
+
+.assignee-header {
+  margin-bottom: 12px;
+}
+
+.assignee-header h4 {
+  margin: 0;
+  color: #333;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.loading-assignee {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #666;
+  margin-bottom: 12px;
+}
+
+.no-members {
+  text-align: center;
+  padding: 16px;
+  color: #666;
+}
+
+.no-members-icon {
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+  color: #ccc;
+  margin-bottom: 8px;
+}
+
+.no-members p {
+  margin: 4px 0;
+  font-size: 14px;
+}
+
+.no-members button {
+  margin: 0 4px;
+}
+
+mat-dialog-actions {
+  padding: 16px 0 0 0;
+  margin: 0;
+  gap: 8px;
+}
+
+mat-dialog-actions button {
+  min-width: 100px;
+}
+
+mat-dialog-actions button[mat-raised-button] {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* レスポンシブデザイン */
+@media (max-width: 768px) {
+  .task-form-dialog {
+    min-width: 90vw;
+    max-width: 95vw;
+    width: 95vw;
+  }
+
+  .date-fields {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .date-field {
+    width: 100%;
+    min-width: auto;
+  }
+
+  .date-input {
+    padding: 12px 40px 12px 16px;
+  }
+
+  .member-option {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .member-email {
+    font-size: 11px;
+  }
+
+  .assignee-selection {
+    padding: 16px;
+    min-height: 100px;
+  }
+}
+
+@media (max-width: 480px) {
+  .task-form-dialog {
+    min-width: 95vw;
+    max-width: 98vw;
+    width: 98vw;
+  }
+
+  .form-fields {
+    gap: 12px;
+  }
+
+  .assignee-selection {
+    padding: 12px;
+    min-height: 80px;
+  }
 }

@@ -13,6 +13,7 @@ import { QuickTasksComponent } from './components/quick-tasks/quick-tasks.compon
 import { TaskSearchComponent } from './components/task-search/task-search.component';
 import { SettingsComponent } from './components/settings/settings.component';
 import { LogsComponent } from './components/logs/logs.component';
+import { MemberManagementComponent } from './components/member-management/member-management.component';
 import { LoginComponent } from './components/auth/login/login.component';
 import { ProjectFormComponent } from './components/project-form/project-form.component';
 import { AuthGuard } from './guards/auth.guard';
@@ -57,6 +58,11 @@ export const routes: Routes = [
   { path: 'search', component: TaskSearchComponent, canActivate: [AuthGuard] },
   { path: 'settings', component: SettingsComponent, canActivate: [AuthGuard] },
   { path: 'logs', component: LogsComponent, canActivate: [AuthGuard] },
+  {
+    path: 'members',
+    component: MemberManagementComponent,
+    canActivate: [AuthGuard],
+  },
   {
     path: 'project-form',
     component: ProjectFormComponent,

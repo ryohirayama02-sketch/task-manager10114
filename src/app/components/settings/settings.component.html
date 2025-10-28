@@ -412,6 +412,16 @@
 
         <button
           mat-raised-button
+          color="warn"
+          (click)="sendTaskRemindersTest()"
+          [disabled]="isSaving"
+        >
+          <mat-icon>email</mat-icon>
+          {{ isSaving ? "送信中..." : "期限間近タスク通知テスト" }}
+        </button>
+
+        <button
+          mat-raised-button
           color="primary"
           (click)="saveNotificationSettings()"
           [disabled]="isSaving"

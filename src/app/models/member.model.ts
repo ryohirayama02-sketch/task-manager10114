@@ -1,9 +1,14 @@
-export interface IMember {
-  id: string;
+export interface Member {
+  id?: string;
   name: string;
   email: string;
-  role: string; // 役職
-  done: number; // 完了タスク数
-  working: number; // 作業中タスク数
-  todo: number; // 未着手タスク数
+  createdAt?: Date | string | any; // FirestoreのTimestampも許可
+  updatedAt?: Date | string | any; // FirestoreのTimestampも許可
+}
+
+export interface ProjectMember {
+  memberId: string;
+  memberName: string;
+  memberEmail: string;
+  role?: string; // プロジェクト内での役割（オプション）
 }

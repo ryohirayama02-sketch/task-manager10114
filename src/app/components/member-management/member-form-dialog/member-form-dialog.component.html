@@ -1,0 +1,68 @@
+<div class="member-form-dialog">
+  <h2 mat-dialog-title>
+    <mat-icon>{{ data.mode === "add" ? "person_add" : "edit" }}</mat-icon>
+    {{ data.mode === "add" ? "メンバーを追加" : "メンバーを編集" }}
+  </h2>
+
+  <mat-dialog-content>
+    <form [formGroup]="memberForm" (ngSubmit)="onSubmit()">
+      <div class="form-fields">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>名前</mat-label>
+          <input
+            matInput
+            formControlName="name"
+            placeholder="例: 田中太郎"
+            autocomplete="name"
+          />
+          <mat-icon matSuffix>person</mat-icon>
+          <mat-error
+            *ngIf="
+              memberForm.get('name')?.invalid && memberForm.get('name')?.touched
+            "
+          >
+            {{ getErrorMessage("name") }}
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>メールアドレス</mat-label>
+          <input
+            matInput
+            formControlName="email"
+            type="email"
+            placeholder="例: tanaka@example.com"
+            autocomplete="email"
+          />
+          <mat-icon matSuffix>email</mat-icon>
+          <mat-error
+            *ngIf="
+              memberForm.get('email')?.invalid &&
+              memberForm.get('email')?.touched
+            "
+          >
+            {{ getErrorMessage("email") }}
+          </mat-error>
+        </mat-form-field>
+      </div>
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()" [disabled]="isSubmitting">
+      キャンセル
+    </button>
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="onSubmit()"
+      [disabled]="memberForm.invalid || isSubmitting"
+    >
+      <mat-icon *ngIf="!isSubmitting">{{
+        data.mode === "add" ? "add" : "save"
+      }}</mat-icon>
+      <mat-spinner *ngIf="isSubmitting" diameter="20"></mat-spinner>
+      {{ isSubmitting ? "保存中..." : data.mode === "add" ? "追加" : "更新" }}
+    </button>
+  </mat-dialog-actions>
+</div>

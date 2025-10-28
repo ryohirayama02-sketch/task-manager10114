@@ -1,46 +1,57 @@
-<h2>全プロジェクト進捗</h2>
-
-<!-- ▼ プロジェクトカード一覧 -->
-<div
-  *ngFor="let project of projects"
-  (click)="project.id ? goToProgress(project.id) : null"
-  class="project-card"
-  [class.completed]="
-    project.id && projectProgress[project.id]?.progressPercentage === 100
-  "
->
-  <div class="project-info">
-    <!-- ▼ プロジェクト名クリックで詳細へ -->
-    <h3
-      [routerLink]="project.id ? ['/project', project.id] : []"
-      (click)="$event.stopPropagation()"
-      class="project-title"
-    >
-      {{ project.projectName || "（名称未設定）" }}
-    </h3>
-
-    <p><strong>概要:</strong> {{ project.description || "（概要未設定）" }}</p>
-    <p>
-      <strong>期間:</strong> {{ project.startDate || "（開始日未設定）" }} ～
-      {{ project.endDate || "（終了日未設定）" }}
-    </p>
-    <p><strong>メンバー:</strong> （メンバー情報未設定）</p>
+<div class="projects-overview-container">
+  <div class="header">
+    <h2>全プロジェクト進捗</h2>
+    <button mat-raised-button color="primary" routerLink="/project-form">
+      <mat-icon>add</mat-icon>
+      プロジェクトを作成
+    </button>
   </div>
 
-  <!-- ▼ 進捗率円グラフ -->
+  <!-- ▼ プロジェクトカード一覧 -->
   <div
-    class="progress-section"
-    *ngIf="project.id && projectProgress[project.id]"
-    [style.opacity]="
-      projectProgress[project.id]?.progressPercentage === 100 ? '0.6' : '1'
+    *ngFor="let project of projects"
+    (click)="project.id ? goToProgress(project.id) : null"
+    class="project-card"
+    [class.completed]="
+      project.id && projectProgress[project.id]?.progressPercentage === 100
     "
   >
-    <app-progress-circle
-      [percentage]="projectProgress[project.id].progressPercentage"
-      [completedTasks]="projectProgress[project.id].completedTasks"
-      [totalTasks]="projectProgress[project.id].totalTasks"
-      [size]="80"
-      [strokeWidth]="6"
-    ></app-progress-circle>
+    <div class="project-info">
+      <!-- ▼ プロジェクト名クリックで詳細へ -->
+      <h3
+        [routerLink]="project.id ? ['/project', project.id] : []"
+        (click)="$event.stopPropagation()"
+        class="project-title"
+      >
+        {{ project.projectName || "（名称未設定）" }}
+      </h3>
+
+      <p>
+        <strong>概要:</strong> {{ project.description || "（概要未設定）" }}
+      </p>
+      <p>
+        <strong>期間:</strong> {{ project.startDate || "（開始日未設定）" }} ～
+        {{ project.endDate || "（終了日未設定）" }}
+      </p>
+      <p><strong>メンバー:</strong> （メンバー情報未設定）</p>
+    </div>
+
+    <!-- ▼ 進捗率円グラフ -->
+    <div
+      class="progress-section"
+      *ngIf="project.id && projectProgress[project.id]"
+      [style.opacity]="
+        projectProgress[project.id]?.progressPercentage === 100 ? '0.6' : '1'
+      "
+    >
+      <app-progress-circle
+        [percentage]="projectProgress[project.id].progressPercentage"
+        [completedTasks]="projectProgress[project.id].completedTasks"
+        [totalTasks]="projectProgress[project.id].totalTasks"
+        [size]="80"
+        [strokeWidth]="6"
+      >
+      </app-progress-circle>
+    </div>
   </div>
 </div>

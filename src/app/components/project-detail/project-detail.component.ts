@@ -96,7 +96,11 @@ export class ProjectDetailComponent implements OnInit {
     if (!this.project) return;
 
     const dialogRef = this.dialog.open(ProjectFormDialogComponent, {
-      width: '500px',
+      width: '90vw',
+      maxWidth: '800px',
+      maxHeight: '90vh',
+      disableClose: false,
+      autoFocus: true,
       data: { project: this.project },
     });
 
@@ -122,7 +126,9 @@ export class ProjectDetailComponent implements OnInit {
 
     console.log('📤 ダイアログに渡すprojectName:', this.project?.projectName);
     const dialogRef = this.dialog.open(TaskFormComponent, {
-      width: '420px',
+      width: '90vw',
+      maxWidth: '800px',
+      maxHeight: '90vh',
       data: { projectName: this.project.projectName }, // ✅ 自動で渡す
     });
 

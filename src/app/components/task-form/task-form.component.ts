@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -7,6 +7,15 @@ import {
   MAT_DIALOG_DATA,
 } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MemberManagementService } from '../../services/member-management.service';
+import { Member } from '../../models/member.model';
 
 interface TaskFormModel {
   projectName: string;
@@ -14,21 +23,47 @@ interface TaskFormModel {
   status: string;
   priority: string;
   assignee: string;
-  startDate: string;
-  dueDate: string;
+  assigneeEmail: string;
+  startDate: Date | null;
+  dueDate: Date | null;
 }
 
 @Component({
   selector: 'app-task-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatDialogModule, MatButtonModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatDialogModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatIconModule,
+    MatTooltipModule,
+    MatProgressSpinnerModule,
+    MatSnackBarModule,
+  ],
   templateUrl: './task-form.component.html',
   styleUrls: ['./task-form.component.css'],
 })
-export class TaskFormComponent {
+export class TaskFormComponent implements OnInit {
   // ✅ inject 構文を使った依存注入
   private dialogRef = inject(MatDialogRef<TaskFormComponent>);
   private data = inject(MAT_DIALOG_DATA, { optional: true }); // ← 追加（projectNameを受け取る）
+  private memberService = inject(MemberManagementService);
+  private snackBar = inject(MatSnackBar);
+
+  // メンバー関連
+  members: Member[] = [];
+  loading = false;
+
+  // 日付用の文字列プロパティ
+  startDateString: string = '';
+  dueDateString: string = '';
+
+  // 選択されたメンバーID
+  selectedMemberId: string = '';
 
   // 入力モデル（双方向バインディング用）
   model: TaskFormModel = {
@@ -37,9 +72,42 @@ export class TaskFormComponent {
     status: '未着手',
     priority: '中',
     assignee: '',
-    startDate: '',
-    dueDate: '',
+    assigneeEmail: '',
+    startDate: null,
+    dueDate: null,
   };
+
+  ngOnInit(): void {
+    this.loadMembers();
+    console.log('TaskFormComponent initialized');
+    this.checkDateInputSupport();
+  }
+
+  /**
+   * ブラウザの日付入力サポートを確認
+   */
+  checkDateInputSupport(): void {
+    const testInput = document.createElement('input');
+    testInput.type = 'date';
+    const isSupported = testInput.type === 'date';
+
+    console.log('Date input support:', isSupported);
+    console.log('Browser:', navigator.userAgent);
+
+    if (!isSupported) {
+      console.warn('This browser does not support HTML5 date input');
+      // 代替手段を提供
+      this.showDateInputAlternative();
+    }
+  }
+
+  /**
+   * 日付入力の代替手段を表示
+   */
+  showDateInputAlternative(): void {
+    console.log('Using alternative date input method');
+    // ここで代替の日付選択UIを表示する
+  }
 
   constructor() {
     // ダイアログ呼び出し時に受け取ったデータを初期セット
@@ -57,15 +125,103 @@ export class TaskFormComponent {
         status: duplicateData.status || '未着手',
         priority: duplicateData.priority || '中',
         assignee: duplicateData.assignee || '',
-        startDate: duplicateData.startDate || '',
-        dueDate: duplicateData.endDate || duplicateData.dueDate || '',
+        startDate: duplicateData.startDate
+          ? new Date(duplicateData.startDate)
+          : null,
+        dueDate:
+          duplicateData.endDate || duplicateData.dueDate
+            ? new Date(duplicateData.endDate || duplicateData.dueDate)
+            : null,
       };
+
+      // 文字列プロパティも設定
+      this.startDateString = duplicateData.startDate || '';
+      this.dueDateString = duplicateData.endDate || duplicateData.dueDate || '';
+
+      // 担当者が設定されている場合、selectedMemberIdを設定
+      if (duplicateData.assignee) {
+        const member = this.members.find(
+          (m) => m.name === duplicateData.assignee
+        );
+        if (member) {
+          this.selectedMemberId = member.id || '';
+        }
+      }
+    }
+  }
+
+  /**
+   * メンバー一覧を読み込み
+   */
+  loadMembers(): void {
+    this.loading = true;
+    this.memberService.getMembers().subscribe({
+      next: (members) => {
+        this.members = members;
+        this.loading = false;
+        console.log('メンバー一覧を読み込みました:', members.length, '件');
+
+        // 複製データがある場合、担当者を設定
+        if (this.data?.duplicateData?.assignee) {
+          const member = members.find(
+            (m) => m.name === this.data.duplicateData.assignee
+          );
+          if (member) {
+            this.selectedMemberId = member.id || '';
+            this.model.assignee = member.name;
+            this.model.assigneeEmail = member.email;
+          }
+        }
+      },
+      error: (error) => {
+        console.error('メンバー一覧の読み込みエラー:', error);
+        this.snackBar.open('メンバー一覧の読み込みに失敗しました', '閉じる', {
+          duration: 3000,
+        });
+        this.loading = false;
+      },
+    });
+  }
+
+  /**
+   * メンバー選択の変更
+   */
+  onMemberSelectionChange(memberId: string): void {
+    console.log('メンバー選択変更:', memberId);
+
+    if (!memberId) {
+      this.model.assignee = '';
+      this.model.assigneeEmail = '';
+      return;
+    }
+
+    const selectedMember = this.members.find(
+      (member) => member.id === memberId
+    );
+
+    if (selectedMember) {
+      this.model.assignee = selectedMember.name;
+      this.model.assigneeEmail = selectedMember.email;
+      console.log('選択されたメンバー:', selectedMember);
+    } else {
+      console.warn('メンバーが見つかりません:', memberId);
+      this.model.assignee = '';
+      this.model.assigneeEmail = '';
     }
   }
 
   save() {
     if (!this.model.taskName) return;
-    this.dialogRef.close(this.model);
+
+    // 文字列の日付をそのまま使用
+    const result = {
+      ...this.model,
+      startDate: this.startDateString,
+      dueDate: this.dueDateString,
+    };
+
+    console.log('Saving task with dates:', result);
+    this.dialogRef.close(result);
   }
 
   cancel() {

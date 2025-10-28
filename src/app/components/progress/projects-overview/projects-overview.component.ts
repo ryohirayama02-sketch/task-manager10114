@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { ProjectService } from '../../../services/project.service';
 import {
   ProgressService,
@@ -12,7 +14,13 @@ import { ProgressCircleComponent } from './progress-circle.component';
 @Component({
   selector: 'app-projects-overview',
   standalone: true,
-  imports: [CommonModule, RouterModule, ProgressCircleComponent],
+  imports: [
+    CommonModule,
+    RouterModule,
+    MatButtonModule,
+    MatIconModule,
+    ProgressCircleComponent,
+  ],
   templateUrl: './projects-overview.component.html',
   styleUrls: ['./projects-overview.component.css'],
 })

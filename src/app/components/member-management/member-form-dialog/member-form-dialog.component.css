@@ -1,0 +1,70 @@
+.member-form-dialog {
+  min-width: 400px;
+}
+
+h2[mat-dialog-title] {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 16px 0;
+  color: #333;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+h2[mat-dialog-title] mat-icon {
+  color: #1976d2;
+}
+
+mat-dialog-content {
+  padding: 16px 0;
+}
+
+.form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+mat-form-field {
+  font-size: 14px;
+}
+
+mat-dialog-actions {
+  padding: 16px 0 0 0;
+  margin: 0;
+  gap: 8px;
+}
+
+mat-dialog-actions button {
+  min-width: 100px;
+}
+
+mat-dialog-actions button[mat-raised-button] {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+mat-spinner {
+  margin: 0 8px;
+}
+
+/* レスポンシブデザイン */
+@media (max-width: 480px) {
+  .member-form-dialog {
+    min-width: 300px;
+  }
+
+  h2[mat-dialog-title] {
+    font-size: 18px;
+  }
+
+  .form-fields {
+    gap: 12px;
+  }
+}

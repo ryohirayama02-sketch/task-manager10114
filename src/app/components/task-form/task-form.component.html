@@ -1,51 +1,132 @@
-<h2>タスクを追加</h2>
+<div class="task-form-dialog">
+  <h2 mat-dialog-title>
+    <mat-icon>add_task</mat-icon>
+    タスクを追加
+  </h2>
 
-<div style="display: flex; flex-direction: column; gap: 8px; min-width: 280px">
-  <label>プロジェクト名（自動設定）</label>
-  <div class="readonly">{{ model.projectName || "—" }}</div>
+  <mat-dialog-content>
+    <div class="form-fields">
+      <!-- プロジェクト名（読み取り専用） -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>プロジェクト名</mat-label>
+        <input matInput [value]="model.projectName || '—'" readonly />
+        <mat-icon matSuffix>folder</mat-icon>
+      </mat-form-field>
 
-  <label>
-    タスク名（必須）<br />
-    <input type="text" [(ngModel)]="model.taskName" required />
-  </label>
+      <!-- タスク名 -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>タスク名 *</mat-label>
+        <input
+          matInput
+          [(ngModel)]="model.taskName"
+          placeholder="例: 要件定義書作成"
+          required
+        />
+        <mat-icon matSuffix>task</mat-icon>
+      </mat-form-field>
 
-  <label>
-    ステータス<br />
-    <select [(ngModel)]="model.status">
-      <option>未着手</option>
-      <option>作業中</option>
-      <option>完了</option>
-    </select>
-  </label>
+      <!-- ステータス -->
+      <mat-form-field appearance="outline" class="half-width">
+        <mat-label>ステータス</mat-label>
+        <mat-select [(ngModel)]="model.status">
+          <mat-option value="未着手">未着手</mat-option>
+          <mat-option value="作業中">作業中</mat-option>
+          <mat-option value="完了">完了</mat-option>
+        </mat-select>
+        <mat-icon matSuffix>flag</mat-icon>
+      </mat-form-field>
 
-  <label>
-    優先度<br />
-    <select [(ngModel)]="model.priority">
-      <option>高</option>
-      <option selected>中</option>
-      <option>低</option>
-    </select>
-  </label>
+      <!-- 優先度 -->
+      <mat-form-field appearance="outline" class="half-width">
+        <mat-label>優先度</mat-label>
+        <mat-select [(ngModel)]="model.priority">
+          <mat-option value="高">高</mat-option>
+          <mat-option value="中">中</mat-option>
+          <mat-option value="低">低</mat-option>
+        </mat-select>
+        <mat-icon matSuffix>priority_high</mat-icon>
+      </mat-form-field>
 
-  <label>
-    担当者<br />
-    <input type="text" [(ngModel)]="model.assignee" />
-  </label>
+      <!-- 担当者選択 -->
+      <div class="assignee-selection">
+        <div class="assignee-header">
+          <h4>担当者</h4>
+        </div>
 
-  <label>
-    開始日<br />
-    <input type="date" [(ngModel)]="model.startDate" />
-  </label>
+        <!-- ローディング表示 -->
+        <div *ngIf="loading" class="loading-assignee">
+          <mat-spinner diameter="20"></mat-spinner>
+          <span>メンバーを読み込み中...</span>
+        </div>
 
-  <label>
-    期限<br />
-    <input type="date" [(ngModel)]="model.dueDate" />
-  </label>
+        <!-- メンバー選択 -->
+        <div *ngIf="!loading && members.length > 0">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>担当者を選択</mat-label>
+            <mat-select
+              [(ngModel)]="selectedMemberId"
+              (selectionChange)="onMemberSelectionChange($event.value)"
+              placeholder="担当者を選択してください"
+            >
+              <mat-option *ngFor="let member of members" [value]="member.id">
+                {{ member.name }}
+              </mat-option>
+            </mat-select>
+            <mat-icon matSuffix>people</mat-icon>
+          </mat-form-field>
+        </div>
 
-  <div
-    style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px"
-  >
+        <!-- メンバーがいない場合 -->
+        <div *ngIf="!loading && members.length === 0" class="no-members">
+          <mat-icon class="no-members-icon">people_outline</mat-icon>
+          <p>メンバーが登録されていません</p>
+          <p>先にメンバー管理画面でメンバーを登録してください。</p>
+        </div>
+      </div>
+
+      <!-- 開始日・期限 -->
+      <div class="date-fields">
+        <div class="date-field">
+          <label for="startDate">開始日</label>
+          <div class="date-input-wrapper">
+            <input
+              id="startDate"
+              type="date"
+              [(ngModel)]="startDateString"
+              placeholder="開始日を選択"
+              class="date-input"
+            />
+            <mat-icon class="date-icon">event</mat-icon>
+          </div>
+        </div>
+
+        <div class="date-field">
+          <label for="dueDate">期限</label>
+          <div class="date-input-wrapper">
+            <input
+              id="dueDate"
+              type="date"
+              [(ngModel)]="dueDateString"
+              placeholder="期限を選択"
+              class="date-input"
+            />
+            <mat-icon class="date-icon">event</mat-icon>
+          </div>
+        </div>
+      </div>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
     <button mat-button (click)="cancel()">キャンセル</button>
-    <button mat-raised-button color="primary" (click)="save()">保存</button>
-  </div>
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="save()"
+      [disabled]="!model.taskName"
+    >
+      <mat-icon>save</mat-icon>
+      保存
+    </button>
+  </mat-dialog-actions>
 </div>

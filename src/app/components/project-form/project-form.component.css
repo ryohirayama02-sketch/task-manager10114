@@ -1,0 +1,334 @@
+.project-form-container {
+  padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.header {
+  margin-bottom: 24px;
+}
+
+.header h1 {
+  margin: 0;
+  color: #333;
+  font-size: 28px;
+  font-weight: 500;
+}
+
+.form-card {
+  padding: 24px;
+}
+
+.full-width {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.date-fields {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.half-width {
+  flex: 1;
+}
+
+/* 日付入力フィールド */
+.date-field {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.date-field label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #333;
+  font-size: 14px;
+}
+
+.date-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.date-input {
+  width: 100%;
+  padding: 12px 40px 12px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.date-input:focus {
+  border-color: #1976d2;
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+  outline: none;
+}
+
+.date-input:hover {
+  border-color: #1976d2;
+}
+
+.date-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #666;
+  pointer-events: none;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+/* カレンダーピッカーアイコンのスタイル */
+input[type="date"] {
+  cursor: pointer;
+  color-scheme: light;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  cursor: pointer;
+  background: transparent;
+  color: transparent;
+  width: 20px;
+  height: 20px;
+  opacity: 0;
+}
+
+input[type="date"]::-webkit-inner-spin-button,
+input[type="date"]::-webkit-clear-button {
+  display: none;
+}
+
+input[type="date"]::-moz-calendar-picker-indicator {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  cursor: pointer;
+  background: transparent;
+  color: transparent;
+  width: 20px;
+  height: 20px;
+  opacity: 0;
+}
+
+.member-selection {
+  margin-top: 24px;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  border: 2px solid #e3f2fd;
+}
+
+.member-selection-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.member-selection h3 {
+  margin: 0;
+  color: #1976d2;
+  font-size: 18px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.member-count {
+  background-color: #e3f2fd;
+  color: #1976d2;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 12px;
+  border: 1px solid #bbdefb;
+}
+
+.loading-members {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #666;
+  margin-bottom: 16px;
+  padding: 16px;
+  background-color: white;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+/* メンバー選択オプションのスタイルは不要になったため削除 */
+
+/* インライン表示の選択されたメンバー */
+.selected-members-inline {
+  margin-top: 12px;
+  padding: 12px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e3f2fd;
+}
+
+.selected-members-inline .selected-members-header {
+  margin-bottom: 8px;
+}
+
+.member-count-text {
+  color: #1976d2;
+  font-size: 12px;
+  font-weight: 500;
+  background-color: #e3f2fd;
+  padding: 2px 8px;
+  border-radius: 12px;
+  border: 1px solid #bbdefb;
+}
+
+.member-chips-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.member-chip-inline {
+  background-color: #e3f2fd !important;
+  color: #1976d2 !important;
+  border: 1px solid #bbdefb !important;
+  font-weight: 500;
+  font-size: 12px;
+  height: 28px;
+  transition: all 0.2s ease;
+}
+
+.member-chip-inline:hover {
+  background-color: #bbdefb !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(25, 118, 210, 0.2);
+}
+
+.member-chip-inline .member-chip-name {
+  font-weight: 500;
+  font-size: 12px;
+}
+
+.member-chip-inline mat-icon[matChipAvatar] {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.no-members {
+  text-align: center;
+  padding: 32px 16px;
+  color: #666;
+  background-color: white;
+  border-radius: 8px;
+  border: 2px dashed #e0e0e0;
+}
+
+.no-members-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  color: #ccc;
+  margin-bottom: 16px;
+}
+
+.no-members p {
+  margin: 8px 0;
+}
+
+.no-members button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 12px 20px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.no-members button:hover {
+  background-color: #1565c0;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(25, 118, 210, 0.3);
+}
+
+mat-card-actions {
+  padding: 16px 0 0 0;
+  margin: 0;
+  gap: 8px;
+}
+
+mat-card-actions button {
+  min-width: 120px;
+}
+
+mat-card-actions button[mat-raised-button] {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+mat-spinner {
+  margin: 0 8px;
+}
+
+/* レスポンシブデザイン */
+@media (max-width: 768px) {
+  .project-form-container {
+    padding: 16px;
+  }
+
+  .header h1 {
+    font-size: 24px;
+  }
+
+  .form-card {
+    padding: 16px;
+  }
+
+  .date-fields {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .half-width {
+    margin-bottom: 16px;
+  }
+
+  .date-field {
+    margin-bottom: 12px;
+  }
+
+  .member-option {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .member-email {
+    font-size: 11px;
+  }
+}
