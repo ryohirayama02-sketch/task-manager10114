@@ -1,0 +1,24 @@
+# ビルドや依存関係など、AIに不要な大容量フォルダを除外
+node_modules/
+dist/
+coverage/
+firebase-debug.log
+*.log
+*.env
+
+# Firebase Functions関連の不要ファイル
+functions/node_modules/
+functions/lib/
+
+# 一時ファイル・出力キャッシュ
+.tmp/
+.cache/
+
+# Angular ビルドキャッシュ
+.angular/
+
+# テスト設定ファイル
+karma.conf.js
+
+# 巨大な依存関係ロックファイル（package.json で十分）
+**/package-lock.json
