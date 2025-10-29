@@ -15,6 +15,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { ProjectService } from '../../services/project.service';
+import { ProjectSelectionService } from '../../services/project-selection.service';
 import { OfflineService } from '../../services/offline.service';
 import { ProjectFormDialogComponent } from '../project-form-dialog/project-form-dialog.component';
 import { Task, Project } from '../../models/task.model';
@@ -78,6 +79,7 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
   constructor(
     private projectService: ProjectService,
+    private projectSelectionService: ProjectSelectionService,
     private dialog: MatDialog,
     private router: Router,
     private offlineService: OfflineService,
@@ -150,15 +152,33 @@ export class CalendarComponent implements OnInit, OnDestroy {
       this.loadAllTasks();
       this.loadAllMilestones();
 
-      // 最初のプロジェクトを選択
-      const appProject = projects.find(
-        (p) => p.projectName === 'アプリ A改善プロジェクト'
-      );
-      if (appProject) {
-        this.selectedProjectIds = [appProject.id];
-        this.filterTasksBySelectedProjects();
+      // 保存されているプロジェクト選択状態を復元
+      this.selectedProjectIds =
+        this.projectSelectionService.getSelectedProjectIdsSync();
+
+      // 保存された選択がない場合は、最初のプロジェクトを選択
+      if (this.selectedProjectIds.length === 0) {
+        const appProject = projects.find(
+          (p) => p.projectName === 'アプリ A改善プロジェクト'
+        );
+        if (appProject) {
+          this.selectedProjectIds = [appProject.id];
+          this.projectSelectionService.setSelectedProjectIds(
+            this.selectedProjectIds
+          );
+        }
       }
+
+      this.filterTasksBySelectedProjects();
     });
+
+    // プロジェクト選択状態の変更を監視
+    this.projectSelectionService
+      .getSelectedProjectIds()
+      .subscribe((projectIds: string[]) => {
+        this.selectedProjectIds = projectIds;
+        this.filterTasksBySelectedProjects();
+      });
   }
 
   /** 全プロジェクトのタスクを読み込み */
@@ -238,13 +258,7 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
   /** プロジェクト選択をトグル */
   toggleProjectSelection(projectId: string) {
-    const index = this.selectedProjectIds.indexOf(projectId);
-    if (index > -1) {
-      this.selectedProjectIds.splice(index, 1);
-    } else {
-      this.selectedProjectIds.push(projectId);
-    }
-    this.filterTasksBySelectedProjects();
+    this.projectSelectionService.toggleProjectSelection(projectId);
   }
 
   /** プロジェクトが選択されているかチェック */

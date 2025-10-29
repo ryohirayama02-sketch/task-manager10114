@@ -91,14 +91,10 @@
 
   <!-- ガントチャート本体 -->
   <div class="gantt-chart">
-    <!-- ヘッダー行 -->
-    <div class="gantt-header">
-      <div
-        class="task-info-header"
-        [style.width.px]="totalInfoWidth"
-        [style.min-width.px]="totalInfoWidth"
-        [style.max-width.px]="totalInfoWidth"
-      >
+    <!-- 左ペイン（固定カラム） -->
+    <div class="gantt-left-pane">
+      <!-- 左ヘッダー -->
+      <div class="gantt-header-left">
         <div class="header-cell">プロジェクト名</div>
         <div class="header-cell">タスク名</div>
         <div class="header-cell">優先度</div>
@@ -112,15 +108,58 @@
           担当者
         </div>
       </div>
-      <div class="date-header">
-        <!-- 年月ヘッダー（固定表示） -->
-        <div class="year-month-header">
-          <div class="year-month-cell-fixed">
-            {{ getVisibleYearMonth() }}
+      <!-- 左ボディ -->
+      <div class="gantt-body-left">
+        <div *ngFor="let task of tasks" class="task-row">
+          <div
+            class="task-info"
+            [style.width.px]="totalInfoWidth"
+            [style.min-width.px]="totalInfoWidth"
+            [style.max-width.px]="totalInfoWidth"
+          >
+            <div class="info-cell project-name">{{ task.projectName }}</div>
+            <div
+              class="info-cell task-name clickable"
+              (click)="openTaskDetail(task)"
+            >
+              {{ task.taskName }}
+            </div>
+            <div
+              class="info-cell priority"
+              [ngClass]="'priority-' + task.priority"
+            >
+              {{ task.priority }}
+            </div>
+            <div
+              class="info-cell assignee"
+              [style.width.px]="assigneeColumnWidth"
+              [style.min-width.px]="assigneeColumnWidth"
+              [style.max-width.px]="assigneeColumnWidth"
+              style="white-space: nowrap"
+            >
+              {{ task.assignee }}
+            </div>
           </div>
         </div>
-        <!-- 日付ヘッダー -->
-        <div class="day-header">
+      </div>
+    </div>
+
+    <!-- 右ペイン（タイムライン） -->
+    <div class="gantt-right-pane">
+      <!-- 右ヘッダー -->
+      <div class="gantt-header-right">
+        <!-- 年月ラベル行 -->
+        <div class="year-month-labels-row">
+          <div
+            *ngFor="let group of getGroupedDates()"
+            class="year-month-label"
+            [style.width.px]="getYearMonthLabelWidth(group)"
+          >
+            {{ formatYearMonth(group.dates[0]) }}
+          </div>
+        </div>
+        <!-- 日付セル行 -->
+        <div class="date-cells-row">
           <div *ngFor="let date of dateRange" class="date-cell">
             {{ formatDay(date) }}
             <!-- マイルストーン表示 -->
@@ -135,84 +174,46 @@
           </div>
         </div>
       </div>
-    </div>
-
-    <!-- タスク行 -->
-    <div class="gantt-body">
-      <div class="gantt-content">
-        <!-- タスク情報列 -->
-        <div
-          class="task-info-column"
-          [style.width.px]="totalInfoWidth"
-          [style.min-width.px]="totalInfoWidth"
-          [style.max-width.px]="totalInfoWidth"
-        >
-          <div *ngFor="let task of tasks" class="task-row">
+      <!-- 右ボディ -->
+      <div class="gantt-body-right">
+        <div class="gantt-bars">
+          <!-- 年月ラベル行のスペース -->
+          <div class="year-month-labels-spacer-row">
             <div
-              class="task-info"
-              [style.width.px]="totalInfoWidth"
-              [style.min-width.px]="totalInfoWidth"
-              [style.max-width.px]="totalInfoWidth"
+              *ngFor="let group of getGroupedDates()"
+              class="year-month-label-spacer"
+              [style.width.px]="getYearMonthLabelWidth(group)"
+            ></div>
+          </div>
+          <!-- 背景の日付セル -->
+          <div class="date-cells-background">
+            <div *ngFor="let date of dateRange" class="date-cell">
+              <!-- 日付セル -->
+            </div>
+          </div>
+          <!-- タスク期間バー -->
+          <ng-container *ngFor="let task of tasks; let i = index">
+            <div
+              *ngIf="task.startDate && task.dueDate"
+              class="task-bar clickable"
+              [style.background-color]="statusColors[task.status]"
+              [style.left]="getTaskBarStartPosition(task) + 'px'"
+              [style.width]="getTaskBarWidth(task) + 'px'"
+              [style.top]="i * 40 + 4 + 'px'"
+              [title]="
+                task.taskName +
+                ' (' +
+                task.status +
+                ') - ' +
+                task.startDate +
+                ' ～ ' +
+                task.dueDate
+              "
+              (click)="openTaskDetail(task)"
             >
-              <div class="info-cell project-name">{{ task.projectName }}</div>
-              <div
-                class="info-cell task-name clickable"
-                (click)="openTaskDetail(task)"
-              >
-                {{ task.taskName }}
-              </div>
-              <div
-                class="info-cell priority"
-                [ngClass]="'priority-' + task.priority"
-              >
-                {{ task.priority }}
-              </div>
-              <div
-                class="info-cell assignee"
-                [style.width.px]="assigneeColumnWidth"
-                [style.min-width.px]="assigneeColumnWidth"
-                [style.max-width.px]="assigneeColumnWidth"
-                style="white-space: nowrap"
-              >
-                {{ task.assignee }}
-              </div>
+              <span class="task-bar-text">{{ task.taskName }}</span>
             </div>
-          </div>
-        </div>
-
-        <!-- ガントバー列 -->
-        <div class="gantt-bars-column">
-          <div class="gantt-bars">
-            <!-- 背景の日付セル -->
-            <div class="date-cells-background">
-              <div *ngFor="let date of dateRange" class="date-cell">
-                <!-- 日付セル -->
-              </div>
-            </div>
-            <!-- タスク期間バー -->
-            <ng-container *ngFor="let task of tasks; let i = index">
-              <div
-                *ngIf="task.startDate && task.dueDate"
-                class="task-bar clickable"
-                [style.background-color]="statusColors[task.status]"
-                [style.left]="getTaskBarStartPosition(task) + 'px'"
-                [style.width]="getTaskBarWidth(task) + 'px'"
-                [style.top]="i * 40 + 4 + 'px'"
-                [title]="
-                  task.taskName +
-                  ' (' +
-                  task.status +
-                  ') - ' +
-                  task.startDate +
-                  ' ～ ' +
-                  task.dueDate
-                "
-                (click)="openTaskDetail(task)"
-              >
-                <span class="task-bar-text">{{ task.taskName }}</span>
-              </div>
-            </ng-container>
-          </div>
+          </ng-container>
         </div>
       </div>
     </div>

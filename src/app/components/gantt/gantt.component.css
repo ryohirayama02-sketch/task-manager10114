@@ -79,9 +79,70 @@
 }
 
 .gantt-chart {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* 左ペイン（固定カラム） */
+.gantt-left-pane {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 auto;
+  width: auto; /* totalInfoWidth で制御 */
+  background-color: #e9ecef;
+  border-right: 2px solid #dee2e6;
+  z-index: 12;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+}
+
+.gantt-header-left {
+  display: flex;
+  background-color: #e9ecef;
+  border-bottom: 2px solid #dee2e6;
+  height: 64px;
+  position: sticky;
+  top: 0;
+  z-index: 13;
+  flex-shrink: 0;
+}
+
+.gantt-body-left {
+  display: flex;
+  flex-direction: column;
   overflow-y: auto;
-  min-width: 100%;
   flex: 1;
+}
+
+/* 右ペイン（タイムライン） */
+.gantt-right-pane {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.gantt-header-right {
+  display: flex;
+  flex-direction: column;
+  background-color: #f8f9fa;
+  border-bottom: 2px solid #dee2e6;
+  height: 64px;
+  position: sticky;
+  top: 0;
+  z-index: 11;
+  flex-shrink: 0;
+  min-width: min-content;
+}
+
+.gantt-body-right {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  min-width: min-content;
 }
 
 /* レスポンシブ対応 */
@@ -193,40 +254,18 @@
   }
 }
 
-.gantt-header {
-  display: flex;
-  background-color: #f8f9fa;
-  border-bottom: 2px solid #dee2e6;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  width: 100%;
-  align-items: stretch;
-  gap: 0;
-}
-
-.task-info-header {
-  display: flex;
-  width: 525px;
-  min-width: 525px;
-  max-width: 525px;
-  background-color: #e9ecef;
-  flex-shrink: 0;
-  position: sticky;
-  left: 0;
-  z-index: 15;
-  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
-  border-right: 2px solid #dee2e6;
-}
-
 .header-cell {
-  padding: 12px 8px;
+  padding: 8px; /* パディングを統一 */
   font-weight: 600;
   font-size: 12px;
   color: #495057;
   border-right: 1px solid #dee2e6;
   text-align: center;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%; /* 親の高さいっぱい */
 }
 
 .header-cell:nth-child(1) {
@@ -247,28 +286,39 @@
   max-width: 58px;
 }
 
-.header-cell:nth-child(4) {
-  min-width: 118px;
-  flex: 0 0 auto;
-}
-
-.date-header {
+.year-month-labels-row {
   display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-width: 800px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  position: relative;
-  margin-left: 2px;
-  padding-left: 0;
-}
-
-.year-month-header {
-  position: relative;
   height: 32px;
   border-bottom: 1px solid #dee2e6;
   background-color: #f8f9fa;
+  flex-shrink: 0;
+  min-width: min-content;
+}
+
+.year-month-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #495057;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-right: 1px solid #dee2e6;
+  white-space: nowrap;
+  box-sizing: border-box;
+  padding: 0 4px;
+  flex-shrink: 0;
+}
+
+.date-cells-row {
+  display: flex;
+  flex-shrink: 0;
+  min-width: min-content;
+}
+
+.day-header-group {
+  display: flex;
+  flex-shrink: 0;
 }
 
 .year-month-cell {
@@ -295,22 +345,29 @@
   left: 0; /* 日付ヘッダー領域内の左端 */
   height: 100%;
   padding: 8px 12px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   color: #495057;
   text-align: left;
-  background-color: #f8f9fa;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
   display: flex;
   align-items: center;
   white-space: nowrap;
   box-sizing: border-box;
   z-index: 12;
-  min-width: 80px;
-  border-right: 1px solid #dee2e6;
+  min-width: 100px;
+  border-right: 2px solid #dee2e6;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.05);
+}
+
+.year-month-text {
+  display: inline-block;
+  transition: opacity 0.2s ease-out;
 }
 
 .day-header {
   display: flex;
+  /* Deprecated - use .day-header-group instead */
 }
 
 .date-cell {
@@ -428,26 +485,13 @@
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
 
-.gantt-body {
-  overflow: hidden;
-  display: flex;
-  width: 100%;
-}
-
-.gantt-content {
-  display: flex;
-  width: 100%;
-}
-
 .task-info-column {
-  width: 525px;
-  min-width: 525px;
-  max-width: 525px;
   flex-shrink: 0;
   overflow-y: auto;
   overflow-x: hidden;
   border-right: 2px solid #dee2e6;
   height: 100%;
+  /* width, min-width, max-width はインラインスタイルで制御 */
 }
 
 .gantt-bars-column {
@@ -488,6 +532,8 @@
   display: flex;
   border-bottom: 1px solid #dee2e6;
   min-height: 40px;
+  height: 40px; /* 固定高さを指定 */
+  align-items: stretch;
 }
 
 .task-row:hover {
@@ -500,21 +546,21 @@
 
 .task-info {
   display: flex;
-  width: 525px;
-  min-width: 525px;
-  max-width: 525px;
   background-color: white;
   flex-shrink: 0;
+  /* width, min-width, max-width はインラインスタイルで制御 */
+  align-items: center; /* 左右を中央揃え */
 }
 
 .info-cell {
-  padding: 8px;
+  padding: 8px; /* 統一されたパディング */
   border-right: 1px solid #dee2e6;
   font-size: 12px;
   display: flex;
-  align-items: center;
+  align-items: center; /* テキスト中央揃え */
   overflow: hidden;
   flex-shrink: 0;
+  height: 100%; /* 親の高さいっぱい */
 }
 
 .info-cell.project-name {
@@ -535,11 +581,6 @@
   max-width: 58px;
   justify-content: center;
   text-align: center;
-}
-
-.info-cell.assignee {
-  min-width: 118px;
-  flex: 0 0 auto;
 }
 
 .project-name {
@@ -608,6 +649,40 @@
   height: 100%;
   display: flex;
   flex-direction: column;
+}
+
+.year-month-labels-spacer-row {
+  display: flex;
+  height: 32px;
+  border-bottom: 1px solid #dee2e6;
+  background-color: #f8f9fa;
+  flex-shrink: 0;
+  min-width: min-content;
+}
+
+.year-month-label-spacer {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-right: 1px solid #dee2e6;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.month-group-bars {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.month-label-spacer {
+  height: 32px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-bottom: 1px solid #dee2e6;
+  flex-shrink: 0;
+}
+
+.date-cells-background-group {
+  display: flex;
+  flex-shrink: 0;
 }
 
 .date-cells-background {

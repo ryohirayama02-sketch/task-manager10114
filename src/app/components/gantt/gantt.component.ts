@@ -12,6 +12,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ProjectService } from '../../services/project.service';
+import { ProjectSelectionService } from '../../services/project-selection.service';
 import { ProjectFormDialogComponent } from '../project-form-dialog/project-form-dialog.component';
 import { Task, Project } from '../../models/task.model';
 
@@ -74,8 +75,13 @@ export class GanttComponent implements OnInit {
     完了: '#c8e6c9',
   };
 
+  // 年月ヘッダー用
+  currentYearMonthGroup: any = null;
+  yearMonthHeaderStyle: { [key: string]: string } = {};
+
   constructor(
     private projectService: ProjectService,
+    private projectSelectionService: ProjectSelectionService,
     private dialog: MatDialog,
     private router: Router
   ) {}
@@ -111,15 +117,33 @@ export class GanttComponent implements OnInit {
       this.loadAllTasks();
       this.loadAllMilestones();
 
-      // 最初のプロジェクトを選択
-      const appProject = projects.find(
-        (p) => p.projectName === 'アプリ A改善プロジェクト'
-      );
-      if (appProject) {
-        this.selectedProjectIds = [appProject.id];
-        this.filterTasksBySelectedProjects();
+      // 保存されているプロジェクト選択状態を復元
+      this.selectedProjectIds =
+        this.projectSelectionService.getSelectedProjectIdsSync();
+
+      // 保存された選択がない場合は、最初のプロジェクトを選択
+      if (this.selectedProjectIds.length === 0) {
+        const appProject = projects.find(
+          (p) => p.projectName === 'アプリ A改善プロジェクト'
+        );
+        if (appProject) {
+          this.selectedProjectIds = [appProject.id];
+          this.projectSelectionService.setSelectedProjectIds(
+            this.selectedProjectIds
+          );
+        }
       }
+
+      this.filterTasksBySelectedProjects();
     });
+
+    // プロジェクト選択状態の変更を監視
+    this.projectSelectionService
+      .getSelectedProjectIds()
+      .subscribe((projectIds: string[]) => {
+        this.selectedProjectIds = projectIds;
+        this.filterTasksBySelectedProjects();
+      });
   }
 
   /** 全プロジェクトのタスクを読み込み */
@@ -210,13 +234,7 @@ export class GanttComponent implements OnInit {
 
   /** プロジェクト選択をトグル */
   toggleProjectSelection(projectId: string) {
-    const index = this.selectedProjectIds.indexOf(projectId);
-    if (index > -1) {
-      this.selectedProjectIds.splice(index, 1);
-    } else {
-      this.selectedProjectIds.push(projectId);
-    }
-    this.filterTasksBySelectedProjects();
+    this.projectSelectionService.toggleProjectSelection(projectId);
   }
 
   /** プロジェクトが選択されているかチェック */
@@ -326,27 +344,44 @@ export class GanttComponent implements OnInit {
     };
   }
 
+  /** 年月ラベルの幅を計算 */
+  getYearMonthLabelWidth(group: any): number {
+    const cellWidth = 30; // 1日 = 30px
+    return group.dates.length * cellWidth;
+  }
+
   /** 現在表示されている年月を取得 */
   getVisibleYearMonth(): string {
-    // 現在のスクロール位置を取得（簡易実装）
-    // 実際のスクロール位置に基づいて表示する年月を決定
-    const scrollLeft = this.getCurrentScrollLeft();
-    const cellWidth = 30;
-    const visibleStartIndex = Math.floor(scrollLeft / cellWidth);
+    if (!this.currentYearMonthGroup) {
+      return this.getGroupedDates()[0]?.yearMonth || '';
+    }
+    return this.currentYearMonthGroup.yearMonth;
+  }
 
-    // 表示開始位置を含む年月グループを検索
+  /** 現在のスクロール位置に基づいて表示年月を更新 */
+  updateVisibleYearMonth(): void {
+    const scrollLeft = this.currentScrollLeft;
+    const cellWidth = 30;
+
+    // スクロール位置の中央付近の日付インデックスを計算
+    const visibleCenterIndex = Math.floor(scrollLeft / cellWidth) + 5;
+
+    // どの年月グループに該当するかを検索
     const groups = this.getGroupedDates();
     for (const group of groups) {
       if (
-        visibleStartIndex >= group.startIndex &&
-        visibleStartIndex <= group.endIndex
+        visibleCenterIndex >= group.startIndex &&
+        visibleCenterIndex <= group.endIndex
       ) {
-        return group.yearMonth;
+        this.currentYearMonthGroup = group;
+        break;
       }
     }
 
-    // フォールバック：最初のグループを返す
-    return groups.length > 0 ? groups[0].yearMonth : '';
+    // グループが見つからない場合は最後のグループを使用
+    if (!this.currentYearMonthGroup && groups.length > 0) {
+      this.currentYearMonthGroup = groups[groups.length - 1];
+    }
   }
 
   /** 現在のスクロール位置を取得 */
@@ -512,12 +547,14 @@ export class GanttComponent implements OnInit {
         dateHeader.addEventListener('scroll', () => {
           ganttBarsColumn.scrollLeft = dateHeader.scrollLeft;
           this.updateScrollPosition(dateHeader.scrollLeft);
+          this.updateVisibleYearMonth(); // スクロール位置が変更されたら年月も更新
         });
 
         // ガントバー列のスクロールを日付ヘッダーに同期
         ganttBarsColumn.addEventListener('scroll', () => {
           dateHeader.scrollLeft = ganttBarsColumn.scrollLeft;
           this.updateScrollPosition(ganttBarsColumn.scrollLeft);
+          this.updateVisibleYearMonth(); // スクロール位置が変更されたら年月も更新
         });
       }
     }, 100);
