@@ -275,6 +275,68 @@ input[type="date"]::-moz-calendar-picker-indicator {
   box-shadow: 0 4px 8px rgba(25, 118, 210, 0.3);
 }
 
+.milestones-section {
+  margin-top: 24px;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  border: 2px solid #e3f2fd;
+}
+
+.milestones-section h3 {
+  margin: 0 0 16px 0;
+  color: #1976d2;
+  font-size: 18px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.milestones-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.milestone-item {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 16px;
+  background-color: white;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.milestone-date {
+  flex: 0 0 180px;
+}
+
+.milestone-name {
+  flex: 1;
+}
+
+.remove-milestone {
+  flex-shrink: 0;
+}
+
+.add-milestone {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.add-milestone:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(25, 118, 210, 0.3);
+}
+
 mat-card-actions {
   padding: 16px 0 0 0;
   margin: 0;

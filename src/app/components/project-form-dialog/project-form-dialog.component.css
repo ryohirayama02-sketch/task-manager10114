@@ -358,7 +358,8 @@ input[type="date"]::-moz-calendar-picker-indicator {
   flex-shrink: 0;
   display: flex;
   gap: 12px;
-  justify-content: flex-end;
+  justify-content: flex-start;
+  align-items: center;
   padding: 20px 24px;
   border-top: 1px solid #e0e0e0;
   background-color: #f8f9fa;
@@ -376,21 +377,36 @@ input[type="date"]::-moz-calendar-picker-indicator {
   display: flex;
   align-items: center;
   gap: 8px;
-  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3);
-}
-
-.dialog-actions button[mat-raised-button]:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.4);
+  box-shadow: none;
 }
 
 .delete-button {
   background-color: #f44336;
   color: white;
+  margin-right: auto;
 }
 
 .delete-button:hover {
   background-color: #d32f2f;
+}
+
+.cancel-button {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.cancel-button:hover {
+  background-color: #d0d0d0;
+}
+
+.save-button {
+  background: linear-gradient(135deg, #1976d2, #2196f3);
+  color: white;
+}
+
+.save-button:hover {
+  background: linear-gradient(135deg, #1565c0, #1e88e5);
+  box-shadow: 0 4px 12px rgba(21, 101, 192, 0.3);
 }
 
 /* レスポンシブデザイン */

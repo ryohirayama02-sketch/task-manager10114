@@ -148,6 +148,63 @@
             </p>
           </div>
         </div>
+        <!-- マイルストーン -->
+        <div class="milestones-section" formArrayName="milestones">
+          <h3>マイルストーン</h3>
+          <div class="milestones-container">
+            <div
+              class="milestone-item"
+              *ngFor="let milestone of milestones.controls; let i = index; trackBy: trackMilestone"
+              [formGroupName]="i"
+            >
+              <mat-form-field appearance="outline" class="milestone-date">
+                <mat-label>日付</mat-label>
+                <input
+                  matInput
+                  type="date"
+                  formControlName="date"
+                  #milestoneDateInput
+                />
+                <button
+                  mat-icon-button
+                  matSuffix
+                  type="button"
+                  (click)="openDatePicker(milestoneDateInput)"
+                  matTooltip="カレンダーを開く"
+                >
+                  <mat-icon>event</mat-icon>
+                </button>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="milestone-name">
+                <mat-label>マイルストーン名</mat-label>
+                <input matInput type="text" formControlName="name" />
+              </mat-form-field>
+
+              <button
+                mat-icon-button
+                color="warn"
+                type="button"
+                (click)="removeMilestone(i)"
+                class="remove-milestone"
+                matTooltip="このマイルストーンを削除"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+
+            <button
+              mat-stroked-button
+              color="primary"
+              type="button"
+              (click)="addMilestone()"
+              class="add-milestone"
+            >
+              <mat-icon>add</mat-icon>
+              マイルストーンを追加
+            </button>
+          </div>
+        </div>
       </form>
     </mat-card-content>
 

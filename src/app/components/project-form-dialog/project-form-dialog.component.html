@@ -146,7 +146,17 @@
                 type="date"
                 [(ngModel)]="milestone.date"
                 name="milestoneDate{{ i }}"
+                #milestoneDateInput
               />
+              <button
+                mat-icon-button
+                matSuffix
+                type="button"
+                (click)="openDatePicker(milestoneDateInput)"
+                matTooltip="カレンダーを開く"
+              >
+                <mat-icon>event</mat-icon>
+              </button>
             </mat-form-field>
             <mat-form-field appearance="outline" class="milestone-name">
               <mat-label>マイルストーン名</mat-label>
@@ -185,8 +195,6 @@
 
   <!-- ボタン -->
   <div class="dialog-actions">
-    <button mat-button type="button" (click)="onCancel()">キャンセル</button>
-
     <!-- 編集モードの場合のみ削除ボタンを表示 -->
     <button
       *ngIf="isEditMode"
@@ -201,8 +209,18 @@
 
     <button
       mat-raised-button
+      type="button"
+      class="cancel-button"
+      (click)="onCancel()"
+    >
+      キャンセル
+    </button>
+
+    <button
+      mat-raised-button
       type="submit"
       color="primary"
+      class="save-button"
       [disabled]="!project.projectName"
       (click)="onSubmit()"
     >

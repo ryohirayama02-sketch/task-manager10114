@@ -221,4 +221,18 @@ export class ProjectFormDialogComponent implements OnInit {
       });
     }
   }
+
+  /** ネイティブ日付ピッカーを開く */
+  openDatePicker(input: HTMLInputElement): void {
+    if (!input) {
+      return;
+    }
+
+    if (typeof (input as any).showPicker === 'function') {
+      (input as any).showPicker();
+    } else {
+      input.focus();
+      input.click();
+    }
+  }
 }

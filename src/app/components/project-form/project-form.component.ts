@@ -5,6 +5,7 @@ import {
   FormBuilder,
   FormGroup,
   Validators,
+  FormArray,
 } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -61,6 +62,7 @@ export class ProjectFormComponent implements OnInit {
       startDate: [''],
       endDate: [''],
       members: [[]],
+      milestones: this.fb.array([]),
     });
   }
 
@@ -137,6 +139,7 @@ export class ProjectFormComponent implements OnInit {
           memberName: member.name,
           memberEmail: member.email,
         })),
+        milestones: this.getPreparedMilestones(),
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -180,5 +183,85 @@ export class ProjectFormComponent implements OnInit {
       return '1文字以上入力してください';
     }
     return '';
+  }
+
+  /**
+   * マイルストーンのフォーム配列を取得
+   */
+  get milestones(): FormArray {
+    return this.projectForm.get('milestones') as FormArray;
+  }
+
+  /**
+   * マイルストーンを追加
+   */
+  addMilestone(): void {
+    this.milestones.push(
+      this.fb.group({
+        id: [this.generateId()],
+        name: [''],
+        date: [''],
+        description: [''],
+      })
+    );
+  }
+
+  /**
+   * マイルストーンを削除
+   */
+  removeMilestone(index: number): void {
+    this.milestones.removeAt(index);
+  }
+
+  /**
+   * 送信前にマイルストーンを整形
+   */
+  private getPreparedMilestones() {
+    return (this.milestones.value as any[]).reduce((acc, milestone) => {
+      const name = (milestone.name || '').trim();
+      const date = (milestone.date || '').trim();
+      const description = (milestone.description || '').trim();
+
+      if (name || date || description) {
+        acc.push({
+          id: milestone.id || this.generateId(),
+          name,
+          date,
+          description,
+        });
+      }
+
+      return acc;
+    }, [] as Array<{ id: string; name: string; date: string; description: string }>);
+  }
+
+  /**
+   * マイルストーン表示用のトラック関数
+   */
+  trackMilestone(index: number, control: any): string {
+    return control?.get('id')?.value || index.toString();
+  }
+
+  /**
+   * 一意なIDを生成
+   */
+  private generateId(): string {
+    return Date.now().toString(36) + Math.random().toString(36).substring(2);
+  }
+
+  /**
+   * ネイティブ日付ピッカーを開く
+   */
+  openDatePicker(input: HTMLInputElement): void {
+    if (!input) {
+      return;
+    }
+
+    if (typeof (input as any).showPicker === 'function') {
+      (input as any).showPicker();
+    } else {
+      input.focus();
+      input.click();
+    }
   }
 }
