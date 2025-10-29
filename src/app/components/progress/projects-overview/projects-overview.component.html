@@ -13,7 +13,9 @@
     (click)="project.id ? goToProgress(project.id) : null"
     class="project-card"
     [class.completed]="
-      project.id && projectProgress[project.id]?.progressPercentage === 100
+      project.id &&
+      projectProgress[project.id] &&
+      projectProgress[project.id].progressPercentage === 100
     "
   >
     <div class="project-info">
@@ -41,7 +43,7 @@
       class="progress-section"
       *ngIf="project.id && projectProgress[project.id]"
       [style.opacity]="
-        projectProgress[project.id]?.progressPercentage === 100 ? '0.6' : '1'
+        projectProgress[project.id].progressPercentage === 100 ? '0.6' : '1'
       "
     >
       <app-progress-circle
