@@ -237,6 +237,21 @@ export class GanttComponent implements OnInit {
     this.projectSelectionService.toggleProjectSelection(projectId);
   }
 
+  /** プロジェクトをすべて選択 */
+  selectAllProjects() {
+    const allIds = this.projects
+      .map((project) => project.id)
+      .filter((id): id is string => !!id);
+    this.selectedProjectIds = allIds;
+    this.projectSelectionService.setSelectedProjectIds(allIds);
+  }
+
+  /** プロジェクト選択を全て解除 */
+  clearProjectSelection() {
+    this.selectedProjectIds = [];
+    this.projectSelectionService.clearSelection();
+  }
+
   /** プロジェクトが選択されているかチェック */
   isProjectSelected(projectId: string): boolean {
     return this.selectedProjectIds.includes(projectId);

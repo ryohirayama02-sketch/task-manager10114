@@ -13,6 +13,14 @@
       {{ project.projectName }}
     </mat-checkbox>
   </div>
+  <div class="project-selection-actions">
+    <button mat-stroked-button (click)="selectAllProjects()">
+      すべてにチェック
+    </button>
+    <button mat-stroked-button (click)="clearProjectSelection()">
+      すべてのチェックをクリア
+    </button>
+  </div>
   <div class="selected-projects-info" *ngIf="selectedProjectIds.length > 0">
     <mat-chip-set>
       <mat-chip *ngFor="let projectId of selectedProjectIds">

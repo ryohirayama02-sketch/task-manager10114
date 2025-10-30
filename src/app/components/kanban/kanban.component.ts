@@ -140,6 +140,21 @@ export class KanbanComponent implements OnInit {
     return this.selectedProjectIds.includes(projectId);
   }
 
+  /** プロジェクトをすべて選択 */
+  selectAllProjects() {
+    const allIds = this.projects
+      .map((project) => project.id)
+      .filter((id): id is string => !!id);
+    this.selectedProjectIds = allIds;
+    this.projectSelectionService.setSelectedProjectIds(allIds);
+  }
+
+  /** プロジェクト選択を全て解除 */
+  clearProjectSelection() {
+    this.selectedProjectIds = [];
+    this.projectSelectionService.clearSelection();
+  }
+
   /** プロジェクト選択をトグル */
   toggleProjectSelection(projectId: string) {
     this.projectSelectionService.toggleProjectSelection(projectId);
