@@ -166,7 +166,7 @@ export class ProjectDetailComponent implements OnInit {
     this.projectService
       .getTasksByProjectId(this.projectId)
       .subscribe((tasks) => {
-        this.tasks = tasks;
+        this.tasks = this.sortTasks(tasks);
         this.assigneeOptions = [
           ...new Set(
             tasks
@@ -174,14 +174,14 @@ export class ProjectDetailComponent implements OnInit {
               .filter((assignee) => !!assignee)
           ),
         ];
-        this.filteredTasks = [...tasks];
+        this.filteredTasks = [...this.tasks];
         console.log('プロジェクトのタスク一覧:', tasks);
       });
   }
 
   /** フィルターを適用 */
   applyFilter() {
-    this.filteredTasks = this.tasks.filter((task) => {
+    const filtered = this.tasks.filter((task) => {
       const statusMatch =
         !this.filterStatus || task.status === this.filterStatus;
       const priorityMatch =
@@ -194,6 +194,8 @@ export class ProjectDetailComponent implements OnInit {
 
       return statusMatch && priorityMatch && assigneeMatch && dueDateMatch;
     });
+
+    this.filteredTasks = this.sortTasks(filtered);
   }
 
   /** フィルターをリセット */
@@ -202,7 +204,7 @@ export class ProjectDetailComponent implements OnInit {
     this.filterPriority = '';
     this.filterAssignee = '';
     this.filterDueDate = '';
-    this.filteredTasks = [...this.tasks];
+    this.filteredTasks = [...this.sortTasks(this.tasks)];
   }
 
   /** タスク詳細画面に遷移 */
@@ -222,6 +224,35 @@ export class ProjectDetailComponent implements OnInit {
   getProjectCardBackground(): string {
     const color = this.projectThemeColor || DEFAULT_PROJECT_THEME_COLOR;
     return `linear-gradient(135deg, rgba(255,255,255,0.92) 0%, ${color} 100%)`;
+  }
+
+  private sortTasks(tasks: Task[]): Task[] {
+    return [...tasks].sort((a, b) => {
+      const isCompletedA = a.status === '完了' ? 1 : 0;
+      const isCompletedB = b.status === '完了' ? 1 : 0;
+
+      if (isCompletedA !== isCompletedB) {
+        return isCompletedA - isCompletedB;
+      }
+
+      const dateA = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
+      const dateB = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
+      return dateA - dateB;
+    });
+  }
+
+  openNativeDatePicker(input: HTMLInputElement | null): void {
+    if (!input) {
+      return;
+    }
+
+    const picker = (input as any).showPicker;
+    if (typeof picker === 'function') {
+      picker.call(input);
+    } else {
+      input.focus();
+      input.click();
+    }
   }
 
   /** CSV出力 */
