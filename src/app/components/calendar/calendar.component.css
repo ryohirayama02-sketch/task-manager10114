@@ -88,23 +88,18 @@
   color: #495057;
 }
 
-.week-header {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  background-color: #e9ecef;
-  border-bottom: 1px solid #dee2e6;
-}
-
-.week-day {
+.calendar-grid .week-day {
   padding: 12px 8px;
   text-align: center;
   font-weight: 600;
   font-size: 12px;
   color: #495057;
+  background-color: #e9ecef;
   border-right: 1px solid #dee2e6;
+  border-bottom: 1px solid #dee2e6;
 }
 
-.week-day:last-child {
+.calendar-grid .week-day:nth-child(7) {
   border-right: none;
 }
 
@@ -120,11 +115,11 @@
 }
 
 .calendar-grid.view-week {
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
 }
 
 .calendar-grid.view-month {
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
 }
 
 .calendar-day {

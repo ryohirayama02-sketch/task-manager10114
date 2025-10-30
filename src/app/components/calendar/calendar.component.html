@@ -102,13 +102,13 @@
     <button mat-button (click)="goToCurrentDate()">今日</button>
   </div>
 
-  <!-- 曜日ヘッダー（月表示のみ） -->
-  <div class="week-header" *ngIf="viewMode === 'month'">
-    <div *ngFor="let day of weekDays" class="week-day">{{ day }}</div>
-  </div>
-
   <!-- カレンダーグリッド -->
   <div class="calendar-grid" [ngClass]="'view-' + viewMode">
+    <!-- 曜日ヘッダー（月表示のみ） -->
+    <ng-container *ngIf="viewMode === 'month'">
+      <div *ngFor="let day of weekDays" class="week-day">{{ day }}</div>
+    </ng-container>
+
     <div
       *ngFor="let date of calendarDays"
       class="calendar-day"
