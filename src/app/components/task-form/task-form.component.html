@@ -25,6 +25,35 @@
         <mat-icon matSuffix>task</mat-icon>
       </mat-form-field>
 
+      <!-- タグ -->
+      <div class="tag-section">
+        <mat-form-field appearance="outline" class="full-width tag-input-field">
+          <mat-label>タグ</mat-label>
+          <span matPrefix>#&nbsp;</span>
+          <input
+            matInput
+            name="tagInput"
+            [(ngModel)]="tagInputValue"
+            [ngModelOptions]="{ standalone: true }"
+            placeholder="タグ名を入力してEnter"
+            (keydown.enter)="onTagInputEnter($event)"
+          />
+        </mat-form-field>
+        <div class="tag-list" *ngIf="model.tags?.length">
+          <div *ngFor="let tag of model.tags" class="tag-chip">
+            <span class="tag-chip-label">#{{ tag }}</span>
+            <button
+              type="button"
+              class="tag-remove-button"
+              (click)="removeTag(tag)"
+              [attr.aria-label]="'#' + tag + ' を削除'"
+            >
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- ステータス -->
       <mat-form-field appearance="outline" class="half-width">
         <mat-label>ステータス</mat-label>

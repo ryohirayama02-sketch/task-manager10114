@@ -26,6 +26,7 @@ interface TaskFormModel {
   assigneeEmail: string;
   startDate: Date | null;
   dueDate: Date | null;
+  tags: string[];
 }
 
 @Component({
@@ -75,7 +76,9 @@ export class TaskFormComponent implements OnInit {
     assigneeEmail: '',
     startDate: null,
     dueDate: null,
+    tags: [],
   };
+  tagInputValue = '';
 
   ngOnInit(): void {
     this.loadMembers();
@@ -132,6 +135,11 @@ export class TaskFormComponent implements OnInit {
           duplicateData.endDate || duplicateData.dueDate
             ? new Date(duplicateData.endDate || duplicateData.dueDate)
             : null,
+        tags: Array.isArray(duplicateData.tags)
+          ? [...duplicateData.tags]
+          : duplicateData.tags
+          ? [duplicateData.tags]
+          : [],
       };
 
       // 文字列プロパティも設定
@@ -210,8 +218,48 @@ export class TaskFormComponent implements OnInit {
     }
   }
 
+  onTagInputEnter(event: Event): void {
+    event.preventDefault();
+    this.addTagFromInput();
+  }
+
+  addTagFromInput(): void {
+    const value = this.tagInputValue.trim();
+    if (!value) {
+      this.tagInputValue = '';
+      return;
+    }
+
+    if (!this.model.tags) {
+      this.model.tags = [];
+    }
+
+    if (this.model.tags.includes(value)) {
+      this.tagInputValue = '';
+      return;
+    }
+
+    this.model.tags.push(value);
+    this.tagInputValue = '';
+  }
+
+  removeTag(tag: string): void {
+    if (!this.model.tags) {
+      return;
+    }
+    this.model.tags = this.model.tags.filter((t) => t !== tag);
+  }
+
   save() {
     if (!this.model.taskName) return;
+
+    if (this.model.tags) {
+      this.model.tags = this.model.tags
+        .map((tag) => tag.trim())
+        .filter((tag, index, arr) => tag && arr.indexOf(tag) === index);
+    } else {
+      this.model.tags = [];
+    }
 
     // 文字列の日付をそのまま使用
     const result = {

@@ -40,6 +40,67 @@ mat-dialog-content {
   width: calc(50% - 8px);
 }
 
+.tag-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tag-input-field {
+  width: 100%;
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  background-color: #e3f2fd;
+  color: #0d47a1;
+  border-radius: 16px;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.tag-chip-label {
+  display: inline-flex;
+  align-items: center;
+}
+
+.tag-remove-button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  margin-left: 6px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+}
+
+.tag-remove-button mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.tag-remove-button:hover {
+  color: #c62828;
+}
+
+.tag-remove-button:focus-visible {
+  outline: 2px solid #1976d2;
+  border-radius: 50%;
+  outline-offset: 2px;
+}
+
 .date-fields {
   display: flex;
   gap: 16px;
