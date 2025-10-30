@@ -4,16 +4,20 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Subject, takeUntil } from 'rxjs';
 import { OfflineService } from '../../services/offline.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
+import { LanguageService } from '../../services/language.service';
 
 @Component({
   selector: 'app-offline-indicator',
   standalone: true,
-  imports: [CommonModule, MatIconModule, MatSnackBarModule],
+  imports: [CommonModule, MatIconModule, MatSnackBarModule, TranslatePipe],
   template: `
     <div *ngIf="!isOnline" class="offline-indicator">
       <mat-icon>wifi_off</mat-icon>
-      <span>オフラインモード</span>
-      <span class="offline-message">変更は自動的に同期されます</span>
+      <span>{{ 'offline.banner.title' | translate }}</span>
+      <span class="offline-message">
+        {{ 'offline.banner.message' | translate }}
+      </span>
     </div>
   `,
   styles: [
@@ -55,7 +59,8 @@ export class OfflineIndicatorComponent implements OnInit, OnDestroy {
 
   constructor(
     private offlineService: OfflineService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private languageService: LanguageService
   ) {}
 
   ngOnInit(): void {
@@ -68,8 +73,8 @@ export class OfflineIndicatorComponent implements OnInit, OnDestroy {
         if (wasOffline && isOnline) {
           // オフラインからオンラインに復帰
           this.snackBar.open(
-            'オンラインに復帰しました。データを同期中...',
-            '閉じる',
+            this.languageService.translate('offline.snackbar.online'),
+            this.languageService.translate('common.close'),
             {
               duration: 3000,
               panelClass: ['success-snackbar'],
@@ -78,8 +83,8 @@ export class OfflineIndicatorComponent implements OnInit, OnDestroy {
         } else if (!wasOffline && !isOnline) {
           // オンラインからオフラインに移行
           this.snackBar.open(
-            'オフラインモードになりました。変更は自動的に同期されます。',
-            '閉じる',
+            this.languageService.translate('offline.snackbar.offline'),
+            this.languageService.translate('common.close'),
             {
               duration: 5000,
               panelClass: ['warning-snackbar'],

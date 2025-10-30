@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -22,6 +22,8 @@ import {
   HomeScreenType,
   HOME_SCREEN_OPTIONS,
 } from '../../models/home-screen-settings.model';
+import { LanguageService, SupportedLanguage } from '../../services/language.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-settings',
@@ -40,6 +42,7 @@ import {
     MatExpansionModule,
     MatSnackBarModule,
     MatProgressSpinnerModule,
+    TranslatePipe,
   ],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.css',
@@ -48,12 +51,25 @@ export class SettingsComponent implements OnInit {
   notificationSettings!: NotificationSettings; // 非null assertion
   isLoading = false;
   isSaving = false;
-  showNotificationSettings = true; // デフォルトで通知設定を表示
+  selectedSettingsTab: 'notifications' | 'home' | 'language' = 'notifications';
 
   // ホーム画面設定
   homeScreenSettings: HomeScreenSettings | null = null;
   selectedHomeScreen: HomeScreenType = 'kanban';
   homeScreenOptions = HOME_SCREEN_OPTIONS;
+
+  // 言語設定
+  languageOptions: Array<{ value: SupportedLanguage; labelKey: string }> = [
+    { value: 'ja', labelKey: 'language.japanese' },
+    { value: 'en', labelKey: 'language.english' },
+  ];
+  selectedLanguage: SupportedLanguage = 'ja';
+  isSavingLanguage = false;
+  private languageService = inject(LanguageService);
+
+  private getCloseLabel(): string {
+    return this.languageService.translate('common.close');
+  }
 
   // 通知日数オプション
   deadlineNotificationDays = [1, 2, 3, 5, 7, 14, 30];
@@ -86,6 +102,7 @@ export class SettingsComponent implements OnInit {
     // デフォルト設定を初期化
     this.notificationSettings =
       this.notificationService.createDefaultNotificationSettings();
+    this.selectedLanguage = this.languageService.getCurrentLanguage();
     await this.loadNotificationSettings();
     await this.loadHomeScreenSettings();
   }
@@ -96,7 +113,11 @@ export class SettingsComponent implements OnInit {
     try {
       const currentUser = this.authService.getCurrentUser();
       if (!currentUser) {
-        this.snackBar.open('ログインが必要です', '閉じる', { duration: 3000 });
+        this.snackBar.open(
+          this.languageService.translate('settings.loginRequired'),
+          this.getCloseLabel(),
+          { duration: 3000 }
+        );
         return;
       }
 
@@ -117,11 +138,41 @@ export class SettingsComponent implements OnInit {
     } catch (error) {
       console.error('通知設定の読み込みエラー:', error);
       console.error('エラーの詳細:', error);
-      this.snackBar.open(`設定の読み込みに失敗しました: ${error}`, '閉じる', {
+      this.snackBar.open(`設定の読み込みに失敗しました: ${error}`, this.getCloseLabel(), {
         duration: 5000,
       });
     } finally {
       this.isLoading = false;
+    }
+  }
+
+  /** 言語設定を保存 */
+  saveLanguageSetting(): void {
+    if (!this.selectedLanguage || this.isSavingLanguage) {
+      return;
+    }
+
+    this.isSavingLanguage = true;
+    try {
+      this.languageService.setLanguage(this.selectedLanguage);
+      this.snackBar.open(
+        this.languageService.translate('settings.language.saved'),
+        this.getCloseLabel(),
+        {
+          duration: 3000,
+        }
+      );
+    } catch (error) {
+      console.error('言語設定の保存エラー:', error);
+      this.snackBar.open(
+        this.languageService.translate('settings.language.saveError'),
+        this.getCloseLabel(),
+        {
+          duration: 3000,
+        }
+      );
+    } finally {
+      this.isSavingLanguage = false;
     }
   }
 
@@ -138,14 +189,22 @@ export class SettingsComponent implements OnInit {
       await this.notificationService.saveNotificationSettings(
         this.notificationSettings
       );
-      this.snackBar.open('通知設定を保存しました', '閉じる', {
-        duration: 3000,
-      });
+      this.snackBar.open(
+        this.languageService.translate('settings.saveSuccess'),
+        this.getCloseLabel(),
+        {
+          duration: 3000,
+        }
+      );
     } catch (error) {
       console.error('通知設定の保存エラー:', error);
-      this.snackBar.open('設定の保存に失敗しました', '閉じる', {
-        duration: 3000,
-      });
+      this.snackBar.open(
+        this.languageService.translate('settings.saveError'),
+        this.getCloseLabel(),
+        {
+          duration: 3000,
+        }
+      );
     } finally {
       this.isSaving = false;
     }
@@ -186,9 +245,13 @@ export class SettingsComponent implements OnInit {
         const emailAddress =
           this.notificationSettings.notificationChannels.email.address;
         if (!emailAddress) {
-          this.snackBar.open('メールアドレスを入力してください', '閉じる', {
-            duration: 3000,
-          });
+          this.snackBar.open(
+            'メールアドレスを入力してください',
+            this.getCloseLabel(),
+            {
+              duration: 3000,
+            }
+          );
           return;
         }
 
@@ -199,7 +262,7 @@ export class SettingsComponent implements OnInit {
         if (!emailRegex.test(emailAddress)) {
           this.snackBar.open(
             '有効なメールアドレスを入力してください',
-            '閉じる',
+            this.getCloseLabel(),
             {
               duration: 3000,
             }
@@ -217,24 +280,24 @@ export class SettingsComponent implements OnInit {
         if (data?.success) {
           this.snackBar.open(
             data.message || 'テスト通知を送信しました ✅',
-            '閉じる',
+            this.getCloseLabel(),
             {
               duration: 3000,
             }
           );
         } else {
-          this.snackBar.open('テスト通知の送信に失敗しました', '閉じる', {
+          this.snackBar.open('テスト通知の送信に失敗しました', this.getCloseLabel(), {
             duration: 3000,
           });
         }
       } else {
-        this.snackBar.open('メール通知を有効にしてください', '閉じる', {
+        this.snackBar.open('メール通知を有効にしてください', this.getCloseLabel(), {
           duration: 3000,
         });
       }
     } catch (error) {
       console.error('テスト通知エラー:', error);
-      this.snackBar.open('テスト通知の送信に失敗しました', '閉じる', {
+      this.snackBar.open('テスト通知の送信に失敗しました', this.getCloseLabel(), {
         duration: 3000,
       });
     } finally {
@@ -256,17 +319,17 @@ export class SettingsComponent implements OnInit {
       if (result.success) {
         this.snackBar.open(
           `期限が近いタスクのメール通知を送信しました (${result.taskCount}件のタスク、${result.userCount}人のユーザー)`,
-          '閉じる',
+          this.getCloseLabel(),
           { duration: 5000 }
         );
       } else {
-        this.snackBar.open('メール通知の送信に失敗しました', '閉じる', {
+        this.snackBar.open('メール通知の送信に失敗しました', this.getCloseLabel(), {
           duration: 3000,
         });
       }
     } catch (error) {
       console.error('期限が近いタスクのメール通知テストエラー:', error);
-      this.snackBar.open('メール通知の送信に失敗しました', '閉じる', {
+      this.snackBar.open('メール通知の送信に失敗しました', this.getCloseLabel(), {
         duration: 3000,
       });
     } finally {
@@ -298,13 +361,13 @@ export class SettingsComponent implements OnInit {
       if (result.data?.success) {
         this.snackBar.open(
           `ユーザー個別のタスク通知を送信しました (${result.data.taskCount}件のタスク、${result.data.userCount}人のユーザー)`,
-          '閉じる',
+          this.getCloseLabel(),
           { duration: 5000 }
         );
       } else {
         this.snackBar.open(
           'ユーザー個別のタスク通知の送信に失敗しました',
-          '閉じる',
+          this.getCloseLabel(),
           {
             duration: 3000,
           }
@@ -314,7 +377,7 @@ export class SettingsComponent implements OnInit {
       console.error('ユーザー個別のタスク通知テストエラー:', error);
       this.snackBar.open(
         'ユーザー個別のタスク通知の送信に失敗しました',
-        '閉じる',
+        this.getCloseLabel(),
         {
           duration: 3000,
         }
@@ -357,12 +420,12 @@ export class SettingsComponent implements OnInit {
       await this.homeScreenSettingsService.saveHomeScreenSettings(
         this.selectedHomeScreen
       );
-      this.snackBar.open('ホーム画面設定を保存しました', '閉じる', {
+      this.snackBar.open('ホーム画面設定を保存しました', this.getCloseLabel(), {
         duration: 3000,
       });
     } catch (error) {
       console.error('ホーム画面設定の保存エラー:', error);
-      this.snackBar.open('ホーム画面設定の保存に失敗しました', '閉じる', {
+      this.snackBar.open('ホーム画面設定の保存に失敗しました', this.getCloseLabel(), {
         duration: 3000,
       });
     } finally {
@@ -386,9 +449,10 @@ export class SettingsComponent implements OnInit {
 
   /** 選択されたホーム画面のラベルを取得 */
   getSelectedHomeScreenLabel(): string {
-    const option = this.homeScreenOptions.find(
-      (opt) => opt.value === this.selectedHomeScreen
-    );
-    return option?.label || 'ホーム画面';
+    return this.getHomeScreenLabel(this.selectedHomeScreen);
+  }
+
+  getHomeScreenLabel(value: HomeScreenType): string {
+    return this.languageService.translate(`homeScreen.${value}`);
   }
 }

@@ -7,6 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../services/auth.service';
 import { User } from '@angular/fire/auth';
 import { Observable } from 'rxjs';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-navbar',
@@ -17,6 +18,7 @@ import { Observable } from 'rxjs';
     MatButtonModule,
     MatMenuModule,
     MatIconModule,
+    TranslatePipe,
   ],
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.css'],

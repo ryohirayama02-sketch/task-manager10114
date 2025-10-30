@@ -6,6 +6,7 @@ import { OfflineIndicatorComponent } from './components/offline-indicator/offlin
 import { NotificationSchedulerService } from './services/notification-scheduler.service';
 import { AuthService } from './services/auth.service';
 import { HomeScreenSettingsService } from './services/home-screen-settings.service';
+import { TranslatePipe } from './pipes/translate.pipe';
 
 @Component({
   selector: 'app-root',
@@ -15,13 +16,12 @@ import { HomeScreenSettingsService } from './services/home-screen-settings.servi
     MatButtonModule,
     NavbarComponent,
     OfflineIndicatorComponent,
+    TranslatePipe,
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
 })
 export class AppComponent implements OnInit, OnDestroy {
-  title = '課題管理アプリ';
-
   constructor(
     private notificationScheduler: NotificationSchedulerService,
     private authService: AuthService,

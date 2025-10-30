@@ -1,10 +1,10 @@
 <div class="settings-container">
-  <h1>設定</h1>
+  <h1>{{ 'settings.title' | translate }}</h1>
 
   <!-- ローディング表示 -->
   <div *ngIf="isLoading" class="loading-container">
     <mat-spinner></mat-spinner>
-    <p>設定を読み込み中...</p>
+    <p>{{ 'settings.loading' | translate }}</p>
   </div>
 
   <!-- 設定メニュー -->
@@ -13,7 +13,7 @@
       <mat-card-header>
         <mat-card-title>
           <mat-icon>settings</mat-icon>
-          設定メニュー
+          {{ 'settings.menu.title' | translate }}
         </mat-card-title>
       </mat-card-header>
 
@@ -23,20 +23,33 @@
             mat-raised-button
             color="primary"
             class="menu-button"
-            (click)="showNotificationSettings = true"
+            [class.active]="selectedSettingsTab === 'notifications'"
+            (click)="selectedSettingsTab = 'notifications'"
           >
             <mat-icon>notifications</mat-icon>
-            通知設定
+            {{ 'settings.menu.notifications' | translate }}
           </button>
 
           <button
             mat-raised-button
             color="accent"
             class="menu-button"
-            (click)="showNotificationSettings = false"
+            [class.active]="selectedSettingsTab === 'home'"
+            (click)="selectedSettingsTab = 'home'"
           >
             <mat-icon>home</mat-icon>
-            ホーム画面設定
+            {{ 'settings.menu.home' | translate }}
+          </button>
+
+          <button
+            mat-raised-button
+            class="menu-button"
+            color="primary"
+            [class.active]="selectedSettingsTab === 'language'"
+            (click)="selectedSettingsTab = 'language'"
+          >
+            <mat-icon>translate</mat-icon>
+            {{ 'settings.menu.language' | translate }}
           </button>
         </div>
       </mat-card-content>
@@ -45,18 +58,18 @@
 
   <!-- 通知設定 -->
   <div
-    *ngIf="!isLoading && showNotificationSettings && notificationSettings"
+    *ngIf="!isLoading && selectedSettingsTab === 'notifications' && notificationSettings"
     class="settings-content"
   >
     <mat-card class="settings-card">
       <mat-card-header>
         <mat-card-title>
           <mat-icon>notifications</mat-icon>
-          通知設定
+          {{ 'settings.notifications.title' | translate }}
         </mat-card-title>
-        <mat-card-subtitle
-          >タスクの期限や作業時間に関する通知を設定できます</mat-card-subtitle
-        >
+        <mat-card-subtitle>
+          {{ 'settings.notifications.subtitle' | translate }}
+        </mat-card-subtitle>
       </mat-card-header>
 
       <mat-card-content>
@@ -65,7 +78,7 @@
           <mat-expansion-panel-header>
             <mat-panel-title>
               <mat-icon>send</mat-icon>
-              通知先設定
+              {{ 'settings.notifications.targets' | translate }}
             </mat-panel-title>
           </mat-expansion-panel-header>
 
@@ -80,7 +93,7 @@
                   name="emailEnabled"
                 >
                   <mat-icon>email</mat-icon>
-                  メール通知
+                  {{ 'settings.notifications.email' | translate }}
                 </mat-slide-toggle>
               </div>
 
@@ -89,7 +102,7 @@
                 class="channel-settings"
               >
                 <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>メールアドレス</mat-label>
+                  <mat-label>{{ 'settings.notifications.address' | translate }}</mat-label>
                   <input
                     matInput
                     type="email"
@@ -113,7 +126,7 @@
                   name="slackEnabled"
                 >
                   <mat-icon>chat</mat-icon>
-                  Slack通知
+                  {{ 'settings.notifications.slack' | translate }}
                 </mat-slide-toggle>
               </div>
 
@@ -122,7 +135,7 @@
                 class="channel-settings"
               >
                 <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>Webhook URL</mat-label>
+                  <mat-label>{{ 'settings.notifications.webhook' | translate }}</mat-label>
                   <input
                     matInput
                     type="url"
@@ -135,7 +148,7 @@
                 </mat-form-field>
 
                 <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>チャンネル</mat-label>
+                  <mat-label>{{ 'settings.notifications.channel' | translate }}</mat-label>
                   <input
                     matInput
                     [(ngModel)]="
@@ -155,7 +168,7 @@
           <mat-expansion-panel-header>
             <mat-panel-title>
               <mat-icon>schedule</mat-icon>
-              タスク期限通知
+              {{ 'settings.deadline.title' | translate }}
             </mat-panel-title>
           </mat-expansion-panel-header>
 
@@ -167,7 +180,7 @@
                 "
                 name="deadlineEnabled"
               >
-                期限通知を有効にする
+                {{ 'settings.deadline.enable' | translate }}
               </mat-slide-toggle>
             </div>
 
@@ -176,21 +189,21 @@
               class="deadline-options"
             >
               <div class="setting-row">
-                <label>通知タイミング（期限の何日前）:</label>
+                <label>{{ 'settings.deadline.timing' | translate }}:</label>
                 <div class="checkbox-group">
                   <mat-checkbox
                     *ngFor="let day of deadlineNotificationDays"
                     [checked]="isDeadlineDaySelected(day)"
                     (change)="updateDeadlineDays(day, $event.checked)"
                   >
-                    {{ day }}日前
+                    {{ day }}{{ 'settings.deadline.daysSuffix' | translate }}
                   </mat-checkbox>
                 </div>
               </div>
 
               <div class="setting-row">
                 <mat-form-field appearance="outline">
-                  <mat-label>通知時間</mat-label>
+                  <mat-label>{{ 'settings.common.notifyTime' | translate }}</mat-label>
                   <mat-select
                     [(ngModel)]="
                       notificationSettings.taskDeadlineNotifications.timeOfDay
@@ -212,7 +225,7 @@
           <mat-expansion-panel-header>
             <mat-panel-title>
               <mat-icon>bedtime</mat-icon>
-              通知オフ期間
+              {{ 'settings.quiet.title' | translate }}
             </mat-panel-title>
           </mat-expansion-panel-header>
 
@@ -222,7 +235,7 @@
                 [(ngModel)]="notificationSettings.quietHours.enabled"
                 name="quietHoursEnabled"
               >
-                通知オフ期間を設定する
+                {{ 'settings.quiet.enable' | translate }}
               </mat-slide-toggle>
             </div>
 
@@ -232,7 +245,7 @@
             >
               <div class="time-range">
                 <mat-form-field appearance="outline">
-                  <mat-label>開始時間</mat-label>
+                  <mat-label>{{ 'settings.quiet.start' | translate }}</mat-label>
                   <mat-select
                     [(ngModel)]="notificationSettings.quietHours.startTime"
                     name="startTime"
@@ -244,7 +257,7 @@
                 </mat-form-field>
 
                 <mat-form-field appearance="outline">
-                  <mat-label>終了時間</mat-label>
+                  <mat-label>{{ 'settings.quiet.end' | translate }}</mat-label>
                   <mat-select
                     [(ngModel)]="notificationSettings.quietHours.endTime"
                     name="endTime"
@@ -261,7 +274,7 @@
                   [(ngModel)]="notificationSettings.quietHours.weekends"
                   name="weekendsOff"
                 >
-                  週末も通知をオフにする
+                  {{ 'settings.quiet.weekend' | translate }}
                 </mat-checkbox>
               </div>
             </div>
@@ -273,7 +286,7 @@
           <mat-expansion-panel-header>
             <mat-panel-title>
               <mat-icon>timer</mat-icon>
-              作業時間オーバー通知
+              {{ 'settings.worktime.title' | translate }}
             </mat-panel-title>
           </mat-expansion-panel-header>
 
@@ -285,7 +298,7 @@
                 "
                 name="workTimeEnabled"
               >
-                作業時間オーバー通知を有効にする
+                {{ 'settings.worktime.enable' | translate }}
               </mat-slide-toggle>
             </div>
 
@@ -295,7 +308,7 @@
             >
               <div class="setting-row">
                 <mat-form-field appearance="outline">
-                  <mat-label>チェック期間</mat-label>
+                  <mat-label>{{ 'settings.worktime.period' | translate }}</mat-label>
                   <mat-select
                     [(ngModel)]="
                       notificationSettings.workTimeOverflowNotifications
@@ -306,14 +319,14 @@
                     <mat-option
                       *ngFor="let days of checkPeriodOptions"
                       [value]="days"
-                    >
-                      {{ days }}日間
-                    </mat-option>
-                  </mat-select>
-                </mat-form-field>
+                  >
+                    {{ days }}{{ 'settings.worktime.periodSuffix' | translate }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
 
-                <mat-form-field appearance="outline">
-                  <mat-label>最大作業時間</mat-label>
+              <mat-form-field appearance="outline">
+                  <mat-label>{{ 'settings.worktime.max' | translate }}</mat-label>
                   <mat-select
                     [(ngModel)]="
                       notificationSettings.workTimeOverflowNotifications
@@ -324,11 +337,11 @@
                     <mat-option
                       *ngFor="let hours of workTimeOptions"
                       [value]="hours"
-                    >
-                      {{ hours }}時間
-                    </mat-option>
-                  </mat-select>
-                </mat-form-field>
+                  >
+                    {{ hours }}{{ 'settings.worktime.maxSuffix' | translate }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
               </div>
 
               <div class="notification-targets">
@@ -339,7 +352,7 @@
                   "
                   name="notifyManager"
                 >
-                  マネージャーに通知
+                  {{ 'settings.worktime.notifyManager' | translate }}
                 </mat-checkbox>
 
                 <mat-checkbox
@@ -349,7 +362,7 @@
                   "
                   name="notifyAssignee"
                 >
-                  担当者に通知
+                  {{ 'settings.worktime.notifyAssignee' | translate }}
                 </mat-checkbox>
               </div>
             </div>
@@ -361,7 +374,7 @@
           <mat-expansion-panel-header>
             <mat-panel-title>
               <mat-icon>today</mat-icon>
-              日次リマインダー
+              {{ 'settings.daily.title' | translate }}
             </mat-panel-title>
           </mat-expansion-panel-header>
 
@@ -371,7 +384,7 @@
                 [(ngModel)]="notificationSettings.dailyDeadlineReminder.enabled"
                 name="dailyReminderEnabled"
               >
-                日次リマインダーを有効にする
+                {{ 'settings.daily.enable' | translate }}
               </mat-slide-toggle>
             </div>
 
@@ -381,7 +394,7 @@
             >
               <div class="setting-row">
                 <mat-form-field appearance="outline">
-                  <mat-label>通知時間</mat-label>
+                  <mat-label>{{ 'settings.common.notifyTime' | translate }}</mat-label>
                   <mat-select
                     [(ngModel)]="
                       notificationSettings.dailyDeadlineReminder.timeOfDay
@@ -407,7 +420,7 @@
           [disabled]="isSaving"
         >
           <mat-icon>send</mat-icon>
-          {{ isSaving ? "送信中..." : "テスト通知送信" }}
+          {{ (isSaving ? 'settings.sending' : 'settings.sendTest') | translate }}
         </button>
 
         <button
@@ -417,7 +430,7 @@
           [disabled]="isSaving"
         >
           <mat-icon>email</mat-icon>
-          {{ isSaving ? "送信中..." : "期限間近タスク通知テスト" }}
+          {{ (isSaving ? 'settings.sending' : 'settings.sendDueTest') | translate }}
         </button>
 
         <button
@@ -427,7 +440,7 @@
           [disabled]="isSaving"
         >
           <mat-icon>notifications</mat-icon>
-          {{ isSaving ? "送信中..." : "ユーザー個別通知テスト" }}
+          {{ (isSaving ? 'settings.sending' : 'settings.sendUserTest') | translate }}
         </button>
 
         <button
@@ -437,29 +450,32 @@
           [disabled]="isSaving"
         >
           <mat-icon>save</mat-icon>
-          {{ isSaving ? "保存中..." : "設定を保存" }}
+          {{ (isSaving ? 'settings.saving' : 'settings.save') | translate }}
         </button>
       </mat-card-actions>
     </mat-card>
   </div>
 
   <!-- ホーム画面設定 -->
-  <div *ngIf="!isLoading && !showNotificationSettings" class="settings-content">
+  <div
+    *ngIf="!isLoading && selectedSettingsTab === 'home'"
+    class="settings-content"
+  >
     <mat-card class="settings-card">
       <mat-card-header>
         <mat-card-title>
           <mat-icon>home</mat-icon>
-          ホーム画面設定
+          {{ 'settings.home.title' | translate }}
         </mat-card-title>
         <mat-card-subtitle>
-          サインイン後のデフォルト画面を選択してください
+          {{ 'settings.home.subtitle' | translate }}
         </mat-card-subtitle>
       </mat-card-header>
 
       <mat-card-content>
         <div class="home-screen-selection">
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>ホーム画面</mat-label>
+            <mat-label>{{ 'settings.home.field' | translate }}</mat-label>
             <mat-select
               [(ngModel)]="selectedHomeScreen"
               (selectionChange)="onHomeScreenChange()"
@@ -471,13 +487,13 @@
                 [value]="option.value"
               >
                 <mat-icon>{{ option.icon }}</mat-icon>
-                {{ option.label }}
+                {{ getHomeScreenLabel(option.value) }}
               </mat-option>
             </mat-select>
           </mat-form-field>
 
           <div class="home-screen-preview">
-            <h4>プレビュー</h4>
+            <h4>{{ 'settings.home.preview' | translate }}</h4>
             <div
               class="preview-card"
               [ngClass]="'preview-' + selectedHomeScreen"
@@ -492,6 +508,59 @@
           </div>
         </div>
       </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- 言語設定 -->
+  <div
+    *ngIf="!isLoading && selectedSettingsTab === 'language'"
+    class="settings-content"
+  >
+    <mat-card class="settings-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>translate</mat-icon>
+          {{ 'settings.language.title' | translate }}
+        </mat-card-title>
+        <mat-card-subtitle>
+          {{ 'settings.language.subtitle' | translate }}
+        </mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="language-settings">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ 'settings.language.field' | translate }}</mat-label>
+            <mat-select
+              [(ngModel)]="selectedLanguage"
+              name="uiLanguage"
+              [disabled]="isSavingLanguage"
+            >
+              <mat-option
+                *ngFor="let option of languageOptions"
+                [value]="option.value"
+              >
+                {{ option.labelKey | translate }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+          <p class="language-description">
+            {{ 'settings.language.description' | translate }}
+          </p>
+        </div>
+      </mat-card-content>
+
+      <mat-card-actions>
+        <button
+          mat-raised-button
+          color="primary"
+          (click)="saveLanguageSetting()"
+          [disabled]="isSavingLanguage"
+        >
+          <mat-icon>save</mat-icon>
+          {{ (isSavingLanguage ? 'settings.language.saving' : 'settings.language.save') | translate }}
+        </button>
+      </mat-card-actions>
     </mat-card>
   </div>
 </div>

@@ -49,6 +49,10 @@
   font-weight: 500;
 }
 
+.menu-button.active {
+  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.2);
+}
+
 .settings-content {
   display: flex;
   flex-direction: column;
@@ -81,6 +85,18 @@
   color: #666;
   font-size: 14px;
   margin-top: 8px;
+}
+
+.language-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.language-description {
+  font-size: 14px;
+  color: #607d8b;
+  margin: 0;
 }
 
 .expansion-panel {
