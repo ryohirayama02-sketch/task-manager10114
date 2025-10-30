@@ -249,12 +249,24 @@
           <mat-expansion-panel-header>
             <mat-panel-title>通知設定</mat-panel-title>
           </mat-expansion-panel-header>
-          <div class="setting-item">
-            <mat-checkbox
-              [(ngModel)]="detailSettings.notifications.beforeDeadline"
+          <div class="setting-item notification-toggle">
+            <span class="calendar-toggle-label">タスク期限通知</span>
+            <button
+              type="button"
+              class="calendar-switch"
+              [class.on]="detailSettings.notifications.beforeDeadline"
+              (click)="toggleTaskDeadlineNotification()"
+              role="switch"
+              [attr.aria-checked]="detailSettings.notifications.beforeDeadline"
             >
-              期限前通知
-            </mat-checkbox>
+              <span class="calendar-switch-handle"></span>
+            </button>
+            <span
+              class="calendar-toggle-state"
+              [class.on]="detailSettings.notifications.beforeDeadline"
+            >
+              {{ detailSettings.notifications.beforeDeadline ? 'ON' : 'OFF' }}
+            </span>
           </div>
           <div class="setting-item">
             <mat-checkbox

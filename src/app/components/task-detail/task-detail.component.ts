@@ -87,21 +87,7 @@ export class TaskDetailComponent implements OnInit {
   };
 
   // 詳細設定
-  detailSettings = {
-    notifications: {
-      beforeDeadline: true,
-      dailyReminder: false,
-      weeklyReport: false,
-    },
-    taskOrder: {
-      requireSubtaskCompletion: false,
-      subtaskOrder: [] as string[],
-    },
-    workTime: {
-      estimatedHours: 0,
-      actualHours: 0,
-    },
-  };
+  detailSettings = this.createDefaultDetailSettings();
 
   // ステータスと優先度のオプション
   statusOptions = ['未着手', '作業中', '完了'];
@@ -158,6 +144,7 @@ export class TaskDetailComponent implements OnInit {
             tags: this.task.tags || [],
             relatedFiles: this.task.relatedFiles || [],
           };
+          this.initializeDetailSettings((this.task as any).detailSettings);
           console.log('設定されたタスクデータ:', this.taskData);
         } else {
           console.error('タスクが見つかりませんでした');
@@ -403,6 +390,11 @@ export class TaskDetailComponent implements OnInit {
 
   /** 詳細設定を開く */
   openDetailSettings() {
+    if (this.task) {
+      this.initializeDetailSettings((this.task as any).detailSettings);
+    } else {
+      this.initializeDetailSettings(undefined);
+    }
     this.isDetailSettingsOpen = true;
   }
 
@@ -493,6 +485,13 @@ export class TaskDetailComponent implements OnInit {
     }
   }
 
+  /** タスク期限通知を切り替え */
+  toggleTaskDeadlineNotification(): void {
+    const current =
+      this.detailSettings.notifications.beforeDeadline ?? true;
+    this.detailSettings.notifications.beforeDeadline = !current;
+  }
+
   /** タグを追加 */
   addTag(tag: string) {
     if (tag && this.taskData.tags && !this.taskData.tags.includes(tag)) {
@@ -530,12 +529,23 @@ export class TaskDetailComponent implements OnInit {
   /** 詳細設定を保存 */
   saveDetailSettings() {
     if (this.task && this.task.projectId && this.task.id) {
+      if (
+        this.detailSettings.notifications.beforeDeadline === undefined ||
+        this.detailSettings.notifications.beforeDeadline === null
+      ) {
+        this.detailSettings.notifications.beforeDeadline = true;
+      }
+
       this.projectService
         .updateTask(this.task.projectId, this.task.id, {
           detailSettings: this.detailSettings,
         })
         .then(() => {
           console.log('詳細設定が保存されました');
+          this.task = {
+            ...this.task,
+            detailSettings: { ...this.detailSettings },
+          } as Task;
           this.closeDetailSettings();
         });
     }
@@ -544,5 +554,52 @@ export class TaskDetailComponent implements OnInit {
   /** 戻る */
   goBack() {
     this.router.navigate(['/kanban']);
+  }
+
+  private createDefaultDetailSettings() {
+    return {
+      notifications: {
+        beforeDeadline: true,
+        dailyReminder: false,
+        weeklyReport: false,
+      },
+      taskOrder: {
+        requireSubtaskCompletion: false,
+        subtaskOrder: [] as string[],
+      },
+      workTime: {
+        estimatedHours: 0,
+        actualHours: 0,
+      },
+    };
+  }
+
+  private initializeDetailSettings(storedSettings: any) {
+    const defaults = this.createDefaultDetailSettings();
+
+    this.detailSettings = {
+      notifications: {
+        ...defaults.notifications,
+        ...(storedSettings?.notifications ?? {}),
+      },
+      taskOrder: {
+        ...defaults.taskOrder,
+        ...(storedSettings?.taskOrder ?? {}),
+        subtaskOrder: storedSettings?.taskOrder?.subtaskOrder
+          ? [...storedSettings.taskOrder.subtaskOrder]
+          : [...defaults.taskOrder.subtaskOrder],
+      },
+      workTime: {
+        ...defaults.workTime,
+        ...(storedSettings?.workTime ?? {}),
+      },
+    };
+
+    if (
+      this.detailSettings.notifications.beforeDeadline === undefined ||
+      this.detailSettings.notifications.beforeDeadline === null
+    ) {
+      this.detailSettings.notifications.beforeDeadline = true;
+    }
   }
 }

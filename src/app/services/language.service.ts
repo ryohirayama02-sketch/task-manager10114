@@ -76,8 +76,8 @@ export class LanguageService {
     'settings.worktime.max': { ja: '最大作業時間', en: 'Maximum Work Hours' },
     'settings.worktime.maxSuffix': { ja: '時間', en: 'hours' },
     'settings.worktime.notifyManager': {
-      ja: 'マネージャーに通知',
-      en: 'Notify manager',
+      ja: 'プロジェクト責任者に通知',
+      en: 'Notify project owner',
     },
     'settings.worktime.notifyAssignee': {
       ja: '担当者に通知',
