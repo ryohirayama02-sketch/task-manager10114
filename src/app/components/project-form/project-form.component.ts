@@ -58,6 +58,8 @@ export class ProjectFormComponent implements OnInit {
   loading = false;
   isSubmitting = false;
   isUploading = false;
+  readonly fileAccept =
+    '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.bmp,.heic,.webp,.svg,.txt,.csv,.zip';
 
   private readonly MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -228,6 +230,10 @@ export class ProjectFormComponent implements OnInit {
    * プロジェクトを作成
    */
   async onSubmit(): Promise<void> {
+    if (this.isSubmitting || this.isUploading) {
+      return;
+    }
+
     if (this.projectForm.invalid) {
       this.snackBar.open('入力内容を確認してください', '閉じる', {
         duration: 3000,
@@ -394,26 +400,32 @@ export class ProjectFormComponent implements OnInit {
   }
 
   private async uploadPendingFiles(projectId: string): Promise<ProjectAttachment[]> {
-    this.isUploading = true;
     const uploaded: ProjectAttachment[] = [];
-
-    for (const pending of this.pendingFiles) {
-      try {
-        const attachment =
-          await this.attachmentService.uploadAttachment(projectId, pending.file);
-        uploaded.push(attachment);
-      } catch (error) {
-        console.error('添付ファイルのアップロードに失敗しました:', error);
-        this.snackBar.open(
-          `${pending.file.name} のアップロードに失敗しました`,
-          '閉じる',
-          { duration: 4000 }
-        );
-      }
+    if (this.pendingFiles.length === 0) {
+      return uploaded;
     }
 
-    this.isUploading = false;
-    this.pendingFiles = [];
+    this.isUploading = true;
+
+    try {
+      for (const pending of this.pendingFiles) {
+        try {
+          const attachment =
+            await this.attachmentService.uploadAttachment(projectId, pending.file);
+          uploaded.push(attachment);
+        } catch (error) {
+          console.error('添付ファイルのアップロードに失敗しました:', error);
+          this.snackBar.open(
+            `${pending.file.name} のアップロードに失敗しました`,
+            '閉じる',
+            { duration: 4000 }
+          );
+        }
+      }
+    } finally {
+      this.isUploading = false;
+      this.pendingFiles = [];
+    }
 
     return uploaded;
   }

@@ -152,6 +152,7 @@
               #fileInput
               type="file"
               multiple
+              [attr.accept]="fileAccept"
               (change)="onFilesSelected($event)"
               hidden
             />
@@ -388,7 +389,7 @@
         mat-raised-button
         color="primary"
         (click)="onSubmit()"
-        [disabled]="projectForm.invalid || isSubmitting"
+        [disabled]="projectForm.invalid || isSubmitting || isUploading"
       >
         <mat-icon *ngIf="!isSubmitting">add</mat-icon>
         <mat-spinner *ngIf="isSubmitting" diameter="20"></mat-spinner>

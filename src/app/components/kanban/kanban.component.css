@@ -60,15 +60,15 @@
 }
 
 .status-未着手 {
-  background-color: #ffeaea;
+  background-color: #ef9a9a;
 }
 
 .status-作業中 {
-  background-color: #eaffea;
+  background-color: #81c784;
 }
 
 .status-完了 {
-  background-color: #eaf1ff;
+  background-color: #64b5f6;
 }
 
 .status-header {

@@ -198,6 +198,7 @@
             #fileInput
             type="file"
             multiple
+            [attr.accept]="fileAccept"
             (change)="onFilesSelected($event)"
             hidden
           />
@@ -392,11 +393,16 @@
       type="submit"
       color="primary"
       class="save-button"
-      [disabled]="!project.projectName"
-      (click)="onSubmit()"
+      [disabled]="!project.projectName || isSubmitting || isUploading"
     >
-      <mat-icon>{{ isEditMode ? "edit" : "add" }}</mat-icon>
-      {{ isEditMode ? "更新" : "登録" }}
+      <ng-container *ngIf="!isSubmitting; else submitting">
+        <mat-icon>{{ isEditMode ? "edit" : "add" }}</mat-icon>
+        {{ isEditMode ? "更新" : "登録" }}
+      </ng-container>
+      <ng-template #submitting>
+        <mat-spinner diameter="20"></mat-spinner>
+        <span>{{ isEditMode ? "更新中..." : "登録中..." }}</span>
+      </ng-template>
     </button>
   </div>
 </div>

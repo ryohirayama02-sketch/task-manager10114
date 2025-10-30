@@ -20,7 +20,7 @@ import { HomeScreenSettingsService } from './services/home-screen-settings.servi
   styleUrls: ['./app.component.css'],
 })
 export class AppComponent implements OnInit, OnDestroy {
-  title = 'task-manager';
+  title = '課題管理アプリ';
 
   constructor(
     private notificationScheduler: NotificationSchedulerService,
