@@ -406,6 +406,21 @@ export class ProjectFormDialogComponent implements OnInit {
       this.project.responsibleId = responsible.id || '';
       this.project.responsibleEmail = responsible.email || '';
     }
+
+    if (this.project.members) {
+      const memberNames = this.project.members
+        .split(',')
+        .map((name) => name.trim())
+        .filter((name) => !!name);
+      const matchedMembers = this.members.filter((member) =>
+        memberNames.includes(member.name)
+      );
+      this.selectedMembers = matchedMembers;
+      this.selectedMemberIds = matchedMembers.map((member) => member.id || '');
+    } else {
+      this.selectedMembers = [];
+      this.selectedMemberIds = [];
+    }
   }
 
   /** プロジェクト削除の確認ダイアログ */
