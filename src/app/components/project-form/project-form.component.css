@@ -138,6 +138,108 @@ input[type="date"]::-moz-calendar-picker-indicator {
   border: 2px solid #e3f2fd;
 }
 
+.attachments-section {
+  margin-top: 24px;
+  padding: 20px;
+  background-color: #f9fafc;
+  border-radius: 12px;
+  border: 2px solid #e0f2ff;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.attachments-section h4 {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  color: #1976d2;
+  font-weight: 600;
+}
+
+.helper-text {
+  font-size: 12px;
+  color: #607d8b;
+}
+
+.attachment-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.attachment-hint {
+  font-size: 12px;
+  color: #6c757d;
+}
+
+.pending-files {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.attachment-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 20px;
+  padding: 6px 12px;
+  font-size: 13px;
+  color: #37474f;
+}
+
+.attachment-chip mat-icon {
+  font-size: 18px;
+  height: 18px;
+  width: 18px;
+  color: #1976d2;
+}
+
+.attachment-chip a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.attachment-chip a:hover {
+  text-decoration: underline;
+}
+
+.link-attachments {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  align-items: end;
+}
+
+.link-attachments button {
+  height: 48px;
+}
+
+.attachment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.attachment-list .attachment-chip {
+  justify-content: space-between;
+}
+
+.attachment-list .attachment-chip button {
+  margin-left: 8px;
+}
+
+.uploading-indicator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #1976d2;
+  font-size: 13px;
+}
+
 .responsible-selection .member-chip-inline,
 .responsible-selection .responsible-chip {
   background-color: #fff8e1;

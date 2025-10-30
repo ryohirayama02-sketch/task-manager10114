@@ -7,6 +7,7 @@ import {
   Validators,
   FormArray,
 } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -21,6 +22,8 @@ import { Router } from '@angular/router';
 import { ProjectService } from '../../services/project.service';
 import { MemberManagementService } from '../../services/member-management.service';
 import { Member } from '../../models/member.model';
+import { ProjectAttachment } from '../../models/project.model';
+import { ProjectAttachmentService } from '../../services/project-attachment.service';
 
 @Component({
   selector: 'app-project-form',
@@ -28,6 +31,7 @@ import { Member } from '../../models/member.model';
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    FormsModule,
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
@@ -47,15 +51,23 @@ export class ProjectFormComponent implements OnInit {
   members: Member[] = [];
   selectedMembers: Member[] = [];
   selectedResponsible: Member | null = null;
+  attachments: ProjectAttachment[] = [];
+  pendingFiles: { id: string; file: File }[] = [];
+  linkTitle: string = '';
+  linkUrl: string = '';
   loading = false;
   isSubmitting = false;
+  isUploading = false;
+
+  private readonly MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
   constructor(
     private fb: FormBuilder,
     private projectService: ProjectService,
     private memberService: MemberManagementService,
     private snackBar: MatSnackBar,
-    private router: Router
+    private router: Router,
+    private attachmentService: ProjectAttachmentService
   ) {
     this.projectForm = this.fb.group({
       projectName: ['', [Validators.required, Validators.minLength(1)]],
@@ -145,6 +157,74 @@ export class ProjectFormComponent implements OnInit {
   }
 
   /**
+   * ファイル選択イベント
+   */
+  onFilesSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const files = input.files;
+    if (!files || files.length === 0) {
+      return;
+    }
+
+    Array.from(files).forEach((file) => {
+      if (file.size > this.MAX_FILE_SIZE) {
+        this.snackBar.open(
+          `${file.name} は5MBを超えています。別のファイルを選択してください。`,
+          '閉じる',
+          { duration: 4000 }
+        );
+        return;
+      }
+      this.pendingFiles.push({ id: this.generateId(), file });
+    });
+
+    input.value = '';
+  }
+
+  /**
+   * アップロード予定のファイルを削除
+   */
+  removePendingFile(pendingId: string): void {
+    this.pendingFiles = this.pendingFiles.filter((item) => item.id !== pendingId);
+  }
+
+  /**
+   * URL 添付を追加
+   */
+  addLinkAttachment(): void {
+    const url = this.linkUrl.trim();
+    const title = this.linkTitle.trim();
+
+    if (!url) {
+      this.snackBar.open('URLを入力してください', '閉じる', { duration: 3000 });
+      return;
+    }
+
+    if (!this.isValidUrl(url)) {
+      this.snackBar.open('URLの形式が正しくありません', '閉じる', { duration: 3000 });
+      return;
+    }
+
+    this.attachments.push({
+      id: this.generateId(),
+      name: title || url,
+      url,
+      type: 'link',
+      uploadedAt: new Date().toISOString(),
+    });
+
+    this.linkTitle = '';
+    this.linkUrl = '';
+  }
+
+  /**
+   * 添付済み資料を削除
+   */
+  removeAttachment(attachment: ProjectAttachment): void {
+    this.attachments = this.attachments.filter((item) => item.id !== attachment.id);
+  }
+
+  /**
    * プロジェクトを作成
    */
   async onSubmit(): Promise<void> {
@@ -160,7 +240,8 @@ export class ProjectFormComponent implements OnInit {
     try {
       const formData = this.projectForm.value;
 
-      // プロジェクトデータを準備
+      const linkAttachments = [...this.attachments];
+
       const projectData = {
         projectName: formData.projectName,
         description: formData.description || '',
@@ -175,13 +256,25 @@ export class ProjectFormComponent implements OnInit {
           memberEmail: member.email,
         })),
         milestones: this.getPreparedMilestones(),
+        attachments: linkAttachments,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
 
       console.log('プロジェクトデータ:', projectData);
 
-      await this.projectService.addProject(projectData);
+      const docRef = await this.projectService.addProject(projectData);
+
+      if (docRef?.id && this.pendingFiles.length > 0) {
+        const uploaded = await this.uploadPendingFiles(docRef.id);
+        if (uploaded.length > 0) {
+          const merged = [...linkAttachments, ...uploaded];
+          await this.projectService.updateProject(docRef.id, {
+            attachments: merged,
+            updatedAt: new Date(),
+          });
+        }
+      }
 
       this.snackBar.open('プロジェクトを作成しました', '閉じる', {
         duration: 3000,
@@ -298,5 +391,57 @@ export class ProjectFormComponent implements OnInit {
       input.focus();
       input.click();
     }
+  }
+
+  private async uploadPendingFiles(projectId: string): Promise<ProjectAttachment[]> {
+    this.isUploading = true;
+    const uploaded: ProjectAttachment[] = [];
+
+    for (const pending of this.pendingFiles) {
+      try {
+        const attachment =
+          await this.attachmentService.uploadAttachment(projectId, pending.file);
+        uploaded.push(attachment);
+      } catch (error) {
+        console.error('添付ファイルのアップロードに失敗しました:', error);
+        this.snackBar.open(
+          `${pending.file.name} のアップロードに失敗しました`,
+          '閉じる',
+          { duration: 4000 }
+        );
+      }
+    }
+
+    this.isUploading = false;
+    this.pendingFiles = [];
+
+    return uploaded;
+  }
+
+  private isValidUrl(value: string): boolean {
+    try {
+      const url = new URL(value);
+      return !!url.protocol && !!url.host;
+    } catch {
+      return false;
+    }
+  }
+
+  formatFileSize(bytes: number): string {
+    if (bytes >= 1024 * 1024) {
+      return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    }
+    if (bytes >= 1024) {
+      return `${(bytes / 1024).toFixed(1)} KB`;
+    }
+    return `${bytes} B`;
+  }
+
+  trackPendingFile(_index: number, item: { id: string }): string {
+    return item.id;
+  }
+
+  trackAttachment(_index: number, item: ProjectAttachment): string {
+    return item.id;
   }
 }

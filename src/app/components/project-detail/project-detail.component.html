@@ -12,7 +12,25 @@
       </p>
       <p><strong>メンバー:</strong> {{ project.members || "未設定" }}</p>
       <p><strong>タグ:</strong> {{ project.tags || "-" }}</p>
+      <div class="project-attachments" *ngIf="project.attachments?.length; else noProjectAttachments">
+        <strong>資料:</strong>
+        <div class="attachment-links">
+          <a
+            *ngFor="let attachment of project.attachments"
+            [href]="attachment.url"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <mat-icon>{{ attachment.type === 'link' ? 'link' : 'attach_file' }}</mat-icon>
+            {{ attachment.name }}
+          </a>
+        </div>
+      </div>
     </div>
+
+    <ng-template #noProjectAttachments>
+      <p><strong>資料:</strong> -</p>
+    </ng-template>
 
     <!-- 進捗率円グラフ -->
     <div class="progress-section" *ngIf="projectProgress">

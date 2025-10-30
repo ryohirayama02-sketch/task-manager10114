@@ -16,8 +16,9 @@ import { ProjectService } from '../../services/project.service';
 import { MemberManagementService } from '../../services/member-management.service';
 import { ProjectDeleteConfirmDialogComponent } from '../project-detail/project-delete-confirm-dialog.component';
 import { Milestone } from '../../models/task.model';
-import { IProject } from '../../models/project.model';
+import { IProject, ProjectAttachment } from '../../models/project.model';
 import { Member } from '../../models/member.model';
+import { ProjectAttachmentService } from '../../services/project-attachment.service';
 
 @Component({
   selector: 'app-project-form-dialog',
@@ -49,6 +50,7 @@ export class ProjectFormDialogComponent implements OnInit {
     responsibleEmail: '',
     tags: '',
     milestones: [] as Milestone[],
+    attachments: [] as ProjectAttachment[],
   };
 
   // メンバー選択関連
@@ -58,6 +60,14 @@ export class ProjectFormDialogComponent implements OnInit {
   selectedResponsible: Member | null = null;
   selectedResponsibleId: string = '';
   membersLoading = false;
+  attachments: ProjectAttachment[] = [];
+  pendingFiles: { id: string; file: File }[] = [];
+  linkTitle: string = '';
+  linkUrl: string = '';
+  isUploading = false;
+  attachmentsToRemove: ProjectAttachment[] = [];
+
+  private readonly MAX_FILE_SIZE = 5 * 1024 * 1024;
 
   isEditMode: boolean = false;
   originalProject: IProject | null = null;
@@ -68,6 +78,7 @@ export class ProjectFormDialogComponent implements OnInit {
     private snackBar: MatSnackBar,
     private dialogRef: MatDialogRef<ProjectFormDialogComponent>,
     private dialog: MatDialog,
+    private attachmentService: ProjectAttachmentService,
     @Inject(MAT_DIALOG_DATA) public data: { project?: IProject }
   ) {
     if (data && data.project) {
@@ -83,8 +94,12 @@ export class ProjectFormDialogComponent implements OnInit {
         responsibleEmail: data.project.responsibleEmail || '',
         tags: data.project.tags || '',
         milestones: data.project.milestones ? [...data.project.milestones] : [],
+        attachments: data.project.attachments ? [...data.project.attachments] : [],
       };
       this.selectedResponsibleId = this.project.responsibleId || '';
+      this.attachments = data.project.attachments
+        ? [...data.project.attachments]
+        : [];
     }
   }
 
@@ -171,30 +186,131 @@ export class ProjectFormDialogComponent implements OnInit {
     this.project.responsibleEmail = '';
   }
 
-  async onSubmit() {
-    if (this.isEditMode && this.originalProject) {
-      // 編集モードの場合
-      const updatedProject: IProject = {
-        ...this.originalProject,
-        projectName: this.project.projectName,
-        overview: this.project.overview,
-        startDate: this.project.startDate,
-        members: this.project.members,
-        responsible: this.project.responsible,
-        responsibleId: this.project.responsibleId,
-        responsibleEmail: this.project.responsibleEmail,
-        tags: this.project.tags,
-        milestones: this.project.milestones,
-      };
-      await this.projectService.updateProject(
-        this.originalProject.id,
-        updatedProject
-      );
-    } else {
-      // 新規作成モードの場合
-      await this.projectService.addProject(this.project);
+  /** ファイル選択 */
+  onFilesSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const files = input.files;
+    if (!files || files.length === 0) {
+      return;
     }
-    this.dialogRef.close('success');
+
+    Array.from(files).forEach((file) => {
+      if (file.size > this.MAX_FILE_SIZE) {
+        this.snackBar.open(
+          `${file.name} は5MBを超えています。別のファイルを選択してください。`,
+          '閉じる',
+          {
+            duration: 4000,
+          }
+        );
+        return;
+      }
+
+      this.pendingFiles.push({ id: this.generateId(), file });
+    });
+
+    input.value = '';
+  }
+
+  removePendingFile(pendingId: string): void {
+    this.pendingFiles = this.pendingFiles.filter((item) => item.id !== pendingId);
+  }
+
+  addLinkAttachment(): void {
+    const url = this.linkUrl.trim();
+    const title = this.linkTitle.trim();
+
+    if (!url) {
+      this.snackBar.open('URLを入力してください', '閉じる', { duration: 3000 });
+      return;
+    }
+
+    if (!this.isValidUrl(url)) {
+      this.snackBar.open('URLの形式が正しくありません', '閉じる', { duration: 3000 });
+      return;
+    }
+
+    const attachment: ProjectAttachment = {
+      id: this.generateId(),
+      name: title || url,
+      url,
+      type: 'link',
+      uploadedAt: new Date().toISOString(),
+    };
+
+    this.attachments.push(attachment);
+    this.project.attachments = [...this.attachments];
+
+    this.linkTitle = '';
+    this.linkUrl = '';
+  }
+
+  async removeAttachment(attachment: ProjectAttachment): Promise<void> {
+    this.attachments = this.attachments.filter((item) => item.id !== attachment.id);
+    this.project.attachments = [...this.attachments];
+
+    if (attachment.type === 'file' && attachment.storagePath && this.isEditMode) {
+      this.attachmentsToRemove.push(attachment);
+    }
+  }
+
+  async onSubmit() {
+    try {
+      if (this.isEditMode && this.originalProject) {
+        const projectId = this.originalProject.id;
+        let attachments = [...this.attachments];
+        if (this.pendingFiles.length > 0) {
+          const uploaded = await this.uploadPendingFiles(projectId);
+          if (uploaded.length > 0) {
+            attachments = [...attachments, ...uploaded];
+            this.attachments = attachments;
+            this.project.attachments = attachments;
+          }
+        }
+
+        await this.projectService.updateProject(projectId, {
+          projectName: this.project.projectName,
+          overview: this.project.overview,
+          startDate: this.project.startDate,
+          members: this.project.members,
+          responsible: this.project.responsible,
+          responsibleId: this.project.responsibleId,
+          responsibleEmail: this.project.responsibleEmail,
+          tags: this.project.tags,
+          milestones: this.project.milestones,
+          attachments,
+          updatedAt: new Date(),
+        });
+
+        await this.deleteMarkedAttachments(projectId);
+      } else {
+        const linkAttachments = [...this.attachments];
+        const docRef = await this.projectService.addProject({
+          ...this.project,
+          attachments: linkAttachments,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+
+        if (docRef?.id && this.pendingFiles.length > 0) {
+          const uploaded = await this.uploadPendingFiles(docRef.id);
+          if (uploaded.length > 0) {
+            const merged = [...linkAttachments, ...uploaded];
+            await this.projectService.updateProject(docRef.id, {
+              attachments: merged,
+              updatedAt: new Date(),
+            });
+          }
+        }
+      }
+
+      this.dialogRef.close('success');
+    } catch (error) {
+      console.error('プロジェクト保存エラー:', error);
+      this.snackBar.open('プロジェクトの保存に失敗しました', '閉じる', {
+        duration: 3000,
+      });
+    }
   }
 
   onCancel() {
@@ -308,5 +424,80 @@ export class ProjectFormDialogComponent implements OnInit {
       input.focus();
       input.click();
     }
+  }
+
+  private async uploadPendingFiles(
+    projectId: string
+  ): Promise<ProjectAttachment[]> {
+    this.isUploading = true;
+    const uploaded: ProjectAttachment[] = [];
+
+    for (const pending of this.pendingFiles) {
+      try {
+        const attachment = await this.attachmentService.uploadAttachment(
+          projectId,
+          pending.file
+        );
+        uploaded.push(attachment);
+      } catch (error) {
+        console.error('添付ファイルのアップロードに失敗しました:', error);
+        this.snackBar.open(
+          `${pending.file.name} のアップロードに失敗しました`,
+          '閉じる',
+          { duration: 4000 }
+        );
+      }
+    }
+
+    this.pendingFiles = [];
+    this.isUploading = false;
+
+    return uploaded;
+  }
+
+  private async deleteMarkedAttachments(projectId: string): Promise<void> {
+    if (this.attachmentsToRemove.length === 0) {
+      return;
+    }
+
+    for (const attachment of this.attachmentsToRemove) {
+      try {
+        await this.attachmentService.deleteAttachment(attachment);
+      } catch (error) {
+        console.error('添付ファイルの削除に失敗しました:', error);
+        this.snackBar.open('一部の資料を削除できませんでした', '閉じる', {
+          duration: 4000,
+        });
+      }
+    }
+
+    this.attachmentsToRemove = [];
+  }
+
+  private isValidUrl(value: string): boolean {
+    try {
+      const url = new URL(value);
+      return !!url.protocol && !!url.host;
+    } catch {
+      return false;
+    }
+  }
+
+  formatFileSize(bytes: number): string {
+    if (bytes >= 1024 * 1024) {
+      return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    }
+    if (bytes >= 1024) {
+      return `${(bytes / 1024).toFixed(1)} KB`;
+    }
+    return `${bytes} B`;
+  }
+
+  trackPendingFile(_index: number, item: { id: string }): string {
+    return item.id;
+  }
+
+  trackAttachment(_index: number, item: ProjectAttachment): string {
+    return item.id;
   }
 }

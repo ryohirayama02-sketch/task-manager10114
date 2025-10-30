@@ -21,6 +21,41 @@
   margin-right: 20px;
 }
 
+.project-attachments {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.project-attachments .attachment-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.project-attachments .attachment-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: 16px;
+  background-color: #f1f8ff;
+  color: #1565c0;
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.project-attachments .attachment-links a:hover {
+  background-color: #e3f2fd;
+}
+
+.project-attachments .attachment-links mat-icon {
+  font-size: 16px;
+  height: 16px;
+  width: 16px;
+}
+
 .progress-section {
   flex-shrink: 0;
   display: flex;

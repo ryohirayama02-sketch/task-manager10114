@@ -177,6 +177,119 @@
         </div>
       </div>
 
+      <!-- 資料添付 -->
+      <div class="attachments-section">
+        <div class="member-selection-header">
+          <h3>資料</h3>
+          <span class="helper-text">1ファイル 5MB 未満・複数添付可</span>
+        </div>
+
+        <div class="attachment-actions">
+          <button
+            mat-stroked-button
+            color="primary"
+            type="button"
+            (click)="fileInput.click()"
+          >
+            <mat-icon>attach_file</mat-icon>
+            ファイルを選択
+          </button>
+          <input
+            #fileInput
+            type="file"
+            multiple
+            (change)="onFilesSelected($event)"
+            hidden
+          />
+          <span class="attachment-hint">PDF / 画像 / Office ファイルなど</span>
+        </div>
+
+        <div class="pending-files" *ngIf="pendingFiles.length > 0">
+          <h4>アップロード予定</h4>
+          <div
+            class="attachment-chip"
+            *ngFor="let pending of pendingFiles; trackBy: trackPendingFile"
+          >
+            <mat-icon>upload</mat-icon>
+            <span>
+              {{ pending.file.name }} ({{ formatFileSize(pending.file.size) }})
+            </span>
+            <button
+              mat-icon-button
+              type="button"
+              (click)="removePendingFile(pending.id)"
+              matTooltip="削除"
+            >
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+        </div>
+
+        <div class="link-attachments">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>資料名（任意）</mat-label>
+            <input
+              matInput
+              [(ngModel)]="linkTitle"
+              name="dialogAttachmentTitle"
+              placeholder="設計資料 など"
+            />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>資料URL</mat-label>
+            <input
+              matInput
+              [(ngModel)]="linkUrl"
+              name="dialogAttachmentUrl"
+              placeholder="https://example.com/document.pdf"
+            />
+          </mat-form-field>
+
+          <button
+            mat-stroked-button
+            color="accent"
+            type="button"
+            (click)="addLinkAttachment()"
+          >
+            URLを追加
+          </button>
+        </div>
+
+        <div class="attachment-list" *ngIf="attachments.length > 0">
+          <h4>登録済み資料</h4>
+          <div
+            class="attachment-chip"
+            *ngFor="let attachment of attachments; trackBy: trackAttachment"
+          >
+            <mat-icon>{{ attachment.type === 'link' ? 'link' : 'attach_file' }}</mat-icon>
+            <a
+              [href]="attachment.url"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {{ attachment.name }}
+            </a>
+            <ng-container *ngIf="attachment.type === 'file' && attachment.size">
+              <span class="size-text">({{ formatFileSize(attachment.size) }})</span>
+            </ng-container>
+            <button
+              mat-icon-button
+              type="button"
+              (click)="removeAttachment(attachment)"
+              matTooltip="削除"
+            >
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+        </div>
+
+        <div class="uploading-indicator" *ngIf="isUploading">
+          <mat-spinner diameter="24"></mat-spinner>
+          <span>添付ファイルをアップロード中...</span>
+        </div>
+      </div>
+
       <!-- タグ -->
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>タグ</mat-label>

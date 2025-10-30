@@ -1,5 +1,17 @@
 import { Milestone } from './task.model';
 
+export interface ProjectAttachment {
+  id: string;
+  name: string;
+  url: string;
+  type: 'file' | 'link';
+  size?: number;
+  contentType?: string;
+  storagePath?: string;
+  uploadedAt?: string;
+  description?: string;
+}
+
 export interface IProject {
   id: string;
   projectName: string;
@@ -13,4 +25,5 @@ export interface IProject {
   tags: string; // タグ
   color?: string; // 任意フィールド
   milestones?: Milestone[]; // マイルストーン
+  attachments?: ProjectAttachment[];
 }

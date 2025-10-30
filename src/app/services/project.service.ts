@@ -102,6 +102,12 @@ export class ProjectService {
       if (projectData.endDate) {
         changes.push(`終了日: ${projectData.endDate}`);
       }
+      if (projectData.attachments) {
+        const attachmentCount = Array.isArray(projectData.attachments)
+          ? projectData.attachments.length
+          : 0;
+        changes.push(`資料: ${attachmentCount}件`);
+      }
       if (projectData.responsible) {
         changes.push(`責任者: ${projectData.responsible}`);
       }
