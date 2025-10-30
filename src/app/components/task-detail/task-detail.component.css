@@ -377,6 +377,22 @@ mat-chip mat-icon {
   flex-wrap: wrap;
 }
 
+.notification-select mat-form-field {
+  width: 100%;
+}
+
+.notification-recipient-chips {
+  margin-top: 8px;
+}
+
+.notification-recipient-chips mat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #e3f2fd;
+  color: #0d47a1;
+}
+
 .setting-item label {
   display: block;
   margin-bottom: 8px;

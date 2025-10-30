@@ -16,6 +16,7 @@ export interface Task {
   tags?: string[];
   relatedFiles?: string[];
   chatMessages?: ChatMessage[];
+  detailSettings?: any;
   createdAt?: Date | string; // Firestoreとの互換性のため
   updatedAt?: Date | string; // Firestoreとの互換性のため
 }
@@ -36,6 +37,7 @@ export interface Project {
   responsible?: string;
   responsibleId?: string;
   responsibleEmail?: string;
+  members?: string;
   milestones?: Milestone[];
   themeColor?: string;
   createdAt?: Date | string; // Firestoreとの互換性のため

@@ -69,6 +69,7 @@ export class TaskDetailComponent implements OnInit {
   members: Member[] = [];
   selectedMemberId: string = '';
   membersLoading = false;
+  notificationRecipientOptions: string[] = [];
 
   // タスクの基本情報
   taskData: Task = {
@@ -115,6 +116,7 @@ export class TaskDetailComponent implements OnInit {
     this.projectService.getProjectById(projectId).subscribe((project) => {
       console.log('プロジェクト情報:', project);
       this.project = project;
+      this.updateNotificationRecipientOptions();
     });
 
     // タスク情報を取得
@@ -145,6 +147,7 @@ export class TaskDetailComponent implements OnInit {
             relatedFiles: this.task.relatedFiles || [],
           };
           this.initializeDetailSettings((this.task as any).detailSettings);
+          this.updateNotificationRecipientOptions();
           console.log('設定されたタスクデータ:', this.taskData);
         } else {
           console.error('タスクが見つかりませんでした');
@@ -178,6 +181,8 @@ export class TaskDetailComponent implements OnInit {
             this.selectedMemberId = member.id || '';
           }
         }
+
+        this.updateNotificationRecipientOptions();
       },
       error: (error) => {
         console.error('メンバー一覧の読み込みエラー:', error);
@@ -489,7 +494,30 @@ export class TaskDetailComponent implements OnInit {
   toggleTaskDeadlineNotification(): void {
     const current =
       this.detailSettings.notifications.beforeDeadline ?? true;
-    this.detailSettings.notifications.beforeDeadline = !current;
+    const nextValue = !current;
+    this.detailSettings.notifications.beforeDeadline = nextValue;
+
+    if (nextValue) {
+      this.ensureNotificationRecipients();
+    }
+
+    this.updateNotificationRecipientOptions();
+  }
+
+  onNotificationRecipientsChange(): void {
+    if (!this.detailSettings.notifications.recipients) {
+      this.detailSettings.notifications.recipients = [];
+    }
+
+    this.detailSettings.notifications.recipients = Array.from(
+      new Set(
+        this.detailSettings.notifications.recipients
+          .map((name) => name?.trim())
+          .filter((name): name is string => !!name)
+      )
+    );
+
+    this.updateNotificationRecipientOptions();
   }
 
   /** タグを追加 */
@@ -536,6 +564,18 @@ export class TaskDetailComponent implements OnInit {
         this.detailSettings.notifications.beforeDeadline = true;
       }
 
+      if (this.detailSettings.notifications.recipients) {
+        this.detailSettings.notifications.recipients = Array.from(
+          new Set(
+            this.detailSettings.notifications.recipients
+              .map((name) => name?.trim())
+              .filter((name) => !!name)
+          )
+        );
+      }
+
+      this.updateNotificationRecipientOptions();
+
       this.projectService
         .updateTask(this.task.projectId, this.task.id, {
           detailSettings: this.detailSettings,
@@ -560,6 +600,7 @@ export class TaskDetailComponent implements OnInit {
     return {
       notifications: {
         beforeDeadline: true,
+        recipients: [] as string[],
         dailyReminder: false,
         weeklyReport: false,
       },
@@ -600,6 +641,84 @@ export class TaskDetailComponent implements OnInit {
       this.detailSettings.notifications.beforeDeadline === null
     ) {
       this.detailSettings.notifications.beforeDeadline = true;
+    }
+
+    const storedRecipients = storedSettings?.notifications?.recipients;
+    if (Array.isArray(storedRecipients)) {
+      this.detailSettings.notifications.recipients = storedRecipients
+        .map((rec: any) =>
+          typeof rec === 'string'
+            ? rec
+            : rec?.name || rec?.label || rec?.email || ''
+        )
+        .filter(Boolean);
+    } else if (!this.detailSettings.notifications.recipients) {
+      this.detailSettings.notifications.recipients = [];
+    }
+
+    if (this.detailSettings.notifications.beforeDeadline) {
+      this.ensureNotificationRecipients();
+    }
+    this.updateNotificationRecipientOptions();
+  }
+
+  private ensureNotificationRecipients(): void {
+    if (!this.detailSettings.notifications.recipients) {
+      this.detailSettings.notifications.recipients = [];
+    }
+
+    if (
+      this.detailSettings.notifications.recipients.length === 0 &&
+      this.detailSettings.notifications.beforeDeadline
+    ) {
+      const defaults = this.getDefaultNotificationRecipients();
+      if (defaults.length > 0) {
+        this.detailSettings.notifications.recipients = defaults;
+      }
+    }
+  }
+
+  private getDefaultNotificationRecipients(): string[] {
+    const set = new Set<string>();
+    if (this.taskData.assignee) {
+      set.add(this.taskData.assignee);
+    }
+    return Array.from(set);
+  }
+
+  updateNotificationRecipientOptions(): void {
+    const options = new Set<string>();
+
+    if (this.taskData.assignee) {
+      options.add(this.taskData.assignee);
+    }
+
+    if (this.project?.responsible) {
+      options.add(this.project.responsible);
+    }
+
+    if (this.project?.members) {
+      this.project.members
+        .split(',')
+        .map((name: string) => name.trim())
+        .filter((name: string) => !!name)
+        .forEach((name: string) => options.add(name));
+    }
+
+    (this.detailSettings.notifications.recipients || []).forEach(
+      (name: string) => {
+        if (name) {
+          options.add(name);
+        }
+      }
+    );
+
+    this.notificationRecipientOptions = Array.from(options).sort((a, b) =>
+      a.localeCompare(b, 'ja')
+    );
+
+    if (this.detailSettings.notifications.beforeDeadline) {
+      this.ensureNotificationRecipients();
     }
   }
 }
