@@ -58,6 +58,17 @@
         <div class="theme-color-grid">
           <button
             type="button"
+            class="theme-color-option no-color-option"
+            (click)="clearThemeColor()"
+            [class.selected]="isThemeColorSelected(null)"
+            matTooltip="色を選択しない"
+            [attr.aria-pressed]="isThemeColorSelected(null)"
+            aria-label="テーマ色 なし"
+          >
+            <span>なし</span>
+          </button>
+          <button
+            type="button"
             class="theme-color-option"
             *ngFor="let color of themeColorOptions"
             [style.backgroundColor]="color"
@@ -392,47 +403,47 @@
           </button>
         </div>
       </div>
+
+      <!-- ボタン -->
+      <div class="dialog-actions">
+        <!-- 編集モードの場合のみ削除ボタンを表示 -->
+        <button
+          *ngIf="isEditMode"
+          mat-raised-button
+          color="warn"
+          class="delete-button"
+          (click)="confirmDeleteProject()"
+        >
+          <mat-icon>delete</mat-icon>
+          プロジェクト削除
+        </button>
+
+        <button
+          mat-raised-button
+          type="button"
+          class="cancel-button"
+          (click)="onCancel()"
+        >
+          キャンセル
+        </button>
+
+        <button
+          mat-raised-button
+          type="submit"
+          color="primary"
+          class="save-button"
+          [disabled]="!project.projectName?.trim() || isSubmitting || isUploading"
+        >
+          <ng-container *ngIf="!isSubmitting; else submitting">
+            <mat-icon>{{ isEditMode ? "edit" : "add" }}</mat-icon>
+            {{ isEditMode ? "更新" : "登録" }}
+          </ng-container>
+          <ng-template #submitting>
+            <mat-spinner diameter="20"></mat-spinner>
+            <span>{{ isEditMode ? "更新中..." : "登録中..." }}</span>
+          </ng-template>
+        </button>
+      </div>
     </form>
-  </div>
-
-  <!-- ボタン -->
-  <div class="dialog-actions">
-    <!-- 編集モードの場合のみ削除ボタンを表示 -->
-    <button
-      *ngIf="isEditMode"
-      mat-raised-button
-      color="warn"
-      class="delete-button"
-      (click)="confirmDeleteProject()"
-    >
-      <mat-icon>delete</mat-icon>
-      プロジェクト削除
-    </button>
-
-    <button
-      mat-raised-button
-      type="button"
-      class="cancel-button"
-      (click)="onCancel()"
-    >
-      キャンセル
-    </button>
-
-    <button
-      mat-raised-button
-      type="submit"
-      color="primary"
-      class="save-button"
-      [disabled]="!project.projectName || isSubmitting || isUploading"
-    >
-      <ng-container *ngIf="!isSubmitting; else submitting">
-        <mat-icon>{{ isEditMode ? "edit" : "add" }}</mat-icon>
-        {{ isEditMode ? "更新" : "登録" }}
-      </ng-container>
-      <ng-template #submitting>
-        <mat-spinner diameter="20"></mat-spinner>
-        <span>{{ isEditMode ? "更新中..." : "登録中..." }}</span>
-      </ng-template>
-    </button>
   </div>
 </div>

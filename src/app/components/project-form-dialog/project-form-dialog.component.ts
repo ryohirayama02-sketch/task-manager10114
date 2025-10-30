@@ -45,8 +45,6 @@ import {
 })
 export class ProjectFormDialogComponent implements OnInit {
   readonly themeColorOptions = PROJECT_THEME_COLORS;
-  private readonly defaultThemeColor: ProjectThemeColor =
-    this.themeColorOptions[0];
   project = {
     projectName: '',
     overview: '',
@@ -58,7 +56,7 @@ export class ProjectFormDialogComponent implements OnInit {
     tags: '',
     milestones: [] as Milestone[],
     attachments: [] as ProjectAttachment[],
-    themeColor: this.defaultThemeColor,
+    themeColor: null as ProjectThemeColor | null,
   };
 
   // メンバー選択関連
@@ -107,9 +105,7 @@ export class ProjectFormDialogComponent implements OnInit {
         milestones: data.project.milestones ? [...data.project.milestones] : [],
         attachments: data.project.attachments ? [...data.project.attachments] : [],
         themeColor:
-          data.project.themeColor ||
-          data.project.color ||
-          this.defaultThemeColor,
+          data.project.themeColor ?? data.project.color ?? null,
       };
       this.selectedResponsibleId = this.project.responsibleId || '';
       this.attachments = data.project.attachments
@@ -204,15 +200,19 @@ export class ProjectFormDialogComponent implements OnInit {
   /**
    * テーマ色を選択
    */
-  selectThemeColor(color: ProjectThemeColor): void {
+  selectThemeColor(color: ProjectThemeColor | null): void {
     this.project.themeColor = color;
   }
 
   /**
    * テーマ色が選択されているかを判定
    */
-  isThemeColorSelected(color: ProjectThemeColor): boolean {
+  isThemeColorSelected(color: ProjectThemeColor | null): boolean {
     return this.project.themeColor === color;
+  }
+
+  clearThemeColor(): void {
+    this.project.themeColor = null;
   }
 
   /** ファイル選択 */
@@ -290,8 +290,7 @@ export class ProjectFormDialogComponent implements OnInit {
 
     this.isSubmitting = true;
     try {
-      const themeColor =
-        this.project.themeColor || this.defaultThemeColor;
+      const themeColor = this.project.themeColor ?? null;
       this.project.themeColor = themeColor;
 
       if (this.isEditMode && this.originalProject) {

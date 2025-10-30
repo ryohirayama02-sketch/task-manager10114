@@ -80,6 +80,17 @@
           <div class="theme-color-grid">
             <button
               type="button"
+              class="theme-color-option no-color-option"
+              (click)="clearThemeColor()"
+              [class.selected]="isThemeColorSelected(null)"
+              matTooltip="色を選択しない"
+              [attr.aria-pressed]="isThemeColorSelected(null)"
+              aria-label="テーマ色 なし"
+            >
+              <span>なし</span>
+            </button>
+            <button
+              type="button"
               class="theme-color-option"
               *ngFor="let color of themeColorOptions"
               [style.backgroundColor]="color"

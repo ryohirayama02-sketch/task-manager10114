@@ -67,7 +67,6 @@ export class ProjectFormComponent implements OnInit {
 
   private readonly MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
   readonly themeColorOptions = PROJECT_THEME_COLORS;
-  private readonly defaultThemeColor = this.themeColorOptions[0];
 
   constructor(
     private fb: FormBuilder,
@@ -85,7 +84,7 @@ export class ProjectFormComponent implements OnInit {
       responsible: [''],
       members: [[]],
       milestones: this.fb.array([]),
-      themeColor: [this.defaultThemeColor, Validators.required],
+      themeColor: [null],
     });
   }
 
@@ -168,7 +167,7 @@ export class ProjectFormComponent implements OnInit {
   /**
    * テーマ色を選択
    */
-  selectThemeColor(color: ProjectThemeColor): void {
+  selectThemeColor(color: ProjectThemeColor | null): void {
     const control = this.projectForm.get('themeColor');
     control?.setValue(color);
     control?.markAsDirty();
@@ -178,8 +177,12 @@ export class ProjectFormComponent implements OnInit {
   /**
    * テーマ色が選択済みか判定
    */
-  isThemeColorSelected(color: ProjectThemeColor): boolean {
+  isThemeColorSelected(color: ProjectThemeColor | null): boolean {
     return this.projectForm.get('themeColor')?.value === color;
+  }
+
+  clearThemeColor(): void {
+    this.selectThemeColor(null);
   }
 
   /**
@@ -272,13 +275,15 @@ export class ProjectFormComponent implements OnInit {
 
       const linkAttachments = [...this.attachments];
 
+      const selectedColor: string | null = formData.themeColor ?? null;
+
       const projectData = {
         projectName: formData.projectName,
         description: formData.description || '',
         startDate: formData.startDate || '',
         endDate: formData.endDate || '',
-        themeColor: formData.themeColor || this.defaultThemeColor,
-        color: formData.themeColor || this.defaultThemeColor,
+        themeColor: selectedColor,
+        color: selectedColor,
         responsible: this.selectedResponsible ? this.selectedResponsible.name : '',
         responsibleId: this.selectedResponsible?.id || '',
         responsibleEmail: this.selectedResponsible?.email || '',
