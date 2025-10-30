@@ -31,6 +31,9 @@ export interface Project {
   description?: string;
   startDate?: string;
   endDate?: string;
+  responsible?: string;
+  responsibleId?: string;
+  responsibleEmail?: string;
   milestones?: Milestone[];
   createdAt?: Date | string; // Firestoreとの互換性のため
   updatedAt?: Date | string; // Firestoreとの互換性のため
