@@ -601,8 +601,6 @@ export class TaskDetailComponent implements OnInit {
       notifications: {
         beforeDeadline: true,
         recipients: [] as string[],
-        dailyReminder: false,
-        weeklyReport: false,
       },
       taskOrder: {
         requireSubtaskCompletion: false,
