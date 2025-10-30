@@ -8,6 +8,7 @@ export interface Task {
   priority: '高' | '中' | '低';
   assignee: string;
   assigneeEmail?: string;
+  projectThemeColor?: string;
   startDate: string;
   dueDate: string;
   endDate?: string;
@@ -35,6 +36,7 @@ export interface Project {
   responsibleId?: string;
   responsibleEmail?: string;
   milestones?: Milestone[];
+  themeColor?: string;
   createdAt?: Date | string; // Firestoreとの互換性のため
   updatedAt?: Date | string; // Firestoreとの互換性のため
 }

@@ -14,7 +14,12 @@ import { Router } from '@angular/router';
 import { ProjectService } from '../../services/project.service';
 import { ProjectSelectionService } from '../../services/project-selection.service';
 import { ProjectFormDialogComponent } from '../project-form-dialog/project-form-dialog.component';
-import { Task, Project } from '../../models/task.model';
+import { Task } from '../../models/task.model';
+import { IProject } from '../../models/project.model';
+import {
+  DEFAULT_PROJECT_THEME_COLOR,
+  resolveProjectThemeColor,
+} from '../../constants/project-theme-colors';
 
 @Component({
   selector: 'app-gantt',
@@ -37,9 +42,11 @@ import { Task, Project } from '../../models/task.model';
 })
 export class GanttComponent implements OnInit {
   tasks: Task[] = [];
-  projects: Project[] = [];
+  projects: IProject[] = [];
   selectedProjectIds: string[] = [];
   allTasks: Task[] = [];
+  private themeColorByProjectId: Record<string, string> = {};
+  readonly defaultThemeColor = DEFAULT_PROJECT_THEME_COLOR;
 
   // フィルター用
   filterPriority: string = '';
@@ -114,6 +121,8 @@ export class GanttComponent implements OnInit {
   loadProjects() {
     this.projectService.getProjects().subscribe((projects) => {
       this.projects = projects;
+      this.updateThemeColorMap();
+      this.allTasks = this.allTasks.map((task) => this.withTaskTheme(task));
       this.loadAllTasks();
       this.loadAllMilestones();
 
@@ -154,16 +163,22 @@ export class GanttComponent implements OnInit {
         this.projectService
           .getTasksByProjectId(project.id)
           .subscribe((tasks) => {
+            const themeColor = this.getProjectThemeColor(project.id!);
             const tasksWithProject = tasks.map((task) => ({
               ...task,
-              projectId: project.id!,
-              projectName: project.projectName,
+              projectId: task.projectId || project.id!,
+              projectName: task.projectName || project.projectName,
+              projectThemeColor:
+                task.projectThemeColor || themeColor,
             }));
 
             this.allTasks = this.allTasks.filter(
               (t) => t.projectId !== project.id
             );
-            this.allTasks = [...this.allTasks, ...tasksWithProject];
+            const normalizedTasks = tasksWithProject.map((task) =>
+              this.withTaskTheme(task)
+            );
+            this.allTasks = [...this.allTasks, ...normalizedTasks];
             this.filterTasksBySelectedProjects();
           });
       }
@@ -228,13 +243,26 @@ export class GanttComponent implements OnInit {
     }
 
     // フィルター後の結果を表示
-    this.tasks = filteredTasks;
+    this.tasks = filteredTasks.map((task) => this.withTaskTheme(task));
     this.calculateAssigneeColumnWidth(); // フィルター適用後も担当者列の幅を計算
   }
 
   /** プロジェクト選択をトグル */
   toggleProjectSelection(projectId: string) {
     this.projectSelectionService.toggleProjectSelection(projectId);
+  }
+
+  getProjectNameStyle(task: Task) {
+    const color =
+      task.projectThemeColor || this.getProjectThemeColor(task.projectId);
+    return {
+      backgroundColor: color,
+      color: '#1f2933',
+    };
+  }
+
+  getTaskBarBackground(task: Task): string {
+    return this.statusColors[task.status] || '#90a4ae';
   }
 
   /** プロジェクトをすべて選択 */
@@ -261,6 +289,31 @@ export class GanttComponent implements OnInit {
   getProjectName(projectId: string): string {
     const project = this.projects.find((p) => p.id === projectId);
     return project ? project.projectName : '';
+  }
+
+  private updateThemeColorMap(): void {
+    this.themeColorByProjectId = this.projects.reduce((acc, project) => {
+      if (project.id) {
+        acc[project.id] = resolveProjectThemeColor(project);
+      }
+      return acc;
+    }, {} as Record<string, string>);
+  }
+
+  getProjectThemeColor(projectId?: string): string {
+    if (!projectId) {
+      return this.defaultThemeColor;
+    }
+    return this.themeColorByProjectId[projectId] || this.defaultThemeColor;
+  }
+
+  private withTaskTheme(task: Task): Task {
+    const color =
+      task.projectThemeColor || this.getProjectThemeColor(task.projectId);
+    return {
+      ...task,
+      projectThemeColor: color,
+    };
   }
 
   /** タスクの開始日を取得 */

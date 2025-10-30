@@ -162,7 +162,24 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
 
   isDueSoon(dueDate: string): boolean {
     const daysUntil = this.getDaysUntilDue(dueDate);
-    return daysUntil >= 0 && daysUntil <= 1;
+    return daysUntil >= 2 && daysUntil <= 3;
+  }
+
+  getDueStatusClass(task: Task): string {
+    const daysUntil = this.getDaysUntilDue(task.dueDate);
+    if (daysUntil < 0) {
+      return 'overdue';
+    }
+    if (daysUntil === 0) {
+      return 'due-today';
+    }
+    if (daysUntil === 1) {
+      return 'due-tomorrow';
+    }
+    if (daysUntil >= 2 && daysUntil <= 3) {
+      return 'due-soon';
+    }
+    return '';
   }
 
   trackByTaskId(index: number, task: Task): string {

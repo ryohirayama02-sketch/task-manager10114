@@ -15,5 +15,23 @@ export const PROJECT_THEME_COLORS: readonly string[] = [
   '#d1c4e9', // lavender
 ] as const;
 
-export type ProjectThemeColor =
-  (typeof PROJECT_THEME_COLORS)[number];
+export const DEFAULT_PROJECT_THEME_COLOR = PROJECT_THEME_COLORS[0];
+
+export type ProjectThemeColor = (typeof PROJECT_THEME_COLORS)[number];
+
+/**
+ * プロジェクトに設定されたテーマカラーを解決するヘルパー。
+ * themeColor または color プロパティが設定されていない場合はデフォルト色を返す。
+ */
+export function resolveProjectThemeColor(
+  projectLike?: { themeColor?: string | null; color?: string | null }
+): string {
+  if (!projectLike) {
+    return DEFAULT_PROJECT_THEME_COLOR;
+  }
+  return (
+    projectLike.themeColor ||
+    projectLike.color ||
+    DEFAULT_PROJECT_THEME_COLOR
+  );
+}

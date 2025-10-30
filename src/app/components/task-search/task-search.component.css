@@ -135,17 +135,25 @@
 }
 
 .task-card {
+  --task-theme-color: #1976d2;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   cursor: pointer;
-  border-left: 4px solid #1976d2;
+  border-left: 5px solid var(--task-theme-color, #1976d2);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.92) 0%,
+    var(--task-theme-color, #ffffff)
+  );
+  color: #1f2933;
 }
 
 .task-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  border-left-color: #42a5f5;
+  border-left-color: var(--task-theme-color, #42a5f5);
+  filter: brightness(0.97);
 }
 
 .task-header {

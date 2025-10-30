@@ -49,8 +49,7 @@
           <mat-card
             *ngFor="let task of filteredTasksByUser; trackBy: trackByTaskId"
             class="task-card debug-task-card"
-            [class.overdue]="isOverdue(task.dueDate)"
-            [class.due-soon]="isDueSoon(task.dueDate)"
+            [ngClass]="getDueStatusClass(task)"
             (click)="onTaskClick(task)"
           >
             <!-- タスクヘッダー -->
@@ -84,6 +83,8 @@
                 <div
                   class="due-date-info"
                   [class.overdue]="isOverdue(task.dueDate)"
+                  [class.due-today]="getDaysUntilDue(task.dueDate) === 0"
+                  [class.due-tomorrow]="getDaysUntilDue(task.dueDate) === 1"
                   [class.due-soon]="isDueSoon(task.dueDate)"
                 >
                   <mat-icon>schedule</mat-icon>
@@ -108,13 +109,6 @@
               </div>
             </mat-card-content>
 
-            <!-- タスクアクション -->
-            <mat-card-actions>
-              <button mat-button color="primary">
-                <mat-icon>visibility</mat-icon>
-                詳細を見る
-              </button>
-            </mat-card-actions>
           </mat-card>
         </div>
       </div>
@@ -150,8 +144,7 @@
       <mat-card
         *ngFor="let task of filteredTasks; trackBy: trackByTaskId"
         class="task-card"
-        [class.overdue]="isOverdue(task.dueDate)"
-        [class.due-soon]="isDueSoon(task.dueDate)"
+        [ngClass]="getDueStatusClass(task)"
         (click)="onTaskClick(task)"
       >
         <!-- タスクヘッダー -->
@@ -185,6 +178,8 @@
             <div
               class="due-date-info"
               [class.overdue]="isOverdue(task.dueDate)"
+              [class.due-today]="getDaysUntilDue(task.dueDate) === 0"
+              [class.due-tomorrow]="getDaysUntilDue(task.dueDate) === 1"
               [class.due-soon]="isDueSoon(task.dueDate)"
             >
               <mat-icon>schedule</mat-icon>
@@ -207,13 +202,6 @@
           </div>
         </mat-card-content>
 
-        <!-- タスクアクション -->
-        <mat-card-actions>
-          <button mat-button color="primary">
-            <mat-icon>visibility</mat-icon>
-            詳細を見る
-          </button>
-        </mat-card-actions>
       </mat-card>
     </div>
   </div>

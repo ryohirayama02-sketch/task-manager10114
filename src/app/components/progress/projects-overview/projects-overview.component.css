@@ -19,31 +19,60 @@
 }
 
 .project-card {
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  padding: 15px;
-  margin-bottom: 15px;
+  --project-theme-color: #ffffff;
+  border-radius: 12px;
+  padding: 18px;
+  margin-bottom: 16px;
   cursor: pointer;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  transition: box-shadow 0.3s ease;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.9) 0%,
+    var(--project-theme-color)
+  );
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.1);
+  transition: transform 0.25s ease, box-shadow 0.25s ease,
+    filter 0.25s ease;
+  color: #1f2933;
 }
 
 .project-card:hover {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);
+  filter: brightness(0.98);
 }
 
 .project-info {
   flex: 1;
   margin-right: 20px;
+  color: rgba(31, 41, 55, 0.85);
 }
 
 .project-title {
-  text-decoration: underline;
+  text-decoration: none;
   cursor: pointer;
-  color: #1976d2;
-  margin: 0 0 10px 0;
+  color: #1f2933;
+  margin: 0 0 12px 0;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.project-title:hover {
+  text-decoration: underline;
+}
+
+.project-color-pill {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: var(--project-theme-color, #1976d2);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.8),
+    0 0 0 4px rgba(0, 0, 0, 0.05);
 }
 
 .progress-section {
@@ -55,24 +84,21 @@
 
 /* 100%完了プロジェクトのグレーアウトスタイル */
 .project-card.completed {
-  background-color: #f8f9fa;
-  border-color: #e9ecef;
-  opacity: 0.7;
   position: relative;
+  opacity: 0.8;
+  filter: saturate(0.85);
 }
 
 .project-card.completed:hover {
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  opacity: 0.8;
+  filter: saturate(0.8) brightness(0.97);
 }
 
 .project-card.completed .project-title {
-  color: #6c757d;
   text-decoration: none;
 }
 
 .project-card.completed .project-info p {
-  color: #6c757d;
+  color: rgba(31, 41, 51, 0.85);
 }
 
 /* 完了バッジ */

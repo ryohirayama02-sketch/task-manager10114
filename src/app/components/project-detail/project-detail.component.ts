@@ -22,6 +22,10 @@ import { TaskFormComponent } from '../task-form/task-form.component';
 import { ProjectFormDialogComponent } from '../project-form-dialog/project-form-dialog.component';
 import { ProgressCircleComponent } from '../progress/projects-overview/progress-circle.component';
 import { ProjectChatComponent } from '../project-chat/project-chat.component';
+import {
+  DEFAULT_PROJECT_THEME_COLOR,
+  resolveProjectThemeColor,
+} from '../../constants/project-theme-colors';
 
 @Component({
   selector: 'app-project-detail',
@@ -50,6 +54,7 @@ export class ProjectDetailComponent implements OnInit {
   projectProgress: ProjectProgress | null = null;
   tasks: Task[] = [];
   filteredTasks: Task[] = [];
+  projectThemeColor = DEFAULT_PROJECT_THEME_COLOR;
 
   // フィルター用のプロパティ
   filterStatus: string = '';
@@ -79,6 +84,7 @@ export class ProjectDetailComponent implements OnInit {
         .getProjectById(this.projectId)
         .subscribe(async (data) => {
           this.project = data;
+          this.projectThemeColor = resolveProjectThemeColor(data);
           console.log('Firestoreから取得したプロジェクト:', data);
 
           // プロジェクトの進捗率を取得
@@ -119,6 +125,7 @@ export class ProjectDetailComponent implements OnInit {
             .getProjectById(this.projectId)
             .subscribe((data) => {
               this.project = data;
+              this.projectThemeColor = resolveProjectThemeColor(data);
               console.log('更新されたプロジェクト:', data);
             });
         }
@@ -197,6 +204,16 @@ export class ProjectDetailComponent implements OnInit {
       return;
     }
     this.router.navigate(['/project', this.projectId, 'task', taskId]);
+  }
+
+  getTasksSectionBackground(): string {
+    const color = this.projectThemeColor || DEFAULT_PROJECT_THEME_COLOR;
+    return `linear-gradient(180deg, rgba(255,255,255,0.95) 0%, ${color} 100%)`;
+  }
+
+  getProjectCardBackground(): string {
+    const color = this.projectThemeColor || DEFAULT_PROJECT_THEME_COLOR;
+    return `linear-gradient(135deg, rgba(255,255,255,0.92) 0%, ${color} 100%)`;
   }
 
   /** CSV出力 */

@@ -18,7 +18,8 @@ import { ProjectService } from '../../services/project.service';
 import { ProjectSelectionService } from '../../services/project-selection.service';
 import { OfflineService } from '../../services/offline.service';
 import { ProjectFormDialogComponent } from '../project-form-dialog/project-form-dialog.component';
-import { Task, Project } from '../../models/task.model';
+import { Task } from '../../models/task.model';
+import { IProject } from '../../models/project.model';
 
 @Component({
   selector: 'app-calendar',
@@ -43,7 +44,7 @@ import { Task, Project } from '../../models/task.model';
 })
 export class CalendarComponent implements OnInit, OnDestroy {
   tasks: Task[] = [];
-  projects: Project[] = [];
+  projects: IProject[] = [];
   selectedProjectIds: string[] = [];
   allTasks: Task[] = [];
   isOnline = true;
@@ -192,8 +193,8 @@ export class CalendarComponent implements OnInit, OnDestroy {
           .subscribe((tasks) => {
             const tasksWithProject = tasks.map((task) => ({
               ...task,
-              projectId: project.id!,
-              projectName: project.projectName,
+              projectId: task.projectId || project.id!,
+              projectName: task.projectName || project.projectName,
             }));
 
             this.allTasks = this.allTasks.filter(

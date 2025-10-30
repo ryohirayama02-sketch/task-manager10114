@@ -1,15 +1,32 @@
+.project-summary {
+  --project-theme-color: #ffffff;
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.92) 0%,
+    var(--project-theme-color, #ffffff)
+  );
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
+  color: #1f2933;
+}
+
 .task-card {
+  --task-theme-color: #ffffff;
   cursor: pointer;
-  transition: all 0.2s ease;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 10px;
-  margin-bottom: 10px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  border-left: 4px solid var(--task-theme-color, #1976d2);
+  background-color: var(--task-theme-color, #ffffff);
+  box-shadow: 0 3px 12px rgba(15, 23, 42, 0.12);
 }
 
 .task-card:hover {
-  background-color: #f8f9fa;
-  border-color: #007bff;
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);
+  filter: brightness(0.97);
 }

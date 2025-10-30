@@ -277,6 +277,17 @@
   border-bottom: 1px solid #f0f0f0;
 }
 
+.project-name-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 14px;
+  font-weight: 600;
+  font-size: 13px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
+}
+
 .tasks-table tr:hover {
   background: #f9f9f9;
 }

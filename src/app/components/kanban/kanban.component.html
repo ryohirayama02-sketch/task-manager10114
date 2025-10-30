@@ -4,14 +4,14 @@
 <div class="project-selector">
   <h3>表示するプロジェクトを選択</h3>
   <div class="project-checkboxes">
-    <mat-checkbox
-      *ngFor="let project of projects"
-      [checked]="project.id ? isProjectSelected(project.id) : false"
-      (change)="project.id ? toggleProjectSelection(project.id) : null"
-      class="project-checkbox"
-    >
-      {{ project.projectName }}
-    </mat-checkbox>
+      <mat-checkbox
+        *ngFor="let project of projects"
+        [checked]="project.id ? isProjectSelected(project.id) : false"
+        (change)="project.id ? toggleProjectSelection(project.id) : null"
+        class="project-checkbox"
+      >
+        {{ project.projectName }}
+      </mat-checkbox>
   </div>
   <div class="project-selection-actions">
     <button mat-stroked-button (click)="selectAllProjects()">

@@ -12,10 +12,11 @@ import {
   getDocs,
   orderBy,
 } from '@angular/fire/firestore';
-import { Observable, forkJoin, map } from 'rxjs';
+import { Observable } from 'rxjs';
 import { EditLogService } from './edit-log.service';
 import { AuthService } from './auth.service';
 import { Task } from '../models/task.model';
+import { resolveProjectThemeColor } from '../constants/project-theme-colors';
 
 @Injectable({ providedIn: 'root' })
 export class TaskService {
@@ -66,11 +67,16 @@ export class TaskService {
                 console.log(
                   `    📋 タスク: ${taskData['taskName']}, 期日: ${taskData['dueDate']}, ステータス: ${taskData['status']}, 担当者: ${taskData['assignee']}`
                 );
+                const projectThemeColor = resolveProjectThemeColor(
+                  projectData as any
+                );
                 allTasks.push({
                   id: taskDoc.id,
                   projectId: projectId,
                   projectName: projectData['projectName'] || 'プロジェクト',
                   ...taskData,
+                  projectThemeColor:
+                    taskData['projectThemeColor'] || projectThemeColor,
                 });
               });
             });
@@ -146,11 +152,16 @@ export class TaskService {
                 console.log(
                   `    📋 タスク: ${taskData['taskName']}, 期日: ${taskData['dueDate']}, ステータス: ${taskData['status']}, 担当者: ${taskData['assignee']}`
                 );
+                const projectThemeColor = resolveProjectThemeColor(
+                  projectData as any
+                );
                 allTasks.push({
                   id: taskDoc.id,
                   projectId: projectId,
                   projectName: projectData['projectName'] || 'プロジェクト',
                   ...taskData,
+                  projectThemeColor:
+                    taskData['projectThemeColor'] || projectThemeColor,
                 } as Task);
               });
             });

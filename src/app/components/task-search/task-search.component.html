@@ -116,6 +116,7 @@
       <mat-card
         *ngFor="let task of searchResults"
         class="task-card"
+        [ngStyle]="getTaskCardStyle(task)"
         (click)="goToTaskDetail(task, $event)"
       >
         <mat-card-content>

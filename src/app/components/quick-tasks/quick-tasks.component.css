@@ -88,18 +88,18 @@
 /* タスクカード */
 .task-card {
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border: 2px solid transparent;
+  border: 2px solid #e0e0e0;
   width: 100%;
   max-width: 800px;
+  background-color: #ffffff;
 }
 
 .task-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-  border-color: #1976d2;
 }
 
 .task-card.overdue {
@@ -107,9 +107,19 @@
   background-color: #ffebee;
 }
 
+.task-card.due-today {
+  border-color: #e65100;
+  background-color: #ffcc80;
+}
+
+.task-card.due-tomorrow {
+  border-color: #ffa726;
+  background-color: #ffe0b2;
+}
+
 .task-card.due-soon {
-  border-color: #ff9800;
-  background-color: #fff3e0;
+  border-color: #fdd835;
+  background-color: #fff59d;
 }
 
 /* タスクヘッダー */
@@ -172,13 +182,31 @@
   color: #f44336;
 }
 
+.due-date-info.due-tomorrow {
+  color: #ffa726;
+  font-weight: 600;
+}
+
+.due-date-info.due-tomorrow mat-icon {
+  color: #ffa726;
+}
+
 .due-date-info.due-soon {
-  color: #ff9800;
+  color: #fdd835;
   font-weight: 500;
 }
 
 .due-date-info.due-soon mat-icon {
-  color: #ff9800;
+  color: #fdd835;
+}
+
+.due-date-info.due-today {
+  color: #e65100;
+  font-weight: 600;
+}
+
+.due-date-info.due-today mat-icon {
+  color: #e65100;
 }
 
 .days-until {

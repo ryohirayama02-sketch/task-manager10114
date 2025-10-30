@@ -1,6 +1,10 @@
 <h2>プロジェクト詳細</h2>
 
-<div *ngIf="project; else loading" class="project-card">
+<div
+  *ngIf="project; else loading"
+  class="project-card"
+  [style.background]="getProjectCardBackground()"
+>
   <div class="project-header">
     <div class="project-info">
       <h3>{{ project.projectName }}</h3>
@@ -82,7 +86,11 @@
 </div>
 
 <!-- タスク一覧セクション -->
-<div *ngIf="project" class="tasks-section">
+<div
+  *ngIf="project"
+  class="tasks-section"
+  [style.background]="getTasksSectionBackground()"
+>
   <div class="tasks-header">
     <h3>タスク一覧</h3>
     <div class="tasks-actions">

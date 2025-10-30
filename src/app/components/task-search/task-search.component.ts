@@ -13,6 +13,11 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { ProjectService } from '../../services/project.service';
 import { Task } from '../../models/task.model';
+import { IProject } from '../../models/project.model';
+import {
+  DEFAULT_PROJECT_THEME_COLOR,
+  resolveProjectThemeColor,
+} from '../../constants/project-theme-colors';
 
 interface SearchFilters {
   assignee: string;
@@ -64,6 +69,8 @@ export class TaskSearchComponent implements OnInit {
   searchResults: Task[] = [];
   isLoading = false;
   hasSearched = false;
+  private themeColorByProjectId: Record<string, string> = {};
+  readonly defaultThemeColor = DEFAULT_PROJECT_THEME_COLOR;
 
   ngOnInit() {
     this.loadFilterOptions();
@@ -78,6 +85,8 @@ export class TaskSearchComponent implements OnInit {
         return;
       }
 
+      this.updateThemeColorMap(projects as IProject[]);
+
       const allTasks: Task[] = [];
       let completedRequests = 0;
 
@@ -90,7 +99,11 @@ export class TaskSearchComponent implements OnInit {
               // タスクデータにprojectIdを追加
               const tasksWithProjectId = tasks.map((task) => ({
                 ...task,
-                projectId: project.id,
+                projectId: task.projectId || project.id,
+                projectName: task.projectName || project.projectName,
+                projectThemeColor:
+                  task.projectThemeColor ||
+                  this.getProjectThemeColor(project.id as string),
               }));
               allTasks.push(...tasksWithProjectId);
               completedRequests++;
@@ -142,6 +155,7 @@ export class TaskSearchComponent implements OnInit {
         return;
       }
 
+      this.updateThemeColorMap(projects as IProject[]);
       const allTasks: Task[] = [];
       let completedRequests = 0;
 
@@ -154,7 +168,11 @@ export class TaskSearchComponent implements OnInit {
               // タスクデータにprojectIdを追加
               const tasksWithProjectId = tasks.map((task) => ({
                 ...task,
-                projectId: project.id,
+                projectId: task.projectId || project.id,
+                projectName: task.projectName || project.projectName,
+                projectThemeColor:
+                  task.projectThemeColor ||
+                  this.getProjectThemeColor(project.id as string),
               }));
               allTasks.push(...tasksWithProjectId);
               completedRequests++;
@@ -226,7 +244,9 @@ export class TaskSearchComponent implements OnInit {
       );
     }
 
-    this.searchResults = filteredTasks;
+    this.searchResults = filteredTasks.map((task) =>
+      this.withTaskTheme(task)
+    );
     console.log('検索結果:', this.searchResults);
     console.log(
       '検索結果のタスク詳細:',
@@ -282,6 +302,13 @@ export class TaskSearchComponent implements OnInit {
     }
   }
 
+  getTaskCardStyle(task: Task) {
+    return {
+      '--task-theme-color':
+        task.projectThemeColor || this.getProjectThemeColor(task.projectId),
+    };
+  }
+
   getStatusColor(status: string): string {
     switch (status) {
       case '完了':
@@ -306,5 +333,30 @@ export class TaskSearchComponent implements OnInit {
       default:
         return '#9e9e9e';
     }
+  }
+
+  private updateThemeColorMap(projects: IProject[]): void {
+    this.themeColorByProjectId = projects.reduce((acc, project) => {
+      if (project.id) {
+        acc[project.id] = resolveProjectThemeColor(project);
+      }
+      return acc;
+    }, {} as Record<string, string>);
+  }
+
+  private getProjectThemeColor(projectId?: string): string {
+    if (!projectId) {
+      return this.defaultThemeColor;
+    }
+    return this.themeColorByProjectId[projectId] || this.defaultThemeColor;
+  }
+
+  private withTaskTheme(task: Task): Task {
+    const color =
+      task.projectThemeColor || this.getProjectThemeColor(task.projectId);
+    return {
+      ...task,
+      projectThemeColor: color,
+    };
   }
 }

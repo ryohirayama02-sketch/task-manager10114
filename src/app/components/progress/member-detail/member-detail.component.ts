@@ -9,6 +9,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatChipsModule } from '@angular/material/chips';
 import { ProjectService } from '../../../services/project.service';
 import { Task } from '../../../models/task.model';
+import { DEFAULT_PROJECT_THEME_COLOR } from '../../../constants/project-theme-colors';
 
 interface MemberDetail {
   name: string;
@@ -54,6 +55,7 @@ export class MemberDetailComponent implements OnInit {
     'dueDate',
     'priority',
   ];
+  readonly defaultThemeColor = DEFAULT_PROJECT_THEME_COLOR;
 
   ngOnInit() {
     const memberName = this.route.snapshot.paramMap.get('memberName');
@@ -230,5 +232,13 @@ export class MemberDetailComponent implements OnInit {
     ].join('\n');
 
     return csvContent;
+  }
+
+  getProjectNameStyle(task: Task) {
+    const color = task.projectThemeColor || this.defaultThemeColor;
+    return {
+      backgroundColor: color,
+      color: '#1f2933',
+    };
   }
 }

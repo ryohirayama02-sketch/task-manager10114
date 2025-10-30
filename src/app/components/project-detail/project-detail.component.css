@@ -1,12 +1,11 @@
 .project-card {
   position: relative; /* ✅ これを追加：右下ボタンの基準にする */
   width: 600px;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  background-color: #fff;
-  margin: 20px auto;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  margin: 24px auto;
 }
 
 .project-header {
@@ -123,7 +122,6 @@ textarea {
 .tasks-section {
   margin-top: 30px;
   padding: 20px;
-  background-color: #f9f9f9;
   border-radius: 10px;
 }
 
@@ -170,6 +168,10 @@ textarea {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   width: 100%;
   max-width: none;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
 }
 
 .task-card:hover {

@@ -1,6 +1,6 @@
 <h2>個別プロジェクト進捗</h2>
 
-<div *ngIf="project">
+<div *ngIf="project" class="project-summary" [ngStyle]="getProjectThemeStyle()">
   <h3
     [routerLink]="['/project', projectId]"
     style="color: #007bff; cursor: pointer; text-decoration: underline"
@@ -21,6 +21,7 @@
     *ngFor="let task of tasks"
     (click)="openTaskDetail(task)"
     class="task-card"
+    [ngStyle]="getTaskThemeStyle(task)"
   >
     <p><strong>タスク名:</strong> {{ task.taskName }}</p>
     <p><strong>担当:</strong> {{ task.assignee }}</p>

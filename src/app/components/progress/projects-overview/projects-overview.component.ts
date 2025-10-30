@@ -10,6 +10,10 @@ import {
 } from '../../../services/progress.service';
 import { IProject } from '../../../models/project.model';
 import { ProgressCircleComponent } from './progress-circle.component';
+import {
+  DEFAULT_PROJECT_THEME_COLOR,
+  resolveProjectThemeColor,
+} from '../../../constants/project-theme-colors';
 
 @Component({
   selector: 'app-projects-overview',
@@ -27,6 +31,7 @@ import { ProgressCircleComponent } from './progress-circle.component';
 export class ProjectsOverviewComponent implements OnInit {
   projects: IProject[] = [];
   projectProgress: { [key: string]: ProjectProgress } = {};
+  readonly defaultThemeColor = DEFAULT_PROJECT_THEME_COLOR;
 
   constructor(
     private router: Router, // ✅ Routerを追加
@@ -111,5 +116,9 @@ export class ProjectsOverviewComponent implements OnInit {
       return members || '（メンバー情報未設定）';
     }
     return '（メンバー情報未設定）';
+  }
+
+  getProjectThemeColor(project?: IProject | null): string {
+    return resolveProjectThemeColor(project || undefined);
   }
 }

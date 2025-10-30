@@ -11,12 +11,13 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatChipsModule } from '@angular/material/chips';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { TaskService } from '../../services/task.service';
 import { ProjectService } from '../../services/project.service';
 import { ProjectSelectionService } from '../../services/project-selection.service';
 import { ProjectFormDialogComponent } from '../project-form-dialog/project-form-dialog.component';
 import { TaskFormComponent } from '../task-form/task-form.component';
-import { Task, Project } from '../../models/task.model';
+import { TaskService } from '../../services/task.service';
+import { Task } from '../../models/task.model';
+import { IProject } from '../../models/project.model';
 
 @Component({
   selector: 'app-kanban',
@@ -39,7 +40,7 @@ import { Task, Project } from '../../models/task.model';
 })
 export class KanbanComponent implements OnInit {
   tasks: Task[] = [];
-  projects: Project[] = [];
+  projects: IProject[] = [];
   selectedProjectIds: string[] = [];
   allTasks: Task[] = []; // 全プロジェクトのタスクを保持
   statuses = ['未着手', '作業中', '完了'];
@@ -101,8 +102,8 @@ export class KanbanComponent implements OnInit {
             // プロジェクト情報をタスクに追加
             const tasksWithProject = tasks.map((task) => ({
               ...task,
-              projectId: project.id!,
-              projectName: project.projectName,
+              projectId: task.projectId || project.id!,
+              projectName: task.projectName || project.projectName,
             }));
 
             // 既存のタスクを更新または追加

@@ -125,7 +125,12 @@
             [style.min-width.px]="totalInfoWidth"
             [style.max-width.px]="totalInfoWidth"
           >
-            <div class="info-cell project-name">{{ task.projectName }}</div>
+            <div
+              class="info-cell project-name"
+              [ngStyle]="getProjectNameStyle(task)"
+            >
+              {{ task.projectName }}
+            </div>
             <div
               class="info-cell task-name clickable"
               (click)="openTaskDetail(task)"
@@ -204,7 +209,7 @@
             <div
               *ngIf="task.startDate && task.dueDate"
               class="task-bar clickable"
-              [style.background-color]="statusColors[task.status]"
+              [style.background-color]="getTaskBarBackground(task)"
               [style.left]="getTaskBarStartPosition(task) + 'px'"
               [style.width]="getTaskBarWidth(task) + 'px'"
               [style.top]="i * 40 + 4 + 'px'"

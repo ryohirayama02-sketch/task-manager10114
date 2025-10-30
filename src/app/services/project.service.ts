@@ -9,9 +9,10 @@ import {
   updateDoc,
   deleteDoc,
 } from '@angular/fire/firestore';
-import { Observable } from 'rxjs';
+import { Observable, combineLatest, map } from 'rxjs';
 import { IProject } from '../models/project.model'; // 上の方に追加
 import { EditLogService } from './edit-log.service';
+import { resolveProjectThemeColor } from '../constants/project-theme-colors';
 
 @Injectable({ providedIn: 'root' })
 export class ProjectService {
@@ -43,7 +44,26 @@ export class ProjectService {
   getTasksByProjectId(projectId: string): Observable<any[]> {
     const projectRef = doc(this.firestore, `projects/${projectId}`);
     const tasksRef = collection(projectRef, 'tasks');
-    return collectionData(tasksRef, { idField: 'id' }) as Observable<any[]>;
+    const project$ = docData(projectRef, {
+      idField: 'id',
+    }) as Observable<IProject>;
+    const tasks$ = collectionData(tasksRef, {
+      idField: 'id',
+    }) as Observable<any[]>;
+
+    return combineLatest([project$, tasks$]).pipe(
+      map(([project, tasks]) => {
+        const themeColor = resolveProjectThemeColor(project);
+        const projectName = project?.projectName || 'プロジェクト';
+
+        return tasks.map((task) => ({
+          ...task,
+          projectId,
+          projectName: task.projectName || projectName,
+          projectThemeColor: task.projectThemeColor || themeColor,
+        }));
+      })
+    );
   }
 
   /** ✅ 新しいプロジェクトを追加（今回追加する関数） */
