@@ -180,14 +180,26 @@
     <mat-card class="action-card">
       <mat-card-content>
         <div class="action-buttons">
-          <button
-            mat-raised-button
-            (click)="syncWithCalendar()"
-            color="primary"
-          >
-            <mat-icon>event</mat-icon>
-            カレンダー連携
-          </button>
+          <div class="calendar-toggle">
+            <span class="calendar-toggle-label">カレンダー連携</span>
+            <button
+              type="button"
+              class="calendar-switch"
+              [class.on]="taskData.calendarSyncEnabled"
+              [disabled]="isCalendarSyncSaving"
+              (click)="toggleCalendarSync()"
+              role="switch"
+              [attr.aria-checked]="taskData.calendarSyncEnabled"
+            >
+              <span class="calendar-switch-handle"></span>
+            </button>
+            <span
+              class="calendar-toggle-state"
+              [class.on]="taskData.calendarSyncEnabled"
+            >
+              {{ taskData.calendarSyncEnabled ? 'ON' : 'OFF' }}
+            </span>
+          </div>
           <button mat-raised-button (click)="createSubtask()">
             <mat-icon>add</mat-icon>
             +タスク

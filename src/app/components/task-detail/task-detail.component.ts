@@ -63,6 +63,7 @@ export class TaskDetailComponent implements OnInit {
   isDetailSettingsOpen = false;
   isLoading = true;
   isSaving = false;
+  isCalendarSyncSaving = false;
 
   // メンバー関連
   members: Member[] = [];
@@ -80,6 +81,7 @@ export class TaskDetailComponent implements OnInit {
     assignee: '',
     status: '未着手',
     priority: '中',
+    calendarSyncEnabled: false,
     tags: [],
     relatedFiles: [],
   };
@@ -152,6 +154,7 @@ export class TaskDetailComponent implements OnInit {
             assignee: this.task.assignee || '',
             status: this.task.status || '未着手',
             priority: this.task.priority || '中',
+            calendarSyncEnabled: this.task.calendarSyncEnabled ?? false,
             tags: this.task.tags || [],
             relatedFiles: this.task.relatedFiles || [],
           };
@@ -459,10 +462,35 @@ export class TaskDetailComponent implements OnInit {
     });
   }
 
-  /** カレンダー連携 */
-  syncWithCalendar() {
-    // カレンダー連携の実装
-    console.log('カレンダー連携機能');
+  /** カレンダー連携のON/OFFを切り替え */
+  async toggleCalendarSync(): Promise<void> {
+    if (!this.task || !this.task.projectId || !this.task.id) {
+      console.warn('カレンダー連携の切り替えに必要な情報が不足しています');
+      return;
+    }
+
+    const nextValue = !(this.taskData.calendarSyncEnabled ?? false);
+    this.taskData.calendarSyncEnabled = nextValue;
+    this.isCalendarSyncSaving = true;
+
+    try {
+      await this.projectService.updateTask(this.task.projectId, this.task.id, {
+        calendarSyncEnabled: nextValue,
+        taskName: this.taskData.taskName,
+      });
+      this.task.calendarSyncEnabled = nextValue;
+      console.log(
+        `カレンダー連携を${nextValue ? 'ON' : 'OFF'}に更新しました (taskId: ${
+          this.task.id
+        })`
+      );
+    } catch (error) {
+      console.error('カレンダー連携の更新に失敗しました', error);
+      this.taskData.calendarSyncEnabled = !nextValue;
+      this.task.calendarSyncEnabled = this.taskData.calendarSyncEnabled;
+    } finally {
+      this.isCalendarSyncSaving = false;
+    }
   }
 
   /** タグを追加 */
