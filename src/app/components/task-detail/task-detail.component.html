@@ -7,9 +7,24 @@
     </button>
     <h1>{{ taskData.taskName || "タスク詳細" }}</h1>
     <div class="header-actions">
+      <div class="header-calendar-toggle">
+        <button
+          type="button"
+          class="calendar-switch"
+          [class.on]="taskData.calendarSyncEnabled"
+          [disabled]="isCalendarSyncSaving"
+          (click)="toggleCalendarSync()"
+          role="switch"
+          [attr.aria-checked]="taskData.calendarSyncEnabled"
+        >
+          <span class="calendar-switch-handle"></span>
+        </button>
+        <span class="calendar-switch-label">
+          カレンダー連携 {{ taskData.calendarSyncEnabled ? 'ON' : 'OFF' }}
+        </span>
+      </div>
       <button
         mat-raised-button
-        color="primary"
         class="edit-button"
         (click)="toggleEdit()"
       >
@@ -185,26 +200,6 @@
     <mat-card class="action-card">
       <mat-card-content>
         <div class="action-buttons">
-          <div class="calendar-toggle">
-            <span class="calendar-toggle-label">カレンダー連携</span>
-            <button
-              type="button"
-              class="calendar-switch"
-              [class.on]="taskData.calendarSyncEnabled"
-              [disabled]="isCalendarSyncSaving"
-              (click)="toggleCalendarSync()"
-              role="switch"
-              [attr.aria-checked]="taskData.calendarSyncEnabled"
-            >
-              <span class="calendar-switch-handle"></span>
-            </button>
-            <span
-              class="calendar-toggle-state"
-              [class.on]="taskData.calendarSyncEnabled"
-            >
-              {{ taskData.calendarSyncEnabled ? 'ON' : 'OFF' }}
-            </span>
-          </div>
           <button mat-raised-button (click)="createSubtask()">
             <mat-icon>add</mat-icon>
             +タスク
