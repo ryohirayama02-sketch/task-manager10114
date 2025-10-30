@@ -89,6 +89,16 @@ export class TaskDetailComponent implements OnInit {
 
   // 詳細設定
   detailSettings = this.createDefaultDetailSettings();
+  hourOptions = Array.from({ length: 24 }, (_, i) => ({
+    value: i.toString().padStart(2, '0'),
+    label: i.toString().padStart(2, '0'),
+  }));
+  minuteOptions = Array.from({ length: 60 }, (_, i) => ({
+    value: i.toString().padStart(2, '0'),
+    label: i.toString().padStart(2, '0'),
+  }));
+  estimatedHours = { hour: '00', minute: '00' };
+  actualHours = { hour: '00', minute: '00' };
 
   // ステータスと優先度のオプション
   statusOptions = ['未着手', '作業中', '完了'];
@@ -520,6 +530,14 @@ export class TaskDetailComponent implements OnInit {
     this.updateNotificationRecipientOptions();
   }
 
+  onEstimatedTimeChange(): void {
+    this.detailSettings.workTime.estimatedHours = `${this.estimatedHours.hour}:${this.estimatedHours.minute}`;
+  }
+
+  onActualTimeChange(): void {
+    this.detailSettings.workTime.actualHours = `${this.actualHours.hour}:${this.actualHours.minute}`;
+  }
+
   /** タグを追加 */
   addTag(tag: string) {
     if (tag && this.taskData.tags && !this.taskData.tags.includes(tag)) {
@@ -607,8 +625,8 @@ export class TaskDetailComponent implements OnInit {
         subtaskOrder: [] as string[],
       },
       workTime: {
-        estimatedHours: 0,
-        actualHours: 0,
+        estimatedHours: '00:00',
+        actualHours: '00:00',
       },
     };
   }
@@ -718,5 +736,30 @@ export class TaskDetailComponent implements OnInit {
     if (this.detailSettings.notifications.beforeDeadline) {
       this.ensureNotificationRecipients();
     }
+
+    this.rebuildTimePickers();
+  }
+
+  private rebuildTimePickers(): void {
+    this.estimatedHours = this.splitTimeString(
+      this.detailSettings.workTime.estimatedHours
+    );
+    this.actualHours = this.splitTimeString(
+      this.detailSettings.workTime.actualHours
+    );
+  }
+
+  private splitTimeString(time: string | undefined): {
+    hour: string;
+    minute: string;
+  } {
+    if (typeof time === 'string' && /^\d{2}:\d{2}$/.test(time)) {
+      const [hour, minute] = time.split(':');
+      return {
+        hour: hour.padStart(2, '0'),
+        minute: minute.padStart(2, '0'),
+      };
+    }
+    return { hour: '00', minute: '00' };
   }
 }

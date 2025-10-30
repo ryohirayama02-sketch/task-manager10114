@@ -324,20 +324,60 @@
             <mat-panel-title>作業時間記録</mat-panel-title>
           </mat-expansion-panel-header>
           <div class="setting-item">
-            <label>予定時間（時間）</label>
-            <input
-              type="number"
-              [(ngModel)]="detailSettings.workTime.estimatedHours"
-              min="0"
-            />
+            <label>予定時間</label>
+            <div class="time-picker">
+              <mat-form-field appearance="outline" class="time-field">
+                <mat-label>時間</mat-label>
+                <mat-select
+                  [(ngModel)]="estimatedHours.hour"
+                  (selectionChange)="onEstimatedTimeChange()"
+                >
+                  <mat-option *ngFor="let hour of hourOptions" [value]="hour.value">
+                    {{ hour.label }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+              <span class="time-separator">:</span>
+              <mat-form-field appearance="outline" class="time-field">
+                <mat-label>分</mat-label>
+                <mat-select
+                  [(ngModel)]="estimatedHours.minute"
+                  (selectionChange)="onEstimatedTimeChange()"
+                >
+                  <mat-option *ngFor="let minute of minuteOptions" [value]="minute.value">
+                    {{ minute.label }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
           </div>
           <div class="setting-item">
-            <label>実績時間（時間）</label>
-            <input
-              type="number"
-              [(ngModel)]="detailSettings.workTime.actualHours"
-              min="0"
-            />
+            <label>実績時間</label>
+            <div class="time-picker">
+              <mat-form-field appearance="outline" class="time-field">
+                <mat-label>時間</mat-label>
+                <mat-select
+                  [(ngModel)]="actualHours.hour"
+                  (selectionChange)="onActualTimeChange()"
+                >
+                  <mat-option *ngFor="let hour of hourOptions" [value]="hour.value">
+                    {{ hour.label }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+              <span class="time-separator">:</span>
+              <mat-form-field appearance="outline" class="time-field">
+                <mat-label>分</mat-label>
+                <mat-select
+                  [(ngModel)]="actualHours.minute"
+                  (selectionChange)="onActualTimeChange()"
+                >
+                  <mat-option *ngFor="let minute of minuteOptions" [value]="minute.value">
+                    {{ minute.label }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
           </div>
         </mat-expansion-panel>
       </div>

@@ -487,6 +487,22 @@ mat-chip mat-icon {
   border-radius: 6px;
 }
 
+.time-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.time-field {
+  width: 90px;
+}
+
+.time-separator {
+  font-size: 18px;
+  font-weight: 600;
+  color: #455a64;
+}
+
 .settings-actions {
   display: flex;
   justify-content: flex-end;
