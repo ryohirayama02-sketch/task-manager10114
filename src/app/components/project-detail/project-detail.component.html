@@ -128,12 +128,16 @@
 
     <mat-form-field appearance="outline">
       <mat-label>担当者</mat-label>
-      <input
-        matInput
+      <mat-select
         [(ngModel)]="filterAssignee"
-        (input)="applyFilter()"
-        placeholder="担当者名で検索"
-      />
+        (selectionChange)="applyFilter()"
+        placeholder="担当者を選択"
+      >
+        <mat-option value="">すべて</mat-option>
+        <mat-option *ngFor="let assignee of assigneeOptions" [value]="assignee">
+          {{ assignee }}
+        </mat-option>
+      </mat-select>
     </mat-form-field>
 
     <mat-form-field appearance="outline">

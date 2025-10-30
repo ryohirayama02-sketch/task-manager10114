@@ -61,6 +61,7 @@ export class ProjectDetailComponent implements OnInit {
   filterPriority: string = '';
   filterAssignee: string = '';
   filterDueDate: string = '';
+  assigneeOptions: string[] = [];
 
   // フィルターオプション
   statusOptions = ['未着手', '作業中', '完了'];
@@ -166,6 +167,13 @@ export class ProjectDetailComponent implements OnInit {
       .getTasksByProjectId(this.projectId)
       .subscribe((tasks) => {
         this.tasks = tasks;
+        this.assigneeOptions = [
+          ...new Set(
+            tasks
+              .map((task) => task.assignee)
+              .filter((assignee) => !!assignee)
+          ),
+        ];
         this.filteredTasks = [...tasks];
         console.log('プロジェクトのタスク一覧:', tasks);
       });
