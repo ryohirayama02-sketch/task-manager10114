@@ -406,43 +406,46 @@
 
       <!-- ボタン -->
       <div class="dialog-actions">
-        <!-- 編集モードの場合のみ削除ボタンを表示 -->
-        <button
-          *ngIf="isEditMode"
-          mat-raised-button
-          color="warn"
-          class="delete-button"
-          (click)="confirmDeleteProject()"
-        >
-          <mat-icon>delete</mat-icon>
-          プロジェクト削除
-        </button>
+        <div class="dialog-actions-left">
+          <button
+            *ngIf="isEditMode"
+            mat-raised-button
+            color="warn"
+            class="delete-button"
+            (click)="confirmDeleteProject()"
+          >
+            <mat-icon>delete</mat-icon>
+            プロジェクト削除
+          </button>
+        </div>
 
-        <button
-          mat-raised-button
-          type="button"
-          class="cancel-button"
-          (click)="onCancel()"
-        >
-          キャンセル
-        </button>
+        <div class="dialog-actions-right">
+          <button
+            mat-raised-button
+            type="button"
+            class="cancel-button"
+            (click)="onCancel()"
+          >
+            キャンセル
+          </button>
 
-        <button
-          mat-raised-button
-          type="submit"
-          color="primary"
-          class="save-button"
-          [disabled]="!project.projectName?.trim() || isSubmitting || isUploading"
-        >
-          <ng-container *ngIf="!isSubmitting; else submitting">
-            <mat-icon>{{ isEditMode ? "edit" : "add" }}</mat-icon>
-            {{ isEditMode ? "更新" : "登録" }}
-          </ng-container>
-          <ng-template #submitting>
-            <mat-spinner diameter="20"></mat-spinner>
-            <span>{{ isEditMode ? "更新中..." : "登録中..." }}</span>
-          </ng-template>
-        </button>
+          <button
+            mat-raised-button
+            type="submit"
+            color="primary"
+            class="save-button"
+            [disabled]="!project.projectName?.trim() || isSubmitting || isUploading"
+          >
+            <ng-container *ngIf="!isSubmitting; else submitting">
+              <mat-icon>{{ isEditMode ? "edit" : "add" }}</mat-icon>
+              {{ isEditMode ? "更新" : "登録" }}
+            </ng-container>
+            <ng-template #submitting>
+              <mat-spinner diameter="20"></mat-spinner>
+              <span>{{ isEditMode ? "更新中..." : "登録中..." }}</span>
+            </ng-template>
+          </button>
+        </div>
       </div>
     </form>
   </div>
