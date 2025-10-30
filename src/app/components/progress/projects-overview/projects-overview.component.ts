@@ -8,7 +8,7 @@ import {
   ProgressService,
   ProjectProgress,
 } from '../../../services/progress.service';
-import { Project } from '../../../models/task.model';
+import { IProject } from '../../../models/project.model';
 import { ProgressCircleComponent } from './progress-circle.component';
 
 @Component({
@@ -25,7 +25,7 @@ import { ProgressCircleComponent } from './progress-circle.component';
   styleUrls: ['./projects-overview.component.css'],
 })
 export class ProjectsOverviewComponent implements OnInit {
-  projects: Project[] = [];
+  projects: IProject[] = [];
   projectProgress: { [key: string]: ProjectProgress } = {};
 
   constructor(
@@ -94,5 +94,22 @@ export class ProjectsOverviewComponent implements OnInit {
         progress: this.projectProgress[p.id || '']?.progressPercentage || 0,
       }))
     );
+  }
+
+  getMemberDisplay(project: IProject): string {
+    const members: any = (project as any).members;
+    if (!members) {
+      return '（メンバー情報未設定）';
+    }
+    if (Array.isArray(members)) {
+      const names = members
+        .map((member) => member?.memberName || member?.name || '')
+        .filter((name) => !!name);
+      return names.length > 0 ? names.join(', ') : '（メンバー情報未設定）';
+    }
+    if (typeof members === 'string') {
+      return members || '（メンバー情報未設定）';
+    }
+    return '（メンバー情報未設定）';
   }
 }

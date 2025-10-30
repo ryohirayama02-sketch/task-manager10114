@@ -29,7 +29,7 @@
       </h3>
 
       <p>
-        <strong>概要:</strong> {{ project.description || "（概要未設定）" }}
+        <strong>概要:</strong> {{ project.overview || "（概要未設定）" }}
       </p>
       <p>
         <strong>期間:</strong> {{ project.startDate || "（開始日未設定）" }} ～
@@ -38,7 +38,7 @@
       <p>
         <strong>責任者:</strong> {{ project.responsible || "（責任者未設定）" }}
       </p>
-      <p><strong>メンバー:</strong> （メンバー情報未設定）</p>
+      <p><strong>メンバー:</strong> {{ getMemberDisplay(project) }}</p>
     </div>
 
     <!-- ▼ 進捗率円グラフ -->
