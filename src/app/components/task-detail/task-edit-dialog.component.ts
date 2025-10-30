@@ -65,6 +65,36 @@ import { TaskDeleteConfirmDialogComponent } from './task-delete-confirm-dialog.c
             <mat-icon matSuffix>description</mat-icon>
           </mat-form-field>
 
+          <!-- タグ -->
+          <div class="tag-section full-width">
+            <mat-form-field appearance="outline" class="tag-input-field">
+              <mat-label>タグ</mat-label>
+              <span matPrefix>#&nbsp;</span>
+              <input
+                id="tagInputField"
+                matInput
+                name="tagInput"
+                [(ngModel)]="tagInputValue"
+                [ngModelOptions]="{ standalone: true }"
+                placeholder="タグ名を入力してEnter"
+                (keydown.enter)="onTagInputEnter($event)"
+              />
+            </mat-form-field>
+            <div class="tag-list" *ngIf="task.tags?.length">
+              <div *ngFor="let tag of task.tags" class="tag-chip">
+                <span class="tag-chip-label">#{{ tag }}</span>
+                <button
+                  type="button"
+                  class="tag-remove-button"
+                  (click)="removeTag(tag)"
+                  [attr.aria-label]="'#' + tag + ' を削除'"
+                >
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+
           <!-- 担当者選択 -->
           <div class="assignee-selection">
             <mat-form-field appearance="outline" class="full-width">
@@ -226,6 +256,67 @@ import { TaskDeleteConfirmDialogComponent } from './task-delete-confirm-dialog.c
         grid-column: span 1;
       }
 
+      .tag-section {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .tag-input-field {
+        width: 100%;
+      }
+
+      .tag-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .tag-chip {
+        display: inline-flex;
+        align-items: center;
+        background-color: #e3f2fd;
+        color: #0d47a1;
+        border-radius: 16px;
+        padding: 6px 10px;
+        font-size: 13px;
+        font-weight: 500;
+        line-height: 1;
+      }
+
+      .tag-chip-label {
+        display: inline-flex;
+        align-items: center;
+      }
+
+      .tag-remove-button {
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        margin-left: 6px;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: inherit;
+      }
+
+      .tag-remove-button mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+      }
+
+      .tag-remove-button:hover {
+        color: #c62828;
+      }
+
+      .tag-remove-button:focus-visible {
+        outline: 2px solid #1976d2;
+        border-radius: 50%;
+        outline-offset: 2px;
+      }
+
       .date-field {
         display: flex;
         flex-direction: column;
@@ -374,6 +465,7 @@ export class TaskEditDialogComponent implements OnInit {
   selectedMemberId: string = '';
   membersLoading = false;
   isSaving = false;
+  tagInputValue = '';
 
   constructor(
     private taskService: TaskService,
@@ -390,6 +482,11 @@ export class TaskEditDialogComponent implements OnInit {
     }
   ) {
     this.task = { ...data.task };
+    this.task.tags = Array.isArray(this.task.tags)
+      ? [...this.task.tags]
+      : this.task.tags
+      ? [this.task.tags]
+      : [];
   }
 
   async ngOnInit(): Promise<void> {
@@ -437,6 +534,41 @@ export class TaskEditDialogComponent implements OnInit {
       this.task.assignee = selectedMember.name;
       this.task.assigneeEmail = selectedMember.email;
     }
+  }
+
+  /** タグ入力のEnter処理 */
+  onTagInputEnter(event: Event): void {
+    event.preventDefault();
+    this.addTagFromInput();
+  }
+
+  /** 入力欄からタグを追加 */
+  addTagFromInput(): void {
+    const value = this.tagInputValue.trim();
+    if (!value) {
+      this.tagInputValue = '';
+      return;
+    }
+
+    if (!this.task.tags) {
+      this.task.tags = [];
+    }
+
+    if (this.task.tags.includes(value)) {
+      this.tagInputValue = '';
+      return;
+    }
+
+    this.task.tags.push(value);
+    this.tagInputValue = '';
+  }
+
+  /** タグを削除 */
+  removeTag(tag: string): void {
+    if (!this.task.tags) {
+      return;
+    }
+    this.task.tags = this.task.tags.filter((t) => t !== tag);
   }
 
   /** タスク削除の確認ダイアログ */
@@ -491,6 +623,14 @@ export class TaskEditDialogComponent implements OnInit {
         duration: 3000,
       });
       return;
+    }
+
+    if (this.task.tags) {
+      this.task.tags = this.task.tags
+        .map((tag) => tag.trim())
+        .filter((tag, index, arr) => tag && arr.indexOf(tag) === index);
+    } else {
+      this.task.tags = [];
     }
 
     this.isSaving = true;
