@@ -4,7 +4,12 @@
   </div>
 
   <div class="dialog-content">
-    <form (ngSubmit)="onSubmit()" #form="ngForm" class="form-container">
+    <form
+      (ngSubmit)="onSubmit()"
+      (keydown.enter)="$event.preventDefault()"
+      #form="ngForm"
+      class="form-container"
+    >
       <!-- プロジェクト名 -->
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>プロジェクト名 *</mat-label>
@@ -410,6 +415,7 @@
           <button
             *ngIf="isEditMode"
             mat-raised-button
+            type="button"
             color="warn"
             class="delete-button"
             (click)="confirmDeleteProject()"
