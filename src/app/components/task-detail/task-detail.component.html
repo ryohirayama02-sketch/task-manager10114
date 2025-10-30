@@ -7,7 +7,12 @@
     </button>
     <h1>{{ taskData.taskName || "タスク詳細" }}</h1>
     <div class="header-actions">
-      <button mat-button (click)="toggleEdit()">
+      <button
+        mat-raised-button
+        color="primary"
+        class="edit-button"
+        (click)="toggleEdit()"
+      >
         <mat-icon>edit</mat-icon>
         編集
       </button>

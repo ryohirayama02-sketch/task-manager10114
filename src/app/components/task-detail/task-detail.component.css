@@ -37,6 +37,24 @@
   gap: 12px;
 }
 
+.header-actions .edit-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.header-actions .edit-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(25, 118, 210, 0.35);
+}
+
 /* メインコンテンツ */
 .task-content {
   display: flex;
