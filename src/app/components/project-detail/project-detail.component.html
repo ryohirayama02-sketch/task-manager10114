@@ -48,18 +48,6 @@
     </div>
   </div>
 
-  <div class="project-actions">
-    <!-- ✅ カード右下に＋タスクボタン -->
-    <button
-      mat-raised-button
-      color="accent"
-      class="add-task-button"
-      (click)="openAddTaskDialog()"
-    >
-      ＋ タスク
-    </button>
-  </div>
-
   <!-- マイルストーン表示 -->
   <div
     *ngIf="project.milestones && project.milestones.length > 0"
@@ -94,6 +82,9 @@
   <div class="tasks-header">
     <h3>タスク一覧</h3>
     <div class="tasks-actions">
+      <button mat-raised-button color="accent" (click)="openAddTaskDialog()">
+        ＋ タスク
+      </button>
       <button mat-raised-button color="accent" (click)="exportToCSV()">
         <mat-icon>download</mat-icon>
         出力
