@@ -47,6 +47,36 @@
         </div>
       </div>
 
+      <!-- テーマ色 -->
+      <div class="theme-color-section">
+        <div class="theme-color-header">
+          <h3>テーマ色</h3>
+          <span class="helper-text"
+            >プロジェクトのカードやタスクに反映されます</span
+          >
+        </div>
+        <div class="theme-color-grid">
+          <button
+            type="button"
+            class="theme-color-option"
+            *ngFor="let color of themeColorOptions"
+            [style.backgroundColor]="color"
+            [class.selected]="isThemeColorSelected(color)"
+            (click)="selectThemeColor(color)"
+            matTooltip="{{ color }}"
+            [attr.aria-pressed]="isThemeColorSelected(color)"
+            [attr.aria-label]="'テーマ色 ' + color"
+          >
+            <mat-icon *ngIf="isThemeColorSelected(color)">check</mat-icon>
+          </button>
+        </div>
+        <input
+          type="hidden"
+          name="themeColor"
+          [(ngModel)]="project.themeColor"
+        />
+      </div>
+
       <!-- 責任者 -->
       <div class="member-selection responsible-selection">
         <div class="member-selection-header">

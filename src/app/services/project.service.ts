@@ -102,6 +102,9 @@ export class ProjectService {
       if (projectData.endDate) {
         changes.push(`終了日: ${projectData.endDate}`);
       }
+      if (projectData.themeColor) {
+        changes.push(`テーマ色: ${projectData.themeColor}`);
+      }
       if (projectData.attachments) {
         const attachmentCount = Array.isArray(projectData.attachments)
           ? projectData.attachments.length

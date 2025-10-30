@@ -24,6 +24,10 @@ import { MemberManagementService } from '../../services/member-management.servic
 import { Member } from '../../models/member.model';
 import { ProjectAttachment } from '../../models/project.model';
 import { ProjectAttachmentService } from '../../services/project-attachment.service';
+import {
+  PROJECT_THEME_COLORS,
+  ProjectThemeColor,
+} from '../../constants/project-theme-colors';
 
 @Component({
   selector: 'app-project-form',
@@ -62,6 +66,8 @@ export class ProjectFormComponent implements OnInit {
     '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.bmp,.heic,.webp,.svg,.txt,.csv,.zip';
 
   private readonly MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+  readonly themeColorOptions = PROJECT_THEME_COLORS;
+  private readonly defaultThemeColor = this.themeColorOptions[0];
 
   constructor(
     private fb: FormBuilder,
@@ -79,6 +85,7 @@ export class ProjectFormComponent implements OnInit {
       responsible: [''],
       members: [[]],
       milestones: this.fb.array([]),
+      themeColor: [this.defaultThemeColor, Validators.required],
     });
   }
 
@@ -156,6 +163,23 @@ export class ProjectFormComponent implements OnInit {
   removeResponsible(): void {
     this.selectedResponsible = null;
     this.projectForm.patchValue({ responsible: '' });
+  }
+
+  /**
+   * テーマ色を選択
+   */
+  selectThemeColor(color: ProjectThemeColor): void {
+    const control = this.projectForm.get('themeColor');
+    control?.setValue(color);
+    control?.markAsDirty();
+    control?.markAsTouched();
+  }
+
+  /**
+   * テーマ色が選択済みか判定
+   */
+  isThemeColorSelected(color: ProjectThemeColor): boolean {
+    return this.projectForm.get('themeColor')?.value === color;
   }
 
   /**
@@ -253,6 +277,8 @@ export class ProjectFormComponent implements OnInit {
         description: formData.description || '',
         startDate: formData.startDate || '',
         endDate: formData.endDate || '',
+        themeColor: formData.themeColor || this.defaultThemeColor,
+        color: formData.themeColor || this.defaultThemeColor,
         responsible: this.selectedResponsible ? this.selectedResponsible.name : '',
         responsibleId: this.selectedResponsible?.id || '',
         responsibleEmail: this.selectedResponsible?.email || '',

@@ -130,6 +130,58 @@ input[type="date"]::-moz-calendar-picker-indicator {
   opacity: 0;
 }
 
+.theme-color-section {
+  margin: 24px 0;
+}
+
+.theme-color-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.theme-color-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(48px, 1fr));
+  gap: 12px;
+}
+
+.theme-color-option {
+  border: 2px solid transparent;
+  border-radius: 12px;
+  width: 48px;
+  height: 48px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease,
+    border-color 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #263238;
+  padding: 0;
+  outline: none;
+}
+
+.theme-color-option:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.theme-color-option:focus-visible {
+  border-color: #1976d2;
+  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.25);
+}
+
+.theme-color-option.selected {
+  border-color: #1976d2;
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+}
+
+.theme-color-option mat-icon {
+  font-size: 20px;
+}
+
 .member-selection {
   margin-top: 24px;
   padding: 20px;

@@ -19,6 +19,10 @@ import { Milestone } from '../../models/task.model';
 import { IProject, ProjectAttachment } from '../../models/project.model';
 import { Member } from '../../models/member.model';
 import { ProjectAttachmentService } from '../../services/project-attachment.service';
+import {
+  PROJECT_THEME_COLORS,
+  ProjectThemeColor,
+} from '../../constants/project-theme-colors';
 
 @Component({
   selector: 'app-project-form-dialog',
@@ -40,6 +44,9 @@ import { ProjectAttachmentService } from '../../services/project-attachment.serv
   styleUrls: ['./project-form-dialog.component.css'],
 })
 export class ProjectFormDialogComponent implements OnInit {
+  readonly themeColorOptions = PROJECT_THEME_COLORS;
+  private readonly defaultThemeColor: ProjectThemeColor =
+    this.themeColorOptions[0];
   project = {
     projectName: '',
     overview: '',
@@ -51,6 +58,7 @@ export class ProjectFormDialogComponent implements OnInit {
     tags: '',
     milestones: [] as Milestone[],
     attachments: [] as ProjectAttachment[],
+    themeColor: this.defaultThemeColor,
   };
 
   // メンバー選択関連
@@ -98,6 +106,10 @@ export class ProjectFormDialogComponent implements OnInit {
         tags: data.project.tags || '',
         milestones: data.project.milestones ? [...data.project.milestones] : [],
         attachments: data.project.attachments ? [...data.project.attachments] : [],
+        themeColor:
+          data.project.themeColor ||
+          data.project.color ||
+          this.defaultThemeColor,
       };
       this.selectedResponsibleId = this.project.responsibleId || '';
       this.attachments = data.project.attachments
@@ -189,6 +201,20 @@ export class ProjectFormDialogComponent implements OnInit {
     this.project.responsibleEmail = '';
   }
 
+  /**
+   * テーマ色を選択
+   */
+  selectThemeColor(color: ProjectThemeColor): void {
+    this.project.themeColor = color;
+  }
+
+  /**
+   * テーマ色が選択されているかを判定
+   */
+  isThemeColorSelected(color: ProjectThemeColor): boolean {
+    return this.project.themeColor === color;
+  }
+
   /** ファイル選択 */
   onFilesSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -264,6 +290,10 @@ export class ProjectFormDialogComponent implements OnInit {
 
     this.isSubmitting = true;
     try {
+      const themeColor =
+        this.project.themeColor || this.defaultThemeColor;
+      this.project.themeColor = themeColor;
+
       if (this.isEditMode && this.originalProject) {
         const projectId = this.originalProject.id;
         let attachments = [...this.attachments];
@@ -287,18 +317,23 @@ export class ProjectFormDialogComponent implements OnInit {
           tags: this.project.tags,
           milestones: this.project.milestones,
           attachments,
+          themeColor,
+          color: themeColor,
           updatedAt: new Date(),
         });
 
         await this.deleteMarkedAttachments(projectId);
       } else {
         const linkAttachments = [...this.attachments];
-        const docRef = await this.projectService.addProject({
+        const projectPayload = {
           ...this.project,
+          themeColor,
+          color: themeColor,
           attachments: linkAttachments,
           createdAt: new Date(),
           updatedAt: new Date(),
-        });
+        };
+        const docRef = await this.projectService.addProject(projectPayload);
 
         if (docRef?.id && this.pendingFiles.length > 0) {
           const uploaded = await this.uploadPendingFiles(docRef.id);

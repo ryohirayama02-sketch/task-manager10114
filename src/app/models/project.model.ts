@@ -24,6 +24,7 @@ export interface IProject {
   responsibleEmail?: string; // 責任者メール
   tags: string; // タグ
   color?: string; // 任意フィールド
+  themeColor?: string; // プロジェクトのテーマカラー
   milestones?: Milestone[]; // マイルストーン
   attachments?: ProjectAttachment[];
 }
