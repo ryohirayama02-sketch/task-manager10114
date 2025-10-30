@@ -44,6 +44,9 @@ export class ProjectFormDialogComponent implements OnInit {
     overview: '',
     startDate: '',
     members: '',
+    responsible: '',
+    responsibleId: '',
+    responsibleEmail: '',
     tags: '',
     milestones: [] as Milestone[],
   };
@@ -52,6 +55,8 @@ export class ProjectFormDialogComponent implements OnInit {
   members: Member[] = [];
   selectedMembers: Member[] = [];
   selectedMemberIds: string[] = [];
+  selectedResponsible: Member | null = null;
+  selectedResponsibleId: string = '';
   membersLoading = false;
 
   isEditMode: boolean = false;
@@ -73,9 +78,13 @@ export class ProjectFormDialogComponent implements OnInit {
         overview: data.project.overview || '',
         startDate: data.project.startDate || '',
         members: data.project.members || '',
+        responsible: data.project.responsible || '',
+        responsibleId: data.project.responsibleId || '',
+        responsibleEmail: data.project.responsibleEmail || '',
         tags: data.project.tags || '',
         milestones: data.project.milestones ? [...data.project.milestones] : [],
       };
+      this.selectedResponsibleId = this.project.responsibleId || '';
     }
   }
 
@@ -93,6 +102,7 @@ export class ProjectFormDialogComponent implements OnInit {
         this.members = members;
         this.membersLoading = false;
         console.log('メンバー一覧を読み込みました:', members.length, '件');
+        this.initializeResponsibleSelection();
       },
       error: (error) => {
         console.error('メンバー一覧の読み込みエラー:', error);
@@ -117,6 +127,25 @@ export class ProjectFormDialogComponent implements OnInit {
   }
 
   /**
+   * 責任者選択の変更
+   */
+  onResponsibleSelectionChange(selectedId: string): void {
+    if (!selectedId) {
+      this.removeResponsible();
+      return;
+    }
+
+    const responsible = this.members.find((member) => member.id === selectedId);
+    if (responsible) {
+      this.selectedResponsible = responsible;
+      this.selectedResponsibleId = responsible.id || '';
+      this.project.responsible = responsible.name;
+      this.project.responsibleId = responsible.id || '';
+      this.project.responsibleEmail = responsible.email || '';
+    }
+  }
+
+  /**
    * メンバーを削除
    */
   removeMember(member: Member): void {
@@ -125,6 +154,21 @@ export class ProjectFormDialogComponent implements OnInit {
     );
     this.selectedMemberIds = this.selectedMembers.map((m) => m.id || '');
     this.project.members = this.selectedMembers.map((m) => m.name).join(', ');
+
+    if (this.selectedResponsible?.id === member.id) {
+      this.removeResponsible();
+    }
+  }
+
+  /**
+   * 責任者を解除
+   */
+  removeResponsible(): void {
+    this.selectedResponsible = null;
+    this.selectedResponsibleId = '';
+    this.project.responsible = '';
+    this.project.responsibleId = '';
+    this.project.responsibleEmail = '';
   }
 
   async onSubmit() {
@@ -136,6 +180,9 @@ export class ProjectFormDialogComponent implements OnInit {
         overview: this.project.overview,
         startDate: this.project.startDate,
         members: this.project.members,
+        responsible: this.project.responsible,
+        responsibleId: this.project.responsibleId,
+        responsibleEmail: this.project.responsibleEmail,
         tags: this.project.tags,
         milestones: this.project.milestones,
       };
@@ -172,6 +219,33 @@ export class ProjectFormDialogComponent implements OnInit {
   /** IDを生成 */
   private generateId(): string {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
+  }
+
+  /** 責任者選択を初期化 */
+  private initializeResponsibleSelection(): void {
+    if (!this.members || this.members.length === 0) {
+      return;
+    }
+
+    let responsible: Member | undefined;
+    if (this.project.responsibleId) {
+      responsible = this.members.find(
+        (member) => member.id === this.project.responsibleId
+      );
+    }
+
+    if (!responsible && this.project.responsible) {
+      responsible = this.members.find(
+        (member) => member.name === this.project.responsible
+      );
+    }
+
+    if (responsible) {
+      this.selectedResponsible = responsible;
+      this.selectedResponsibleId = responsible.id || '';
+      this.project.responsibleId = responsible.id || '';
+      this.project.responsibleEmail = responsible.email || '';
+    }
   }
 
   /** プロジェクト削除の確認ダイアログ */

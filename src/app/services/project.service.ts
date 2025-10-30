@@ -102,6 +102,9 @@ export class ProjectService {
       if (projectData.endDate) {
         changes.push(`終了日: ${projectData.endDate}`);
       }
+      if (projectData.responsible) {
+        changes.push(`責任者: ${projectData.responsible}`);
+      }
 
       await this.editLogService.logEdit(
         projectId,

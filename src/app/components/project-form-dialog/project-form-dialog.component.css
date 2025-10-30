@@ -170,6 +170,12 @@ input[type="date"]::-moz-calendar-picker-indicator {
   gap: 8px;
 }
 
+.responsible-selection .member-chip-inline {
+  background-color: #fff8e1;
+  color: #ff8f00;
+  font-weight: 600;
+}
+
 .member-count {
   background-color: #e3f2fd;
   color: #1976d2;

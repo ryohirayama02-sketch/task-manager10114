@@ -138,6 +138,13 @@ input[type="date"]::-moz-calendar-picker-indicator {
   border: 2px solid #e3f2fd;
 }
 
+.responsible-selection .member-chip-inline,
+.responsible-selection .responsible-chip {
+  background-color: #fff8e1;
+  color: #ff8f00;
+  font-weight: 600;
+}
+
 .member-selection-header {
   display: flex;
   justify-content: space-between;

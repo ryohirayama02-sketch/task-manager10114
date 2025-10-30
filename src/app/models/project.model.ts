@@ -7,6 +7,9 @@ export interface IProject {
   startDate: string; // 開始日
   endDate: string; // 終了日
   members: string; // メンバー（文字列 or カンマ区切り）
+  responsible?: string; // 責任者名
+  responsibleId?: string; // 責任者ID
+  responsibleEmail?: string; // 責任者メール
   tags: string; // タグ
   color?: string; // 任意フィールド
   milestones?: Milestone[]; // マイルストーン

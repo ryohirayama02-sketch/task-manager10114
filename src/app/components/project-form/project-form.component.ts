@@ -46,6 +46,7 @@ export class ProjectFormComponent implements OnInit {
   projectForm: FormGroup;
   members: Member[] = [];
   selectedMembers: Member[] = [];
+  selectedResponsible: Member | null = null;
   loading = false;
   isSubmitting = false;
 
@@ -61,6 +62,7 @@ export class ProjectFormComponent implements OnInit {
       description: [''],
       startDate: [''],
       endDate: [''],
+      responsible: [''],
       members: [[]],
       milestones: this.fb.array([]),
     });
@@ -99,6 +101,24 @@ export class ProjectFormComponent implements OnInit {
       selectedMemberIds.includes(member.id || '')
     );
     this.projectForm.patchValue({ members: selectedMemberIds });
+
+    // 責任者は担当メンバー外でも保持できるため追加の処理は不要
+  }
+
+  /**
+   * 責任者選択の変更
+   */
+  onResponsibleSelectionChange(selectedId: string): void {
+    if (!selectedId) {
+      this.removeResponsible();
+      return;
+    }
+
+    const responsible = this.members.find((member) => member.id === selectedId);
+    if (responsible) {
+      this.selectedResponsible = responsible;
+      this.projectForm.patchValue({ responsible: responsible.id || '' });
+    }
   }
 
   /**
@@ -110,6 +130,18 @@ export class ProjectFormComponent implements OnInit {
     );
     const memberIds = this.selectedMembers.map((m) => m.id || '');
     this.projectForm.patchValue({ members: memberIds });
+
+    if (this.selectedResponsible?.id === member.id) {
+      this.removeResponsible();
+    }
+  }
+
+  /**
+   * 責任者を解除
+   */
+  removeResponsible(): void {
+    this.selectedResponsible = null;
+    this.projectForm.patchValue({ responsible: '' });
   }
 
   /**
@@ -134,6 +166,9 @@ export class ProjectFormComponent implements OnInit {
         description: formData.description || '',
         startDate: formData.startDate || '',
         endDate: formData.endDate || '',
+        responsible: this.selectedResponsible ? this.selectedResponsible.name : '',
+        responsibleId: this.selectedResponsible?.id || '',
+        responsibleEmail: this.selectedResponsible?.email || '',
         members: this.selectedMembers.map((member) => ({
           memberId: member.id || '',
           memberName: member.name,

@@ -47,6 +47,64 @@
         </div>
       </div>
 
+      <!-- 責任者 -->
+      <div class="member-selection responsible-selection">
+        <div class="member-selection-header">
+          <h3>責任者</h3>
+        </div>
+
+        <!-- ローディング表示 -->
+        <div *ngIf="membersLoading" class="loading-members">
+          <mat-spinner diameter="24"></mat-spinner>
+          <span>メンバーを読み込み中...</span>
+        </div>
+
+        <div *ngIf="!membersLoading && members.length > 0">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>責任者を選択</mat-label>
+            <mat-select
+              [(ngModel)]="selectedResponsibleId"
+              name="responsible"
+              (selectionChange)="onResponsibleSelectionChange($event.value)"
+              placeholder="責任者を選択してください"
+            >
+              <mat-option value="">選択しない</mat-option>
+              <mat-option *ngFor="let member of members" [value]="member.id">
+                {{ member.name }}
+              </mat-option>
+            </mat-select>
+            <mat-icon matSuffix>person</mat-icon>
+          </mat-form-field>
+
+          <div *ngIf="selectedResponsible" class="selected-members-inline">
+            <div class="member-chips-inline">
+              <mat-chip-set>
+                <mat-chip
+                  [removable]="true"
+                  (removed)="removeResponsible()"
+                  class="member-chip-inline"
+                >
+                  <mat-icon matChipAvatar>workspace_premium</mat-icon>
+                  <span class="member-chip-name">{{
+                    selectedResponsible?.name
+                  }}</span>
+                  <button matChipRemove>
+                    <mat-icon>cancel</mat-icon>
+                  </button>
+                </mat-chip>
+              </mat-chip-set>
+            </div>
+          </div>
+        </div>
+
+        <!-- メンバーがいない場合 -->
+        <div *ngIf="!membersLoading && members.length === 0" class="no-members">
+          <mat-icon class="no-members-icon">people_outline</mat-icon>
+          <p>メンバーが登録されていません</p>
+          <p>先にメンバー管理画面でメンバーを登録してください。</p>
+        </div>
+      </div>
+
       <!-- メンバー選択 -->
       <div class="member-selection">
         <div class="member-selection-header">
