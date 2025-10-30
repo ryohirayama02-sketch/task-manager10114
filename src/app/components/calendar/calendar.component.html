@@ -73,15 +73,15 @@
 <!-- アクションボタン -->
 <div class="action-buttons">
   <div class="view-controls">
-    <button
-      mat-button-toggle-group
+    <mat-button-toggle-group
+      name="viewMode"
       [(ngModel)]="viewMode"
-      (change)="changeViewMode($event)"
+      (change)="changeViewMode($event.value)"
     >
-      <button mat-button-toggle value="day">日</button>
-      <button mat-button-toggle value="week">週</button>
-      <button mat-button-toggle value="month">月</button>
-    </button>
+      <mat-button-toggle value="day">日</mat-button-toggle>
+      <mat-button-toggle value="week">週</mat-button-toggle>
+      <mat-button-toggle value="month">月</mat-button-toggle>
+    </mat-button-toggle-group>
   </div>
   <button mat-raised-button color="primary" (click)="openProjectDialog()">
     + プロジェクト
@@ -114,8 +114,10 @@
       class="calendar-day"
       [ngClass]="{
         today: isToday(date),
-        'other-month': !isCurrentMonth(date) && viewMode === 'month'
+        'other-month': !isCurrentMonth(date) && viewMode === 'month',
+        selected: isSelectedDate(date)
       }"
+      (click)="onDateSelected(date)"
     >
       <div class="day-number">
         {{ date.getDate() }}

@@ -129,6 +129,7 @@
   padding: 8px;
   position: relative;
   background-color: white;
+  cursor: pointer;
 }
 
 .calendar-day:last-child {
@@ -152,6 +153,15 @@
 .calendar-day.other-month {
   background-color: #f8f9fa;
   color: #6c757d;
+}
+
+.calendar-day.selected {
+  background-color: #fff9c4;
+  box-shadow: inset 0 0 0 2px rgba(255, 213, 79, 0.6);
+}
+
+.calendar-day.selected.today {
+  background-color: #ffe082;
 }
 
 .day-number {

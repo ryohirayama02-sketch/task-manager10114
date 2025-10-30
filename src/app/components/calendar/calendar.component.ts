@@ -56,6 +56,7 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
   // 表示モード
   viewMode: 'day' | 'week' | 'month' = 'month';
+  selectedDate: Date | null = null;
 
   // フィルター用
   filterPriority: string = '';
@@ -304,23 +305,42 @@ export class CalendarComponent implements OnInit, OnDestroy {
     } else {
       this.currentDate.setMonth(this.currentDate.getMonth() + direction);
     }
+    if (this.selectedDate) {
+      this.selectedDate = new Date(this.currentDate);
+    }
     this.generateCalendarDays();
   }
 
   /** 現在の日付に戻る */
   goToCurrentDate() {
     this.currentDate = new Date();
+    if (this.selectedDate) {
+      this.selectedDate = new Date(this.currentDate);
+    }
     this.generateCalendarDays();
   }
 
   /** 表示モードを変更 */
-  changeViewMode(event: Event) {
-    const target = event.target as HTMLSelectElement;
-    const value = target.value as 'day' | 'week' | 'month';
-    if (value === 'day' || value === 'week' || value === 'month') {
-      this.viewMode = value;
-      this.generateCalendarDays();
+  changeViewMode(mode: 'day' | 'week' | 'month') {
+    this.viewMode = mode;
+    if (this.selectedDate) {
+      this.currentDate = new Date(this.selectedDate);
     }
+    this.generateCalendarDays();
+  }
+
+  /** 日付が選択中かチェック */
+  isSelectedDate(date: Date): boolean {
+    return !!this.selectedDate
+      ? date.toDateString() === this.selectedDate.toDateString()
+      : false;
+  }
+
+  /** 日付を選択 */
+  onDateSelected(date: Date) {
+    this.selectedDate = new Date(date);
+    this.currentDate = new Date(date);
+    this.generateCalendarDays();
   }
 
   /** 表示名を取得 */
