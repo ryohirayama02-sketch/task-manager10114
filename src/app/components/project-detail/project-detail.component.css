@@ -1,6 +1,7 @@
 .project-card {
   position: relative; /* ✅ これを追加：右下ボタンの基準にする */
-  width: 600px;
+  max-width: 960px;
+  width: 100%;
   border-radius: 16px;
   padding: 24px;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
@@ -123,6 +124,10 @@ textarea {
   margin-top: 30px;
   padding: 20px;
   border-radius: 10px;
+  max-width: 960px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .tasks-header {
