@@ -65,9 +65,9 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
   // ステータス色
   statusColors: { [key: string]: string } = {
-    未着手: '#ffcdd2',
-    作業中: '#bbdefb',
-    完了: '#c8e6c9',
+    未着手: '#ef9a9a',
+    作業中: '#81c784',
+    完了: '#64b5f6',
   };
 
   // マイルストーン
