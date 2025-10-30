@@ -27,6 +27,7 @@ interface TaskFormModel {
   startDate: Date | null;
   dueDate: Date | null;
   tags: string[];
+  calendarSyncEnabled: boolean;
 }
 
 @Component({
@@ -77,6 +78,7 @@ export class TaskFormComponent implements OnInit {
     startDate: null,
     dueDate: null,
     tags: [],
+    calendarSyncEnabled: false,
   };
   tagInputValue = '';
 
@@ -128,6 +130,7 @@ export class TaskFormComponent implements OnInit {
         status: duplicateData.status || '未着手',
         priority: duplicateData.priority || '中',
         assignee: duplicateData.assignee || '',
+        calendarSyncEnabled: duplicateData.calendarSyncEnabled ?? false,
         startDate: duplicateData.startDate
           ? new Date(duplicateData.startDate)
           : null,

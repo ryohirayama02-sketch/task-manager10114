@@ -76,6 +76,27 @@
         <mat-icon matSuffix>priority_high</mat-icon>
       </mat-form-field>
 
+      <!-- カレンダー連携 -->
+      <div class="calendar-toggle-container">
+        <span class="calendar-toggle-label">カレンダー連携</span>
+        <button
+          type="button"
+          class="calendar-switch"
+          [class.on]="model.calendarSyncEnabled"
+          (click)="model.calendarSyncEnabled = !model.calendarSyncEnabled"
+          role="switch"
+          [attr.aria-checked]="model.calendarSyncEnabled"
+        >
+          <span class="calendar-switch-handle"></span>
+        </button>
+        <span
+          class="calendar-toggle-state"
+          [class.on]="model.calendarSyncEnabled"
+        >
+          {{ model.calendarSyncEnabled ? 'ON' : 'OFF' }}
+        </span>
+      </div>
+
       <!-- 担当者選択 -->
       <div class="assignee-selection">
         <div class="assignee-header">
