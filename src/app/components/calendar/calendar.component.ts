@@ -224,19 +224,16 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
   /** 選択されたプロジェクトのタスクをフィルタリング */
   filterTasksBySelectedProjects() {
-    if (this.selectedProjectIds.length === 0) {
-      this.tasks = [];
-    } else {
-      this.tasks = this.allTasks.filter((task) =>
-        this.selectedProjectIds.includes(task.projectId)
-      );
-    }
     this.applyFilters();
   }
 
   /** フィルターを適用 */
   applyFilters() {
-    let filteredTasks = [...this.tasks];
+    let filteredTasks = this.selectedProjectIds.length
+      ? this.allTasks.filter((task) =>
+          this.selectedProjectIds.includes(task.projectId)
+        )
+      : [];
 
     if (this.filterPriority) {
       filteredTasks = filteredTasks.filter(
