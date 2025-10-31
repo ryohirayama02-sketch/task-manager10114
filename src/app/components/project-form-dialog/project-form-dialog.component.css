@@ -45,6 +45,12 @@
   margin-bottom: 16px;
 }
 
+.date-field-group {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
 .date-field label {
   display: block;
   margin-bottom: 8px;

@@ -36,19 +36,37 @@
         <mat-icon matSuffix>description</mat-icon>
       </mat-form-field>
 
-      <!-- 開始日 -->
-      <div class="date-field">
-        <label for="startDate">開始日</label>
-        <div class="date-input-wrapper">
-          <input
-            id="startDate"
-            type="date"
-            [(ngModel)]="project.startDate"
-            name="startDate"
-            placeholder="開始日を選択"
-            class="date-input"
-          />
-          <mat-icon class="date-icon">event</mat-icon>
+      <div class="date-field-group">
+        <!-- 開始日 -->
+        <div class="date-field">
+          <label for="startDate">開始日</label>
+          <div class="date-input-wrapper">
+            <input
+              id="startDate"
+              type="date"
+              [(ngModel)]="project.startDate"
+              name="startDate"
+              placeholder="開始日を選択"
+              class="date-input"
+            />
+            <mat-icon class="date-icon">event</mat-icon>
+          </div>
+        </div>
+
+        <!-- 終了日 -->
+        <div class="date-field">
+          <label for="endDate">終了日</label>
+          <div class="date-input-wrapper">
+            <input
+              id="endDate"
+              type="date"
+              [(ngModel)]="project.endDate"
+              name="endDate"
+              placeholder="終了日を選択"
+              class="date-input"
+            />
+            <mat-icon class="date-icon">event</mat-icon>
+          </div>
         </div>
       </div>
 
