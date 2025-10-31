@@ -14,6 +14,15 @@ Run `ng generate component component-name` to generate a new component. You can 
 
 Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
 
+## Lightweight Validation Workflow
+
+- Run `npm run validate` after each edit cycle. It decides whether lint/type-check/build steps are needed.
+- Normal edits trigger `npm run lint` (excluding `functions/`, `src/app/src/`, `*.spec.ts`) and `npm run type-check` (backed by `tsconfig.typecheck.json`).
+- Pure UI tweaks (HTML/CSS) and changes limited to excluded paths skip validation for faster feedback.
+- A full `ng build` runs automatically every five successful edit cycles, immediately after config file changes, or right after a failed run is resolved.
+- Major or risky changes should still be verified with `npm run build` and `npm run test` manually.
+- Workflow state is cached in `.workflow/state.json`; delete that file to reset counters if needed.
+
 ## Running unit tests
 
 Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).

@@ -77,25 +77,33 @@
           </mat-form-field>
 
           <div class="inline-date-row">
-            <mat-form-field appearance="outline" class="date-field">
-              <mat-label>開始日</mat-label>
-              <input
-                matInput
-                type="date"
-                [(ngModel)]="editableProject!.startDate"
-                name="inlineStartDate"
-              />
-            </mat-form-field>
+            <div class="date-field">
+              <label for="inlineStartDate">開始日</label>
+              <div class="date-input-wrapper">
+                <input
+                  id="inlineStartDate"
+                  class="date-input"
+                  type="date"
+                  [(ngModel)]="editableProject!.startDate"
+                  name="inlineStartDate"
+                />
+                <mat-icon class="date-icon">event</mat-icon>
+              </div>
+            </div>
 
-            <mat-form-field appearance="outline" class="date-field">
-              <mat-label>終了日</mat-label>
-              <input
-                matInput
-                type="date"
-                [(ngModel)]="editableProject!.endDate"
-                name="inlineEndDate"
-              />
-            </mat-form-field>
+            <div class="date-field">
+              <label for="inlineEndDate">終了日</label>
+              <div class="date-input-wrapper">
+                <input
+                  id="inlineEndDate"
+                  class="date-input"
+                  type="date"
+                  [(ngModel)]="editableProject!.endDate"
+                  name="inlineEndDate"
+                />
+                <mat-icon class="date-icon">event</mat-icon>
+              </div>
+            </div>
           </div>
 
           <mat-form-field appearance="outline" class="full-width-field">

@@ -41,6 +41,9 @@ testem.log
 .DS_Store
 Thumbs.db
 
+# Workflow state
+.workflow/
+
 # Environment files with sensitive data
 sendgrid.env
 .env

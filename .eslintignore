@@ -1,0 +1,7 @@
+dist/**
+functions/**
+src/app/src/**
+**/*.spec.ts
+*.js
+*.cjs
+*.mjs

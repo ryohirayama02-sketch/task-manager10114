@@ -36,6 +36,41 @@
   gap: 16px;
 }
 
+.project-inline-edit-form mat-form-field {
+  display: block;
+}
+
+.project-inline-edit-form .mat-mdc-form-field-flex {
+  background-color: #ffffff;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  padding: 0 12px;
+}
+
+.project-inline-edit-form .mdc-notched-outline__leading,
+.project-inline-edit-form .mdc-notched-outline__trailing,
+.project-inline-edit-form .mdc-notched-outline__notch {
+  background-color: #ffffff;
+}
+
+.project-inline-edit-form .mat-mdc-form-field-infix {
+  background-color: #ffffff;
+}
+
+.project-inline-edit-form .mat-mdc-form-field-focus-overlay {
+  background-color: transparent;
+}
+
+.project-inline-edit-form .mat-mdc-input-element,
+.project-inline-edit-form textarea {
+  background-color: transparent;
+}
+
+.project-inline-edit-form .mat-mdc-select-trigger {
+  background-color: transparent;
+  border-radius: 6px;
+}
+
 .inline-date-row {
   display: grid;
   gap: 16px;
@@ -45,6 +80,97 @@
 .full-width-field,
 .date-field {
   width: 100%;
+}
+
+.inline-date-row .date-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.inline-date-row .date-field label {
+  font-weight: 500;
+  color: #333;
+  font-size: 14px;
+}
+
+.inline-date-row .date-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.inline-date-row .date-input {
+  width: 100%;
+  padding: 12px 40px 12px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.inline-date-row .date-input:focus {
+  border-color: #1976d2;
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+  outline: none;
+}
+
+.inline-date-row .date-input:hover {
+  border-color: #1976d2;
+}
+
+.inline-date-row .date-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #666;
+  pointer-events: none;
+  font-size: 20px;
+}
+
+.inline-date-row input[type='date'] {
+  cursor: pointer;
+  color-scheme: light;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+.inline-date-row input[type='date']::-webkit-calendar-picker-indicator {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  cursor: pointer;
+  background: transparent;
+  color: transparent;
+  width: 20px;
+  height: 20px;
+  opacity: 0;
+}
+
+.inline-date-row input[type='date']::-webkit-inner-spin-button,
+.inline-date-row input[type='date']::-webkit-clear-button {
+  display: none;
+}
+
+.inline-date-row input[type='date']::-moz-calendar-picker-indicator {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  cursor: pointer;
+  background: transparent;
+  color: transparent;
+  width: 20px;
+  height: 20px;
+  opacity: 0;
 }
 
 .selected-members-chips {
