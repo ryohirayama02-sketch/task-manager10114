@@ -22,6 +22,10 @@ import { TaskEditDialogComponent } from './task-edit-dialog.component';
 import { Task, Project, ChatMessage } from '../../models/task.model';
 import { Member } from '../../models/member.model';
 import { ProjectChatComponent } from '../project-chat/project-chat.component';
+import {
+  DEFAULT_PROJECT_THEME_COLOR,
+  resolveProjectThemeColor,
+} from '../../constants/project-theme-colors';
 
 @Component({
   selector: 'app-task-detail',
@@ -78,6 +82,7 @@ export class TaskDetailComponent implements OnInit {
   childFilterAssignee = '';
   childFilterDueDate = '';
   childAssigneeOptions: string[] = [];
+  projectThemeColor = DEFAULT_PROJECT_THEME_COLOR;
 
   // タスクの基本情報
   taskData: Task = {
@@ -139,6 +144,7 @@ export class TaskDetailComponent implements OnInit {
     this.projectService.getProjectById(projectId).subscribe((project) => {
       console.log('プロジェクト情報:', project);
       this.project = project;
+      this.projectThemeColor = resolveProjectThemeColor(project);
       this.updateNotificationRecipientOptions();
     });
 
