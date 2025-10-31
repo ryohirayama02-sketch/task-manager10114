@@ -123,33 +123,33 @@
 }
 
 .status-row.completed {
-  border-left: 6px solid #64b5f6;
-  background-color: rgba(100, 181, 246, 0.12);
+  border-left: 6px solid #66bb6a;
+  background-color: rgba(102, 187, 106, 0.16);
 }
 
 .status-row.completed .status-label,
 .status-row.completed .status-total {
-  color: #1e88e5;
+  color: #1b5e20;
 }
 
 .status-row.in-progress {
-  border-left: 6px solid #81c784;
-  background-color: rgba(129, 199, 132, 0.12);
+  border-left: 6px solid #ffee58;
+  background-color: rgba(255, 238, 88, 0.18);
 }
 
 .status-row.in-progress .status-label,
 .status-row.in-progress .status-total {
-  color: #2e7d32;
+  color: #5d4037;
 }
 
 .status-row.not-started {
-  border-left: 6px solid #ef9a9a;
-  background-color: rgba(239, 154, 154, 0.15);
+  border-left: 6px solid #ef5350;
+  background-color: rgba(239, 83, 80, 0.16);
 }
 
 .status-row.not-started .status-label,
 .status-row.not-started .status-total {
-  color: #c62828;
+  color: #b71c1c;
 }
 
 .status-total {
@@ -185,36 +185,39 @@
 }
 
 .priority-item {
-  width: 48px;
-  height: 48px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 600;
-  font-size: 15px;
+  font-size: 18px;
 }
 
 .priority-item.high {
-  background: #ffebee;
-  color: #c62828;
+  background: #ef5350;
+  color: #000;
+  border: 1px solid #ef5350;
 }
 
 .priority-item.medium {
-  background: #fff3e0;
-  color: #ef6c00;
+  background: #ffee58;
+  color: #000;
+  border: 1px solid #ffee58;
 }
 
 .priority-item.low {
-  background: #e8f5e8;
-  color: #2e7d32;
+  background: #66bb6a;
+  color: #000;
+  border: 1px solid #66bb6a;
 }
 
 .priority-label {
   display: inline-block;
-  width: 48px;
+  width: 56px;
   text-align: center;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -222,15 +225,15 @@
 }
 
 .priority-label.high {
-  color: #c62828;
+  color: #ef5350;
 }
 
 .priority-label.medium {
-  color: #ef6c00;
+  color: #d4af37;
 }
 
 .priority-label.low {
-  color: #2e7d32;
+  color: #1b5e20;
 }
 
 .priority-header {
