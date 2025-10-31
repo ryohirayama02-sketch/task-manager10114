@@ -55,6 +55,7 @@ export class TaskFormComponent implements OnInit {
   private data = inject(MAT_DIALOG_DATA, { optional: true }); // ← 追加（projectNameを受け取る）
   private memberService = inject(MemberManagementService);
   private snackBar = inject(MatSnackBar);
+  parentTaskName = '';
 
   // メンバー関連
   members: Member[] = [];
@@ -118,6 +119,10 @@ export class TaskFormComponent implements OnInit {
     // ダイアログ呼び出し時に受け取ったデータを初期セット
     if (this.data?.projectName) {
       this.model.projectName = this.data.projectName;
+    }
+
+    if (this.data?.parentTaskName) {
+      this.parentTaskName = this.data.parentTaskName;
     }
 
     // 複製データがある場合は、フォームに設定

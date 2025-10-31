@@ -13,6 +13,16 @@
         <mat-icon matSuffix>folder</mat-icon>
       </mat-form-field>
 
+      <mat-form-field
+        *ngIf="parentTaskName"
+        appearance="outline"
+        class="full-width"
+      >
+        <mat-label>親タスク</mat-label>
+        <input matInput [value]="parentTaskName" readonly />
+        <mat-icon matSuffix>subdirectory_arrow_right</mat-icon>
+      </mat-form-field>
+
       <!-- タスク名 -->
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>タスク名 *</mat-label>

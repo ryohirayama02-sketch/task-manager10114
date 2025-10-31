@@ -421,10 +421,13 @@ export class TaskDetailComponent implements OnInit {
   /** 子タスクを作成 */
   createSubtask() {
     const ref = this.dialog.open(TaskFormComponent, {
-      width: '450px',
+      width: '90vw',
+      maxWidth: '800px',
+      maxHeight: '90vh',
       data: {
         projectName: this.project?.projectName,
         parentTaskId: this.task?.id,
+        parentTaskName: this.task?.taskName,
       },
     });
 
