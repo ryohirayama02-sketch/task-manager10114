@@ -83,7 +83,7 @@
 }
 
 .project-title:hover {
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 .project-color-pill {

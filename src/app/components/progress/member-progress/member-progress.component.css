@@ -116,16 +116,34 @@
   font-size: 14px;
 }
 
-.status-row.completed .status-label {
-  color: #4caf50;
+.status-row.completed {
+  border-left: 6px solid #64b5f6;
+  background-color: rgba(100, 181, 246, 0.12);
 }
 
-.status-row.in-progress .status-label {
-  color: #2196f3;
+.status-row.completed .status-label,
+.status-row.completed .status-total {
+  color: #1e88e5;
 }
 
-.status-row.not-started .status-label {
-  color: #f44336;
+.status-row.in-progress {
+  border-left: 6px solid #81c784;
+  background-color: rgba(129, 199, 132, 0.12);
+}
+
+.status-row.in-progress .status-label,
+.status-row.in-progress .status-total {
+  color: #2e7d32;
+}
+
+.status-row.not-started {
+  border-left: 6px solid #ef9a9a;
+  background-color: rgba(239, 154, 154, 0.15);
+}
+
+.status-row.not-started .status-label,
+.status-row.not-started .status-total {
+  color: #c62828;
 }
 
 .status-total {
@@ -156,15 +174,18 @@
 }
 
 .priority-item.high {
-  background: #f44336;
+  background: #ffebee;
+  color: #c62828;
 }
 
 .priority-item.medium {
-  background: #ff9800;
+  background: #fff3e0;
+  color: #ef6c00;
 }
 
 .priority-item.low {
-  background: #4caf50;
+  background: #e8f5e8;
+  color: #2e7d32;
 }
 
 .priority-header {
@@ -193,15 +214,15 @@
 }
 
 .priority-high {
-  color: #f44336;
+  color: #c62828;
 }
 
 .priority-medium {
-  color: #ff9800;
+  color: #ef6c00;
 }
 
 .priority-low {
-  color: #4caf50;
+  color: #2e7d32;
 }
 
 .no-members {
