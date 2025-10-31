@@ -161,6 +161,10 @@
   justify-content: center;
 }
 
+.priority-row .priority-details {
+  gap: 20px;
+}
+
 .priority-item {
   width: 48px;
   height: 48px;
@@ -184,6 +188,29 @@
 
 .priority-item.low {
   background: #e8f5e8;
+  color: #2e7d32;
+}
+
+.priority-label {
+  display: inline-block;
+  width: 48px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+.priority-label.high {
+  color: #c62828;
+}
+
+.priority-label.medium {
+  color: #ef6c00;
+}
+
+.priority-label.low {
   color: #2e7d32;
 }
 
