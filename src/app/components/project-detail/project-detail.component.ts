@@ -17,6 +17,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatSlideToggleChange } from '@angular/material/slide-toggle';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { TaskFormComponent } from '../task-form/task-form.component';
 import { ProjectFormDialogComponent } from '../project-form-dialog/project-form-dialog.component';
@@ -41,6 +43,7 @@ import {
     MatIconModule,
     MatCardModule,
     MatChipsModule,
+    MatSlideToggleModule,
     MatSnackBarModule,
     ProgressCircleComponent,
     ProjectChatComponent,
@@ -56,6 +59,17 @@ export class ProjectDetailComponent implements OnInit {
   filteredTasks: Task[] = [];
   projectThemeColor = DEFAULT_PROJECT_THEME_COLOR;
   taskNameById: Record<string, string> = {};
+  isInlineEditMode = false;
+  editableProject: {
+    projectName: string;
+    overview: string;
+    startDate: string;
+    endDate: string;
+    responsible: string;
+    members: string;
+    tags: string;
+  } | null = null;
+  isSavingInlineEdit = false;
 
   // フィルター用のプロパティ
   filterStatus: string = '';
@@ -100,6 +114,107 @@ export class ProjectDetailComponent implements OnInit {
 
       // プロジェクトのタスク一覧を取得
       this.loadTasks();
+    }
+  }
+
+  async onInlineEditToggle(event: MatSlideToggleChange): Promise<void> {
+    if (!this.project) {
+      event.source.checked = false;
+      return;
+    }
+
+    if (event.checked) {
+      this.enterInlineEditMode();
+      this.isInlineEditMode = true;
+    } else {
+      await this.saveInlineEditChanges(event);
+    }
+  }
+
+  private enterInlineEditMode(): void {
+    if (!this.project) {
+      return;
+    }
+
+    this.editableProject = {
+      projectName: this.project.projectName || '',
+      overview: this.project.overview || '',
+      startDate: this.project.startDate || '',
+      endDate: this.project.endDate || '',
+      responsible: this.project.responsible || '',
+      members: this.project.members
+        ? Array.isArray(this.project.members)
+          ? this.project.members
+              .map((member: any) => member?.memberName || member?.name || '')
+              .filter((name: string) => !!name)
+              .join(', ')
+          : (this.project.members as string)
+        : '',
+      tags: Array.isArray(this.project.tags)
+        ? (this.project.tags as unknown as string[])
+            .filter((tag) => !!tag)
+            .join(', ')
+        : this.project.tags || '',
+    };
+  }
+
+  private async saveInlineEditChanges(event: MatSlideToggleChange): Promise<void> {
+    if (!this.project || !this.editableProject) {
+      event.source.checked = false;
+      this.isInlineEditMode = false;
+      return;
+    }
+
+    const trimmedName = this.editableProject.projectName.trim();
+    if (!trimmedName) {
+      this.snackBar.open('プロジェクト名を入力してください', '閉じる', {
+        duration: 3000,
+      });
+      event.source.checked = true;
+      this.isInlineEditMode = true;
+      return;
+    }
+
+    const payload = {
+      projectName: trimmedName,
+      overview: this.editableProject.overview?.trim() || '',
+      startDate: this.editableProject.startDate || '',
+      endDate: this.editableProject.endDate || '',
+      responsible: this.editableProject.responsible?.trim() || '',
+      members: this.editableProject.members?.trim() || '',
+      tags: this.editableProject.tags?.trim() || '',
+      updatedAt: new Date(),
+    };
+
+    if (this.isSavingInlineEdit) {
+      event.source.checked = true;
+      this.isInlineEditMode = true;
+      return;
+    }
+
+    this.isSavingInlineEdit = true;
+    try {
+      await this.projectService.updateProject(this.project.id, payload);
+      this.project = {
+        ...this.project,
+        ...payload,
+      } as IProject;
+      this.projectThemeColor = resolveProjectThemeColor(this.project);
+      this.snackBar.open('プロジェクトを更新しました', '閉じる', {
+        duration: 3000,
+      });
+      this.isInlineEditMode = false;
+      this.editableProject = null;
+      event.source.checked = false;
+    } catch (error) {
+      console.error('インライン編集の保存に失敗しました:', error);
+      this.snackBar.open('プロジェクトの更新に失敗しました', '閉じる', {
+        duration: 3000,
+      });
+      this.isInlineEditMode = true;
+      event.source.checked = true;
+    } finally {
+      this.isSavingInlineEdit = false;
     }
   }
 

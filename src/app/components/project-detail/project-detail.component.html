@@ -11,35 +11,125 @@
   class="project-card"
   [style.background]="getProjectCardBackground()"
 >
+  <div class="project-toolbar">
+    <mat-slide-toggle
+      color="primary"
+      [checked]="isInlineEditMode"
+      [disabled]="isSavingInlineEdit"
+      (change)="onInlineEditToggle($event)"
+    >
+      編集モード {{ isInlineEditMode ? 'ON' : 'OFF' }}
+    </mat-slide-toggle>
+  </div>
+
   <div class="project-header">
     <div class="project-info">
-      <h3>{{ project.projectName }}</h3>
-      <p><strong>概要:</strong> {{ project.overview || "未設定" }}</p>
-      <p>
-        <strong>期間:</strong>
-        {{ toDateDisplay(project.startDate) }} -
-        {{ toDateDisplay(project.endDate) }}
-      </p>
-      <p>
-        <strong>責任者:</strong>
-        {{ project.responsible || "未設定" }}
-      </p>
-      <p><strong>メンバー:</strong> {{ project.members || "未設定" }}</p>
-      <p><strong>タグ:</strong> {{ project.tags || "-" }}</p>
-      <div class="project-attachments" *ngIf="project.attachments?.length; else noProjectAttachments">
-        <strong>資料:</strong>
-        <div class="attachment-links">
-          <a
-            *ngFor="let attachment of project.attachments"
-            [href]="attachment.url"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <mat-icon>{{ attachment.type === 'link' ? 'link' : 'attach_file' }}</mat-icon>
-            {{ attachment.name }}
-          </a>
+      <ng-container *ngIf="!isInlineEditMode; else inlineEditForm">
+        <h3>{{ project.projectName }}</h3>
+        <p><strong>概要:</strong> {{ project.overview || "未設定" }}</p>
+        <p>
+          <strong>期間:</strong>
+          {{ toDateDisplay(project.startDate) }} -
+          {{ toDateDisplay(project.endDate) }}
+        </p>
+        <p>
+          <strong>責任者:</strong>
+          {{ project.responsible || "未設定" }}
+        </p>
+        <p><strong>メンバー:</strong> {{ project.members || "未設定" }}</p>
+        <p><strong>タグ:</strong> {{ project.tags || "-" }}</p>
+        <div class="project-attachments" *ngIf="project.attachments?.length; else noProjectAttachments">
+          <strong>資料:</strong>
+          <div class="attachment-links">
+            <a
+              *ngFor="let attachment of project.attachments"
+              [href]="attachment.url"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <mat-icon>{{ attachment.type === 'link' ? 'link' : 'attach_file' }}</mat-icon>
+              {{ attachment.name }}
+            </a>
+          </div>
         </div>
-      </div>
+      </ng-container>
+
+      <ng-template #inlineEditForm>
+        <form class="project-inline-edit-form" novalidate>
+          <mat-form-field appearance="outline" class="full-width-field">
+            <mat-label>プロジェクト名</mat-label>
+            <input
+              matInput
+              [(ngModel)]="editableProject!.projectName"
+              name="inlineProjectName"
+              required
+            />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width-field">
+            <mat-label>概要</mat-label>
+            <textarea
+              matInput
+              rows="3"
+              [(ngModel)]="editableProject!.overview"
+              name="inlineOverview"
+            ></textarea>
+          </mat-form-field>
+
+          <div class="inline-date-row">
+            <mat-form-field appearance="outline" class="date-field">
+              <mat-label>開始日</mat-label>
+              <input
+                matInput
+                type="date"
+                [(ngModel)]="editableProject!.startDate"
+                name="inlineStartDate"
+              />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="date-field">
+              <mat-label>終了日</mat-label>
+              <input
+                matInput
+                type="date"
+                [(ngModel)]="editableProject!.endDate"
+                name="inlineEndDate"
+              />
+            </mat-form-field>
+          </div>
+
+          <mat-form-field appearance="outline" class="full-width-field">
+            <mat-label>責任者</mat-label>
+            <input
+              matInput
+              [(ngModel)]="editableProject!.responsible"
+              name="inlineResponsible"
+              placeholder="例: 山田太郎"
+            />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width-field">
+            <mat-label>メンバー</mat-label>
+            <textarea
+              matInput
+              rows="2"
+              [(ngModel)]="editableProject!.members"
+              name="inlineMembers"
+              placeholder="例: 山田太郎, 佐藤花子"
+            ></textarea>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width-field">
+            <mat-label>タグ</mat-label>
+            <input
+              matInput
+              [(ngModel)]="editableProject!.tags"
+              name="inlineTags"
+              placeholder="例: #マーケティング, #外部連携"
+            />
+          </mat-form-field>
+        </form>
+      </ng-template>
     </div>
 
     <ng-template #noProjectAttachments>
@@ -73,7 +163,12 @@
   </div>
 
   <div style="margin-top: 20px">
-    <button mat-raised-button color="primary" (click)="openEditProjectDialog()">
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="openEditProjectDialog()"
+      [disabled]="isInlineEditMode"
+    >
       プロジェクト編集
     </button>
   </div>

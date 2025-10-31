@@ -25,6 +25,28 @@
   margin: 24px auto;
 }
 
+.project-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
+.project-inline-edit-form {
+  display: grid;
+  gap: 16px;
+}
+
+.inline-date-row {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.full-width-field,
+.date-field {
+  width: 100%;
+}
+
 .project-header {
   display: flex;
   justify-content: space-between;
