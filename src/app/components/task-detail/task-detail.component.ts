@@ -265,6 +265,7 @@ export class TaskDetailComponent implements OnInit {
         projectId: this.project.id!,
         projectName: this.project.projectName || '',
         oldTaskData: { ...this.task }, // 古いタスクデータをコピーして渡す
+        childTasks: [...this.childTasks],
       },
     });
 

@@ -466,6 +466,7 @@ export class TaskEditDialogComponent implements OnInit {
   membersLoading = false;
   isSaving = false;
   tagInputValue = '';
+  private childTasksForValidation: Task[] = [];
 
   constructor(
     private taskService: TaskService,
@@ -479,6 +480,7 @@ export class TaskEditDialogComponent implements OnInit {
       projectId: string;
       projectName: string;
       oldTaskData?: Task;
+      childTasks?: Task[];
     }
   ) {
     this.task = { ...data.task };
@@ -487,6 +489,7 @@ export class TaskEditDialogComponent implements OnInit {
       : this.task.tags
       ? [this.task.tags]
       : [];
+    this.childTasksForValidation = data.childTasks || [];
   }
 
   async ngOnInit(): Promise<void> {
@@ -631,6 +634,29 @@ export class TaskEditDialogComponent implements OnInit {
         .filter((tag, index, arr) => tag && arr.indexOf(tag) === index);
     } else {
       this.task.tags = [];
+    }
+
+    const detailSettings =
+      this.task.detailSettings || this.data.oldTaskData?.detailSettings;
+    const requireChildCompletion =
+      detailSettings?.taskOrder?.requireSubtaskCompletion === true;
+
+    if (
+      requireChildCompletion &&
+      this.task.status === '完了'
+    ) {
+      const incompleteChild = this.childTasksForValidation.find(
+        (child) => child.status !== '完了'
+      );
+      if (incompleteChild) {
+        const previousStatus = this.data.oldTaskData?.status || '作業中';
+        this.task.status = previousStatus;
+        const message = `「子タスク：${incompleteChild.taskName || '名称未設定'}」が完了していません`;
+        this.snackBar.open(message, '閉じる', {
+          duration: 4000,
+        });
+        return;
+      }
     }
 
     this.isSaving = true;
