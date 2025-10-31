@@ -62,6 +62,7 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   cursor: pointer;
   border-left: 4px solid #1976d2;
+  background-color: #ffffff;
 }
 
 .member-card:hover {
@@ -76,7 +77,7 @@
   align-items: center;
   margin-bottom: 20px;
   padding-bottom: 15px;
-  border-bottom: 2px solid #e0e0e0;
+  border-bottom: 2px solid #c0c0c0;
 }
 
 .member-name {
@@ -106,7 +107,7 @@
   align-items: center;
   gap: 0 16px;
   padding: 12px 0;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid #d0d0d0;
   width: 100%;
   max-width: 520px;
   margin: 0 auto;
@@ -129,7 +130,7 @@
 
 .status-row.completed .status-label,
 .status-row.completed .status-total {
-  color: #255b40;
+  color: #81c995;
 }
 
 .status-row.in-progress {
@@ -138,7 +139,7 @@
 
 .status-row.in-progress .status-label,
 .status-row.in-progress .status-total {
-  color: #6a5a2d;
+  color: #fdd663;
 }
 
 .status-row.not-started {
@@ -147,7 +148,7 @@
 
 .status-row.not-started .status-label,
 .status-row.not-started .status-total {
-  color: #a44743;
+  color: #f28b82;
 }
 
 .status-total {
@@ -215,7 +216,7 @@
   display: inline-block;
   width: 56px;
   text-align: center;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -223,15 +224,15 @@
 }
 
 .priority-label.high {
-  color: #c96c67;
+  color: #f28b82;
 }
 
 .priority-label.medium {
-  color: #b89c37;
+  color: #fdd663;
 }
 
 .priority-label.low {
-  color: #2f6b4f;
+  color: #81c995;
 }
 
 .priority-header {
@@ -254,15 +255,15 @@
 }
 
 .priority-high {
-  color: #c96c67;
+  color: #fdd6d5;
 }
 
 .priority-medium {
-  color: #b89c37;
+  color: #fef6c3;
 }
 
 .priority-low {
-  color: #2f6b4f;
+  color: #b2e9cb;
 }
 
 
