@@ -192,6 +192,34 @@ export class KanbanComponent implements OnInit {
     // 古いステータスを保存
     const oldStatus = task.status;
 
+    if (task.parentTaskId && newStatus !== '完了') {
+      const parentTask = this.allTasks.find(
+        (t) => t.id === task.parentTaskId
+      );
+      if (
+        parentTask &&
+        parentTask.status === '完了' &&
+        parentTask.detailSettings?.taskOrder?.requireSubtaskCompletion
+      ) {
+        alert(
+          `「親タスク：${parentTask.taskName || '名称未設定'}」のステータスを作業中に変更します`
+        );
+        try {
+          await this.taskService.updateTaskStatus(
+            parentTask.id!,
+            '作業中',
+            parentTask.status,
+            parentTask.projectId,
+            parentTask.projectName
+          );
+          parentTask.status = '作業中';
+        } catch (error) {
+          console.error('親タスクのステータス更新に失敗しました', error);
+        }
+        this.filterTasksBySelectedProjects();
+      }
+    }
+
     if (
       newStatus === '完了' &&
       task.detailSettings?.taskOrder?.requireSubtaskCompletion

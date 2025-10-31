@@ -702,6 +702,7 @@ export class TaskDetailComponent implements OnInit {
       this.ensureNotificationRecipients();
     }
     this.updateNotificationRecipientOptions();
+    void this.reopenParentTaskIfNeeded(this.childTasks);
   }
 
   private ensureNotificationRecipients(): void {
@@ -728,6 +729,48 @@ export class TaskDetailComponent implements OnInit {
     return Array.from(set);
   }
 
+  private async reopenParentTaskIfNeeded(children: Task[]): Promise<void> {
+    if (!this.task || !this.task.id || !this.task.projectId) {
+      return;
+    }
+
+    if (this.task.status !== '完了') {
+      return;
+    }
+
+    const requireCompletion =
+      this.task.detailSettings?.taskOrder?.requireSubtaskCompletion === true;
+    if (!requireCompletion) {
+      return;
+    }
+
+    const incompleteChild = children.find((child) => child.status !== '完了');
+    if (!incompleteChild) {
+      return;
+    }
+
+    alert(
+      `「親タスク：${this.task.taskName || '名称未設定'}」のステータスを作業中に変更します`
+    );
+
+    const previousStatus = this.task.status;
+    this.task.status = '作業中';
+    this.taskData.status = '作業中';
+
+    try {
+      await this.taskService.updateTaskStatus(
+        this.task.id,
+        '作業中',
+        previousStatus,
+        this.task.projectId,
+        this.task.projectName
+      );
+      console.log('親タスクを作業中に戻しました');
+    } catch (error) {
+      console.error('親タスクのステータス更新に失敗しました', error);
+    }
+  }
+
   private setupChildTasks(tasks: Task[], parentId: string): void {
     const children = this.sortTasksByDueDate(
       tasks.filter((task) => task.parentTaskId === parentId)
@@ -747,6 +790,8 @@ export class TaskDetailComponent implements OnInit {
     } else {
       this.filteredChildTasks = [...children];
     }
+
+    void this.reopenParentTaskIfNeeded(children);
   }
 
   applyChildFilter(): void {
