@@ -34,8 +34,9 @@
         <strong>概要:</strong> {{ project.overview || "（概要未設定）" }}
       </p>
       <p>
-        <strong>期間:</strong> {{ project.startDate || "（開始日未設定）" }} ～
-        {{ project.endDate || "（終了日未設定）" }}
+        <strong>期間:</strong>
+        {{ project.startDate | date : 'yyyy/MM/dd' }} -
+        {{ project.endDate | date : 'yyyy/MM/dd' }}
       </p>
       <p>
         <strong>責任者:</strong> {{ project.responsible || "（責任者未設定）" }}
