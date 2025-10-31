@@ -192,6 +192,24 @@ export class KanbanComponent implements OnInit {
     // 古いステータスを保存
     const oldStatus = task.status;
 
+    if (
+      newStatus === '完了' &&
+      task.detailSettings?.taskOrder?.requireSubtaskCompletion
+    ) {
+      const childTasks = this.allTasks.filter(
+        (child) => child.parentTaskId === task.id
+      );
+      const incompleteChild = childTasks.find(
+        (child) => child.status !== '完了'
+      );
+
+      if (incompleteChild) {
+        const childName = incompleteChild.taskName || '名称未設定';
+        alert(`「子タスク：${childName}」が完了していません`);
+        return;
+      }
+    }
+
     try {
       // TaskServiceを使用してステータスを更新（編集ログも記録される）
       await this.taskService.updateTaskStatus(
