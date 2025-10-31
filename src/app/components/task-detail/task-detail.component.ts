@@ -70,6 +70,13 @@ export class TaskDetailComponent implements OnInit {
   selectedMemberId: string = '';
   membersLoading = false;
   notificationRecipientOptions: string[] = [];
+  childTasks: Task[] = [];
+  filteredChildTasks: Task[] = [];
+  childFilterStatus = '';
+  childFilterPriority = '';
+  childFilterAssignee = '';
+  childFilterDueDate = '';
+  childAssigneeOptions: string[] = [];
 
   // タスクの基本情報
   taskData: Task = {
@@ -158,6 +165,7 @@ export class TaskDetailComponent implements OnInit {
           };
           this.initializeDetailSettings((this.task as any).detailSettings);
           this.updateNotificationRecipientOptions();
+          this.setupChildTasks(tasksWithProjectId, taskId);
           console.log('設定されたタスクデータ:', this.taskData);
         } else {
           console.error('タスクが見つかりませんでした');
@@ -703,6 +711,172 @@ export class TaskDetailComponent implements OnInit {
       set.add(this.taskData.assignee);
     }
     return Array.from(set);
+  }
+
+  private setupChildTasks(tasks: Task[], parentId: string): void {
+    const children = this.sortTasksByDueDate(
+      tasks.filter((task) => task.parentTaskId === parentId)
+    );
+    this.childTasks = children;
+    this.childAssigneeOptions = [
+      ...new Set(children.map((task) => task.assignee).filter((name) => !!name)),
+    ];
+
+    if (
+      this.childFilterStatus ||
+      this.childFilterPriority ||
+      this.childFilterAssignee ||
+      this.childFilterDueDate
+    ) {
+      this.applyChildFilter();
+    } else {
+      this.filteredChildTasks = [...children];
+    }
+  }
+
+  applyChildFilter(): void {
+    const filtered = this.childTasks.filter((task) => {
+      const statusMatch =
+        !this.childFilterStatus || task.status === this.childFilterStatus;
+      const priorityMatch =
+        !this.childFilterPriority || task.priority === this.childFilterPriority;
+      const assigneeMatch =
+        !this.childFilterAssignee ||
+        task.assignee
+          .toLowerCase()
+          .includes(this.childFilterAssignee.toLowerCase());
+      const dueDateMatch =
+        !this.childFilterDueDate || task.dueDate === this.childFilterDueDate;
+
+      return statusMatch && priorityMatch && assigneeMatch && dueDateMatch;
+    });
+
+    this.filteredChildTasks = this.sortTasksByDueDate(filtered);
+  }
+
+  resetChildFilter(): void {
+    this.childFilterStatus = '';
+    this.childFilterPriority = '';
+    this.childFilterAssignee = '';
+    this.childFilterDueDate = '';
+    this.filteredChildTasks = [...this.childTasks];
+  }
+
+  openChildTaskDetail(task: Task): void {
+    if (!task.id || !task.projectId) {
+      return;
+    }
+    this.router.navigate(['/project', task.projectId, 'task', task.id]);
+  }
+
+  openChildDatePicker(input: HTMLInputElement | null): void {
+    if (!input) {
+      return;
+    }
+
+    const picker = (input as any).showPicker;
+    if (typeof picker === 'function') {
+      picker.call(input);
+    } else {
+      input.focus();
+      input.click();
+    }
+  }
+
+  exportChildTasksToCSV(): void {
+    if (!this.filteredChildTasks.length) {
+      alert('出力する子タスクがありません');
+      return;
+    }
+
+    const csvData = this.generateChildCSVData();
+    const parentName = this.taskData.taskName || 'task';
+    this.downloadCSV(csvData, `${parentName}_subtasks.csv`);
+  }
+
+  private generateChildCSVData(): string {
+    const headers = [
+      'タスク名',
+      'ステータス',
+      '期日',
+      '優先度',
+      '担当者',
+      '開始日',
+      '説明',
+    ];
+    const rows = this.filteredChildTasks.map((task) => [
+      task.taskName,
+      task.status,
+      task.dueDate,
+      task.priority,
+      task.assignee,
+      task.startDate,
+      task.description || '',
+    ]);
+
+    const csvContent = [headers, ...rows]
+      .map((row) => row.map((field) => `"${field}"`).join(','))
+      .join('\n');
+
+    return '\uFEFF' + csvContent;
+  }
+
+  private downloadCSV(csvData: string, filename: string): void {
+    const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  getChildTasksSectionBackground(): string {
+    const color = this.project?.themeColor || '#e3f2fd';
+    return `linear-gradient(180deg, rgba(255,255,255,0.95) 0%, ${color} 100%)`;
+  }
+
+  getStatusColor(status: string): string {
+    switch (status) {
+      case '完了':
+        return 'primary';
+      case '作業中':
+        return 'accent';
+      case '未着手':
+        return 'warn';
+      default:
+        return '';
+    }
+  }
+
+  getPriorityColor(priority: string): string {
+    switch (priority) {
+      case '高':
+        return 'warn';
+      case '中':
+        return 'accent';
+      case '低':
+        return 'primary';
+      default:
+        return '';
+    }
+  }
+
+  private sortTasksByDueDate(tasks: Task[]): Task[] {
+    return [...tasks].sort((a, b) => {
+      const isCompletedA = a.status === '完了' ? 1 : 0;
+      const isCompletedB = b.status === '完了' ? 1 : 0;
+
+      if (isCompletedA !== isCompletedB) {
+        return isCompletedA - isCompletedB;
+      }
+
+      const dateA = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
+      const dateB = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
+      return dateA - dateB;
+    });
   }
 
   updateNotificationRecipientOptions(): void {

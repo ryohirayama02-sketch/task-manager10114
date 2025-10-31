@@ -10,6 +10,7 @@ export interface Task {
   assigneeEmail?: string;
   projectThemeColor?: string;
   calendarSyncEnabled?: boolean;
+  parentTaskId?: string;
   startDate: string;
   dueDate: string;
   endDate?: string;

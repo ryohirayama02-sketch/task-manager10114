@@ -28,6 +28,7 @@ interface TaskFormModel {
   dueDate: Date | null;
   tags: string[];
   calendarSyncEnabled: boolean;
+  parentTaskId?: string;
 }
 
 @Component({
@@ -80,6 +81,7 @@ export class TaskFormComponent implements OnInit {
     dueDate: null,
     tags: [],
     calendarSyncEnabled: false,
+    parentTaskId: '',
   };
   tagInputValue = '';
 
@@ -125,6 +127,10 @@ export class TaskFormComponent implements OnInit {
       this.parentTaskName = this.data.parentTaskName;
     }
 
+    if (this.data?.parentTaskId) {
+      this.model.parentTaskId = this.data.parentTaskId;
+    }
+
     // 複製データがある場合は、フォームに設定
     if (this.data?.duplicateData) {
       const duplicateData = this.data.duplicateData;
@@ -136,6 +142,8 @@ export class TaskFormComponent implements OnInit {
         priority: duplicateData.priority || '中',
         assignee: duplicateData.assignee || '',
         calendarSyncEnabled: duplicateData.calendarSyncEnabled ?? false,
+        parentTaskId:
+          duplicateData.parentTaskId || this.model.parentTaskId || '',
         startDate: duplicateData.startDate
           ? new Date(duplicateData.startDate)
           : null,

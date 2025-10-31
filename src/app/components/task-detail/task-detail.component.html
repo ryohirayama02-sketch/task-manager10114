@@ -227,6 +227,141 @@
         </app-project-chat>
       </mat-card-content>
     </mat-card>
+
+    <!-- 子タスク一覧 -->
+    <div
+      *ngIf="childTasks.length > 0"
+      class="child-tasks-section"
+      [style.background]="getChildTasksSectionBackground()"
+    >
+      <div class="child-tasks-header">
+        <h3>子タスク一覧</h3>
+        <div class="child-tasks-actions">
+          <button mat-raised-button color="accent" (click)="createSubtask()">
+            ＋ 子タスク
+          </button>
+          <button mat-raised-button color="accent" (click)="exportChildTasksToCSV()">
+            <mat-icon>download</mat-icon>
+            出力
+          </button>
+        </div>
+      </div>
+
+      <div class="child-filter-section">
+        <mat-form-field appearance="outline">
+          <mat-label>ステータス</mat-label>
+          <mat-select
+            [(ngModel)]="childFilterStatus"
+            (selectionChange)="applyChildFilter()"
+          >
+            <mat-option value="">すべて</mat-option>
+            <mat-option *ngFor="let status of statusOptions" [value]="status">
+              {{ status }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>優先度</mat-label>
+          <mat-select
+            [(ngModel)]="childFilterPriority"
+            (selectionChange)="applyChildFilter()"
+          >
+            <mat-option value="">すべて</mat-option>
+            <mat-option *ngFor="let priority of priorityOptions" [value]="priority">
+              {{ priority }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>担当者</mat-label>
+          <mat-select
+            [(ngModel)]="childFilterAssignee"
+            (selectionChange)="applyChildFilter()"
+          >
+            <mat-option value="">すべて</mat-option>
+            <mat-option
+              *ngFor="let assignee of childAssigneeOptions"
+              [value]="assignee"
+            >
+              {{ assignee }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>期日</mat-label>
+          <input
+            matInput
+            #childDueDateInput
+            type="date"
+            [(ngModel)]="childFilterDueDate"
+            (change)="applyChildFilter()"
+          />
+          <button
+            mat-icon-button
+            matSuffix
+            type="button"
+            (click)="openChildDatePicker(childDueDateInput)"
+            aria-label="期日を選択"
+          >
+            <mat-icon>event</mat-icon>
+          </button>
+        </mat-form-field>
+
+        <button mat-stroked-button (click)="resetChildFilter()">
+          <mat-icon>refresh</mat-icon>
+          リセット
+        </button>
+      </div>
+
+      <div class="child-tasks-grid" *ngIf="filteredChildTasks.length > 0; else noChildTasks">
+        <mat-card
+          *ngFor="let child of filteredChildTasks"
+          class="child-task-card"
+          [ngClass]="{ completed: child.status === '完了' }"
+          (click)="openChildTaskDetail(child)"
+        >
+          <mat-card-header>
+            <mat-card-title>{{ child.taskName }}</mat-card-title>
+            <mat-card-subtitle>
+              <mat-chip-set>
+                <mat-chip [color]="getStatusColor(child.status)" selected>
+                  {{ child.status }}
+                </mat-chip>
+                <mat-chip [color]="getPriorityColor(child.priority)" selected>
+                  {{ child.priority }}
+                </mat-chip>
+              </mat-chip-set>
+            </mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="child-task-details">
+              <div class="child-task-detail-item">
+                <mat-icon>event</mat-icon>
+                <span>{{ child.dueDate || '未設定' }}</span>
+              </div>
+              <div class="child-task-detail-item">
+                <mat-icon>person</mat-icon>
+                <span>{{ child.assignee || '未割当' }}</span>
+              </div>
+              <div class="child-task-detail-item">
+                <mat-icon>description</mat-icon>
+                <span>{{ child.description || '説明なし' }}</span>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <ng-template #noChildTasks>
+        <div class="child-no-tasks">
+          <mat-icon>inbox</mat-icon>
+          <p>条件に一致する子タスクがありません。</p>
+        </div>
+      </ng-template>
+    </div>
   </div>
 
   <!-- 詳細設定ダイアログ -->
