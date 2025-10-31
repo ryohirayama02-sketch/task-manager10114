@@ -95,7 +95,8 @@
   color: #495057;
 }
 
-.calendar-grid .week-day {
+.calendar-grid .week-day,
+.calendar-weekdays .week-day {
   padding: 12px 8px;
   text-align: center;
   font-weight: 600;
@@ -107,6 +108,25 @@
 }
 
 .calendar-grid .week-day:nth-child(7) {
+  border-right: none;
+}
+
+.calendar-weekdays {
+  display: grid;
+  width: 100%;
+}
+
+.calendar-weekdays.view-day {
+  grid-template-columns: 1fr;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.calendar-weekdays.view-week {
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.calendar-weekdays .week-day:last-child {
   border-right: none;
 }
 

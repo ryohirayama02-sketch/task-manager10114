@@ -111,6 +111,15 @@
   </div>
 
   <!-- カレンダーグリッド -->
+  <div
+    class="calendar-weekdays"
+    [ngClass]="'view-' + viewMode"
+    *ngIf="viewMode !== 'month'"
+  >
+    <div *ngFor="let date of calendarDays" class="week-day">
+      {{ weekDays[date.getDay()] }}
+    </div>
+  </div>
   <div class="calendar-grid" [ngClass]="'view-' + viewMode">
     <!-- 曜日ヘッダー（月表示のみ） -->
     <ng-container *ngIf="viewMode === 'month'">
