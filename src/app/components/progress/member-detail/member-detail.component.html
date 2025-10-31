@@ -54,6 +54,16 @@
       </mat-card-header>
       <mat-card-content>
         <div class="priority-breakdown">
+          <div class="status-row priority-row">
+            <div class="status-label">優先度</div>
+            <div class="status-total">&nbsp;</div>
+            <div class="priority-details">
+              <span class="priority-label high">高</span>
+              <span class="priority-label medium">中</span>
+              <span class="priority-label low">低</span>
+            </div>
+          </div>
+
           <div class="status-row completed">
             <div class="status-label">完了</div>
             <div class="status-total">{{ memberDetail.completedTasks }}件</div>
@@ -101,14 +111,6 @@
               }}</span>
             </div>
           </div>
-        </div>
-
-        <!-- 優先度ヘッダー -->
-        <div class="priority-header">
-          <span class="priority-label">優先度</span>
-          <span class="priority-high">高</span>
-          <span class="priority-medium">中</span>
-          <span class="priority-low">低</span>
         </div>
       </mat-card-content>
     </mat-card>
