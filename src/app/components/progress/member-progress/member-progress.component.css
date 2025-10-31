@@ -87,10 +87,11 @@
 }
 
 .completion-rate {
-  background: linear-gradient(135deg, #4caf50, #8bc34a);
+  background-color: #66bb6a;
   color: white;
   padding: 8px 16px;
   border-radius: 20px;
+  border: 1px solid #66bb6a;
   font-weight: 600;
   font-size: 14px;
 }
