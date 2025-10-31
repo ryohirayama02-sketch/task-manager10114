@@ -290,6 +290,7 @@
   transition: all 0.2s ease;
   font-size: 10px;
   line-height: 1.2;
+  color: #000;
 }
 
 .task-item:hover {
@@ -300,14 +301,14 @@
 
 .task-name {
   font-weight: 600;
-  color: #212529;
+  color: inherit;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .task-project {
-  color: #6c757d;
+  color: inherit;
   font-size: 9px;
   white-space: nowrap;
   overflow: hidden;

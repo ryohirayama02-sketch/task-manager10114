@@ -224,7 +224,12 @@
               "
               (click)="openTaskDetail(task)"
             >
-              <span class="task-bar-text">{{ task.taskName }}</span>
+              <span
+                class="task-bar-text"
+                [style.color]="getTaskBarTextColor(task)"
+              >
+                {{ task.taskName }}
+              </span>
             </div>
           </ng-container>
         </div>

@@ -144,7 +144,10 @@
           *ngFor="let task of getTasksForDate(date)"
           class="task-item"
           [style.background-color]="statusColors[task.status] || '#e0e0e0'"
-          [style.border-left]="'4px solid ' + (statusColors[task.status] || '#e0e0e0')"
+          [style.border-left]="
+            '4px solid ' + (statusColors[task.status] || '#ef5350')
+          "
+          [style.color]="statusTextColors[task.status] || '#212121'"
           [title]="
             task.taskName + ' (' + task.status + ') - 期限: ' + task.dueDate
           "
@@ -163,15 +166,24 @@
   <h4>ステータス</h4>
   <div class="legend-items">
     <div class="legend-item">
-      <div class="legend-color" style="background-color: #ef9a9a"></div>
+      <div
+        class="legend-color"
+        [style.background-color]="statusColors['未着手']"
+      ></div>
       <span>未着手</span>
     </div>
     <div class="legend-item">
-      <div class="legend-color" style="background-color: #81c784"></div>
+      <div
+        class="legend-color"
+        [style.background-color]="statusColors['作業中']"
+      ></div>
       <span>作業中</span>
     </div>
     <div class="legend-item">
-      <div class="legend-color" style="background-color: #64b5f6"></div>
+      <div
+        class="legend-color"
+        [style.background-color]="statusColors['完了']"
+      ></div>
       <span>完了</span>
     </div>
   </div>
