@@ -121,4 +121,15 @@ export class ProjectsOverviewComponent implements OnInit {
   getProjectThemeColor(project?: IProject | null): string {
     return resolveProjectThemeColor(project || undefined);
   }
+
+  toDateDisplay(date?: string): string {
+    if (!date) {
+      return '（未設定）';
+    }
+    return new Date(date).toLocaleDateString('ja-JP', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+  }
 }

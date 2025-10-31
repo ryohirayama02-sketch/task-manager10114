@@ -307,21 +307,16 @@ export class ProjectFormDialogComponent implements OnInit {
           }
         }
 
-        await this.projectService.updateProject(projectId, {
-          projectName: this.project.projectName,
-          overview: this.project.overview,
-          startDate: this.project.startDate,
-          members: this.project.members,
-          responsible: this.project.responsible,
-          responsibleId: this.project.responsibleId,
-          responsibleEmail: this.project.responsibleEmail,
-          tags: this.project.tags,
-          milestones: this.project.milestones,
+        this.project.attachments = attachments;
+        const updatePayload = {
+          ...this.project,
           attachments,
           themeColor,
           color: themeColor,
           updatedAt: new Date(),
-        });
+        };
+
+        await this.projectService.updateProject(projectId, updatePayload);
 
         await this.deleteMarkedAttachments(projectId);
       } else {

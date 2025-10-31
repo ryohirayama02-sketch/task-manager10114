@@ -249,6 +249,17 @@ export class ProjectDetailComponent implements OnInit {
     });
   }
 
+  toDateDisplay(date?: string): string {
+    if (!date) {
+      return '未設定';
+    }
+    return new Date(date).toLocaleDateString('ja-JP', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+  }
+
   openNativeDatePicker(input: HTMLInputElement | null): void {
     if (!input) {
       return;

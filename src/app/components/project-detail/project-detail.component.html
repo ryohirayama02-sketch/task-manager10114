@@ -11,8 +11,8 @@
       <p><strong>概要:</strong> {{ project.overview || "未設定" }}</p>
       <p>
         <strong>期間:</strong>
-        {{ project.startDate | date : 'yyyy/MM/dd' }} -
-        {{ project.endDate | date : 'yyyy/MM/dd' }}
+        {{ toDateDisplay(project.startDate) }} -
+        {{ toDateDisplay(project.endDate) }}
       </p>
       <p>
         <strong>責任者:</strong>
