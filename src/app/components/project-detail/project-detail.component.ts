@@ -55,6 +55,7 @@ export class ProjectDetailComponent implements OnInit {
   tasks: Task[] = [];
   filteredTasks: Task[] = [];
   projectThemeColor = DEFAULT_PROJECT_THEME_COLOR;
+  taskNameById: Record<string, string> = {};
 
   // フィルター用のプロパティ
   filterStatus: string = '';
@@ -166,6 +167,13 @@ export class ProjectDetailComponent implements OnInit {
     this.projectService
       .getTasksByProjectId(this.projectId)
       .subscribe((tasks) => {
+        const nameMap: Record<string, string> = {};
+        tasks.forEach((task) => {
+          if (task.id) {
+            nameMap[task.id] = task.taskName;
+          }
+        });
+        this.taskNameById = nameMap;
         this.tasks = this.sortTasks(tasks);
         this.assigneeOptions = [
           ...new Set(
