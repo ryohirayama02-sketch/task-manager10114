@@ -7,8 +7,8 @@ import {
   ProgressService,
   ProjectProgress,
 } from '../../services/progress.service';
-import { IProject } from '../../models/project.model';
-import { Task } from '../../models/task.model';
+import { IProject, ProjectAttachment } from '../../models/project.model';
+import { Milestone, Task } from '../../models/task.model';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSelectModule } from '@angular/material/select';
@@ -20,6 +20,10 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSlideToggleChange } from '@angular/material/slide-toggle';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MemberManagementService } from '../../services/member-management.service';
+import { Member } from '../../models/member.model';
+import { ProjectAttachmentService } from '../../services/project-attachment.service';
 import { TaskFormComponent } from '../task-form/task-form.component';
 import { ProjectFormDialogComponent } from '../project-form-dialog/project-form-dialog.component';
 import { ProgressCircleComponent } from '../progress/projects-overview/progress-circle.component';
@@ -44,6 +48,7 @@ import {
     MatCardModule,
     MatChipsModule,
     MatSlideToggleModule,
+    MatProgressSpinnerModule,
     MatSnackBarModule,
     ProgressCircleComponent,
     ProjectChatComponent,
@@ -70,6 +75,24 @@ export class ProjectDetailComponent implements OnInit {
     tags: string;
   } | null = null;
   isSavingInlineEdit = false;
+  editableTags: string[] = [];
+  tagInputValue = '';
+  editableMilestones: Milestone[] = [];
+  editableAttachments: ProjectAttachment[] = [];
+  pendingFiles: { id: string; file: File }[] = [];
+  attachmentsToRemove: ProjectAttachment[] = [];
+  linkTitle = '';
+  linkUrl = '';
+  isUploading = false;
+  members: Member[] = [];
+  membersLoading = false;
+  selectedResponsibleId = '';
+  selectedResponsible: Member | null = null;
+  selectedMemberIds: string[] = [];
+  selectedMembers: Member[] = [];
+  readonly MAX_FILE_SIZE = 5 * 1024 * 1024;
+  readonly fileAccept =
+    '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.bmp,.heic,.webp,.svg,.txt,.csv,.zip';
 
   // フィルター用のプロパティ
   filterStatus: string = '';
@@ -89,10 +112,13 @@ export class ProjectDetailComponent implements OnInit {
     private progressService: ProgressService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
+    private memberService: MemberManagementService,
+    private attachmentService: ProjectAttachmentService,
     private location: Location
   ) {}
 
   ngOnInit() {
+    this.loadMembers();
     this.projectId = this.route.snapshot.paramMap.get('projectId');
     console.log('選択されたプロジェクトID:', this.projectId);
 
@@ -142,20 +168,30 @@ export class ProjectDetailComponent implements OnInit {
       startDate: this.project.startDate || '',
       endDate: this.project.endDate || '',
       responsible: this.project.responsible || '',
-      members: this.project.members
-        ? Array.isArray(this.project.members)
-          ? this.project.members
-              .map((member: any) => member?.memberName || member?.name || '')
-              .filter((name: string) => !!name)
-              .join(', ')
-          : (this.project.members as string)
-        : '',
+      members: this.project.members ? this.normalizeMembersField(this.project.members) : '',
       tags: Array.isArray(this.project.tags)
         ? (this.project.tags as unknown as string[])
             .filter((tag) => !!tag)
             .join(', ')
         : this.project.tags || '',
     };
+    this.editableTags = this.parseTags(this.project.tags);
+    this.editableMilestones = (this.project.milestones || []).map((milestone) => ({
+      id: milestone.id || this.generateId(),
+      name: milestone.name || '',
+      date: milestone.date || '',
+      description: milestone.description || '',
+    }));
+    this.editableAttachments = (this.project.attachments || []).map((attachment) => ({
+      ...attachment,
+      id: attachment.id || this.generateId(),
+    }));
+    this.pendingFiles = [];
+    this.attachmentsToRemove = [];
+    this.linkTitle = '';
+    this.linkUrl = '';
+    this.tagInputValue = '';
+    this.syncSelectionsFromProject();
   }
 
   private async saveInlineEditChanges(event: MatSlideToggleChange): Promise<void> {
@@ -175,14 +211,60 @@ export class ProjectDetailComponent implements OnInit {
       return;
     }
 
+    const responsibleMember = this.selectedResponsibleId
+      ? this.members.find((member) => member.id === this.selectedResponsibleId)
+      : null;
+    const membersString = this.selectedMembers.length > 0
+      ? this.selectedMembers
+          .map((member) => member.name)
+          .filter((name) => !!name)
+          .join(', ')
+      : this.editableProject.members?.trim() || this.project.members || '';
+    const tagsString = this.editableTags.join(', ');
+
+    let attachments: ProjectAttachment[] = [...this.editableAttachments];
+
+    if (this.pendingFiles.length > 0) {
+      this.isUploading = true;
+      try {
+        const uploaded = await this.uploadPendingFiles(this.project.id);
+        if (uploaded.length > 0) {
+          attachments = [...attachments, ...uploaded];
+        }
+      } finally {
+        this.isUploading = false;
+      }
+    }
+
+    if (this.attachmentsToRemove.length > 0) {
+      await this.deleteMarkedAttachments(this.project.id);
+      attachments = attachments.filter((attachment) =>
+        !this.attachmentsToRemove.some((removed) => removed.id === attachment.id)
+      );
+      this.attachmentsToRemove = [];
+    }
+
+    const milestonesPayload = this.editableMilestones
+      .filter((milestone) => milestone.name || milestone.date)
+      .map((milestone) => ({
+        id: milestone.id || this.generateId(),
+        name: milestone.name?.trim() || '',
+        date: milestone.date || '',
+        description: milestone.description || '',
+      }));
+
     const payload = {
       projectName: trimmedName,
       overview: this.editableProject.overview?.trim() || '',
       startDate: this.editableProject.startDate || '',
       endDate: this.editableProject.endDate || '',
-      responsible: this.editableProject.responsible?.trim() || '',
-      members: this.editableProject.members?.trim() || '',
-      tags: this.editableProject.tags?.trim() || '',
+      responsible: responsibleMember?.name || this.editableProject.responsible?.trim() || '',
+      responsibleId: responsibleMember?.id || '',
+      responsibleEmail: responsibleMember?.email || '',
+      members: membersString,
+      tags: tagsString,
+      milestones: milestonesPayload,
+      attachments,
       updatedAt: new Date(),
     };
 
@@ -200,11 +282,25 @@ export class ProjectDetailComponent implements OnInit {
         ...payload,
       } as IProject;
       this.projectThemeColor = resolveProjectThemeColor(this.project);
+      this.project.attachments = attachments;
+      this.project.milestones = milestonesPayload;
       this.snackBar.open('プロジェクトを更新しました', '閉じる', {
         duration: 3000,
       });
       this.isInlineEditMode = false;
       this.editableProject = null;
+      this.editableTags = [];
+      this.editableMilestones = [];
+      this.editableAttachments = [];
+      this.pendingFiles = [];
+      this.attachmentsToRemove = [];
+      this.selectedMemberIds = [];
+      this.selectedMembers = [];
+      this.selectedResponsibleId = '';
+      this.selectedResponsible = null;
+      this.tagInputValue = '';
+      this.linkTitle = '';
+      this.linkUrl = '';
       event.source.checked = false;
     } catch (error) {
       console.error('インライン編集の保存に失敗しました:', error);
@@ -216,6 +312,278 @@ export class ProjectDetailComponent implements OnInit {
     } finally {
       this.isSavingInlineEdit = false;
     }
+  }
+
+  private normalizeMembersField(members: any): string {
+    if (!members) {
+      return '';
+    }
+    if (typeof members === 'string') {
+      return members;
+    }
+    if (Array.isArray(members)) {
+      return members
+        .map((member: any) => member?.memberName || member?.name || '')
+        .filter((name: string) => !!name)
+        .join(', ');
+    }
+    return '';
+  }
+
+  private syncSelectionsFromProject(): void {
+    if (!this.project) {
+      return;
+    }
+    const memberNames = this.normalizeMembersField(this.project.members)
+      .split(',')
+      .map((name) => name.trim())
+      .filter((name) => !!name);
+    this.selectedMembers = this.members.filter((member) =>
+      memberNames.includes(member.name || '')
+    );
+    this.selectedMemberIds = this.selectedMembers
+      .map((member) => member.id || '')
+      .filter((id) => !!id);
+
+    if (this.project.responsibleId) {
+      const responsible = this.members.find(
+        (member) => member.id === this.project!.responsibleId
+      );
+      if (responsible) {
+        this.selectedResponsible = responsible;
+        this.selectedResponsibleId = responsible.id || '';
+        return;
+      }
+    }
+    if (this.project.responsible) {
+      const responsible = this.members.find(
+        (member) => member.name === this.project!.responsible
+      );
+      if (responsible) {
+        this.selectedResponsible = responsible;
+        this.selectedResponsibleId = responsible.id || '';
+      } else {
+        this.selectedResponsible = null;
+        this.selectedResponsibleId = '';
+      }
+    }
+  }
+
+  onResponsibleSelectionChange(responsibleId: string): void {
+    this.selectedResponsibleId = responsibleId || '';
+    this.selectedResponsible = this.members.find(
+      (member) => member.id === this.selectedResponsibleId
+    ) || null;
+  }
+
+  onMembersSelectionChange(selectedIds: string[]): void {
+    this.selectedMemberIds = Array.isArray(selectedIds) ? selectedIds : [];
+    this.selectedMembers = this.members.filter((member) =>
+      this.selectedMemberIds.includes(member.id || '')
+    );
+  }
+
+  removeSelectedMember(member: Member): void {
+    const memberId = member.id || '';
+    this.selectedMemberIds = this.selectedMemberIds.filter((id) => id !== memberId);
+    this.selectedMembers = this.selectedMembers.filter(
+      (selected) => (selected.id || '') !== memberId
+    );
+  }
+
+  onTagInputEnter(event: Event): void {
+    event.preventDefault();
+    const value = this.tagInputValue.trim();
+    if (!value) {
+      return;
+    }
+    if (!this.editableTags.includes(value)) {
+      this.editableTags.push(value);
+    }
+    this.tagInputValue = '';
+  }
+
+  removeTag(tag: string): void {
+    this.editableTags = this.editableTags.filter((existing) => existing !== tag);
+  }
+
+  addMilestone(): void {
+    this.editableMilestones.push({
+      id: this.generateId(),
+      name: '',
+      date: '',
+      description: '',
+    });
+  }
+
+  removeMilestone(index: number): void {
+    this.editableMilestones.splice(index, 1);
+  }
+
+  trackMilestone(_index: number, milestone: Milestone): string {
+    return milestone.id;
+  }
+
+  trackAttachment(_index: number, attachment: ProjectAttachment): string {
+    return attachment.id;
+  }
+
+  onFilesSelected(event: Event): void {
+    if (!this.isInlineEditMode) {
+      return;
+    }
+    const input = event.target as HTMLInputElement;
+    const files = input.files;
+    if (!files || files.length === 0) {
+      return;
+    }
+
+    Array.from(files).forEach((file) => {
+      if (file.size > this.MAX_FILE_SIZE) {
+        this.snackBar.open(
+          `${file.name} は5MBを超えています。別のファイルを選択してください。`,
+          '閉じる',
+          { duration: 4000 }
+        );
+        return;
+      }
+      this.pendingFiles.push({ id: this.generateId(), file });
+    });
+
+    input.value = '';
+  }
+
+  addLinkAttachment(): void {
+    const url = this.linkUrl.trim();
+    const title = this.linkTitle.trim();
+
+    if (!url) {
+      this.snackBar.open('URLを入力してください', '閉じる', { duration: 3000 });
+      return;
+    }
+
+    if (!this.isValidUrl(url)) {
+      this.snackBar.open('URLの形式が正しくありません', '閉じる', {
+        duration: 3000,
+      });
+      return;
+    }
+
+    const attachment: ProjectAttachment = {
+      id: this.generateId(),
+      name: title || url,
+      url,
+      type: 'link',
+      uploadedAt: new Date().toISOString(),
+    };
+
+    this.editableAttachments.push(attachment);
+    this.linkTitle = '';
+    this.linkUrl = '';
+  }
+
+  removeAttachment(attachment: ProjectAttachment): void {
+    this.editableAttachments = this.editableAttachments.filter(
+      (item) => item.id !== attachment.id
+    );
+
+    if (attachment.type === 'file' && attachment.storagePath) {
+      this.attachmentsToRemove.push(attachment);
+    }
+  }
+
+  formatFileSize(bytes: number): string {
+    if (bytes >= 1024 * 1024) {
+      return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    }
+    if (bytes >= 1024) {
+      return `${(bytes / 1024).toFixed(1)} KB`;
+    }
+    return `${bytes} B`;
+  }
+
+  private async uploadPendingFiles(projectId: string): Promise<ProjectAttachment[]> {
+    const uploaded: ProjectAttachment[] = [];
+
+    for (const pending of this.pendingFiles) {
+      try {
+        const attachment = await this.attachmentService.uploadAttachment(
+          projectId,
+          pending.file
+        );
+        uploaded.push(attachment);
+      } catch (error) {
+        console.error('添付ファイルのアップロードに失敗しました:', error);
+        this.snackBar.open(
+          `${pending.file.name} のアップロードに失敗しました`,
+          '閉じる',
+          { duration: 4000 }
+        );
+      }
+    }
+
+    this.pendingFiles = [];
+    return uploaded;
+  }
+
+  private async deleteMarkedAttachments(projectId: string): Promise<void> {
+    for (const attachment of this.attachmentsToRemove) {
+      try {
+        await this.attachmentService.deleteAttachment(attachment);
+      } catch (error) {
+        console.error('添付ファイルの削除に失敗しました:', error);
+        this.snackBar.open('資料の削除に失敗しました', '閉じる', {
+          duration: 3000,
+        });
+      }
+    }
+    this.attachmentsToRemove = [];
+  }
+
+  private parseTags(tags?: string | string[] | null): string[] {
+    if (!tags) {
+      return [];
+    }
+    if (Array.isArray(tags)) {
+      return tags.filter((tag) => !!tag).map((tag) => tag.trim());
+    }
+    return tags
+      .split(',')
+      .map((tag) => tag.trim())
+      .filter((tag) => !!tag);
+  }
+
+  private isValidUrl(value: string): boolean {
+    try {
+      const url = new URL(value);
+      return !!url.protocol && !!url.host;
+    } catch {
+      return false;
+    }
+  }
+
+  private generateId(): string {
+    return Date.now().toString(36) + Math.random().toString(36).substring(2);
+  }
+
+  private loadMembers(): void {
+    this.membersLoading = true;
+    this.memberService.getMembers().subscribe({
+      next: (members) => {
+        this.members = members;
+        this.membersLoading = false;
+        if (this.isInlineEditMode) {
+          this.syncSelectionsFromProject();
+        }
+      },
+      error: (error) => {
+        console.error('メンバー一覧の取得に失敗しました:', error);
+        this.membersLoading = false;
+        this.snackBar.open('メンバー一覧の取得に失敗しました', '閉じる', {
+          duration: 3000,
+        });
+      },
+    });
   }
 
   goBack(): void {

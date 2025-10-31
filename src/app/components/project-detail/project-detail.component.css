@@ -47,6 +47,122 @@
   width: 100%;
 }
 
+.selected-members-chips {
+  margin-top: -4px;
+}
+
+.selected-members-chips mat-chip-set {
+  max-width: 100%;
+}
+
+.tag-editor {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.tag-editor mat-chip-set {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag-input-field {
+  flex: 1;
+  min-width: 220px;
+}
+
+.inline-attachments {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.attachment-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.attachment-link-field {
+  min-width: 200px;
+  flex: 1 1 200px;
+}
+
+.pending-files {
+  font-size: 13px;
+  color: #555;
+}
+
+.pending-files ul {
+  margin: 4px 0 0;
+  padding-left: 18px;
+}
+
+.attachment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.attachment-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 16px;
+  background-color: #f1f8ff;
+  color: #1565c0;
+  font-size: 13px;
+}
+
+.attachment-chip a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.attachment-chip button {
+  width: 24px;
+  height: 24px;
+}
+
+.size-text {
+  font-size: 12px;
+  color: #666;
+}
+
+.no-attachments {
+  font-size: 13px;
+  color: #777;
+}
+
+.uploading-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #555;
+}
+
+.inline-milestones {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.inline-milestones h4 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.inline-milestones .milestones-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 .project-header {
   display: flex;
   justify-content: space-between;

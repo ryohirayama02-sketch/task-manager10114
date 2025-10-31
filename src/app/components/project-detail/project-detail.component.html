@@ -100,34 +100,207 @@
 
           <mat-form-field appearance="outline" class="full-width-field">
             <mat-label>責任者</mat-label>
-            <input
-              matInput
-              [(ngModel)]="editableProject!.responsible"
-              name="inlineResponsible"
-              placeholder="例: 山田太郎"
-            />
+            <mat-select
+              [(ngModel)]="selectedResponsibleId"
+              name="inlineResponsibleId"
+              (selectionChange)="onResponsibleSelectionChange($event.value)"
+              [disabled]="membersLoading"
+            >
+              <mat-option value="">未設定</mat-option>
+              <mat-option *ngFor="let member of members" [value]="member.id">
+                {{ member.name }}
+              </mat-option>
+            </mat-select>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width-field">
-            <mat-label>メンバー</mat-label>
-            <textarea
-              matInput
-              rows="2"
-              [(ngModel)]="editableProject!.members"
-              name="inlineMembers"
-              placeholder="例: 山田太郎, 佐藤花子"
-            ></textarea>
+            <mat-label>担当メンバー</mat-label>
+            <mat-select
+              multiple
+              [(ngModel)]="selectedMemberIds"
+              name="inlineMemberIds"
+              (ngModelChange)="onMembersSelectionChange($event)"
+              placeholder="メンバーを選択"
+              [disabled]="membersLoading"
+            >
+              <mat-option *ngFor="let member of members" [value]="member.id">
+                {{ member.name }}
+              </mat-option>
+            </mat-select>
           </mat-form-field>
 
-          <mat-form-field appearance="outline" class="full-width-field">
-            <mat-label>タグ</mat-label>
-            <input
-              matInput
-              [(ngModel)]="editableProject!.tags"
-              name="inlineTags"
-              placeholder="例: #マーケティング, #外部連携"
-            />
-          </mat-form-field>
+          <div class="selected-members-chips" *ngIf="selectedMembers.length > 0">
+            <mat-chip-set>
+              <mat-chip
+                *ngFor="let member of selectedMembers"
+                selected
+                removable
+                (removed)="removeSelectedMember(member)"
+              >
+                {{ member.name }}
+                <mat-icon matChipRemove>close</mat-icon>
+              </mat-chip>
+            </mat-chip-set>
+          </div>
+
+          <div class="tag-editor">
+            <mat-chip-set>
+              <mat-chip
+                *ngFor="let tag of editableTags"
+                selected
+                removable
+                (removed)="removeTag(tag)"
+              >
+                {{ tag }}
+                <mat-icon matChipRemove>close</mat-icon>
+              </mat-chip>
+            </mat-chip-set>
+            <mat-form-field appearance="outline" class="tag-input-field">
+              <mat-label>タグを追加</mat-label>
+              <input
+                matInput
+                [(ngModel)]="tagInputValue"
+                name="inlineTagInput"
+                placeholder="#タグ名を入力してEnter"
+                (keydown.enter)="onTagInputEnter($event)"
+              />
+            </mat-form-field>
+          </div>
+
+          <div class="inline-attachments">
+            <div class="attachment-actions">
+              <button
+                mat-stroked-button
+                type="button"
+                (click)="fileInput.click()"
+                [disabled]="isUploading"
+              >
+                ファイルを追加
+              </button>
+              <input
+                #fileInput
+                type="file"
+                multiple
+                [accept]="fileAccept"
+                (change)="onFilesSelected($event)"
+                hidden
+              />
+
+              <mat-form-field appearance="outline" class="attachment-link-field">
+                <mat-label>資料名</mat-label>
+                <input
+                  matInput
+                  [(ngModel)]="linkTitle"
+                  name="inlineLinkTitle"
+                  placeholder="設計資料"
+                />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="attachment-link-field">
+                <mat-label>資料URL</mat-label>
+                <input
+                  matInput
+                  [(ngModel)]="linkUrl"
+                  name="inlineLinkUrl"
+                  placeholder="https://example.com/docs"
+                />
+              </mat-form-field>
+
+              <button mat-button type="button" (click)="addLinkAttachment()">
+                URLを追加
+              </button>
+            </div>
+
+            <div class="pending-files" *ngIf="pendingFiles.length > 0">
+              <p>保存時にアップロードされるファイル:</p>
+              <ul>
+                <li *ngFor="let pending of pendingFiles">{{ pending.file.name }}</li>
+              </ul>
+            </div>
+
+            <div class="attachment-list" *ngIf="editableAttachments.length > 0">
+              <h4>登録済み資料</h4>
+              <div
+                class="attachment-chip"
+                *ngFor="let attachment of editableAttachments; trackBy: trackAttachment"
+              >
+                <mat-icon>{{ attachment.type === 'link' ? 'link' : 'attach_file' }}</mat-icon>
+                <a
+                  [href]="attachment.url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {{ attachment.name }}
+                </a>
+                <ng-container *ngIf="attachment.type === 'file' && attachment.size">
+                  <span class="size-text">({{ formatFileSize(attachment.size) }})</span>
+                </ng-container>
+                <button
+                  mat-icon-button
+                  type="button"
+                  (click)="removeAttachment(attachment)"
+                  aria-label="添付を削除"
+                >
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+            </div>
+
+            <div
+              class="no-attachments"
+              *ngIf="editableAttachments.length === 0 && pendingFiles.length === 0"
+            >
+              登録済みの資料はありません
+            </div>
+
+            <div class="uploading-indicator" *ngIf="isUploading">
+              <mat-spinner diameter="24"></mat-spinner>
+              <span>添付ファイルをアップロード中...</span>
+            </div>
+          </div>
+
+          <div class="inline-milestones">
+            <h4>マイルストーン</h4>
+            <div class="milestones-container">
+              <div
+                *ngFor="let milestone of editableMilestones; let i = index; trackBy: trackMilestone"
+                class="milestone-item"
+              >
+                <mat-form-field appearance="outline" class="milestone-date">
+                  <mat-label>日付</mat-label>
+                  <input
+                    matInput
+                    type="date"
+                    [(ngModel)]="milestone.date"
+                    name="inlineMilestoneDate{{ i }}"
+                  />
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="milestone-name">
+                  <mat-label>マイルストーン名</mat-label>
+                  <input
+                    matInput
+                    type="text"
+                    [(ngModel)]="milestone.name"
+                    name="inlineMilestoneName{{ i }}"
+                    placeholder="マイルストーン名"
+                  />
+                </mat-form-field>
+                <button
+                  mat-icon-button
+                  type="button"
+                  (click)="removeMilestone(i)"
+                  aria-label="マイルストーンを削除"
+                  color="warn"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+              <button mat-button type="button" (click)="addMilestone()">
+                <mat-icon>add</mat-icon>
+                マイルストーンを追加
+              </button>
+            </div>
+          </div>
         </form>
       </ng-template>
     </div>
