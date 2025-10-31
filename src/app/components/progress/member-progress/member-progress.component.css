@@ -87,11 +87,11 @@
 }
 
 .completion-rate {
-  background-color: #66bb6a;
-  color: white;
+  background-color: #b2e9cb;
+  color: #255b40;
   padding: 8px 16px;
   border-radius: 20px;
-  border: 1px solid #66bb6a;
+  border: 1px solid #b2e9cb;
   font-weight: 600;
   font-size: 14px;
 }
@@ -124,33 +124,33 @@
 }
 
 .status-row.completed {
-  border-left: 6px solid #66bb6a;
-  background-color: rgba(102, 187, 106, 0.16);
+  border-left: 6px solid #b2e9cb;
+  background-color: #dff5eb;
 }
 
 .status-row.completed .status-label,
 .status-row.completed .status-total {
-  color: #1b5e20;
+  color: #255b40;
 }
 
 .status-row.in-progress {
-  border-left: 6px solid #ffee58;
-  background-color: rgba(255, 238, 88, 0.18);
+  border-left: 6px solid #fef6c3;
+  background-color: #fff9d9;
 }
 
 .status-row.in-progress .status-label,
 .status-row.in-progress .status-total {
-  color: #5d4037;
+  color: #6a5a2d;
 }
 
 .status-row.not-started {
-  border-left: 6px solid #ef5350;
-  background-color: rgba(239, 83, 80, 0.16);
+  border-left: 6px solid #fdd6d5;
+  background-color: #fee5e4;
 }
 
 .status-row.not-started .status-label,
 .status-row.not-started .status-total {
-  color: #b71c1c;
+  color: #a44743;
 }
 
 .status-total {
@@ -197,21 +197,21 @@
 }
 
 .priority-item.high {
-  background: #ef5350;
+  background: #fdd6d5;
   color: #000;
-  border: 1px solid #ef5350;
+  border: 1px solid #fdd6d5;
 }
 
 .priority-item.medium {
-  background: #ffee58;
+  background: #fef6c3;
   color: #000;
-  border: 1px solid #ffee58;
+  border: 1px solid #fef6c3;
 }
 
 .priority-item.low {
-  background: #66bb6a;
+  background: #b2e9cb;
   color: #000;
-  border: 1px solid #66bb6a;
+  border: 1px solid #b2e9cb;
 }
 
 .priority-label {
@@ -226,15 +226,15 @@
 }
 
 .priority-label.high {
-  color: #ef5350;
+  color: #c96c67;
 }
 
 .priority-label.medium {
-  color: #d4af37;
+  color: #b89c37;
 }
 
 .priority-label.low {
-  color: #1b5e20;
+  color: #2f6b4f;
 }
 
 .priority-header {
@@ -257,15 +257,15 @@
 }
 
 .priority-high {
-  color: #c62828;
+  color: #c96c67;
 }
 
 .priority-medium {
-  color: #ef6c00;
+  color: #b89c37;
 }
 
 .priority-low {
-  color: #2e7d32;
+  color: #2f6b4f;
 }
 
 

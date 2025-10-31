@@ -77,9 +77,9 @@ export class GanttComponent implements OnInit {
 
   // ステータス色
   statusColors: { [key: string]: string } = {
-    未着手: '#ef5350',
-    作業中: '#ffee58',
-    完了: '#66bb6a',
+    未着手: '#fdd6d5',
+    作業中: '#fef6c3',
+    完了: '#b2e9cb',
   };
 
   statusTextColors: { [key: string]: string } = {
@@ -268,7 +268,7 @@ export class GanttComponent implements OnInit {
   }
 
   getTaskBarBackground(task: Task): string {
-    return this.statusColors[task.status] || '#ef5350';
+    return this.statusColors[task.status] || '#fdd6d5';
   }
 
   getTaskBarTextColor(task: Task): string {

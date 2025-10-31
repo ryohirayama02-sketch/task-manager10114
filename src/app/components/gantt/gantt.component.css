@@ -629,21 +629,21 @@
 }
 
 .priority-高 {
-  background-color: #ef5350;
+  background-color: #fdd6d5;
   color: #000;
-  border: 1px solid #ef5350;
+  border: 1px solid #fdd6d5;
 }
 
 .priority-中 {
-  background-color: #ffee58;
+  background-color: #fef6c3;
   color: #000;
-  border: 1px solid #ffee58;
+  border: 1px solid #fef6c3;
 }
 
 .priority-低 {
-  background-color: #66bb6a;
+  background-color: #b2e9cb;
   color: #000;
-  border: 1px solid #66bb6a;
+  border: 1px solid #b2e9cb;
 }
 
 .assignee {

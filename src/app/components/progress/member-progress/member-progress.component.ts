@@ -146,11 +146,11 @@ export class MemberProgressComponent implements OnInit {
   getStatusColor(status: string): string {
     switch (status) {
       case '完了':
-        return '#4caf50';
+        return '#b2e9cb';
       case '作業中':
-        return '#2196f3';
+        return '#fef6c3';
       case '未着手':
-        return '#f44336';
+        return '#fdd6d5';
       default:
         return '#9e9e9e';
     }

@@ -61,20 +61,20 @@
 }
 
 .status-未着手 {
-  background-color: #f9b2af;
-  border-top: 4px solid #f9b2af;
+  background-color: #fdd6d5;
+  border-top: 4px solid #fdd6d5;
   color: #000;
 }
 
 .status-作業中 {
-  background-color: #fee993;
-  border-top: 4px solid #fee993;
+  background-color: #fef6c3;
+  border-top: 4px solid #fef6c3;
   color: #000;
 }
 
 .status-完了 {
-  background-color: #9adbb3;
-  border-top: 4px solid #9adbb3;
+  background-color: #b2e9cb;
+  border-top: 4px solid #b2e9cb;
   color: #000;
 }
 
@@ -214,19 +214,19 @@
 }
 
 .priority-高 {
-  background-color: #f9b2af;
+  background-color: #fdd6d5;
   color: #000;
-  border: 1px solid #f9b2af;
+  border: 1px solid #fdd6d5;
 }
 
 .priority-中 {
-  background-color: #fee993;
+  background-color: #fef6c3;
   color: #000;
-  border: 1px solid #fee993;
+  border: 1px solid #fef6c3;
 }
 
 .priority-低 {
-  background-color: #9adbb3;
+  background-color: #b2e9cb;
   color: #000;
-  border: 1px solid #9adbb3;
+  border: 1px solid #b2e9cb;
 }
