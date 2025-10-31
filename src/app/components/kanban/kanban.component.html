@@ -81,7 +81,9 @@
         <div class="task-details">
           <div class="project-name">
             <mat-icon class="project-icon">folder</mat-icon>
-            {{ task.projectName }}
+            <span class="project-name-text">
+              {{ task.projectName }}
+            </span>
           </div>
           <div class="task-meta">
             <span *ngIf="task.dueDate">期限: {{ task.dueDate }}</span>

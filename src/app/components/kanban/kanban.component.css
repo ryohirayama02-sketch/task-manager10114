@@ -114,6 +114,7 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   transition: all 0.2s ease;
   cursor: pointer;
+  overflow: hidden;
 }
 
 .task-card:hover {
@@ -133,6 +134,11 @@
   color: #333;
   flex: 1;
   margin-right: 8px;
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .status-buttons {
@@ -160,6 +166,14 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  overflow: hidden;
+}
+
+.project-name-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
 }
 
 .project-icon {
@@ -174,6 +188,13 @@
   flex-direction: column;
   gap: 2px;
   margin-bottom: 8px;
+}
+
+.task-meta span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
 }
 
 .priority {
