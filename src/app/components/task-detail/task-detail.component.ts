@@ -112,17 +112,22 @@ export class TaskDetailComponent implements OnInit {
   priorityOptions = ['高', '中', '低'];
 
   ngOnInit() {
-    const taskId = this.route.snapshot.paramMap.get('taskId');
-    const projectId = this.route.snapshot.paramMap.get('projectId');
+    this.route.paramMap.subscribe((params) => {
+      const taskId = params.get('taskId');
+      const projectId = params.get('projectId');
 
-    console.log('ルートパラメータ:', { taskId, projectId });
+      console.log('ルートパラメータ:', { taskId, projectId });
 
-    if (taskId && projectId) {
-      this.loadTaskDetails(projectId, taskId);
-      this.loadMembers();
-    } else {
-      console.error('必要なパラメータが不足しています:', { taskId, projectId });
-    }
+      if (taskId && projectId) {
+        this.isLoading = true;
+        this.childTasks = [];
+        this.filteredChildTasks = [];
+        this.loadTaskDetails(projectId, taskId);
+        this.loadMembers();
+      } else {
+        console.error('必要なパラメータが不足しています:', { taskId, projectId });
+      }
+    });
   }
 
   /** タスク詳細を読み込み */
@@ -174,11 +179,16 @@ export class TaskDetailComponent implements OnInit {
             tasks.map((t) => t.id)
           );
           console.log('検索対象のタスクID:', taskId);
+          this.childTasks = [];
+          this.filteredChildTasks = [];
         }
         this.isLoading = false;
       },
       error: (error) => {
         console.error('タスク取得エラー:', error);
+        this.childTasks = [];
+        this.filteredChildTasks = [];
+        this.isLoading = false;
       },
     });
   }
@@ -428,6 +438,10 @@ export class TaskDetailComponent implements OnInit {
 
   /** 子タスクを作成 */
   createSubtask() {
+    if (this.task?.parentTaskId) {
+      return;
+    }
+
     const ref = this.dialog.open(TaskFormComponent, {
       width: '90vw',
       maxWidth: '800px',

@@ -200,7 +200,11 @@
     <mat-card class="action-card">
       <mat-card-content>
         <div class="action-buttons">
-          <button mat-raised-button (click)="createSubtask()">
+          <button
+            mat-raised-button
+            (click)="createSubtask()"
+            *ngIf="!task?.parentTaskId"
+          >
             <mat-icon>add</mat-icon>
             子タスク
           </button>
@@ -237,9 +241,6 @@
       <div class="child-tasks-header">
         <h3>子タスク一覧</h3>
         <div class="child-tasks-actions">
-          <button mat-raised-button color="accent" (click)="createSubtask()">
-            ＋ 子タスク
-          </button>
           <button mat-raised-button color="accent" (click)="exportChildTasksToCSV()">
             <mat-icon>download</mat-icon>
             出力
