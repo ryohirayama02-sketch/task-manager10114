@@ -35,29 +35,28 @@
           >
         </div>
 
+        <!-- 優先度ヘッダー -->
+        <div class="priority-header">
+          <span class="priority-label">優先度</span>
+          <span class="priority-high">高</span>
+          <span class="priority-medium">中</span>
+          <span class="priority-low">低</span>
+        </div>
+
         <!-- 優先度別タスク詳細 -->
         <div class="priority-breakdown">
           <div class="status-row completed">
             <div class="status-label">完了</div>
             <div class="status-total">{{ member.completedTasks }}件</div>
             <div class="priority-details">
-              <div class="priority-column">
-                <span class="priority-label">高</span>
-                <span class="priority-item high">{{
-                  member.completedByPriority.high
-                }}</span>
+              <div class="priority-item high">
+                {{ member.completedByPriority.high }}
               </div>
-              <div class="priority-column">
-                <span class="priority-label">中</span>
-                <span class="priority-item medium">{{
-                  member.completedByPriority.medium
-                }}</span>
+              <div class="priority-item medium">
+                {{ member.completedByPriority.medium }}
               </div>
-              <div class="priority-column">
-                <span class="priority-label">低</span>
-                <span class="priority-item low">{{
-                  member.completedByPriority.low
-                }}</span>
+              <div class="priority-item low">
+                {{ member.completedByPriority.low }}
               </div>
             </div>
           </div>
@@ -66,23 +65,14 @@
             <div class="status-label">作業中</div>
             <div class="status-total">{{ member.inProgressTasks }}件</div>
             <div class="priority-details">
-              <div class="priority-column">
-                <span class="priority-label">高</span>
-                <span class="priority-item high">{{
-                  member.inProgressByPriority.high
-                }}</span>
+              <div class="priority-item high">
+                {{ member.inProgressByPriority.high }}
               </div>
-              <div class="priority-column">
-                <span class="priority-label">中</span>
-                <span class="priority-item medium">{{
-                  member.inProgressByPriority.medium
-                }}</span>
+              <div class="priority-item medium">
+                {{ member.inProgressByPriority.medium }}
               </div>
-              <div class="priority-column">
-                <span class="priority-label">低</span>
-                <span class="priority-item low">{{
-                  member.inProgressByPriority.low
-                }}</span>
+              <div class="priority-item low">
+                {{ member.inProgressByPriority.low }}
               </div>
             </div>
           </div>
@@ -91,23 +81,14 @@
             <div class="status-label">未着手</div>
             <div class="status-total">{{ member.notStartedTasks }}件</div>
             <div class="priority-details">
-              <div class="priority-column">
-                <span class="priority-label">高</span>
-                <span class="priority-item high">{{
-                  member.notStartedByPriority.high
-                }}</span>
+              <div class="priority-item high">
+                {{ member.notStartedByPriority.high }}
               </div>
-              <div class="priority-column">
-                <span class="priority-label">中</span>
-                <span class="priority-item medium">{{
-                  member.notStartedByPriority.medium
-                }}</span>
+              <div class="priority-item medium">
+                {{ member.notStartedByPriority.medium }}
               </div>
-              <div class="priority-column">
-                <span class="priority-label">低</span>
-                <span class="priority-item low">{{
-                  member.notStartedByPriority.low
-                }}</span>
+              <div class="priority-item low">
+                {{ member.notStartedByPriority.low }}
               </div>
             </div>
           </div>
