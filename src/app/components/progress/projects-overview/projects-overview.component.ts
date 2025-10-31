@@ -85,7 +85,7 @@ export class ProjectsOverviewComponent implements OnInit {
 
   /** カードクリック時に個別進捗画面へ遷移 */
   goToProgress(projectId: string) {
-    this.router.navigate(['/progress/projects', projectId]);
+    this.router.navigate(['/project', projectId]);
   }
 
   onSortChange(option: (typeof this.sortOptions)[number]['value']): void {
