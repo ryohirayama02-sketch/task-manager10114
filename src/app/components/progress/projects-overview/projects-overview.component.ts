@@ -137,45 +137,44 @@ export class ProjectsOverviewComponent implements OnInit {
   }
 
   private applySort(): void {
-    const compareEndDate = (a: IProject, b: IProject, ascending: boolean) => {
-      const aTime = this.parseDate(a.endDate);
-      const bTime = this.parseDate(b.endDate);
+    this.projects.sort((a, b) => {
+      const aCompleted = this.isCompleted(a);
+      const bCompleted = this.isCompleted(b);
 
-      // 未設定の終了日は常に末尾へ
-      if (aTime === null && bTime === null) return 0;
-      if (aTime === null) return 1;
-      if (bTime === null) return -1;
+      if (aCompleted !== bCompleted) {
+        return aCompleted ? 1 : -1;
+      }
 
-      return ascending ? aTime - bTime : bTime - aTime;
-    };
+      let result = 0;
 
-    const compareProgress = (
-      a: IProject,
-      b: IProject,
-      descending: boolean
-    ) => {
-      const aProgress =
-        this.projectProgress[a.id || '']?.progressPercentage ?? 0;
-      const bProgress =
-        this.projectProgress[b.id || '']?.progressPercentage ?? 0;
-      return descending ? bProgress - aProgress : aProgress - bProgress;
-    };
+      switch (this.sortOption) {
+        case 'endDateDesc':
+          result = this.compareEndDate(a, b, false);
+          break;
+        case 'progressDesc':
+          result = this.compareProgress(a, b, true);
+          break;
+        case 'progressAsc':
+          result = this.compareProgress(a, b, false);
+          break;
+        case 'endDateAsc':
+        default:
+          result = this.compareEndDate(a, b, true);
+          break;
+      }
 
-    switch (this.sortOption) {
-      case 'endDateDesc':
-        this.projects.sort((a, b) => compareEndDate(a, b, false));
-        break;
-      case 'progressDesc':
-        this.projects.sort((a, b) => compareProgress(a, b, true));
-        break;
-      case 'progressAsc':
-        this.projects.sort((a, b) => compareProgress(a, b, false));
-        break;
-      case 'endDateAsc':
-      default:
-        this.projects.sort((a, b) => compareEndDate(a, b, true));
-        break;
-    }
+      if (result !== 0) {
+        return result;
+      }
+
+      // Tie-breaker: use終了日昇順 → プロジェクト名
+      const dateTieBreak = this.compareEndDate(a, b, true);
+      if (dateTieBreak !== 0) {
+        return dateTieBreak;
+      }
+
+      return this.compareByName(a, b);
+    });
   }
 
   private parseDate(date?: string): number | null {
@@ -190,5 +189,42 @@ export class ProjectsOverviewComponent implements OnInit {
     value: string | null
   ): value is (typeof this.sortOptions)[number]['value'] {
     return this.sortOptions.some((option) => option.value === value);
+  }
+
+  private getProgressPercentage(project: IProject): number {
+    return this.projectProgress[project.id || '']?.progressPercentage ?? 0;
+  }
+
+  private isCompleted(project: IProject): boolean {
+    return this.getProgressPercentage(project) === 100;
+  }
+
+  private compareEndDate(
+    a: IProject,
+    b: IProject,
+    ascending: boolean
+  ): number {
+    const aTime = this.parseDate(a.endDate);
+    const bTime = this.parseDate(b.endDate);
+
+    if (aTime === null && bTime === null) return 0;
+    if (aTime === null) return 1;
+    if (bTime === null) return -1;
+
+    return ascending ? aTime - bTime : bTime - aTime;
+  }
+
+  private compareProgress(
+    a: IProject,
+    b: IProject,
+    descending: boolean
+  ): number {
+    const aProgress = this.getProgressPercentage(a);
+    const bProgress = this.getProgressPercentage(b);
+    return descending ? bProgress - aProgress : aProgress - bProgress;
+  }
+
+  private compareByName(a: IProject, b: IProject): number {
+    return (a.projectName || '').localeCompare(b.projectName || '');
   }
 }
