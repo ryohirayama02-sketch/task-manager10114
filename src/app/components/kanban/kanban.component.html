@@ -21,13 +21,6 @@
       すべてのチェックをクリア
     </button>
   </div>
-  <div class="selected-projects-info" *ngIf="selectedProjectIds.length > 0">
-    <mat-chip-set>
-      <mat-chip *ngFor="let projectId of selectedProjectIds">
-        {{ getProjectName(projectId) }}
-      </mat-chip>
-    </mat-chip-set>
-  </div>
 </div>
 
 <div
