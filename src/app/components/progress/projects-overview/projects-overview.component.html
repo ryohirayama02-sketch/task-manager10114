@@ -1,11 +1,36 @@
 <div class="projects-overview-container">
   <div class="header">
     <h2>全プロジェクト進捗</h2>
-    <button mat-raised-button color="primary" routerLink="/project-form">
-      <mat-icon>add</mat-icon>
-      プロジェクトを作成
-    </button>
+    <div class="header-actions">
+      <button
+        mat-stroked-button
+        color="primary"
+        [matMenuTriggerFor]="sortMenu"
+        class="sort-button"
+      >
+        <mat-icon>sort</mat-icon>
+        並び替え: {{ getSortLabel(sortOption) }}
+        <mat-icon class="expand-icon">arrow_drop_down</mat-icon>
+      </button>
+      <button mat-raised-button color="primary" routerLink="/project-form">
+        <mat-icon>add</mat-icon>
+        プロジェクトを作成
+      </button>
+    </div>
   </div>
+
+  <mat-menu #sortMenu="matMenu">
+    <button
+      mat-menu-item
+      *ngFor="let option of sortOptions"
+      (click)="onSortChange(option.value)"
+    >
+      <span>{{ option.label }}</span>
+      <mat-icon class="selected-icon" *ngIf="sortOption === option.value">
+        check
+      </mat-icon>
+    </button>
+  </mat-menu>
 
   <!-- ▼ プロジェクトカード一覧 -->
   <div

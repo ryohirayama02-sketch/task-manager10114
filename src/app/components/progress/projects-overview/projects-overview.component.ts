@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
 import { ProjectService } from '../../../services/project.service';
 import {
   ProgressService,
@@ -23,12 +24,21 @@ import {
     RouterModule,
     MatButtonModule,
     MatIconModule,
+    MatMenuModule,
     ProgressCircleComponent,
   ],
   templateUrl: './projects-overview.component.html',
   styleUrls: ['./projects-overview.component.css'],
 })
 export class ProjectsOverviewComponent implements OnInit {
+  private readonly sortStorageKey = 'projectsOverview.sortOption';
+  readonly sortOptions = [
+    { value: 'endDateAsc', label: '期日が近い順' },
+    { value: 'endDateDesc', label: '期日が遠い順' },
+    { value: 'progressDesc', label: '進捗率が高い順' },
+    { value: 'progressAsc', label: '進捗率が低い順' },
+  ] as const;
+  sortOption: (typeof this.sortOptions)[number]['value'] = 'endDateAsc';
   projects: IProject[] = [];
   projectProgress: { [key: string]: ProjectProgress } = {};
   readonly defaultThemeColor = DEFAULT_PROJECT_THEME_COLOR;
@@ -40,6 +50,11 @@ export class ProjectsOverviewComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    const storedOption = localStorage.getItem(this.sortStorageKey);
+    if (this.isValidSortOption(storedOption)) {
+      this.sortOption = storedOption;
+    }
+
     this.projectService.getProjects().subscribe(async (data) => {
       console.log('Firestoreから取得:', data);
       this.projects = data;
@@ -62,8 +77,9 @@ export class ProjectsOverviewComponent implements OnInit {
         console.log('全プロジェクト進捗マップ:', this.projectProgress);
 
         // プロジェクトを進捗率でソート（100%完了は下に）
-        this.sortProjectsByProgress();
+        this.applySort();
       }
+      this.applySort();
     });
   }
 
@@ -72,33 +88,13 @@ export class ProjectsOverviewComponent implements OnInit {
     this.router.navigate(['/progress/projects', projectId]);
   }
 
-  /** プロジェクトを進捗率でソート（100%完了は下に表示） */
-  private sortProjectsByProgress(): void {
-    this.projects.sort((a, b) => {
-      const progressA =
-        this.projectProgress[a.id || '']?.progressPercentage || 0;
-      const progressB =
-        this.projectProgress[b.id || '']?.progressPercentage || 0;
-
-      // 100%完了のプロジェクトは下に表示
-      if (progressA === 100 && progressB !== 100) {
-        return 1; // aをbより後に
-      }
-      if (progressB === 100 && progressA !== 100) {
-        return -1; // bをaより後に
-      }
-
-      // 両方とも100%または両方とも100%でない場合は、進捗率の昇順でソート
-      return progressA - progressB;
-    });
-
-    console.log(
-      'ソート後のプロジェクト一覧:',
-      this.projects.map((p) => ({
-        name: p.projectName,
-        progress: this.projectProgress[p.id || '']?.progressPercentage || 0,
-      }))
-    );
+  onSortChange(option: (typeof this.sortOptions)[number]['value']): void {
+    if (this.sortOption === option) {
+      return;
+    }
+    this.sortOption = option;
+    localStorage.setItem(this.sortStorageKey, option);
+    this.applySort();
   }
 
   getMemberDisplay(project: IProject): string {
@@ -131,5 +127,68 @@ export class ProjectsOverviewComponent implements OnInit {
       month: '2-digit',
       day: '2-digit',
     });
+  }
+
+  getSortLabel(optionValue: (typeof this.sortOptions)[number]['value']): string {
+    return (
+      this.sortOptions.find((option) => option.value === optionValue)?.label ||
+      ''
+    );
+  }
+
+  private applySort(): void {
+    const compareEndDate = (a: IProject, b: IProject, ascending: boolean) => {
+      const aTime = this.parseDate(a.endDate);
+      const bTime = this.parseDate(b.endDate);
+
+      // 未設定の終了日は常に末尾へ
+      if (aTime === null && bTime === null) return 0;
+      if (aTime === null) return 1;
+      if (bTime === null) return -1;
+
+      return ascending ? aTime - bTime : bTime - aTime;
+    };
+
+    const compareProgress = (
+      a: IProject,
+      b: IProject,
+      descending: boolean
+    ) => {
+      const aProgress =
+        this.projectProgress[a.id || '']?.progressPercentage ?? 0;
+      const bProgress =
+        this.projectProgress[b.id || '']?.progressPercentage ?? 0;
+      return descending ? bProgress - aProgress : aProgress - bProgress;
+    };
+
+    switch (this.sortOption) {
+      case 'endDateDesc':
+        this.projects.sort((a, b) => compareEndDate(a, b, false));
+        break;
+      case 'progressDesc':
+        this.projects.sort((a, b) => compareProgress(a, b, true));
+        break;
+      case 'progressAsc':
+        this.projects.sort((a, b) => compareProgress(a, b, false));
+        break;
+      case 'endDateAsc':
+      default:
+        this.projects.sort((a, b) => compareEndDate(a, b, true));
+        break;
+    }
+  }
+
+  private parseDate(date?: string): number | null {
+    if (!date) {
+      return null;
+    }
+    const time = new Date(date).getTime();
+    return Number.isNaN(time) ? null : time;
+  }
+
+  private isValidSortOption(
+    value: string | null
+  ): value is (typeof this.sortOptions)[number]['value'] {
+    return this.sortOptions.some((option) => option.value === value);
   }
 }
