@@ -124,8 +124,7 @@
 }
 
 .status-row.completed {
-  border-left: 6px solid #b2e9cb;
-  background-color: #dff5eb;
+  border-left: none;
 }
 
 .status-row.completed .status-label,
@@ -134,8 +133,7 @@
 }
 
 .status-row.in-progress {
-  border-left: 6px solid #fef6c3;
-  background-color: #fff9d9;
+  border-left: none;
 }
 
 .status-row.in-progress .status-label,
@@ -144,8 +142,7 @@
 }
 
 .status-row.not-started {
-  border-left: 6px solid #fdd6d5;
-  background-color: #fee5e4;
+  border-left: none;
 }
 
 .status-row.not-started .status-label,
