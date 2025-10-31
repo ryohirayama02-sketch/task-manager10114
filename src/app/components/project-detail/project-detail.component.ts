@@ -718,12 +718,12 @@ export class ProjectDetailComponent implements OnInit {
 
   getTasksSectionBackground(): string {
     const color = this.projectThemeColor || DEFAULT_PROJECT_THEME_COLOR;
-    return `linear-gradient(180deg, rgba(255,255,255,0.95) 0%, ${color} 100%)`;
+    return color;
   }
 
   getProjectCardBackground(): string {
     const color = this.projectThemeColor || DEFAULT_PROJECT_THEME_COLOR;
-    return `linear-gradient(135deg, rgba(255,255,255,0.92) 0%, ${color} 100%)`;
+    return color;
   }
 
   private sortTasks(tasks: Task[]): Task[] {
