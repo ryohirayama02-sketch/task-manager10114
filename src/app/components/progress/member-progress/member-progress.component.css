@@ -51,8 +51,8 @@
 }
 
 .members-list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 20px;
 }
 
@@ -62,8 +62,6 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   cursor: pointer;
   border-left: 4px solid #1976d2;
-  display: flex;
-  flex-direction: column;
 }
 
 .member-card:hover {
@@ -297,6 +295,9 @@
 
 /* レスポンシブデザイン */
 @media (max-width: 768px) {
+  .members-list {
+    grid-template-columns: 1fr;
+  }
   .member-progress-container {
     padding: 15px;
   }
