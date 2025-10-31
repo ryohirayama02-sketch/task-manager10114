@@ -122,6 +122,11 @@
   margin: 0 auto;
 }
 
+.calendar-weekdays.view-day .week-day {
+  border-left: 1px solid #dee2e6;
+  border-right: 1px solid #dee2e6;
+}
+
 .calendar-weekdays.view-week {
   grid-template-columns: repeat(7, minmax(0, 1fr));
 }
@@ -164,7 +169,8 @@
 }
 
 .view-day .calendar-day {
-  border-right: none;
+  border-left: 1px solid #dee2e6;
+  border-right: 1px solid #dee2e6;
   border-bottom: 1px solid #dee2e6;
   min-height: 200px;
 }
