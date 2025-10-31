@@ -1,3 +1,19 @@
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  max-width: 960px;
+  margin: 24px auto 0;
+}
+
+.back-button {
+  padding: 0 12px;
+}
+
+.back-button mat-icon {
+  margin-right: 4px;
+}
+
 .project-card {
   position: relative; /* ✅ これを追加：右下ボタンの基準にする */
   max-width: 960px;

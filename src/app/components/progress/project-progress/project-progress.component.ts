@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ProjectService } from '../../../services/project.service';
 import { Task } from '../../../models/task.model';
@@ -8,11 +8,13 @@ import {
   DEFAULT_PROJECT_THEME_COLOR,
   resolveProjectThemeColor,
 } from '../../../constants/project-theme-colors';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-project-progress',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, MatButtonModule, MatIconModule],
   templateUrl: './project-progress.component.html',
   styleUrls: ['./project-progress.component.css'],
 })
@@ -26,7 +28,8 @@ export class ProjectProgressComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private projectService: ProjectService
+    private projectService: ProjectService,
+    private location: Location
   ) {}
 
   ngOnInit() {
@@ -69,6 +72,14 @@ export class ProjectProgressComponent implements OnInit {
       '--task-theme-color':
         task.projectThemeColor || this.projectThemeColor,
     };
+  }
+
+  goBack(): void {
+    if (window.history.length > 1) {
+      this.location.back();
+    } else {
+      this.router.navigate(['/progress/projects']);
+    }
   }
 
   private withTaskTheme(task: Task): Task {

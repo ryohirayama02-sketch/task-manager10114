@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import {
   ReactiveFormsModule,
   FormBuilder,
@@ -74,7 +74,8 @@ export class ProjectFormComponent implements OnInit {
     private memberService: MemberManagementService,
     private snackBar: MatSnackBar,
     private router: Router,
-    private attachmentService: ProjectAttachmentService
+    private attachmentService: ProjectAttachmentService,
+    private location: Location
   ) {
     this.projectForm = this.fb.group({
       projectName: ['', [Validators.required, Validators.minLength(1)]],
@@ -86,6 +87,14 @@ export class ProjectFormComponent implements OnInit {
       milestones: this.fb.array([]),
       themeColor: [null],
     });
+  }
+
+  goBack(): void {
+    if (window.history.length > 1) {
+      this.location.back();
+    } else {
+      this.router.navigate(['/progress/projects']);
+    }
   }
 
   ngOnInit(): void {

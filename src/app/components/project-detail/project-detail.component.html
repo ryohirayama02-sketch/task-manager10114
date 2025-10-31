@@ -1,4 +1,10 @@
-<h2>プロジェクト詳細</h2>
+<div class="page-header">
+  <button mat-button (click)="goBack()" class="back-button">
+    <mat-icon>arrow_back</mat-icon>
+    戻る
+  </button>
+  <h2>プロジェクト詳細</h2>
+</div>
 
 <div
   *ngIf="project; else loading"

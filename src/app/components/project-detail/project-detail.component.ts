@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ProjectService } from '../../services/project.service';
@@ -74,7 +74,8 @@ export class ProjectDetailComponent implements OnInit {
     private projectService: ProjectService,
     private progressService: ProgressService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private location: Location
   ) {}
 
   ngOnInit() {
@@ -99,6 +100,14 @@ export class ProjectDetailComponent implements OnInit {
 
       // プロジェクトのタスク一覧を取得
       this.loadTasks();
+    }
+  }
+
+  goBack(): void {
+    if (window.history.length > 1) {
+      this.location.back();
+    } else {
+      this.router.navigate(['/progress/projects']);
     }
   }
 

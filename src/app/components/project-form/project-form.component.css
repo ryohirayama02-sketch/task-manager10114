@@ -5,7 +5,18 @@
 }
 
 .header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
   margin-bottom: 24px;
+}
+
+.back-button {
+  padding: 0 12px;
+}
+
+.back-button mat-icon {
+  margin-right: 4px;
 }
 
 .header h1 {

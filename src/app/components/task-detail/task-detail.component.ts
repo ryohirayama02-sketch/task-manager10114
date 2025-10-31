@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, Output, EventEmitter } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -54,6 +54,7 @@ export class TaskDetailComponent implements OnInit {
   private taskService = inject(TaskService);
   private memberService = inject(MemberManagementService);
   private dialog = inject(MatDialog);
+  private location = inject(Location);
 
   @Output() taskUpdated = new EventEmitter<any>();
 
@@ -637,7 +638,11 @@ export class TaskDetailComponent implements OnInit {
 
   /** 戻る */
   goBack() {
-    this.router.navigate(['/kanban']);
+    if (window.history.length > 1) {
+      this.location.back();
+    } else {
+      this.router.navigate(['/kanban']);
+    }
   }
 
   private createDefaultDetailSettings() {

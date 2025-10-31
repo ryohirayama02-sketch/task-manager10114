@@ -1,4 +1,10 @@
-<h2>個別プロジェクト進捗</h2>
+<div class="header">
+  <button mat-button (click)="goBack()" class="back-button">
+    <mat-icon>arrow_back</mat-icon>
+    戻る
+  </button>
+  <h2>個別プロジェクト進捗</h2>
+</div>
 
 <div *ngIf="project" class="project-summary" [ngStyle]="getProjectThemeStyle()">
   <h3

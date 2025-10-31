@@ -1,5 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -45,6 +45,7 @@ export class MemberDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private projectService = inject(ProjectService);
+  private location = inject(Location);
 
   memberDetail: MemberDetail | null = null;
   isLoading = true;
@@ -190,7 +191,11 @@ export class MemberDetailComponent implements OnInit {
   }
 
   goBack() {
-    this.router.navigate(['/progress/members']);
+    if (window.history.length > 1) {
+      this.location.back();
+    } else {
+      this.router.navigate(['/progress/members']);
+    }
   }
 
   exportToCSV() {
