@@ -161,6 +161,20 @@
   justify-content: center;
 }
 
+.priority-row {
+  border-left: 6px solid transparent;
+  background-color: transparent;
+  padding-bottom: 8px;
+}
+
+.priority-row .status-label {
+  color: #555;
+}
+
+.priority-row .status-total {
+  color: transparent;
+}
+
 .priority-row .priority-details {
   gap: 20px;
 }
