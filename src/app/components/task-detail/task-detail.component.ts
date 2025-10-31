@@ -83,6 +83,7 @@ export class TaskDetailComponent implements OnInit {
   childFilterDueDate = '';
   childAssigneeOptions: string[] = [];
   projectThemeColor = DEFAULT_PROJECT_THEME_COLOR;
+  parentTaskName: string | null = null;
 
   // タスクの基本情報
   taskData: Task = {
@@ -139,6 +140,7 @@ export class TaskDetailComponent implements OnInit {
   /** タスク詳細を読み込み */
   loadTaskDetails(projectId: string, taskId: string) {
     console.log('タスク詳細を読み込み中...', { projectId, taskId });
+    this.parentTaskName = null;
 
     // プロジェクト情報とタスク情報を並行して取得
     this.projectService.getProjectById(projectId).subscribe((project) => {
@@ -178,6 +180,14 @@ export class TaskDetailComponent implements OnInit {
           this.initializeDetailSettings((this.task as any).detailSettings);
           this.updateNotificationRecipientOptions();
           this.setupChildTasks(tasksWithProjectId, taskId);
+          if (this.task.parentTaskId) {
+            const parent = tasksWithProjectId.find(
+              (candidate) => candidate.id === this.task?.parentTaskId
+            );
+            this.parentTaskName = parent?.taskName || null;
+          } else {
+            this.parentTaskName = null;
+          }
           console.log('設定されたタスクデータ:', this.taskData);
         } else {
           console.error('タスクが見つかりませんでした');
@@ -188,6 +198,7 @@ export class TaskDetailComponent implements OnInit {
           console.log('検索対象のタスクID:', taskId);
           this.childTasks = [];
           this.filteredChildTasks = [];
+          this.parentTaskName = null;
         }
         this.isLoading = false;
       },
@@ -906,7 +917,7 @@ export class TaskDetailComponent implements OnInit {
 
   getChildTasksSectionBackground(): string {
     const color = this.project?.themeColor || '#e3f2fd';
-    return `linear-gradient(180deg, rgba(255,255,255,0.95) 0%, ${color} 100%)`;
+    return color;
   }
 
   getStatusColor(status: string): string {

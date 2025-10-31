@@ -57,9 +57,18 @@
           </div>
         </div>
 
+        <div class="form-row" *ngIf="parentTaskName">
+          <div class="form-field">
+            <label>親タスク名</label>
+            <div class="readonly-field">
+              {{ parentTaskName }}
+            </div>
+          </div>
+        </div>
+
         <div class="form-row">
           <div class="form-field">
-            <label>タスク名</label>
+            <label>子タスク名</label>
             <div class="readonly-field">
               {{ taskData.taskName }}
             </div>
