@@ -274,15 +274,19 @@
                 *ngFor="let milestone of editableMilestones; let i = index; trackBy: trackMilestone"
                 class="milestone-item"
               >
-                <mat-form-field appearance="outline" class="milestone-date">
-                  <mat-label>日付</mat-label>
-                  <input
-                    matInput
-                    type="date"
-                    [(ngModel)]="milestone.date"
-                    name="inlineMilestoneDate{{ i }}"
-                  />
-                </mat-form-field>
+                <div class="milestone-date-field">
+                  <label [attr.for]="'inlineMilestoneDate' + i">日付</label>
+                  <div class="date-input-wrapper">
+                    <input
+                      [id]="'inlineMilestoneDate' + i"
+                      class="date-input"
+                      type="date"
+                      [(ngModel)]="milestone.date"
+                      name="inlineMilestoneDate{{ i }}"
+                    />
+                    <mat-icon class="date-icon">event</mat-icon>
+                  </div>
+                </div>
                 <mat-form-field appearance="outline" class="milestone-name">
                   <mat-label>マイルストーン名</mat-label>
                   <input

@@ -289,6 +289,102 @@
   gap: 12px;
 }
 
+.inline-milestones .milestone-item {
+  align-items: flex-start;
+}
+
+.inline-milestones .milestone-date-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 160px;
+}
+
+.inline-milestones .milestone-date-field label {
+  font-weight: 500;
+  color: #333;
+  font-size: 14px;
+}
+
+.inline-milestones .milestone-date-field .date-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.inline-milestones .milestone-date-field .date-input {
+  width: 100%;
+  padding: 12px 40px 12px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.inline-milestones .milestone-date-field .date-input:focus {
+  border-color: #1976d2;
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+  outline: none;
+}
+
+.inline-milestones .milestone-date-field .date-input:hover {
+  border-color: #1976d2;
+}
+
+.inline-milestones .milestone-date-field .date-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #666;
+  pointer-events: none;
+  font-size: 20px;
+}
+
+.inline-milestones .milestone-date-field input[type='date'] {
+  cursor: pointer;
+  color-scheme: light;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+.inline-milestones .milestone-date-field input[type='date']::-webkit-calendar-picker-indicator {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  cursor: pointer;
+  background: transparent;
+  color: transparent;
+  width: 20px;
+  height: 20px;
+  opacity: 0;
+}
+
+.inline-milestones .milestone-date-field input[type='date']::-webkit-inner-spin-button,
+.inline-milestones .milestone-date-field input[type='date']::-webkit-clear-button {
+  display: none;
+}
+
+.inline-milestones .milestone-date-field input[type='date']::-moz-calendar-picker-indicator {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  cursor: pointer;
+  background: transparent;
+  color: transparent;
+  width: 20px;
+  height: 20px;
+  opacity: 0;
+}
+
 .project-header {
   display: flex;
   justify-content: space-between;
