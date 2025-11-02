@@ -2,7 +2,6 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -17,7 +16,6 @@ import { Subject, takeUntil } from 'rxjs';
 import { ProjectService } from '../../services/project.service';
 import { ProjectSelectionService } from '../../services/project-selection.service';
 import { OfflineService } from '../../services/offline.service';
-import { ProjectFormDialogComponent } from '../project-form-dialog/project-form-dialog.component';
 import { Task } from '../../models/task.model';
 import { IProject } from '../../models/project.model';
 
@@ -28,7 +26,6 @@ import { IProject } from '../../models/project.model';
     CommonModule,
     MatCardModule,
     MatButtonModule,
-    MatDialogModule,
     MatIconModule,
     MatSelectModule,
     MatFormFieldModule,
@@ -88,7 +85,6 @@ export class CalendarComponent implements OnInit, OnDestroy {
   constructor(
     private projectService: ProjectService,
     private projectSelectionService: ProjectSelectionService,
-    private dialog: MatDialog,
     private router: Router,
     private offlineService: OfflineService,
     private snackBar: MatSnackBar
@@ -395,19 +391,7 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
   /** プロジェクト作成ダイアログを開く */
   openProjectDialog() {
-    const ref = this.dialog.open(ProjectFormDialogComponent, {
-      width: '90vw',
-      maxWidth: '800px',
-      maxHeight: '90vh',
-      disableClose: false,
-      autoFocus: true,
-    });
-    ref.afterClosed().subscribe((result) => {
-      if (result === 'success') {
-        console.log('新しいプロジェクトが登録されました');
-        this.loadProjects();
-      }
-    });
+    this.router.navigate(['/project-form']);
   }
 
   /** フィルターをリセット */

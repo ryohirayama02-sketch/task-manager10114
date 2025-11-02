@@ -13,7 +13,6 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ProjectService } from '../../services/project.service';
 import { ProjectSelectionService } from '../../services/project-selection.service';
-import { ProjectFormDialogComponent } from '../project-form-dialog/project-form-dialog.component';
 import { TaskFormComponent } from '../task-form/task-form.component';
 import { TaskService } from '../../services/task.service';
 import { Task } from '../../models/task.model';
@@ -266,18 +265,7 @@ export class KanbanComponent implements OnInit {
 
   /** ＋プロジェクト：ダイアログを開く */
   openProjectDialog() {
-    const ref = this.dialog.open(ProjectFormDialogComponent, {
-      width: '90vw',
-      maxWidth: '800px',
-      maxHeight: '90vh',
-      disableClose: false,
-      autoFocus: true,
-    });
-    ref.afterClosed().subscribe((result) => {
-      if (result === 'success') {
-        console.log('新しいプロジェクトが登録されました');
-      }
-    });
+    this.router.navigate(['/project-form']);
   }
 
   /** ＋タスク：ダイアログを開く */

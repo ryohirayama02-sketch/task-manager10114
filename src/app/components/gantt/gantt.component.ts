@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -13,7 +12,6 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ProjectService } from '../../services/project.service';
 import { ProjectSelectionService } from '../../services/project-selection.service';
-import { ProjectFormDialogComponent } from '../project-form-dialog/project-form-dialog.component';
 import { Task } from '../../models/task.model';
 import { IProject } from '../../models/project.model';
 import {
@@ -28,7 +26,6 @@ import {
     CommonModule,
     MatCardModule,
     MatButtonModule,
-    MatDialogModule,
     MatIconModule,
     MatSelectModule,
     MatFormFieldModule,
@@ -95,7 +92,6 @@ export class GanttComponent implements OnInit {
   constructor(
     private projectService: ProjectService,
     private projectSelectionService: ProjectSelectionService,
-    private dialog: MatDialog,
     private router: Router
   ) {}
 
@@ -535,19 +531,7 @@ export class GanttComponent implements OnInit {
 
   /** プロジェクト作成ダイアログを開く */
   openProjectDialog() {
-    const ref = this.dialog.open(ProjectFormDialogComponent, {
-      width: '90vw',
-      maxWidth: '800px',
-      maxHeight: '90vh',
-      disableClose: false,
-      autoFocus: true,
-    });
-    ref.afterClosed().subscribe((result) => {
-      if (result === 'success') {
-        console.log('新しいプロジェクトが登録されました');
-        this.loadProjects();
-      }
-    });
+    this.router.navigate(['/project-form']);
   }
 
   /** フィルターをリセット */
