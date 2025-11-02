@@ -52,8 +52,8 @@ export class MemberDetailComponent implements OnInit {
   displayedColumns: string[] = [
     'projectName',
     'taskName',
-    'status',
     'dueDate',
+    'status',
     'priority',
   ];
   readonly defaultThemeColor = DEFAULT_PROJECT_THEME_COLOR;
