@@ -48,30 +48,32 @@
 
 .project-card {
   --project-theme-color: #ffffff;
-  border-radius: 12px;
-  padding: 18px;
+  border-radius: 16px;
+  padding: 22px;
   margin-bottom: 0;
   cursor: pointer;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 140px;
-  gap: 16px;
+  gap: 20px;
   align-items: stretch;
   min-height: 260px;
   max-height: 260px;
   height: 100%;
   overflow: hidden;
   background-color: var(--project-theme-color, #ffffff);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.1);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.16),
+    0 4px 10px rgba(15, 23, 42, 0.12);
   transition: transform 0.25s ease, box-shadow 0.25s ease,
     filter 0.25s ease;
   color: #1f2933;
 }
 
 .project-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);
-  filter: brightness(0.98);
+  transform: translateY(-5px);
+  box-shadow: 0 22px 40px rgba(15, 23, 42, 0.2),
+    0 6px 14px rgba(15, 23, 42, 0.16);
+  filter: brightness(1.01);
 }
 
 .project-info {
