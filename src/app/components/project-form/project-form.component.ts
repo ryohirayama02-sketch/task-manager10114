@@ -59,6 +59,8 @@ export class ProjectFormComponent implements OnInit {
   pendingFiles: { id: string; file: File }[] = [];
   linkTitle: string = '';
   linkUrl: string = '';
+  tagInputValue: string = '';
+  projectTags: string[] = [];
   loading = false;
   isSubmitting = false;
   isUploading = false;
@@ -98,6 +100,7 @@ export class ProjectFormComponent implements OnInit {
       responsible: [''],
       members: [[]],
       milestones: this.fb.array([]),
+      tags: [[]],
       themeColor: [null],
     });
 
@@ -178,7 +181,7 @@ export class ProjectFormComponent implements OnInit {
       (m) => m.id !== member.id
     );
     const memberIds = this.selectedMembers.map((m) => m.id || '');
-    this.projectForm.patchValue({ members: memberIds });
+      this.projectForm.patchValue({ members: memberIds });
 
     if (this.selectedResponsible?.id === member.id) {
       this.removeResponsible();
@@ -317,6 +320,7 @@ export class ProjectFormComponent implements OnInit {
         endDate: formData.endDate || '',
         themeColor: selectedColor,
         color: selectedColor,
+        tags: this.projectTags,
         responsible: this.selectedResponsible ? this.selectedResponsible.name : '',
         responsibleId: this.selectedResponsible?.id || '',
         responsibleEmail: this.selectedResponsible?.email || '',
@@ -460,6 +464,22 @@ export class ProjectFormComponent implements OnInit {
    */
   private generateId(): string {
     return Date.now().toString(36) + Math.random().toString(36).substring(2);
+  }
+
+  onProjectTagInputEnter(event: Event): void {
+    event.preventDefault();
+    const value = this.tagInputValue.trim();
+    if (!value) {
+      return;
+    }
+    if (!this.projectTags.includes(value)) {
+      this.projectTags.push(value);
+    }
+    this.tagInputValue = '';
+  }
+
+  removeProjectTag(tag: string): void {
+    this.projectTags = this.projectTags.filter((existing) => existing !== tag);
   }
 
   /**

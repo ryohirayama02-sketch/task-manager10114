@@ -73,42 +73,6 @@
           </div>
         </div>
 
-        <!-- テーマ色 -->
-        <div class="theme-color-section">
-          <div class="theme-color-header">
-            <h3>テーマ色</h3>
-            <span class="helper-text"
-              >プロジェクトのカードやタスクに反映されます</span
-            >
-          </div>
-          <div class="theme-color-grid">
-            <button
-              type="button"
-              class="theme-color-option no-color-option"
-              (click)="clearThemeColor()"
-              [class.selected]="isThemeColorSelected(null)"
-              matTooltip="色を選択しない"
-              [attr.aria-pressed]="isThemeColorSelected(null)"
-              aria-label="テーマ色 なし"
-            >
-              <span>なし</span>
-            </button>
-            <button
-              type="button"
-              class="theme-color-option"
-              *ngFor="let color of themeColorOptions"
-              [style.backgroundColor]="color"
-              [class.selected]="isThemeColorSelected(color)"
-              (click)="selectThemeColor(color)"
-              matTooltip="{{ getThemeColorLabel(color) }}"
-              [attr.aria-pressed]="isThemeColorSelected(color)"
-              [attr.aria-label]="'テーマ色 ' + getThemeColorLabel(color)"
-            >
-              <mat-icon *ngIf="isThemeColorSelected(color)">check</mat-icon>
-            </button>
-          </div>
-        </div>
-
         <!-- 責任者選択 -->
         <div class="member-selection responsible-selection">
           <div class="member-selection-header">
@@ -168,6 +132,184 @@
                 メンバー管理</button
               >でメンバーを登録してください。
             </p>
+          </div>
+        </div>
+
+        <!-- メンバー選択 -->
+        <div class="member-selection">
+          <div class="member-selection-header">
+            <h3>
+              プロジェクトメンバー
+              <span class="member-count" *ngIf="selectedMembers.length > 0">
+                ({{ selectedMembers.length }}人選択中)
+              </span>
+            </h3>
+            <button
+              mat-icon-button
+              color="primary"
+              routerLink="/members"
+              matTooltip="メンバーを追加"
+            >
+              <mat-icon>person_add</mat-icon>
+            </button>
+          </div>
+
+          <!-- ローディング表示 -->
+          <div *ngIf="loading" class="loading-members">
+            <mat-spinner diameter="24"></mat-spinner>
+            <span>メンバーを読み込み中...</span>
+          </div>
+
+          <!-- メンバー選択 -->
+          <div *ngIf="!loading && members.length > 0">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>メンバーを選択</mat-label>
+              <mat-select
+                formControlName="members"
+                multiple
+                (selectionChange)="onMemberSelectionChange($event.value)"
+                placeholder="メンバーを選択してください（複数選択可）"
+              >
+                <mat-option *ngFor="let member of members" [value]="member.id">
+                  {{ member.name }}
+                </mat-option>
+              </mat-select>
+              <mat-icon matSuffix>people</mat-icon>
+            </mat-form-field>
+
+            <!-- 選択されたメンバー -->
+            <div *ngIf="selectedMembers.length > 0" class="selected-members">
+              <div class="selected-members-header">
+                <span class="member-count-text"
+                  >{{ selectedMembers.length }}人選択中</span
+                >
+              </div>
+              <div class="member-chips-inline">
+                <mat-chip-set>
+                  <mat-chip
+                    *ngFor="let member of selectedMembers"
+                    [removable]="true"
+                    (removed)="removeMember(member)"
+                    class="member-chip-inline"
+                  >
+                    <mat-icon matChipAvatar>person</mat-icon>
+                    <span class="member-chip-name">{{ member.name }}</span>
+                    <button matChipRemove>
+                      <mat-icon>cancel</mat-icon>
+                    </button>
+                  </mat-chip>
+                </mat-chip-set>
+              </div>
+            </div>
+          </div>
+
+          <!-- メンバーがいない場合 -->
+          <div *ngIf="!loading && members.length === 0" class="no-members">
+            <mat-icon class="no-members-icon">people_outline</mat-icon>
+            <p>メンバーが登録されていません</p>
+            <p>
+              先に<button mat-button color="primary" routerLink="/members">
+                メンバー管理</button
+              >でメンバーを登録してください。
+            </p>
+          </div>
+        </div>
+
+        <!-- タグ -->
+        <div class="tags-section">
+          <div class="tags-header">
+            <h3>タグ</h3>
+            <span class="helper-text">Enterで追加 / # は自動で付きます</span>
+          </div>
+
+          <div class="tag-input-row">
+            <mat-form-field appearance="outline" class="tag-input-field">
+              <mat-label>タグ</mat-label>
+              <span matPrefix>#&nbsp;</span>
+              <input
+                matInput
+                [(ngModel)]="tagInputValue"
+                name="tagInput"
+                [ngModelOptions]="{ standalone: true }"
+                placeholder="タグ名を入力してEnter"
+                (keydown.enter)="onProjectTagInputEnter($event)"
+              />
+            </mat-form-field>
+          </div>
+
+          <div class="tag-list" *ngIf="projectTags.length > 0">
+            <div *ngFor="let tag of projectTags" class="tag-chip">
+              <span class="tag-chip-label">#{{ tag }}</span>
+              <button
+                type="button"
+                class="tag-remove-button"
+                (click)="removeProjectTag(tag)"
+                [attr.aria-label]="tag + ' を削除'"
+              >
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+          </div>
+
+          <div class="no-tags" *ngIf="projectTags.length === 0">
+            タグはまだ追加されていません
+          </div>
+        </div>
+        <!-- マイルストーン -->
+        <div class="milestones-section" formArrayName="milestones">
+          <h3>マイルストーン</h3>
+          <div class="milestones-container">
+            <div
+              class="milestone-item"
+              *ngFor="let milestone of milestones.controls; let i = index; trackBy: trackMilestone"
+              [formGroupName]="i"
+            >
+              <mat-form-field appearance="outline" class="milestone-date">
+                <mat-label>日付</mat-label>
+                <input
+                  matInput
+                  type="date"
+                  formControlName="date"
+                  #milestoneDateInput
+                />
+                <button
+                  mat-icon-button
+                  matSuffix
+                  type="button"
+                  (click)="openDatePicker(milestoneDateInput)"
+                  matTooltip="カレンダーを開く"
+                >
+                  <mat-icon>event</mat-icon>
+                </button>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="milestone-name">
+                <mat-label>マイルストーン名</mat-label>
+                <input matInput type="text" formControlName="name" />
+              </mat-form-field>
+
+              <button
+                mat-icon-button
+                color="warn"
+                type="button"
+                (click)="removeMilestone(i)"
+                class="remove-milestone"
+                matTooltip="このマイルストーンを削除"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+
+            <button
+              mat-stroked-button
+              color="primary"
+              type="button"
+              (click)="addMilestone()"
+              class="add-milestone"
+            >
+              <mat-icon>add</mat-icon>
+              マイルストーンを追加
+            </button>
           </div>
         </div>
 
@@ -282,139 +424,38 @@
           </div>
         </div>
 
-        <!-- メンバー選択 -->
-        <div class="member-selection">
-          <div class="member-selection-header">
-            <h3>
-              プロジェクトメンバー
-              <span class="member-count" *ngIf="selectedMembers.length > 0">
-                ({{ selectedMembers.length }}人選択中)
-              </span>
-            </h3>
-            <button
-              mat-icon-button
-              color="primary"
-              routerLink="/members"
-              matTooltip="メンバーを追加"
+        <!-- テーマ色 -->
+        <div class="theme-color-section">
+          <div class="theme-color-header">
+            <h3>テーマ色</h3>
+            <span class="helper-text"
+              >プロジェクトのカードやタスクに反映されます</span
             >
-              <mat-icon>person_add</mat-icon>
-            </button>
           </div>
-
-          <!-- ローディング表示 -->
-          <div *ngIf="loading" class="loading-members">
-            <mat-spinner diameter="24"></mat-spinner>
-            <span>メンバーを読み込み中...</span>
-          </div>
-
-          <!-- メンバー選択 -->
-          <div *ngIf="!loading && members.length > 0">
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>メンバーを選択</mat-label>
-              <mat-select
-                formControlName="members"
-                multiple
-                (selectionChange)="onMemberSelectionChange($event.value)"
-                placeholder="メンバーを選択してください（複数選択可）"
-              >
-                <mat-option *ngFor="let member of members" [value]="member.id">
-                  {{ member.name }}
-                </mat-option>
-              </mat-select>
-              <mat-icon matSuffix>people</mat-icon>
-            </mat-form-field>
-
-            <!-- 選択されたメンバー -->
-            <div *ngIf="selectedMembers.length > 0" class="selected-members">
-              <div class="selected-members-header">
-                <span class="member-count-text"
-                  >{{ selectedMembers.length }}人選択中</span
-                >
-              </div>
-              <div class="member-chips-inline">
-                <mat-chip-set>
-                  <mat-chip
-                    *ngFor="let member of selectedMembers"
-                    [removable]="true"
-                    (removed)="removeMember(member)"
-                    class="member-chip-inline"
-                  >
-                    <mat-icon matChipAvatar>person</mat-icon>
-                    <span class="member-chip-name">{{ member.name }}</span>
-                    <button matChipRemove>
-                      <mat-icon>cancel</mat-icon>
-                    </button>
-                  </mat-chip>
-                </mat-chip-set>
-              </div>
-            </div>
-          </div>
-
-          <!-- メンバーがいない場合 -->
-          <div *ngIf="!loading && members.length === 0" class="no-members">
-            <mat-icon class="no-members-icon">people_outline</mat-icon>
-            <p>メンバーが登録されていません</p>
-            <p>
-              先に<button mat-button color="primary" routerLink="/members">
-                メンバー管理</button
-              >でメンバーを登録してください。
-            </p>
-          </div>
-        </div>
-        <!-- マイルストーン -->
-        <div class="milestones-section" formArrayName="milestones">
-          <h3>マイルストーン</h3>
-          <div class="milestones-container">
-            <div
-              class="milestone-item"
-              *ngFor="let milestone of milestones.controls; let i = index; trackBy: trackMilestone"
-              [formGroupName]="i"
-            >
-              <mat-form-field appearance="outline" class="milestone-date">
-                <mat-label>日付</mat-label>
-                <input
-                  matInput
-                  type="date"
-                  formControlName="date"
-                  #milestoneDateInput
-                />
-                <button
-                  mat-icon-button
-                  matSuffix
-                  type="button"
-                  (click)="openDatePicker(milestoneDateInput)"
-                  matTooltip="カレンダーを開く"
-                >
-                  <mat-icon>event</mat-icon>
-                </button>
-              </mat-form-field>
-
-              <mat-form-field appearance="outline" class="milestone-name">
-                <mat-label>マイルストーン名</mat-label>
-                <input matInput type="text" formControlName="name" />
-              </mat-form-field>
-
-              <button
-                mat-icon-button
-                color="warn"
-                type="button"
-                (click)="removeMilestone(i)"
-                class="remove-milestone"
-                matTooltip="このマイルストーンを削除"
-              >
-                <mat-icon>delete</mat-icon>
-              </button>
-            </div>
-
+          <div class="theme-color-grid">
             <button
-              mat-stroked-button
-              color="primary"
               type="button"
-              (click)="addMilestone()"
-              class="add-milestone"
+              class="theme-color-option no-color-option"
+              (click)="clearThemeColor()"
+              [class.selected]="isThemeColorSelected(null)"
+              matTooltip="色を選択しない"
+              [attr.aria-pressed]="isThemeColorSelected(null)"
+              aria-label="テーマ色 なし"
             >
-              <mat-icon>add</mat-icon>
-              マイルストーンを追加
+              <span>なし</span>
+            </button>
+            <button
+              type="button"
+              class="theme-color-option"
+              *ngFor="let color of themeColorOptions"
+              [style.backgroundColor]="color"
+              [class.selected]="isThemeColorSelected(color)"
+              (click)="selectThemeColor(color)"
+              matTooltip="{{ getThemeColorLabel(color) }}"
+              [attr.aria-pressed]="isThemeColorSelected(color)"
+              [attr.aria-label]="'テーマ色 ' + getThemeColorLabel(color)"
+            >
+              <mat-icon *ngIf="isThemeColorSelected(color)">check</mat-icon>
             </button>
           </div>
         </div>
