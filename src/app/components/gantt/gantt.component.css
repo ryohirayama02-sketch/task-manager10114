@@ -33,9 +33,17 @@
 
 .filter-section {
   display: flex;
+  flex-direction: column;
   gap: 12px;
-  align-items: center;
-  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.filter-section mat-form-field {
+  width: 300px !important;
+}
+
+.filter-section button {
+  align-self: flex-start;
 }
 
 .action-buttons {
