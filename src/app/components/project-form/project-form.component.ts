@@ -342,8 +342,12 @@ export class ProjectFormComponent implements OnInit {
         duration: 3000,
       });
 
-      // プロジェクト一覧に戻る
-      this.router.navigate(['/progress/projects']);
+      // 作成したプロジェクトの詳細画面へ遷移
+      if (docRef?.id) {
+        this.router.navigate(['/project', docRef.id]);
+      } else {
+        this.router.navigate(['/progress/projects']);
+      }
     } catch (error) {
       console.error('プロジェクト作成エラー:', error);
       this.snackBar.open('プロジェクトの作成に失敗しました', '閉じる', {
