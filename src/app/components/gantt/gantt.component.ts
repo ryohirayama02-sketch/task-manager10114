@@ -46,9 +46,9 @@ export class GanttComponent implements OnInit {
   readonly defaultThemeColor = DEFAULT_PROJECT_THEME_COLOR;
 
   // フィルター用
-  filterPriority: string = '';
-  filterAssignee: string = '';
-  filterStatus: string = '';
+  filterPriority: string[] = [];
+  filterAssignee: string[] = [];
+  filterStatus: string[] = [];
 
   // 日付範囲
   startDate: Date = new Date();
@@ -224,23 +224,23 @@ export class GanttComponent implements OnInit {
     }
 
     // 優先度フィルター
-    if (this.filterPriority) {
+    if (this.filterPriority.length > 0) {
       filteredTasks = filteredTasks.filter(
-        (task) => task.priority === this.filterPriority
+        (task) => this.filterPriority.includes(task.priority)
       );
     }
 
     // 担当者フィルター
-    if (this.filterAssignee) {
+    if (this.filterAssignee.length > 0) {
       filteredTasks = filteredTasks.filter(
-        (task) => task.assignee === this.filterAssignee
+        (task) => this.filterAssignee.includes(task.assignee)
       );
     }
 
     // ステータスフィルター
-    if (this.filterStatus) {
+    if (this.filterStatus.length > 0) {
       filteredTasks = filteredTasks.filter(
-        (task) => task.status === this.filterStatus
+        (task) => this.filterStatus.includes(task.status)
       );
     }
 
@@ -538,9 +538,9 @@ export class GanttComponent implements OnInit {
 
   /** フィルターをリセット */
   resetFilters() {
-    this.filterPriority = '';
-    this.filterAssignee = '';
-    this.filterStatus = '';
+    this.filterPriority = [];
+    this.filterAssignee = [];
+    this.filterStatus = [];
     this.filterTasksBySelectedProjects();
   }
 
