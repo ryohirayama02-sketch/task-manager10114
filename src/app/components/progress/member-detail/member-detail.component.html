@@ -120,10 +120,38 @@
       <mat-card-header>
         <mat-card-title>タスク一覧</mat-card-title>
         <div class="header-actions">
-          <button mat-button class="filter-button">
-            <mat-icon>filter_list</mat-icon>
-            フィルター
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>期日</mat-label>
+            <mat-select [(ngModel)]="filterDueDateSort" (selectionChange)="applyTaskFilters()">
+              <mat-option value="">ソートなし</mat-option>
+              <mat-option value="near">近い順</mat-option>
+              <mat-option value="far">遠い順</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>ステータス</mat-label>
+            <mat-select [(ngModel)]="filterStatus" (selectionChange)="applyTaskFilters()" multiple>
+              <mat-option value="未着手">未着手</mat-option>
+              <mat-option value="作業中">作業中</mat-option>
+              <mat-option value="完了">完了</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>優先度</mat-label>
+            <mat-select [(ngModel)]="filterPriority" (selectionChange)="applyTaskFilters()" multiple>
+              <mat-option value="高">高</mat-option>
+              <mat-option value="中">中</mat-option>
+              <mat-option value="低">低</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <button mat-button (click)="resetTaskFilters()">
+            <mat-icon>clear</mat-icon>
+            リセット
           </button>
+
           <button mat-button class="export-button" (click)="exportToCSV()">
             <mat-icon>download</mat-icon>
             出力
@@ -134,7 +162,7 @@
         <div class="table-container">
           <table
             mat-table
-            [dataSource]="memberDetail.tasks"
+            [dataSource]="filteredTasks"
             class="tasks-table"
           >
             <!-- プロジェクト名列 -->

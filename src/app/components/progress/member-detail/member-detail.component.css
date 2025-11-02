@@ -125,6 +125,11 @@
   gap: 10px;
 }
 
+.filter-field {
+  width: 180px;
+  font-size: 12px;
+}
+
 .period-button,
 .filter-button,
 .export-button {

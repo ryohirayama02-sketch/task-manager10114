@@ -7,6 +7,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { FormsModule } from '@angular/forms';
 import { ProjectService } from '../../../services/project.service';
 import { Task } from '../../../models/task.model';
 import { DEFAULT_PROJECT_THEME_COLOR } from '../../../constants/project-theme-colors';
@@ -37,6 +40,9 @@ interface MemberDetail {
     MatProgressSpinnerModule,
     MatTableModule,
     MatChipsModule,
+    MatSelectModule,
+    MatFormFieldModule,
+    FormsModule,
   ],
   templateUrl: './member-detail.component.html',
   styleUrls: ['./member-detail.component.css'],
@@ -57,6 +63,12 @@ export class MemberDetailComponent implements OnInit {
     'priority',
   ];
   readonly defaultThemeColor = DEFAULT_PROJECT_THEME_COLOR;
+
+  // フィルター用
+  filterStatus: string[] = [];
+  filterPriority: string[] = [];
+  filterDueDateSort: string = ''; // 'near' (近い順) or 'far' (遠い順)
+  filteredTasks: Task[] = [];
 
   ngOnInit() {
     const memberName = this.route.snapshot.paramMap.get('memberName');
@@ -148,7 +160,54 @@ export class MemberDetailComponent implements OnInit {
     };
 
     console.log('メンバー詳細:', this.memberDetail);
+    this.applyTaskFilters();
     this.isLoading = false;
+  }
+
+  /** タスクフィルターを適用 */
+  applyTaskFilters() {
+    if (!this.memberDetail) return;
+
+    let filtered = [...this.memberDetail.tasks];
+
+    // ステータスフィルター
+    if (this.filterStatus.length > 0) {
+      filtered = filtered.filter((task) =>
+        this.filterStatus.includes(task.status)
+      );
+    }
+
+    // 優先度フィルター
+    if (this.filterPriority.length > 0) {
+      filtered = filtered.filter((task) =>
+        this.filterPriority.includes(task.priority)
+      );
+    }
+
+    // 期日でソート
+    if (this.filterDueDateSort === 'near') {
+      filtered.sort((a, b) => {
+        const dateA = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
+        const dateB = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
+        return dateA - dateB;
+      });
+    } else if (this.filterDueDateSort === 'far') {
+      filtered.sort((a, b) => {
+        const dateA = a.dueDate ? new Date(a.dueDate).getTime() : -Infinity;
+        const dateB = b.dueDate ? new Date(b.dueDate).getTime() : -Infinity;
+        return dateB - dateA;
+      });
+    }
+
+    this.filteredTasks = filtered;
+  }
+
+  /** フィルターをリセット */
+  resetTaskFilters() {
+    this.filterStatus = [];
+    this.filterPriority = [];
+    this.filterDueDateSort = '';
+    this.applyTaskFilters();
   }
 
   /** 優先度別の内訳を計算 */
