@@ -10,7 +10,7 @@
 </div>
 
 <!-- プロジェクト選択とフィルター -->
-<div class="controls-section">
+<div class="controls-section" style="justify-content: space-between; align-items: flex-start;">
   <div class="project-selector">
     <h3>表示するプロジェクトを選択</h3>
     <div class="project-checkboxes">
@@ -35,42 +35,41 @@
 
   <!-- フィルター -->
   <div class="filter-section">
-    <mat-form-field appearance="outline" style="width: 150px">
+    <mat-form-field appearance="outline">
+      <mat-label>ステータス</mat-label>
+      <mat-select [(ngModel)]="filterStatus" (selectionChange)="applyFilters()" multiple>
+        <mat-option value="未着手">未着手</mat-option>
+        <mat-option value="作業中">作業中</mat-option>
+        <mat-option value="完了">完了</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
       <mat-label>優先度</mat-label>
       <mat-select
         [(ngModel)]="filterPriority"
         (selectionChange)="applyFilters()"
+        multiple
       >
-        <mat-option value="">すべて</mat-option>
         <mat-option value="高">高</mat-option>
         <mat-option value="中">中</mat-option>
         <mat-option value="低">低</mat-option>
       </mat-select>
     </mat-form-field>
 
-    <mat-form-field appearance="outline" style="width: 150px">
+    <mat-form-field appearance="outline">
       <mat-label>担当者</mat-label>
       <mat-select
         [(ngModel)]="filterAssignee"
         (selectionChange)="applyFilters()"
+        multiple
       >
-        <mat-option value="">すべて</mat-option>
         <mat-option
           *ngFor="let assignee of getUniqueAssignees()"
           [value]="assignee"
         >
           {{ assignee }}
         </mat-option>
-      </mat-select>
-    </mat-form-field>
-
-    <mat-form-field appearance="outline" style="width: 150px">
-      <mat-label>ステータス</mat-label>
-      <mat-select [(ngModel)]="filterStatus" (selectionChange)="applyFilters()">
-        <mat-option value="">すべて</mat-option>
-        <mat-option value="未着手">未着手</mat-option>
-        <mat-option value="作業中">作業中</mat-option>
-        <mat-option value="完了">完了</mat-option>
       </mat-select>
     </mat-form-field>
 

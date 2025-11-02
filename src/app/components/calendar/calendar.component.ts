@@ -57,9 +57,9 @@ export class CalendarComponent implements OnInit, OnDestroy {
   selectedDate: Date | null = null;
 
   // フィルター用
-  filterPriority: string = '';
-  filterAssignee: string = '';
-  filterStatus: string = '';
+  filterPriority: string[] = [];
+  filterAssignee: string[] = [];
+  filterStatus: string[] = [];
 
   // ステータス色
   statusColors: { [key: string]: string } = {
@@ -238,19 +238,19 @@ export class CalendarComponent implements OnInit, OnDestroy {
         )
       : [];
 
-    if (this.filterPriority) {
+    if (this.filterPriority.length > 0) {
       filteredTasks = filteredTasks.filter(
-        (task) => task.priority === this.filterPriority
+        (task) => this.filterPriority.includes(task.priority)
       );
     }
-    if (this.filterAssignee) {
+    if (this.filterAssignee.length > 0) {
       filteredTasks = filteredTasks.filter(
-        (task) => task.assignee === this.filterAssignee
+        (task) => this.filterAssignee.includes(task.assignee)
       );
     }
-    if (this.filterStatus) {
+    if (this.filterStatus.length > 0) {
       filteredTasks = filteredTasks.filter(
-        (task) => task.status === this.filterStatus
+        (task) => this.filterStatus.includes(task.status)
       );
     }
 
@@ -398,9 +398,9 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
   /** フィルターをリセット */
   resetFilters() {
-    this.filterPriority = '';
-    this.filterAssignee = '';
-    this.filterStatus = '';
+    this.filterPriority = [];
+    this.filterAssignee = [];
+    this.filterStatus = [];
     this.filterTasksBySelectedProjects();
   }
 
