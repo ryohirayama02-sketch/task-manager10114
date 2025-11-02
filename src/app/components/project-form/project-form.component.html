@@ -30,9 +30,9 @@
           </mat-error>
         </mat-form-field>
 
-        <!-- 説明 -->
+        <!-- プロジェクト概要 -->
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>説明</mat-label>
+          <mat-label>プロジェクト概要</mat-label>
           <textarea
             matInput
             formControlName="description"
@@ -148,14 +148,6 @@
                 ({{ selectedMembers.length }}人選択中)
               </span>
             </h3>
-            <button
-              mat-icon-button
-              color="primary"
-              routerLink="/members"
-              matTooltip="メンバーを追加"
-            >
-              <mat-icon>person_add</mat-icon>
-            </button>
           </div>
 
           <!-- ローディング表示 -->
