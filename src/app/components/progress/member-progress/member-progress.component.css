@@ -62,7 +62,7 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   cursor: pointer;
   border-left: 4px solid #1976d2;
-  background-color: #ffffff;
+  background-color: #f3f8ff;
 }
 
 .member-card:hover {
