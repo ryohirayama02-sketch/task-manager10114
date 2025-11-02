@@ -290,6 +290,7 @@
 .tasks-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
 .tasks-table th {
@@ -300,6 +301,9 @@
   text-align: left;
   border-bottom: 2px solid #e0e0e0;
   border-right: 1px solid #e0e0e0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .tasks-table th:last-child {
@@ -310,10 +314,54 @@
   padding: 12px 8px;
   border-bottom: 1px solid #f0f0f0;
   border-right: 1px solid #e0e0e0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .tasks-table td:last-child {
   border-right: none;
+}
+
+/* Column width distribution */
+.tasks-table thead tr th:nth-child(1),
+.tasks-table tbody tr td:nth-child(1) {
+  width: 35%;
+}
+
+.tasks-table thead tr th:nth-child(2),
+.tasks-table tbody tr td:nth-child(2) {
+  width: 35%;
+}
+
+.tasks-table thead tr th:nth-child(3),
+.tasks-table tbody tr td:nth-child(3) {
+  width: 10%;
+}
+
+.tasks-table thead tr th:nth-child(4),
+.tasks-table tbody tr td:nth-child(4) {
+  width: 10%;
+}
+
+.tasks-table thead tr th:nth-child(5),
+.tasks-table tbody tr td:nth-child(5) {
+  width: 10%;
+}
+
+/* Specific dueDate column styling */
+.mat-column-dueDate {
+  width: 10% !important;
+}
+
+/* Specific status column styling */
+.mat-column-status {
+  width: 10% !important;
+}
+
+/* Specific priority column styling */
+.mat-column-priority {
+  width: 10% !important;
 }
 
 .project-name-pill {
