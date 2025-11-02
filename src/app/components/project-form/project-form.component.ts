@@ -67,6 +67,18 @@ export class ProjectFormComponent implements OnInit {
 
   private readonly MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
   readonly themeColorOptions = PROJECT_THEME_COLORS;
+  private readonly themeColorLabelMap: Record<ProjectThemeColor, string> = {
+    '#fde4ec': 'ピンク',
+    '#ffe6dc': 'ピーチ',
+    '#ffedd6': 'アプリコット',
+    '#fff8e4': 'イエロー',
+    '#eef6da': 'ライム',
+    '#e4f4e8': 'ミント',
+    '#dcf3f0': 'ブルーグリーン',
+    '#def3ff': 'スカイブルー',
+    '#e6e9f9': 'ラベンダーブルー',
+    '#ece6f8': 'パープル',
+  };
 
   constructor(
     private fb: FormBuilder,
@@ -192,6 +204,10 @@ export class ProjectFormComponent implements OnInit {
 
   clearThemeColor(): void {
     this.selectThemeColor(null);
+  }
+
+  getThemeColorLabel(color: ProjectThemeColor | string): string {
+    return this.themeColorLabelMap[color as ProjectThemeColor] ?? color;
   }
 
   /**

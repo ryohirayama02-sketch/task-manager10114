@@ -100,9 +100,9 @@
               [style.backgroundColor]="color"
               [class.selected]="isThemeColorSelected(color)"
               (click)="selectThemeColor(color)"
-              matTooltip="{{ color }}"
+              matTooltip="{{ getThemeColorLabel(color) }}"
               [attr.aria-pressed]="isThemeColorSelected(color)"
-              [attr.aria-label]="'テーマ色 ' + color"
+              [attr.aria-label]="'テーマ色 ' + getThemeColorLabel(color)"
             >
               <mat-icon *ngIf="isThemeColorSelected(color)">check</mat-icon>
             </button>
