@@ -85,12 +85,20 @@
   min-width: 0;
 }
 
-.project-overview,
-.project-meta-line {
+.project-info > p {
   margin: 0;
   display: flex;
   gap: 8px;
   align-items: flex-start;
+  border-top: 1px solid rgba(15, 23, 42, 0.18);
+  padding-top: 10px;
+  margin-top: 6px;
+}
+
+.project-info > p:first-of-type {
+  border-top: none;
+  padding-top: 0;
+  margin-top: 0;
 }
 
 .project-meta-line {
@@ -133,6 +141,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  padding-bottom: 12px;
+  border-bottom: 4px solid #2f3640;
 }
 
 .project-title:hover {
