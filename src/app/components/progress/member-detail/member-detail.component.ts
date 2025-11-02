@@ -167,11 +167,11 @@ export class MemberDetailComponent implements OnInit {
   getStatusColor(status: string): string {
     switch (status) {
       case '完了':
-        return '#4caf50';
+        return '#b2e9cb';
       case '作業中':
-        return '#2196f3';
+        return '#fef6c3';
       case '未着手':
-        return '#f44336';
+        return '#fdd6d5';
       default:
         return '#9e9e9e';
     }
@@ -180,11 +180,11 @@ export class MemberDetailComponent implements OnInit {
   getPriorityColor(priority: string): string {
     switch (priority) {
       case '高':
-        return '#f44336';
+        return '#fdd6d5';
       case '中':
-        return '#ff9800';
+        return '#fef6c3';
       case '低':
-        return '#4caf50';
+        return '#b2e9cb';
       default:
         return '#9e9e9e';
     }
