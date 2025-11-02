@@ -2,7 +2,9 @@
   padding: 20px;
   max-width: 800px;
   margin: 0 auto;
+  background-color: #ffffff;
 }
+
 
 .header {
   display: flex;
@@ -28,7 +30,9 @@
 
 .form-card {
   padding: 24px;
+  background-color: #ffffff;
 }
+
 
 .full-width {
   width: 100%;
