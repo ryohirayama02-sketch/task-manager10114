@@ -1,125 +1,212 @@
-<div class="task-detail-container" [style.background]="projectThemeColor">
-  <!-- ヘッダー -->
-  <div class="task-header">
-    <button mat-button (click)="goBack()" class="back-button">
-      <mat-icon>arrow_back</mat-icon>
-      戻る
-    </button>
-    <h1>{{ taskData.taskName || "タスク詳細" }}</h1>
-    <div class="header-actions">
-      <div class="header-calendar-toggle">
-        <button
-          type="button"
-          class="calendar-switch"
-          [class.on]="taskData.calendarSyncEnabled"
-          [disabled]="isCalendarSyncSaving"
-          (click)="toggleCalendarSync()"
-          role="switch"
-          [attr.aria-checked]="taskData.calendarSyncEnabled"
-        >
-          <span class="calendar-switch-handle"></span>
-        </button>
-        <span class="calendar-switch-label">
-          カレンダー連携 {{ taskData.calendarSyncEnabled ? 'ON' : 'OFF' }}
-        </span>
-      </div>
+<div class="page-header">
+  <button mat-button (click)="goBack()" class="back-button">
+    <mat-icon>arrow_back</mat-icon>
+    戻る
+  </button>
+  <h2>タスク詳細</h2>
+</div>
+
+<div
+  *ngIf="task; else loading"
+  class="task-card"
+  [style.background]="projectThemeColor"
+>
+  <!-- ツールバー -->
+  <div class="task-toolbar">
+    <mat-slide-toggle
+      color="primary"
+      [checked]="isEditing"
+      [disabled]="isSaving"
+      (change)="toggleEdit()"
+    >
+      編集モード {{ isEditing ? 'ON' : 'OFF' }}
+    </mat-slide-toggle>
+    <div class="toolbar-spacer"></div>
+    <div class="header-calendar-toggle">
       <button
-        mat-raised-button
-        class="edit-button"
-        (click)="toggleEdit()"
+        type="button"
+        class="calendar-switch"
+        [class.on]="taskData.calendarSyncEnabled"
+        [disabled]="isCalendarSyncSaving"
+        (click)="toggleCalendarSync()"
+        role="switch"
+        [attr.aria-checked]="taskData.calendarSyncEnabled"
       >
-        <mat-icon>edit</mat-icon>
-        編集
+        <span class="calendar-switch-handle"></span>
       </button>
+      <span class="calendar-switch-label">
+        カレンダー連携 {{ taskData.calendarSyncEnabled ? 'ON' : 'OFF' }}
+      </span>
     </div>
   </div>
 
-  <!-- ローディング状態 -->
-  <div *ngIf="isLoading" class="loading-container">
-    <mat-spinner></mat-spinner>
-    <p>タスク情報を読み込み中...</p>
+  <!-- メインコンテンツ -->
+  <div class="task-header">
+    <h1>{{ taskData.taskName || "タスク詳細" }}</h1>
   </div>
 
-  <!-- メインコンテンツ -->
-  <div class="task-content" *ngIf="!isLoading && task; else taskNotFound">
+  <div class="task-content" *ngIf="!isLoading && task">
     <!-- 基本情報 -->
     <mat-card class="info-card">
-      <mat-card-header>
-        <mat-card-title>基本情報</mat-card-title>
-      </mat-card-header>
       <mat-card-content>
-        <div class="form-row">
-          <div class="form-field">
-            <label>プロジェクト名</label>
-            <div class="readonly-field">
-              {{ taskData.projectName || project?.projectName || "—" }}
+        <ng-container *ngIf="!isEditing; else taskEditForm">
+          <!-- 読み取りモード -->
+          <div class="form-row">
+            <div class="form-field">
+              <label>プロジェクト名</label>
+              <div class="readonly-field">
+                {{ taskData.projectName || project?.projectName || "—" }}
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="form-row" *ngIf="parentTaskName && task?.parentTaskId">
-          <div class="form-field">
-            <label>親タスク名</label>
-            <div class="readonly-field">
-              {{ parentTaskName }}
+          <div class="form-row" *ngIf="parentTaskName && task?.parentTaskId">
+            <div class="form-field">
+              <label>親タスク名</label>
+              <div class="readonly-field">
+                {{ parentTaskName }}
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="form-row">
-          <div class="form-field">
-            <label>タスクの説明</label>
-            <div class="readonly-field">
-              {{ taskData.description || "説明なし" }}
+          <div class="form-row">
+            <div class="form-field">
+              <label>タスクの説明</label>
+              <div class="readonly-field">
+                {{ taskData.description || "説明なし" }}
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="form-row">
-          <div class="form-field">
-            <label>期間</label>
-            <div class="readonly-field">
-              {{
-                taskData.startDate
-                  ? (taskData.startDate | date : "yyyy/MM/dd")
-                  : "—"
-              }}
-              ～
-              {{
-                taskData.dueDate
-                  ? (taskData.dueDate | date : "yyyy/MM/dd")
-                  : "—"
-              }}
+          <div class="form-row">
+            <div class="form-field">
+              <label>期間</label>
+              <div class="readonly-field">
+                {{
+                  taskData.startDate
+                    ? (taskData.startDate | date : "yyyy/MM/dd")
+                    : "—"
+                }}
+                ～
+                {{
+                  taskData.dueDate
+                    ? (taskData.dueDate | date : "yyyy/MM/dd")
+                    : "—"
+                }}
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="form-row">
-          <div class="form-field">
-            <label>担当者</label>
-            <div class="readonly-field">
-              {{ taskData.assignee || "—" }}
+          <div class="form-row">
+            <div class="form-field">
+              <label>担当者</label>
+              <div class="readonly-field">
+                {{ taskData.assignee || "—" }}
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="form-row">
-          <div class="form-field">
-            <label>ステータス</label>
-            <div class="readonly-field">
-              {{ taskData.status }}
+          <div class="form-row">
+            <div class="form-field">
+              <label>ステータス</label>
+              <div class="readonly-field">
+                {{ taskData.status }}
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="form-row">
-          <div class="form-field">
-            <label>優先度</label>
-            <div class="readonly-field">
-              {{ taskData.priority }}
+          <div class="form-row">
+            <div class="form-field">
+              <label>優先度</label>
+              <div class="readonly-field">
+                {{ taskData.priority }}
+              </div>
             </div>
           </div>
-        </div>
+        </ng-container>
+
+        <!-- 編集モード -->
+        <ng-template #taskEditForm>
+          <form class="task-inline-edit-form" novalidate>
+            <mat-form-field appearance="outline" class="full-width-field">
+              <mat-label>プロジェクト名</mat-label>
+              <input matInput [value]="taskData.projectName" disabled />
+            </mat-form-field>
+
+            <mat-form-field *ngIf="parentTaskName && task?.parentTaskId" appearance="outline" class="full-width-field">
+              <mat-label>親タスク名</mat-label>
+              <input matInput [value]="parentTaskName" disabled />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width-field">
+              <mat-label>タスクの説明</mat-label>
+              <textarea
+                matInput
+                rows="3"
+                [(ngModel)]="taskData.description"
+                name="description"
+              ></textarea>
+            </mat-form-field>
+
+            <div class="inline-date-row">
+              <div class="date-field">
+                <label for="startDate">開始日</label>
+                <div class="date-input-wrapper">
+                  <input
+                    id="startDate"
+                    class="date-input"
+                    type="date"
+                    [(ngModel)]="taskData.startDate"
+                    name="startDate"
+                  />
+                  <mat-icon class="date-icon">event</mat-icon>
+                </div>
+              </div>
+
+              <div class="date-field">
+                <label for="dueDate">終了日</label>
+                <div class="date-input-wrapper">
+                  <input
+                    id="dueDate"
+                    class="date-input"
+                    type="date"
+                    [(ngModel)]="taskData.dueDate"
+                    name="dueDate"
+                  />
+                  <mat-icon class="date-icon">event</mat-icon>
+                </div>
+              </div>
+            </div>
+
+            <mat-form-field appearance="outline" class="full-width-field">
+              <mat-label>担当者</mat-label>
+              <mat-select [(ngModel)]="taskData.assignee" name="assignee">
+                <mat-option value="">未割当</mat-option>
+                <mat-option *ngFor="let member of members" [value]="member.name">
+                  {{ member.name }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width-field">
+              <mat-label>ステータス</mat-label>
+              <mat-select [(ngModel)]="taskData.status" name="status">
+                <mat-option value="未着手">未着手</mat-option>
+                <mat-option value="作業中">作業中</mat-option>
+                <mat-option value="完了">完了</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width-field">
+              <mat-label>優先度</mat-label>
+              <mat-select [(ngModel)]="taskData.priority" name="priority">
+                <mat-option value="高">高</mat-option>
+                <mat-option value="中">中</mat-option>
+                <mat-option value="低">低</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </form>
+        </ng-template>
       </mat-card-content>
     </mat-card>
 
@@ -129,94 +216,89 @@
         <mat-card-title>タグ・関連資料</mat-card-title>
       </mat-card-header>
       <mat-card-content>
-        <div class="form-row">
-          <div class="form-field">
-            <label>タグ</label>
-            <div *ngIf="isEditing" class="tag-input">
-              <input
-                matInput
-                #tagInput
-                placeholder="タグを入力してEnter"
-                (keyup.enter)="addTag(tagInput.value); tagInput.value = ''"
-              />
-            </div>
-            <mat-chip-set *ngIf="taskData.tags && taskData.tags.length > 0">
-              <mat-chip
-                *ngFor="let tag of taskData.tags || []"
-                [removable]="isEditing"
-                (removed)="removeTag(tag)"
-              >
-                {{ tag }}
-                <mat-icon matChipRemove *ngIf="isEditing">cancel</mat-icon>
-              </mat-chip>
-            </mat-chip-set>
-            <div
-              *ngIf="!isEditing && (taskData.tags?.length || 0) === 0"
-              class="readonly-field"
-            >
-              タグなし
+        <ng-container *ngIf="!isEditing; else editTagsForm">
+          <!-- 読み取りモード -->
+          <div class="form-row">
+            <div class="form-field">
+              <label>タグ</label>
+              <mat-chip-set *ngIf="taskData.tags && taskData.tags.length > 0">
+                <mat-chip *ngFor="let tag of taskData.tags || []">
+                  {{ tag }}
+                </mat-chip>
+              </mat-chip-set>
+              <div *ngIf="!taskData.tags || taskData.tags.length === 0" class="readonly-field">
+                タグなし
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="form-row">
-          <div class="form-field">
-            <label>格納済み関連資料</label>
-            <div *ngIf="isEditing" class="file-input">
-              <input
-                matInput
-                #fileInput
-                placeholder="ファイル名を入力してEnter"
-                (keyup.enter)="
-                  addRelatedFile(fileInput.value); fileInput.value = ''
-                "
-              />
-            </div>
-            <mat-chip-set
-              *ngIf="taskData.relatedFiles && taskData.relatedFiles.length > 0"
-            >
-              <mat-chip
-                *ngFor="let file of taskData.relatedFiles || []"
-                [removable]="isEditing"
-                (removed)="removeRelatedFile(file)"
-              >
-                <mat-icon>attach_file</mat-icon>
-                {{ file }}
-                <mat-icon matChipRemove *ngIf="isEditing">cancel</mat-icon>
-              </mat-chip>
-            </mat-chip-set>
-            <div
-              *ngIf="!isEditing && (taskData.relatedFiles?.length || 0) === 0"
-              class="readonly-field"
-            >
-              関連資料なし
+          <div class="form-row">
+            <div class="form-field">
+              <label>格納済み関連資料</label>
+              <mat-chip-set *ngIf="taskData.relatedFiles && taskData.relatedFiles.length > 0">
+                <mat-chip *ngFor="let file of taskData.relatedFiles || []">
+                  <mat-icon>attach_file</mat-icon>
+                  {{ file }}
+                </mat-chip>
+              </mat-chip-set>
+              <div *ngIf="!taskData.relatedFiles || taskData.relatedFiles.length === 0" class="readonly-field">
+                関連資料なし
+              </div>
             </div>
           </div>
-        </div>
-      </mat-card-content>
-    </mat-card>
+        </ng-container>
 
-    <!-- アクションボタン -->
-    <mat-card class="action-card">
-      <mat-card-content>
-        <div class="action-buttons">
-          <button
-            mat-raised-button
-            (click)="createSubtask()"
-            *ngIf="!task?.parentTaskId"
-          >
-            <mat-icon>add</mat-icon>
-            子タスク
-          </button>
-          <button mat-raised-button (click)="duplicateTask()">
-            <mat-icon>content_copy</mat-icon>
-            複製
-          </button>
-          <button mat-raised-button (click)="openDetailSettings()">
-            <mat-icon>settings</mat-icon>
-            詳細設定
-          </button>
-        </div>
+        <!-- 編集モード -->
+        <ng-template #editTagsForm>
+          <div class="tag-editor">
+            <div class="form-row">
+              <label>タグ</label>
+              <mat-chip-set>
+                <mat-chip
+                  *ngFor="let tag of taskData.tags || []"
+                  removable
+                  (removed)="removeTag(tag)"
+                >
+                  {{ tag }}
+                  <mat-icon matChipRemove>close</mat-icon>
+                </mat-chip>
+              </mat-chip-set>
+              <mat-form-field appearance="outline" class="tag-input-field">
+                <mat-label>タグを追加</mat-label>
+                <input
+                  matInput
+                  #tagInput
+                  placeholder="タグを入力してEnter"
+                  (keyup.enter)="addTag(tagInput.value); tagInput.value = ''"
+                />
+              </mat-form-field>
+            </div>
+
+            <div class="form-row">
+              <label>関連資料</label>
+              <mat-chip-set>
+                <mat-chip
+                  *ngFor="let file of taskData.relatedFiles || []"
+                  removable
+                  (removed)="removeRelatedFile(file)"
+                >
+                  <mat-icon>attach_file</mat-icon>
+                  {{ file }}
+                  <mat-icon matChipRemove>close</mat-icon>
+                </mat-chip>
+              </mat-chip-set>
+              <mat-form-field appearance="outline" class="tag-input-field">
+                <mat-label>資料を追加</mat-label>
+                <input
+                  matInput
+                  #fileInput
+                  placeholder="ファイル名を入力してEnter"
+                  (keyup.enter)="addRelatedFile(fileInput.value); fileInput.value = ''"
+                />
+              </mat-form-field>
+            </div>
+          </div>
+        </ng-template>
       </mat-card-content>
     </mat-card>
 
@@ -226,7 +308,6 @@
         <mat-card-title>タスク内チャット</mat-card-title>
       </mat-card-header>
       <mat-card-content>
-        <!-- プロジェクトチャットコンポーネントを使用 -->
         <app-project-chat *ngIf="task?.id" [projectId]="task.id!">
         </app-project-chat>
       </mat-card-content>
@@ -364,6 +445,38 @@
       </ng-template>
     </div>
   </div>
+
+  <!-- アクションボタン -->
+  <mat-card class="action-card">
+    <mat-card-content>
+      <div class="action-buttons-container">
+        <div class="action-buttons-left">
+          <button
+            mat-raised-button
+            (click)="createSubtask()"
+            *ngIf="!task?.parentTaskId"
+          >
+            <mat-icon>add</mat-icon>
+            子タスク
+          </button>
+          <button mat-raised-button (click)="duplicateTask()">
+            <mat-icon>content_copy</mat-icon>
+            複製
+          </button>
+          <button mat-raised-button (click)="openDetailSettings()">
+            <mat-icon>settings</mat-icon>
+            詳細設定
+          </button>
+        </div>
+        <div class="action-buttons-right">
+          <button mat-raised-button color="warn" (click)="deleteTask()">
+            <mat-icon>delete</mat-icon>
+            削除
+          </button>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
 
   <!-- 詳細設定ダイアログ -->
   <div
@@ -532,21 +645,10 @@
   </div>
 </div>
 
-<!-- タスクが見つからない場合 -->
-<ng-template #taskNotFound>
-  <div class="task-not-found">
-    <mat-card>
-      <mat-card-content>
-        <div class="not-found-content">
-          <mat-icon class="error-icon">error_outline</mat-icon>
-          <h2>タスクが見つかりません</h2>
-          <p>指定されたタスクが存在しないか、アクセス権限がありません。</p>
-          <button mat-button (click)="goBack()" color="primary">
-            <mat-icon>arrow_back</mat-icon>
-            戻る
-          </button>
-        </div>
-      </mat-card-content>
-    </mat-card>
+<!-- ローディング -->
+<ng-template #loading>
+  <div class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>タスク情報を読み込み中...</p>
   </div>
 </ng-template>

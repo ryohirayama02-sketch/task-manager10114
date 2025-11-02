@@ -14,6 +14,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { ProjectService } from '../../services/project.service';
 import { TaskService } from '../../services/task.service';
 import { MemberManagementService } from '../../services/member-management.service';
@@ -45,6 +46,7 @@ import {
     MatExpansionModule,
     MatCheckboxModule,
     MatProgressSpinnerModule,
+    MatSlideToggleModule,
     TaskEditDialogComponent,
     ProjectChatComponent,
   ],
@@ -264,156 +266,34 @@ export class TaskDetailComponent implements OnInit {
 
   /** 編集モードを切り替え */
   toggleEdit() {
-    // 編集ダイアログを開く
-    this.openEditDialog();
-  }
-
-  /** タスク編集ダイアログを開く */
-  openEditDialog() {
-    if (!this.task || !this.project) {
-      return;
+    if (this.isEditing) {
+      // 編集中から読み取りモードへ
+      this.saveTask();
+    } else {
+      // 読み取りモードから編集中へ
+      this.isEditing = true;
     }
-
-    const dialogRef = this.dialog.open(TaskEditDialogComponent, {
-      width: '90vw',
-      maxWidth: '600px',
-      maxHeight: '90vh',
-      data: {
-        task: this.task,
-        projectId: this.project.id!,
-        projectName: this.project.projectName || '',
-        oldTaskData: { ...this.task }, // 古いタスクデータをコピーして渡す
-        childTasks: [...this.childTasks],
-      },
-    });
-
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result?.deleted) {
-        // タスクが削除された場合、プロジェクト詳細画面にリダイレクト
-        this.router.navigate(['/project-detail', this.project!.id]);
-      } else if (result?.success) {
-        // タスクが更新された場合、データを再読み込み
-        this.loadTaskDetails(this.project!.id!, this.task!.id!);
-      }
-    });
   }
 
   /** タスクを保存 */
   saveTask() {
-    if (!this.task) {
-      console.error('タスクが存在しません');
+    if (!this.task || !this.task.projectId || !this.task.id) {
       return;
     }
 
-    // バリデーション
-    if (!this.taskData.taskName.trim()) {
-      alert('タスク名を入力してください');
-      return;
-    }
-
-    console.log('タスクを保存中...', this.taskData);
-
-    // 更新するタスクデータを準備
-    // バリデーション
-    if (!this.taskData.taskName?.trim()) {
-      alert('タスク名を入力してください');
-      return;
-    }
-
-    const updatedTask = {
-      taskName: this.taskData.taskName.trim(),
-      description: this.taskData.description || '',
-      startDate: this.taskData.startDate,
-      dueDate: this.taskData.dueDate,
-      assignee: this.taskData.assignee,
-      status: this.taskData.status,
-      priority: this.taskData.priority,
-      tags: this.taskData.tags || [],
-      relatedFiles: this.taskData.relatedFiles || [],
-      updatedAt: new Date().toISOString(), // Date型を文字列に変換
-    };
-
-    // データの型チェック
-    console.log('保存前のデータ検証:', {
-      taskName: typeof updatedTask.taskName,
-      description: typeof updatedTask.description,
-      startDate: typeof updatedTask.startDate,
-      dueDate: typeof updatedTask.dueDate,
-      assignee: typeof updatedTask.assignee,
-      status: typeof updatedTask.status,
-      priority: typeof updatedTask.priority,
-      tags: Array.isArray(updatedTask.tags),
-      relatedFiles: Array.isArray(updatedTask.relatedFiles),
-      updatedAt: typeof updatedTask.updatedAt,
-    });
-
-    // 期間の詳細ログ
-    console.log('期間データの詳細:', {
-      originalStartDate: this.taskData.startDate,
-      originalDueDate: this.taskData.dueDate,
-      updatedStartDate: updatedTask.startDate,
-      updatedDueDate: updatedTask.dueDate,
-    });
-
-    // タスクを更新
-    const projectId =
-      this.task?.projectId || this.route.snapshot.paramMap.get('projectId');
-    const taskId = this.task?.id;
-
-    console.log('保存時のID確認:', { projectId, taskId, task: this.task });
-
-    if (projectId && taskId) {
-      this.isSaving = true;
-      console.log('更新対象のタスク情報:', {
-        projectId: projectId,
-        taskId: taskId,
-        updatedTask: updatedTask,
+    this.isSaving = true;
+    this.taskService
+      .updateTask(this.task.id, this.taskData, this.task, this.task.projectId)
+      .then(() => {
+        console.log('タスクが更新されました');
+        this.isEditing = false;
+        this.isSaving = false;
+      })
+      .catch((error: Error) => {
+        console.error('タスク更新エラー:', error);
+        alert('タスクの保存に失敗しました');
+        this.isSaving = false;
       });
-
-      console.log('Firestoreに送信するデータ:', {
-        projectId: projectId,
-        taskId: taskId,
-        updatedTask: updatedTask,
-        dataType: typeof updatedTask,
-        dataKeys: Object.keys(updatedTask),
-      });
-
-      this.projectService
-        .updateTask(projectId, taskId, updatedTask)
-        .then(() => {
-          console.log('タスクが更新されました');
-          // ローカルのタスクデータも更新
-          this.task = {
-            ...this.task!,
-            ...updatedTask,
-          };
-          this.isEditing = false;
-          this.isSaving = false;
-          // 親コンポーネントに更新を通知
-          this.taskUpdated.emit(this.task);
-          alert('タスクが保存されました');
-        })
-        .catch((error) => {
-          console.error('タスク更新エラーの詳細:', error);
-          console.error('エラーコード:', error.code);
-          console.error('エラーメッセージ:', error.message);
-          console.error('エラーのスタックトレース:', error.stack);
-          console.error('送信しようとしたデータ:', updatedTask);
-          this.isSaving = false;
-          alert(`タスクの保存に失敗しました: ${error.message}`);
-        });
-    } else {
-      console.error('プロジェクトIDまたはタスクIDが不足しています:', {
-        projectId: projectId,
-        taskId: taskId,
-        task: this.task,
-        routeParams: {
-          projectId: this.route.snapshot.paramMap.get('projectId'),
-          taskId: this.route.snapshot.paramMap.get('taskId'),
-        },
-      });
-      alert('タスクの保存に失敗しました');
-    }
   }
 
   /** キャンセル */
@@ -511,6 +391,28 @@ export class TaskDetailComponent implements OnInit {
           });
       }
     });
+  }
+
+  /** タスクを削除 */
+  deleteTask() {
+    if (
+      confirm(
+        `タスク「${this.taskData.taskName}」を削除してもよろしいですか？この操作は元に戻せません。`
+      )
+    ) {
+      if (this.task && this.task.projectId && this.task.id) {
+        this.taskService
+          .deleteTask(this.task.id, this.taskData, this.task.projectId)
+          .then(() => {
+            console.log('タスクが削除されました');
+            this.goBack();
+          })
+          .catch((error: Error) => {
+            console.error('タスク削除エラー:', error);
+            alert('タスクの削除に失敗しました');
+          });
+      }
+    }
   }
 
   /** カレンダー連携のON/OFFを切り替え */

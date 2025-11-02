@@ -183,11 +183,16 @@
   gap: 12px;
 }
 
-.date-inputs input {
+.date-input {
   flex: 1;
   padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.full-width {
+  width: 100%;
 }
 
 .date-inputs span {
@@ -940,4 +945,179 @@ mat-chip mat-icon {
 .loading-container p {
   color: #666;
   font-size: 16px;
+}
+
+.action-buttons-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.action-buttons-left {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.action-buttons-right {
+  display: flex;
+  gap: 12px;
+}
+
+.action-buttons-left button,
+.action-buttons-right button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.action-buttons-left button:hover,
+.action-buttons-right button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.edit-textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 14px;
+  resize: vertical;
+}
+
+.full-width-field {
+  width: 100%;
+}
+
+.task-inline-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.task-inline-edit-form mat-form-field {
+  width: 100%;
+}
+
+.inline-date-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.date-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.date-field label {
+  font-weight: 500;
+  font-size: 12px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.date-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.date-input {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.date-icon {
+  position: absolute;
+  right: 12px;
+  color: #999;
+  pointer-events: none;
+}
+
+.tag-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.tag-input-field {
+  width: 100%;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.page-header h2 {
+  margin: 0;
+  font-size: 24px;
+  color: #333;
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #666;
+}
+
+.back-button:hover {
+  background-color: #f5f5f5;
+}
+
+.task-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  padding: 20px;
+}
+
+.task-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.toolbar-spacer {
+  flex: 1;
+}
+
+.task-header {
+  margin-bottom: 20px;
+}
+
+.task-header h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 500;
+  color: #333;
+}
+
+.task-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 20px;
 }
