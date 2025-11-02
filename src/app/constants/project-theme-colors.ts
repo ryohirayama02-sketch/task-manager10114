@@ -3,17 +3,30 @@
  * ステータスカラーと重ならない淡いトーンを選択しています。
  */
 export const PROJECT_THEME_COLORS: readonly string[] = [
-  '#f8bbd0', // soft pink
-  '#ffccbc', // light peach
-  '#ffe0b2', // warm apricot
-  '#fff9c4', // pale yellow
-  '#dcedc8', // fresh lime
-  '#c8e6c9', // mint green
-  '#b2dfdb', // muted teal
-  '#b3e5fc', // baby blue
-  '#c5cae9', // gentle periwinkle
-  '#d1c4e9', // lavender
+  '#fde4ec', // soft pink
+  '#ffe6dc', // light peach
+  '#ffedd6', // warm apricot
+  '#fff8e4', // pale yellow
+  '#eef6da', // fresh lime
+  '#e4f4e8', // mint green
+  '#dcf3f0', // muted teal
+  '#def3ff', // baby blue
+  '#e6e9f9', // gentle periwinkle
+  '#ece6f8', // lavender
 ] as const;
+
+const LEGACY_THEME_COLOR_MAP: Record<string, string> = {
+  '#f8bbd0': '#fde4ec',
+  '#ffccbc': '#ffe6dc',
+  '#ffe0b2': '#ffedd6',
+  '#fff9c4': '#fff8e4',
+  '#dcedc8': '#eef6da',
+  '#c8e6c9': '#e4f4e8',
+  '#b2dfdb': '#dcf3f0',
+  '#b3e5fc': '#def3ff',
+  '#c5cae9': '#e6e9f9',
+  '#d1c4e9': '#ece6f8',
+};
 
 export const DEFAULT_PROJECT_THEME_COLOR = PROJECT_THEME_COLORS[0];
 
@@ -29,9 +42,9 @@ export function resolveProjectThemeColor(
   if (!projectLike) {
     return DEFAULT_PROJECT_THEME_COLOR;
   }
-  return (
-    projectLike.themeColor ||
-    projectLike.color ||
-    DEFAULT_PROJECT_THEME_COLOR
-  );
+  const rawColor = projectLike.themeColor || projectLike.color;
+  if (!rawColor) {
+    return DEFAULT_PROJECT_THEME_COLOR;
+  }
+  return LEGACY_THEME_COLOR_MAP[rawColor] || rawColor;
 }

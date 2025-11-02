@@ -92,7 +92,7 @@
 /* 100%完了プロジェクトのグレーアウトスタイル */
 .project-card.completed {
   position: relative;
-  border: 6px solid #66bb6a;
+  border: 6px solid #b2e9cb;
 }
 
 .project-card.completed:hover {
@@ -113,8 +113,8 @@
   position: absolute;
   top: 14px;
   right: 14px;
-  background-color: #66bb6a;
-  color: #000;
+  background-color: #b2e9cb;
+  color: #255b40;
   padding: 6px 12px;
   border-radius: 16px;
   font-size: 16px;
