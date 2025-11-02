@@ -91,29 +91,33 @@
               <mat-label>責任者を選択</mat-label>
               <mat-select
                 formControlName="responsible"
+                multiple
                 (selectionChange)="onResponsibleSelectionChange($event.value)"
-                placeholder="責任者を選択してください"
+                placeholder="責任者を選択してください（複数選択可）"
               >
-                <mat-option value="">選択しない</mat-option>
                 <mat-option *ngFor="let member of members" [value]="member.id">
                   {{ member.name }}
                 </mat-option>
               </mat-select>
-              <mat-icon matSuffix>person</mat-icon>
+              <mat-icon matSuffix>workspace_premium</mat-icon>
             </mat-form-field>
 
-            <div *ngIf="selectedResponsible" class="selected-members">
+            <div *ngIf="selectedResponsibles.length > 0" class="selected-members">
+              <div class="selected-members-header">
+                <span class="member-count-text"
+                  >{{ selectedResponsibles.length }}人選択中</span
+                >
+              </div>
               <div class="member-chips-inline">
                 <mat-chip-set>
                   <mat-chip
+                    *ngFor="let member of selectedResponsibles"
                     [removable]="true"
-                    (removed)="removeResponsible()"
+                    (removed)="removeResponsible(member)"
                     class="member-chip-inline responsible-chip"
                   >
                     <mat-icon matChipAvatar>workspace_premium</mat-icon>
-                    <span class="member-chip-name">{{
-                      selectedResponsible?.name
-                    }}</span>
+                    <span class="member-chip-name">{{ member.name }}</span>
                     <button matChipRemove>
                       <mat-icon>cancel</mat-icon>
                     </button>

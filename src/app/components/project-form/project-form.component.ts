@@ -54,7 +54,8 @@ export class ProjectFormComponent implements OnInit {
   projectForm: FormGroup;
   members: Member[] = [];
   selectedMembers: Member[] = [];
-  selectedResponsible: Member | null = null;
+  selectedResponsibles: Member[] = [];
+  selectedResponsibleIds: string[] = [];
   attachments: ProjectAttachment[] = [];
   pendingFiles: { id: string; file: File }[] = [];
   linkTitle: string = '';
@@ -97,7 +98,7 @@ export class ProjectFormComponent implements OnInit {
       description: [''],
       startDate: [''],
       endDate: [''],
-      responsible: [''],
+      responsible: [[]],
       members: [[]],
       milestones: this.fb.array([]),
       tags: [[]],
@@ -160,17 +161,14 @@ export class ProjectFormComponent implements OnInit {
   /**
    * 責任者選択の変更
    */
-  onResponsibleSelectionChange(selectedId: string): void {
-    if (!selectedId) {
-      this.removeResponsible();
-      return;
-    }
-
-    const responsible = this.members.find((member) => member.id === selectedId);
-    if (responsible) {
-      this.selectedResponsible = responsible;
-      this.projectForm.patchValue({ responsible: responsible.id || '' });
-    }
+  onResponsibleSelectionChange(selectedIds: string[]): void {
+    this.selectedResponsibleIds = Array.isArray(selectedIds)
+      ? selectedIds
+      : [];
+    this.selectedResponsibles = this.members.filter((member) =>
+      this.selectedResponsibleIds.includes(member.id || '')
+    );
+    this.projectForm.patchValue({ responsible: this.selectedResponsibleIds });
   }
 
   /**
@@ -181,19 +179,22 @@ export class ProjectFormComponent implements OnInit {
       (m) => m.id !== member.id
     );
     const memberIds = this.selectedMembers.map((m) => m.id || '');
-      this.projectForm.patchValue({ members: memberIds });
+    this.projectForm.patchValue({ members: memberIds });
 
-    if (this.selectedResponsible?.id === member.id) {
-      this.removeResponsible();
+    if (this.selectedResponsibleIds.includes(member.id || '')) {
+      this.removeResponsible(member);
     }
   }
 
-  /**
-   * 責任者を解除
-   */
-  removeResponsible(): void {
-    this.selectedResponsible = null;
-    this.projectForm.patchValue({ responsible: '' });
+  removeResponsible(member: Member): void {
+    const memberId = member.id || '';
+    this.selectedResponsibleIds = this.selectedResponsibleIds.filter(
+      (id) => id !== memberId
+    );
+    this.selectedResponsibles = this.selectedResponsibles.filter(
+      (responsible) => (responsible.id || '') !== memberId
+    );
+    this.projectForm.patchValue({ responsible: this.selectedResponsibleIds });
   }
 
   /**
@@ -313,6 +314,25 @@ export class ProjectFormComponent implements OnInit {
 
       const selectedColor: string | null = formData.themeColor ?? null;
 
+      const responsiblesPayload = this.selectedResponsibles.map((member) => ({
+        memberId: member.id || '',
+        memberName: member.name,
+        memberEmail: member.email || '',
+      }));
+
+      const responsibleNames = responsiblesPayload
+        .map((r) => r.memberName)
+        .filter((name) => !!name)
+        .join(', ');
+      const responsibleIds = responsiblesPayload
+        .map((r) => r.memberId)
+        .filter((id) => !!id)
+        .join(', ');
+      const responsibleEmails = responsiblesPayload
+        .map((r) => r.memberEmail)
+        .filter((email) => !!email)
+        .join(', ');
+
       const projectData = {
         projectName: formData.projectName,
         description: formData.description || '',
@@ -321,9 +341,10 @@ export class ProjectFormComponent implements OnInit {
         themeColor: selectedColor,
         color: selectedColor,
         tags: this.projectTags,
-        responsible: this.selectedResponsible ? this.selectedResponsible.name : '',
-        responsibleId: this.selectedResponsible?.id || '',
-        responsibleEmail: this.selectedResponsible?.email || '',
+        responsibles: responsiblesPayload,
+        responsible: responsibleNames,
+        responsibleId: responsibleIds,
+        responsibleEmail: responsibleEmails,
         members: this.selectedMembers.map((member) => ({
           memberId: member.id || '',
           memberName: member.name,
