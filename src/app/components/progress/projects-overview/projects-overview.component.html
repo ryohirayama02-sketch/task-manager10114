@@ -48,22 +48,34 @@
       <div class="project-info">
         <!-- ▼ プロジェクト名クリックで詳細へ -->
         <h3 class="project-title">
-          {{ project.projectName || "（名称未設定）" }}
+          {{ formatProjectName(project.projectName) }}
         </h3>
 
-        <p>
-          <strong>概要:</strong> {{ project.overview || "（概要未設定）" }}
+        <p class="project-overview">
+          <strong>概要:</strong>
+          <span class="info-text">
+            {{ project.overview || "（概要未設定）" }}
+          </span>
         </p>
-        <p>
+        <p class="project-meta-line">
           <strong>期間:</strong>
-          {{ toDateDisplay(project.startDate) }} -
-          {{ toDateDisplay(project.endDate) }}
+          <span class="info-text">
+            {{ toDateDisplay(project.startDate) }} -
+            {{ toDateDisplay(project.endDate) }}
+          </span>
         </p>
-        <p>
+        <p class="project-meta-line">
           <strong>責任者:</strong>
-          {{ project.responsible || "（責任者未設定）" }}
+          <span class="info-text">
+            {{ project.responsible || "（責任者未設定）" }}
+          </span>
         </p>
-        <p><strong>メンバー:</strong> {{ getMemberDisplay(project) }}</p>
+        <p class="project-meta-line">
+          <strong>メンバー:</strong>
+          <span class="info-text">
+            {{ getMemberDisplay(project) }}
+          </span>
+        </p>
       </div>
 
       <!-- ▼ 進捗率円グラフ -->

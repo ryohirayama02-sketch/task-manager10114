@@ -38,6 +38,7 @@ export class ProjectsOverviewComponent implements OnInit {
     { value: 'progressDesc', label: '進捗率が高い順' },
     { value: 'progressAsc', label: '進捗率が低い順' },
   ] as const;
+  private readonly projectNameMaxLength = 39;
   sortOption: (typeof this.sortOptions)[number]['value'] = 'endDateAsc';
   projects: IProject[] = [];
   projectProgress: { [key: string]: ProjectProgress } = {};
@@ -122,6 +123,19 @@ export class ProjectsOverviewComponent implements OnInit {
 
   getProjectThemeColor(project?: IProject | null): string {
     return resolveProjectThemeColor(project || undefined);
+  }
+
+  formatProjectName(projectName?: string | null): string {
+    const name = (projectName ?? '').trim();
+    const fallback = '（名称未設定）';
+    const displayName = name.length > 0 ? name : fallback;
+
+    if (displayName.length <= this.projectNameMaxLength) {
+      return displayName;
+    }
+
+    const truncatedLength = Math.max(this.projectNameMaxLength - 3, 0);
+    return displayName.slice(0, truncatedLength) + '...';
   }
 
   toDateDisplay(date?: string): string {
