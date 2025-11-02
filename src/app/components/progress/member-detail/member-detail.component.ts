@@ -12,7 +12,10 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { FormsModule } from '@angular/forms';
 import { ProjectService } from '../../../services/project.service';
 import { Task } from '../../../models/task.model';
-import { DEFAULT_PROJECT_THEME_COLOR } from '../../../constants/project-theme-colors';
+import {
+  DEFAULT_PROJECT_THEME_COLOR,
+  resolveProjectThemeColor,
+} from '../../../constants/project-theme-colors';
 
 interface MemberDetail {
   name: string;
@@ -69,6 +72,9 @@ export class MemberDetailComponent implements OnInit {
   filterPriority: string[] = [];
   filterDueDateSort: string = ''; // 'near' (近い順) or 'far' (遠い順)
   filteredTasks: Task[] = [];
+  
+  // プロジェクト情報
+  private projectMap: Record<string, any> = {};
 
   ngOnInit() {
     const memberName = this.route.snapshot.paramMap.get('memberName');
@@ -87,6 +93,15 @@ export class MemberDetailComponent implements OnInit {
         this.isLoading = false;
         return;
       }
+
+      // プロジェクトマップを構築
+      this.projectMap = projects.reduce(
+        (acc, project) => {
+          acc[project.id] = project;
+          return acc;
+        },
+        {} as Record<string, any>
+      );
 
       const allTasks: Task[] = [];
       let completedRequests = 0;
@@ -119,7 +134,19 @@ export class MemberDetailComponent implements OnInit {
     console.log('全タスク:', allTasks);
 
     // 指定されたメンバーのタスクをフィルタリング
-    const memberTasks = allTasks.filter((task) => task.assignee === memberName);
+    let memberTasks = allTasks.filter((task) => task.assignee === memberName);
+
+    // タスクにプロジェクトテーマ色を付与
+    memberTasks = memberTasks.map((task) => {
+      const project = this.projectMap[task.projectId];
+      const themeColor = project
+        ? resolveProjectThemeColor(project)
+        : this.defaultThemeColor;
+      return {
+        ...task,
+        projectThemeColor: themeColor,
+      };
+    });
 
     if (memberTasks.length === 0) {
       this.isLoading = false;
