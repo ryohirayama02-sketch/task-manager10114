@@ -265,7 +265,9 @@ export class KanbanComponent implements OnInit {
 
   /** ＋プロジェクト：ダイアログを開く */
   openProjectDialog() {
-    this.router.navigate(['/project-form']);
+    this.router.navigate(['/project-form'], {
+      state: { returnUrl: this.router.url },
+    });
   }
 
   /** ＋タスク：ダイアログを開く */

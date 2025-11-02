@@ -391,7 +391,9 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
   /** プロジェクト作成ダイアログを開く */
   openProjectDialog() {
-    this.router.navigate(['/project-form']);
+    this.router.navigate(['/project-form'], {
+      state: { returnUrl: this.router.url },
+    });
   }
 
   /** フィルターをリセット */

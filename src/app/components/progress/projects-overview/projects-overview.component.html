@@ -12,7 +12,7 @@
         並び替え: {{ getSortLabel(sortOption) }}
         <mat-icon class="expand-icon">arrow_drop_down</mat-icon>
       </button>
-      <button mat-raised-button color="primary" routerLink="/project-form">
+      <button mat-raised-button color="primary" (click)="openProjectForm()">
         <mat-icon>add</mat-icon>
         プロジェクトを作成
       </button>

@@ -67,6 +67,7 @@ export class ProjectFormComponent implements OnInit {
 
   private readonly MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
   readonly themeColorOptions = PROJECT_THEME_COLORS;
+  private returnUrl: string | null = null;
   private readonly themeColorLabelMap: Record<ProjectThemeColor, string> = {
     '#fde4ec': 'ピンク',
     '#ffe6dc': 'ピーチ',
@@ -99,6 +100,13 @@ export class ProjectFormComponent implements OnInit {
       milestones: this.fb.array([]),
       themeColor: [null],
     });
+
+    const nav = this.router.getCurrentNavigation();
+    const navState = nav?.extras?.state as { returnUrl?: string } | undefined;
+    const historyState = this.location.getState() as
+      | { returnUrl?: string }
+      | undefined;
+    this.returnUrl = navState?.returnUrl ?? historyState?.returnUrl ?? null;
   }
 
   goBack(): void {
@@ -344,9 +352,16 @@ export class ProjectFormComponent implements OnInit {
 
       // 作成したプロジェクトの詳細画面へ遷移
       if (docRef?.id) {
-        this.router.navigate(['/project', docRef.id]);
+        if (this.returnUrl) {
+          this.router.navigate(['/project', docRef.id], {
+            state: { returnUrl: this.returnUrl },
+            replaceUrl: true,
+          });
+        } else {
+          this.router.navigate(['/project', docRef.id], { replaceUrl: true });
+        }
       } else {
-        this.router.navigate(['/progress/projects']);
+        this.router.navigate(['/progress/projects'], { replaceUrl: true });
       }
     } catch (error) {
       console.error('プロジェクト作成エラー:', error);
@@ -362,7 +377,11 @@ export class ProjectFormComponent implements OnInit {
    * キャンセル
    */
   onCancel(): void {
-    this.router.navigate(['/progress/projects']);
+    if (this.returnUrl) {
+      this.router.navigateByUrl(this.returnUrl, { replaceUrl: true });
+    } else {
+      this.router.navigate(['/progress/projects'], { replaceUrl: true });
+    }
   }
 
   /**

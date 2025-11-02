@@ -385,6 +385,23 @@
   opacity: 0;
 }
 
+
+.project-delete-actions {
+  margin-top: 24px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.project-delete-actions button {
+  min-width: 200px;
+  background-color: #d32f2f;
+  color: #ffffff;
+}
+
+.project-delete-actions button:hover {
+  background-color: #b71c1c;
+}
+
 .project-header {
   display: flex;
   justify-content: space-between;

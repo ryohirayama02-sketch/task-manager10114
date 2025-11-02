@@ -26,6 +26,7 @@ import { Member } from '../../models/member.model';
 import { ProjectAttachmentService } from '../../services/project-attachment.service';
 import { TaskFormComponent } from '../task-form/task-form.component';
 import { ProjectFormDialogComponent } from '../project-form-dialog/project-form-dialog.component';
+import { ProjectDeleteConfirmDialogComponent } from './project-delete-confirm-dialog.component';
 import { ProgressCircleComponent } from '../progress/projects-overview/progress-circle.component';
 import { ProjectChatComponent } from '../project-chat/project-chat.component';
 import {
@@ -75,6 +76,7 @@ export class ProjectDetailComponent implements OnInit {
     tags: string;
   } | null = null;
   isSavingInlineEdit = false;
+  isDeletingProject = false;
   editableTags: string[] = [];
   tagInputValue = '';
   editableMilestones: Milestone[] = [];
@@ -104,6 +106,7 @@ export class ProjectDetailComponent implements OnInit {
   // フィルターオプション
   statusOptions = ['未着手', '作業中', '完了'];
   priorityOptions = ['高', '中', '低'];
+  private readonly returnUrl: string | null;
 
   constructor(
     private route: ActivatedRoute,
@@ -115,7 +118,14 @@ export class ProjectDetailComponent implements OnInit {
     private memberService: MemberManagementService,
     private attachmentService: ProjectAttachmentService,
     private location: Location
-  ) {}
+  ) {
+    const nav = this.router.getCurrentNavigation();
+    const navState = nav?.extras?.state as { returnUrl?: string } | undefined;
+    const historyState = this.location.getState() as
+      | { returnUrl?: string }
+      | undefined;
+    this.returnUrl = navState?.returnUrl ?? historyState?.returnUrl ?? null;
+  }
 
   ngOnInit() {
     this.loadMembers();
@@ -424,6 +434,52 @@ export class ProjectDetailComponent implements OnInit {
     return milestone.id;
   }
 
+  confirmProjectDeletion(): void {
+    if (!this.project?.id) {
+      return;
+    }
+
+    const dialogRef = this.dialog.open(ProjectDeleteConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        projectName: this.project.projectName || 'プロジェクト',
+        projectId: this.project.id,
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result === true) {
+        this.deleteProject();
+      }
+    });
+  }
+
+  private async deleteProject(): Promise<void> {
+    if (!this.project?.id || this.isDeletingProject) {
+      return;
+    }
+
+    this.isDeletingProject = true;
+    try {
+      await this.projectService.deleteProject(this.project.id, this.project);
+      this.snackBar.open(
+        `プロジェクト「${this.project.projectName || ''}」を削除しました`,
+        '閉じる',
+        { duration: 3000 }
+      );
+
+      const targetUrl = this.returnUrl || '/progress/projects';
+      this.router.navigateByUrl(targetUrl, { replaceUrl: true });
+    } catch (error) {
+      console.error('プロジェクト削除エラー:', error);
+      this.snackBar.open('プロジェクトの削除に失敗しました', '閉じる', {
+        duration: 3000,
+      });
+    } finally {
+      this.isDeletingProject = false;
+    }
+  }
+
   trackAttachment(_index: number, attachment: ProjectAttachment): string {
     return attachment.id;
   }
@@ -587,6 +643,11 @@ export class ProjectDetailComponent implements OnInit {
   }
 
   goBack(): void {
+    if (this.returnUrl) {
+      this.router.navigateByUrl(this.returnUrl, { replaceUrl: true });
+      return;
+    }
+
     if (window.history.length > 1) {
       this.location.back();
     } else {

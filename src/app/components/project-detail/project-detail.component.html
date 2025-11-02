@@ -361,6 +361,22 @@
   <!-- プロジェクトチャット -->
   <app-project-chat *ngIf="projectId" [projectId]="projectId">
   </app-project-chat>
+
+  <div
+    class="project-delete-actions"
+    *ngIf="isInlineEditMode"
+  >
+    <button
+      mat-raised-button
+      color="warn"
+      type="button"
+      (click)="confirmProjectDeletion()"
+      [disabled]="isSavingInlineEdit || isDeletingProject"
+    >
+      <mat-icon>delete</mat-icon>
+      プロジェクトを削除
+    </button>
+  </div>
 </div>
 
 <!-- タスク一覧セクション -->

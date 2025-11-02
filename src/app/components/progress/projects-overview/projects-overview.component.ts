@@ -88,6 +88,12 @@ export class ProjectsOverviewComponent implements OnInit {
     this.router.navigate(['/project', projectId]);
   }
 
+  openProjectForm(): void {
+    this.router.navigate(['/project-form'], {
+      state: { returnUrl: this.router.url },
+    });
+  }
+
   onSortChange(option: (typeof this.sortOptions)[number]['value']): void {
     if (this.sortOption === option) {
       return;
