@@ -963,6 +963,17 @@ mat-chip mat-icon {
 .action-buttons-right {
   display: flex;
   gap: 12px;
+  justify-content: flex-end;
+  width: 100%;
+}
+
+.delete-button-styled {
+  background-color: #f44336 !important;
+  color: #ffffff !important;
+}
+
+.delete-button-styled:hover {
+  background-color: #d32f2f !important;
 }
 
 .action-buttons-left button,
@@ -1088,16 +1099,20 @@ mat-chip mat-icon {
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  max-width: 960px;
+  margin: 24px auto;
+  width: 100%;
+}
+
+.task-toolbar-section {
   padding: 20px;
+  border-radius: 8px 8px 0 0;
 }
 
 .task-toolbar {
   display: flex;
   align-items: center;
   gap: 20px;
-  margin-bottom: 20px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .toolbar-spacer {
@@ -1105,7 +1120,8 @@ mat-chip mat-icon {
 }
 
 .task-header {
-  margin-bottom: 20px;
+  margin: 20px;
+  margin-bottom: 0;
 }
 
 .task-header h1 {
@@ -1119,5 +1135,5 @@ mat-chip mat-icon {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  margin-bottom: 20px;
+  padding: 20px;
 }
