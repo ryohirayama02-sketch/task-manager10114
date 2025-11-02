@@ -33,53 +33,56 @@
   </mat-menu>
 
   <!-- ▼ プロジェクトカード一覧 -->
-  <div
-    *ngFor="let project of projects"
-    (click)="project.id ? goToProgress(project.id) : null"
-    class="project-card"
-    [ngStyle]="{ '--project-theme-color': getProjectThemeColor(project) }"
-    [class.completed]="
-      project.id &&
-      projectProgress[project.id] &&
-      projectProgress[project.id].progressPercentage === 100
-    "
-  >
-    <div class="project-info">
-      <!-- ▼ プロジェクト名クリックで詳細へ -->
-      <h3 class="project-title">
-        {{ project.projectName || "（名称未設定）" }}
-      </h3>
-
-      <p>
-        <strong>概要:</strong> {{ project.overview || "（概要未設定）" }}
-      </p>
-      <p>
-        <strong>期間:</strong>
-        {{ toDateDisplay(project.startDate) }} -
-        {{ toDateDisplay(project.endDate) }}
-      </p>
-      <p>
-        <strong>責任者:</strong> {{ project.responsible || "（責任者未設定）" }}
-      </p>
-      <p><strong>メンバー:</strong> {{ getMemberDisplay(project) }}</p>
-    </div>
-
-    <!-- ▼ 進捗率円グラフ -->
+  <div class="project-card-list">
     <div
-      class="progress-section"
-      *ngIf="project.id && projectProgress[project.id]"
-      [style.opacity]="
-        projectProgress[project.id].progressPercentage === 100 ? '0.6' : '1'
+      *ngFor="let project of projects"
+      (click)="project.id ? goToProgress(project.id) : null"
+      class="project-card"
+      [ngStyle]="{ '--project-theme-color': getProjectThemeColor(project) }"
+      [class.completed]="
+        project.id &&
+        projectProgress[project.id] &&
+        projectProgress[project.id].progressPercentage === 100
       "
     >
-      <app-progress-circle
-        [percentage]="projectProgress[project.id].progressPercentage"
-        [completedTasks]="projectProgress[project.id].completedTasks"
-        [totalTasks]="projectProgress[project.id].totalTasks"
-        [size]="80"
-        [strokeWidth]="6"
+      <div class="project-info">
+        <!-- ▼ プロジェクト名クリックで詳細へ -->
+        <h3 class="project-title">
+          {{ project.projectName || "（名称未設定）" }}
+        </h3>
+
+        <p>
+          <strong>概要:</strong> {{ project.overview || "（概要未設定）" }}
+        </p>
+        <p>
+          <strong>期間:</strong>
+          {{ toDateDisplay(project.startDate) }} -
+          {{ toDateDisplay(project.endDate) }}
+        </p>
+        <p>
+          <strong>責任者:</strong>
+          {{ project.responsible || "（責任者未設定）" }}
+        </p>
+        <p><strong>メンバー:</strong> {{ getMemberDisplay(project) }}</p>
+      </div>
+
+      <!-- ▼ 進捗率円グラフ -->
+      <div
+        class="progress-section"
+        *ngIf="project.id && projectProgress[project.id]"
+        [style.opacity]="
+          projectProgress[project.id].progressPercentage === 100 ? '0.6' : '1'
+        "
       >
-      </app-progress-circle>
+        <app-progress-circle
+          [percentage]="projectProgress[project.id].progressPercentage"
+          [completedTasks]="projectProgress[project.id].completedTasks"
+          [totalTasks]="projectProgress[project.id].totalTasks"
+          [size]="80"
+          [strokeWidth]="6"
+        >
+        </app-progress-circle>
+      </div>
     </div>
   </div>
 </div>
