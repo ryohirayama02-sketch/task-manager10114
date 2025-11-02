@@ -34,7 +34,7 @@
         </p>
         <p>
           <strong>責任者:</strong>
-          {{ project.responsible || "未設定" }}
+          {{ getResponsiblesDisplay() }}
         </p>
         <p><strong>メンバー:</strong> {{ project.members || "未設定" }}</p>
         <p><strong>タグ:</strong> {{ project.tags || "-" }}</p>
@@ -109,17 +109,32 @@
           <mat-form-field appearance="outline" class="full-width-field">
             <mat-label>責任者</mat-label>
             <mat-select
-              [(ngModel)]="selectedResponsibleId"
-              name="inlineResponsibleId"
-              (selectionChange)="onResponsibleSelectionChange($event.value)"
+              multiple
+              [(ngModel)]="selectedResponsibleIds"
+              name="inlineResponsibleIds"
+              (ngModelChange)="onResponsibleSelectionChange($event)"
               [disabled]="membersLoading"
             >
-              <mat-option value="">未設定</mat-option>
               <mat-option *ngFor="let member of members" [value]="member.id">
                 {{ member.name }}
               </mat-option>
             </mat-select>
           </mat-form-field>
+
+          <div class="selected-members-chips" *ngIf="selectedResponsibles.length > 0">
+            <mat-chip-set>
+              <mat-chip
+                *ngFor="let member of selectedResponsibles"
+                selected
+                removable
+                (removed)="removeResponsible(member)"
+                class="member-chip-inline responsible-chip"
+              >
+                {{ member.name }}
+                <mat-icon matChipRemove>close</mat-icon>
+              </mat-chip>
+            </mat-chip-set>
+          </div>
 
           <mat-form-field appearance="outline" class="full-width-field">
             <mat-label>担当メンバー</mat-label>

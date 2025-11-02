@@ -88,8 +88,8 @@ export class ProjectDetailComponent implements OnInit {
   isUploading = false;
   members: Member[] = [];
   membersLoading = false;
-  selectedResponsibleId = '';
-  selectedResponsible: Member | null = null;
+  selectedResponsibleIds: string[] = [];
+  selectedResponsibles: Member[] = [];
   selectedMemberIds: string[] = [];
   selectedMembers: Member[] = [];
   readonly MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -177,7 +177,7 @@ export class ProjectDetailComponent implements OnInit {
       overview: this.project.overview || '',
       startDate: this.project.startDate || '',
       endDate: this.project.endDate || '',
-      responsible: this.project.responsible || '',
+      responsible: this.extractResponsibleNames(this.project).join(', '),
       members: this.project.members ? this.normalizeMembersField(this.project.members) : '',
       tags: Array.isArray(this.project.tags)
         ? (this.project.tags as unknown as string[])
@@ -221,9 +221,6 @@ export class ProjectDetailComponent implements OnInit {
       return;
     }
 
-    const responsibleMember = this.selectedResponsibleId
-      ? this.members.find((member) => member.id === this.selectedResponsibleId)
-      : null;
     const membersString = this.selectedMembers.length > 0
       ? this.selectedMembers
           .map((member) => member.name)
@@ -231,6 +228,25 @@ export class ProjectDetailComponent implements OnInit {
           .join(', ')
       : this.editableProject.members?.trim() || this.project.members || '';
     const tagsString = this.editableTags.join(', ');
+
+    const responsiblesPayload = this.selectedResponsibles.map((member) => ({
+      memberId: member.id || '',
+      memberName: member.name,
+      memberEmail: member.email || '',
+    }));
+
+    const responsibleNames = responsiblesPayload
+      .map((entry) => entry.memberName)
+      .filter((name) => !!name)
+      .join(', ');
+    const responsibleIdsArray = responsiblesPayload
+      .map((entry) => entry.memberId)
+      .filter((id): id is string => !!id);
+    const responsibleEmailsArray = responsiblesPayload
+      .map((entry) => entry.memberEmail || '')
+      .filter((email) => !!email);
+    const primaryResponsibleId = responsibleIdsArray[0] ?? '';
+    const primaryResponsibleEmail = responsibleEmailsArray[0] ?? '';
 
     let attachments: ProjectAttachment[] = [...this.editableAttachments];
 
@@ -268,9 +284,10 @@ export class ProjectDetailComponent implements OnInit {
       overview: this.editableProject.overview?.trim() || '',
       startDate: this.editableProject.startDate || '',
       endDate: this.editableProject.endDate || '',
-      responsible: responsibleMember?.name || this.editableProject.responsible?.trim() || '',
-      responsibleId: responsibleMember?.id || '',
-      responsibleEmail: responsibleMember?.email || '',
+      responsible: responsibleNames || this.editableProject.responsible?.trim() || '',
+      responsibleId: primaryResponsibleId,
+      responsibleEmail: primaryResponsibleEmail,
+      responsibles: responsiblesPayload,
       members: membersString,
       tags: tagsString,
       milestones: milestonesPayload,
@@ -291,6 +308,7 @@ export class ProjectDetailComponent implements OnInit {
         ...this.project,
         ...payload,
       } as IProject;
+      this.project.responsibles = responsiblesPayload;
       this.projectThemeColor = resolveProjectThemeColor(this.project);
       this.project.attachments = attachments;
       this.project.milestones = milestonesPayload;
@@ -306,8 +324,8 @@ export class ProjectDetailComponent implements OnInit {
       this.attachmentsToRemove = [];
       this.selectedMemberIds = [];
       this.selectedMembers = [];
-      this.selectedResponsibleId = '';
-      this.selectedResponsible = null;
+      this.selectedResponsibleIds = [];
+      this.selectedResponsibles = [];
       this.tagInputValue = '';
       this.linkTitle = '';
       this.linkUrl = '';
@@ -340,6 +358,35 @@ export class ProjectDetailComponent implements OnInit {
     return '';
   }
 
+  private extractResponsibleNames(project: IProject | null): string[] {
+    if (!project) {
+      return [];
+    }
+    const names: string[] = [];
+    if (Array.isArray(project.responsibles) && project.responsibles.length > 0) {
+      project.responsibles.forEach((entry) => {
+        const name = entry.memberName || '';
+        if (name) {
+          names.push(name);
+        }
+      });
+    }
+    if (names.length === 0 && project.responsible) {
+      names.push(
+        ...project.responsible
+          .split(',')
+          .map((name) => name.trim())
+          .filter((name) => !!name)
+      );
+    }
+    return names;
+  }
+
+  getResponsiblesDisplay(project: IProject | null = this.project): string {
+    const names = this.extractResponsibleNames(project);
+    return names.length > 0 ? names.join(', ') : '未設定';
+  }
+
   private syncSelectionsFromProject(): void {
     if (!this.project) {
       return;
@@ -355,35 +402,55 @@ export class ProjectDetailComponent implements OnInit {
       .map((member) => member.id || '')
       .filter((id) => !!id);
 
-    if (this.project.responsibleId) {
-      const responsible = this.members.find(
-        (member) => member.id === this.project!.responsibleId
-      );
-      if (responsible) {
-        this.selectedResponsible = responsible;
-        this.selectedResponsibleId = responsible.id || '';
-        return;
-      }
-    }
-    if (this.project.responsible) {
-      const responsible = this.members.find(
-        (member) => member.name === this.project!.responsible
-      );
-      if (responsible) {
-        this.selectedResponsible = responsible;
-        this.selectedResponsibleId = responsible.id || '';
-      } else {
-        this.selectedResponsible = null;
-        this.selectedResponsibleId = '';
-      }
-    }
-  }
+    const responsibleEntries = Array.isArray(this.project.responsibles)
+      ? this.project.responsibles
+      : [];
 
-  onResponsibleSelectionChange(responsibleId: string): void {
-    this.selectedResponsibleId = responsibleId || '';
-    this.selectedResponsible = this.members.find(
-      (member) => member.id === this.selectedResponsibleId
-    ) || null;
+    const idsFromEntries = responsibleEntries
+      .map((entry) => entry.memberId)
+      .filter((id): id is string => !!id);
+
+    this.selectedResponsibles = this.members.filter((member) =>
+      idsFromEntries.includes(member.id || '')
+    );
+
+    if (this.selectedResponsibles.length < responsibleEntries.length) {
+      const namesFromEntries = responsibleEntries
+        .map((entry) => entry.memberName)
+        .filter((name): name is string => !!name);
+      const additional = this.members.filter((member) =>
+        namesFromEntries.includes(member.name || '') &&
+        !this.selectedResponsibles.some((selected) => selected.id === member.id)
+      );
+      this.selectedResponsibles = [...this.selectedResponsibles, ...additional];
+    }
+
+    if (
+      this.selectedResponsibles.length === 0 &&
+      (this.project.responsibleId || this.project.responsible)
+    ) {
+      const fallbackIds = this.project.responsibleId
+        ? [this.project.responsibleId]
+        : [];
+      const fallbackNames = this.extractResponsibleNames(this.project);
+
+      this.selectedResponsibles = this.members.filter((member) => {
+        const idMatch = fallbackIds.includes(member.id || '');
+        const nameMatch = fallbackNames.includes(member.name || '');
+        return idMatch || nameMatch;
+      });
+    }
+
+    this.selectedResponsibleIds = this.selectedResponsibles
+      .map((member) => member.id || '')
+      .filter((id) => !!id);
+
+    if (this.editableProject) {
+      this.editableProject.responsible = this.selectedResponsibles
+        .map((member) => member.name)
+        .filter((name) => !!name)
+        .join(', ');
+    }
   }
 
   onMembersSelectionChange(selectedIds: string[]): void {
@@ -393,12 +460,46 @@ export class ProjectDetailComponent implements OnInit {
     );
   }
 
+  onResponsibleSelectionChange(selectedIds: string[]): void {
+    this.selectedResponsibleIds = Array.isArray(selectedIds)
+      ? selectedIds
+      : [];
+    this.selectedResponsibles = this.members.filter((member) =>
+      this.selectedResponsibleIds.includes(member.id || '')
+    );
+    if (this.editableProject) {
+      this.editableProject.responsible = this.selectedResponsibles
+        .map((member) => member.name)
+        .filter((name) => !!name)
+        .join(', ');
+    }
+  }
+
   removeSelectedMember(member: Member): void {
     const memberId = member.id || '';
     this.selectedMemberIds = this.selectedMemberIds.filter((id) => id !== memberId);
     this.selectedMembers = this.selectedMembers.filter(
       (selected) => (selected.id || '') !== memberId
     );
+    if (this.selectedResponsibleIds.includes(memberId)) {
+      this.removeResponsible(member);
+    }
+  }
+
+  removeResponsible(member: Member): void {
+    const memberId = member.id || '';
+    this.selectedResponsibleIds = this.selectedResponsibleIds.filter(
+      (id) => id !== memberId
+    );
+    this.selectedResponsibles = this.selectedResponsibles.filter(
+      (responsible) => (responsible.id || '') !== memberId
+    );
+    if (this.editableProject) {
+      this.editableProject.responsible = this.selectedResponsibles
+        .map((item) => item.name)
+        .filter((name) => !!name)
+        .join(', ');
+    }
   }
 
   onTagInputEnter(event: Event): void {

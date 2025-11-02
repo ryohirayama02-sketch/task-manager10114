@@ -324,14 +324,14 @@ export class ProjectFormComponent implements OnInit {
         .map((r) => r.memberName)
         .filter((name) => !!name)
         .join(', ');
-      const responsibleIds = responsiblesPayload
+      const responsibleIdsArray = responsiblesPayload
         .map((r) => r.memberId)
-        .filter((id) => !!id)
-        .join(', ');
-      const responsibleEmails = responsiblesPayload
-        .map((r) => r.memberEmail)
-        .filter((email) => !!email)
-        .join(', ');
+        .filter((id): id is string => !!id);
+      const responsibleEmailsArray = responsiblesPayload
+        .map((r) => r.memberEmail || '')
+        .filter((email) => !!email);
+      const primaryResponsibleId = responsibleIdsArray[0] ?? '';
+      const primaryResponsibleEmail = responsibleEmailsArray[0] ?? '';
 
       const projectData = {
         projectName: formData.projectName,
@@ -343,8 +343,8 @@ export class ProjectFormComponent implements OnInit {
         tags: this.projectTags,
         responsibles: responsiblesPayload,
         responsible: responsibleNames,
-        responsibleId: responsibleIds,
-        responsibleEmail: responsibleEmails,
+        responsibleId: primaryResponsibleId,
+        responsibleEmail: primaryResponsibleEmail,
         members: this.selectedMembers.map((member) => ({
           memberId: member.id || '',
           memberName: member.name,
