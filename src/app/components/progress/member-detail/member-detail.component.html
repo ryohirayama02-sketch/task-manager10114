@@ -46,9 +46,11 @@
       <mat-card-header>
         <mat-card-title>全保有タスクのステータスと優先度</mat-card-title>
         <div class="header-actions">
-          <button mat-button class="period-button">
+          <button mat-button class="period-button" (click)="openPeriodDialog()">
             <mat-icon>date_range</mat-icon>
-            期間
+            {{ periodStartDate && periodEndDate ? 
+              (periodStartDate | date:'MM/dd') + ' - ' + (periodEndDate | date:'MM/dd') 
+              : '期間' }}
           </button>
         </div>
       </mat-card-header>

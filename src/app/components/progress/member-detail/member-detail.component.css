@@ -130,6 +130,11 @@
   font-size: 12px;
 }
 
+.period-field {
+  width: 160px;
+  font-size: 12px;
+}
+
 .period-button,
 .filter-button,
 .export-button {

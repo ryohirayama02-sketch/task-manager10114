@@ -10,12 +10,16 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { FormsModule } from '@angular/forms';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 import { ProjectService } from '../../../services/project.service';
 import { Task } from '../../../models/task.model';
 import {
   DEFAULT_PROJECT_THEME_COLOR,
   resolveProjectThemeColor,
 } from '../../../constants/project-theme-colors';
+import { MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
+import { Inject } from '@angular/core';
 
 interface MemberDetail {
   name: string;
@@ -46,6 +50,8 @@ interface MemberDetail {
     MatSelectModule,
     MatFormFieldModule,
     FormsModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
   ],
   templateUrl: './member-detail.component.html',
   styleUrls: ['./member-detail.component.css'],
@@ -55,6 +61,7 @@ export class MemberDetailComponent implements OnInit {
   private router = inject(Router);
   private projectService = inject(ProjectService);
   private location = inject(Location);
+  private dialog = inject(MatDialog);
 
   memberDetail: MemberDetail | null = null;
   isLoading = true;
@@ -75,6 +82,10 @@ export class MemberDetailComponent implements OnInit {
   
   // プロジェクト情報
   private projectMap: Record<string, any> = {};
+
+  // 期間フィルター用
+  periodStartDate: Date | null = null;
+  periodEndDate: Date | null = null;
 
   ngOnInit() {
     const memberName = this.route.snapshot.paramMap.get('memberName');
@@ -237,6 +248,45 @@ export class MemberDetailComponent implements OnInit {
     this.applyTaskFilters();
   }
 
+  /** 期間フィルターを適用して統計を更新 */
+  applyPeriodFilter() {
+    if (!this.memberDetail) return;
+
+    let filteredTasks = this.memberDetail.tasks;
+
+    // 期間でフィルター
+    if (this.periodStartDate && this.periodEndDate) {
+      filteredTasks = filteredTasks.filter((task) => {
+        const dueDate = task.dueDate ? new Date(task.dueDate) : null;
+        if (!dueDate) return false;
+        return dueDate >= this.periodStartDate! && dueDate <= this.periodEndDate!;
+      });
+    }
+
+    // 期間フィルター後のステータス・優先度別の内訳を計算
+    const completedTasks = filteredTasks.filter((t) => t.status === '完了');
+    const inProgressTasks = filteredTasks.filter((t) => t.status === '作業中');
+    const notStartedTasks = filteredTasks.filter((t) => t.status === '未着手');
+
+    // 統計情報を更新
+    this.memberDetail.completedTasks = completedTasks.length;
+    this.memberDetail.inProgressTasks = inProgressTasks.length;
+    this.memberDetail.notStartedTasks = notStartedTasks.length;
+    this.memberDetail.completedByPriority =
+      this.calculatePriorityBreakdown(completedTasks);
+    this.memberDetail.inProgressByPriority =
+      this.calculatePriorityBreakdown(inProgressTasks);
+    this.memberDetail.notStartedByPriority =
+      this.calculatePriorityBreakdown(notStartedTasks);
+  }
+
+  /** 期間フィルターをリセット */
+  resetPeriodFilter() {
+    this.periodStartDate = null;
+    this.periodEndDate = null;
+    this.applyPeriodFilter();
+  }
+
   /** 優先度別の内訳を計算 */
   calculatePriorityBreakdown(tasks: Task[]): {
     high: number;
@@ -331,5 +381,133 @@ export class MemberDetailComponent implements OnInit {
       backgroundColor: color,
       color: '#1f2933',
     };
+  }
+
+  openPeriodDialog() {
+    const dialogRef = this.dialog.open(PeriodFilterDialogComponent, {
+      width: '300px',
+      data: {
+        startDate: this.periodStartDate,
+        endDate: this.periodEndDate,
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.periodStartDate = result.startDate;
+        this.periodEndDate = result.endDate;
+        this.applyPeriodFilter();
+      }
+    });
+  }
+}
+
+// 期間選択ダイアログコンポーネント
+@Component({
+  selector: 'app-period-filter-dialog',
+  standalone: true,
+  imports: [CommonModule, MatButtonModule, MatFormFieldModule, FormsModule, MatDialogModule],
+  template: `
+    <h2 mat-dialog-title>期間を選択</h2>
+    <mat-dialog-content>
+      <div class="period-dialog-content">
+        <div class="date-field">
+          <label for="startDate">開始日</label>
+          <input
+            id="startDate"
+            type="date"
+            [(ngModel)]="startDate"
+            class="date-input"
+          />
+        </div>
+        <div class="date-field">
+          <label for="endDate">終了日</label>
+          <input
+            id="endDate"
+            type="date"
+            [(ngModel)]="endDate"
+            class="date-input"
+          />
+        </div>
+      </div>
+    </mat-dialog-content>
+    <mat-dialog-actions>
+      <button mat-button (click)="onCancel()">キャンセル</button>
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="onConfirm()"
+        [disabled]="!startDate || !endDate"
+      >
+        確定
+      </button>
+    </mat-dialog-actions>
+  `,
+  styles: [`
+    .period-dialog-content {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding: 16px 0;
+    }
+    .date-field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    label {
+      font-weight: 500;
+      font-size: 14px;
+      color: #495057;
+    }
+    .date-input {
+      padding: 8px 12px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    mat-dialog-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding-top: 16px;
+    }
+  `],
+})
+export class PeriodFilterDialogComponent {
+  startDate: string | null = null;
+  endDate: string | null = null;
+
+  constructor(
+    private dialogRef: MatDialogRef<PeriodFilterDialogComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: any
+  ) {
+    if (data) {
+      this.startDate = data.startDate ? this.formatDateToString(data.startDate) : null;
+      this.endDate = data.endDate ? this.formatDateToString(data.endDate) : null;
+    }
+  }
+
+  onConfirm() {
+    if (this.startDate && this.endDate) {
+      this.dialogRef.close({
+        startDate: new Date(this.startDate),
+        endDate: new Date(this.endDate),
+      });
+    }
+  }
+
+  onCancel() {
+    this.dialogRef.close();
+  }
+
+  private formatDateToString(date: Date): string {
+    if (!(date instanceof Date)) {
+      date = new Date(date);
+    }
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 }
