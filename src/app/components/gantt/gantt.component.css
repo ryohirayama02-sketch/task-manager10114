@@ -164,11 +164,11 @@
 /* レスポンシブ対応 */
 @media (max-width: 1200px) {
   .task-info {
-    min-width: 583px;
+    min-width: 603px;
   }
 
   .task-info-header {
-    min-width: 583px;
+    min-width: 603px;
   }
 
   .year-month-cell-fixed {
@@ -176,37 +176,37 @@
   }
 
   .info-cell.project-name {
-    width: 160px;
-    min-width: 160px;
-    max-width: 160px;
+    width: 200px;
+    min-width: 200px;
+    max-width: 200px;
   }
 
   .info-cell.task-name {
-    width: 220px;
-    min-width: 220px;
-    max-width: 220px;
+    width: 200px;
+    min-width: 200px;
+    max-width: 200px;
   }
 
   .header-cell:nth-child(1) {
-    width: 160px;
-    min-width: 160px;
-    max-width: 160px;
+    width: 200px;
+    min-width: 200px;
+    max-width: 200px;
   }
 
   .header-cell:nth-child(2) {
-    width: 220px;
-    min-width: 220px;
-    max-width: 220px;
+    width: 200px;
+    min-width: 200px;
+    max-width: 200px;
   }
 }
 
 @media (max-width: 768px) {
   .task-info {
-    min-width: 583px;
+    min-width: 603px;
   }
 
   .task-info-header {
-    min-width: 583px;
+    min-width: 603px;
   }
 
   .year-month-cell-fixed {
@@ -214,15 +214,15 @@
   }
 
   .info-cell.project-name {
-    width: 160px;
-    min-width: 160px;
-    max-width: 160px;
+    width: 200px;
+    min-width: 200px;
+    max-width: 200px;
   }
 
   .info-cell.task-name {
-    width: 220px;
-    min-width: 220px;
-    max-width: 220px;
+    width: 200px;
+    min-width: 200px;
+    max-width: 200px;
   }
 
   .info-cell.priority {
@@ -238,15 +238,15 @@
   }
 
   .header-cell:nth-child(1) {
-    width: 160px;
-    min-width: 160px;
-    max-width: 160px;
+    width: 200px;
+    min-width: 200px;
+    max-width: 200px;
   }
 
   .header-cell:nth-child(2) {
-    width: 220px;
-    min-width: 220px;
-    max-width: 220px;
+    width: 200px;
+    min-width: 200px;
+    max-width: 200px;
   }
 
   .header-cell:nth-child(3) {
@@ -288,15 +288,15 @@
 }
 
 .header-cell:nth-child(1) {
-  width: 160px;
-  min-width: 160px;
-  max-width: 160px;
+  width: 200px;
+  min-width: 200px;
+  max-width: 200px;
 }
 
 .header-cell:nth-child(2) {
-  width: 220px;
-  min-width: 220px;
-  max-width: 220px;
+  width: 200px;
+  min-width: 200px;
+  max-width: 200px;
 }
 
 .header-cell:nth-child(3) {
@@ -588,15 +588,18 @@
 }
 
 .info-cell.project-name {
-  width: 160px;
-  min-width: 160px;
-  max-width: 160px;
+  width: 200px;
+  min-width: 200px;
+  max-width: 200px;
 }
 
 .info-cell.task-name {
-  width: 220px;
-  min-width: 220px;
-  max-width: 220px;
+  width: 200px;
+  min-width: 200px;
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .info-cell.priority {
@@ -611,6 +614,9 @@
   width: 140px;
   min-width: 140px;
   max-width: 140px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .project-name {
