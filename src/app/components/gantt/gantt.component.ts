@@ -255,8 +255,7 @@ export class GanttComponent implements OnInit {
   }
 
   getProjectNameStyle(task: Task) {
-    const color =
-      task.projectThemeColor || this.getProjectThemeColor(task.projectId);
+    const color = this.getProjectThemeColor(task.projectId);
     return {
       backgroundColor: color,
       color: '#1f2933',
@@ -314,8 +313,7 @@ export class GanttComponent implements OnInit {
   }
 
   private withTaskTheme(task: Task): Task {
-    const color =
-      task.projectThemeColor || this.getProjectThemeColor(task.projectId);
+    const color = this.getProjectThemeColor(task.projectId);
     return {
       ...task,
       projectThemeColor: color,
