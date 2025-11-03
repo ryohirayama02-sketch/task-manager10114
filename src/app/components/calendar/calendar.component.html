@@ -138,14 +138,16 @@
       <div class="day-number">
         {{ date.getDate() }}
         <!-- マイルストーン表示 -->
-        <div
-          *ngFor="let milestone of getMilestonesForDate(date)"
-          class="milestone-flag"
-          (mouseenter)="showMilestoneTooltip($event, milestone)"
-          (mouseleave)="hideMilestoneTooltip()"
-        >
-          🚩
-        </div>
+        <ng-container *ngIf="getMilestonesForDate(date) as milestones">
+          <div
+            *ngIf="milestones.length > 0"
+            class="milestone-flag"
+            (mouseenter)="showMilestoneTooltip($event, milestones)"
+            (mouseleave)="hideMilestoneTooltip()"
+          >
+            🚩
+          </div>
+        </ng-container>
       </div>
       <div class="day-tasks">
         <div
@@ -209,10 +211,12 @@
     <span class="tooltip-title">マイルストーン</span>
   </div>
   <div class="tooltip-content">
-    <div class="tooltip-project">{{ tooltipMilestone?.projectName }}</div>
-    <div class="tooltip-name">{{ tooltipMilestone?.name }}</div>
-    <div class="tooltip-date">
-      {{ tooltipMilestone?.date | date : "yyyy/MM/dd" }}
+    <div class="tooltip-item" *ngFor="let milestone of tooltipMilestones">
+      <div class="tooltip-project">{{ milestone.projectName }}</div>
+      <div class="tooltip-name">{{ milestone.name }}</div>
+      <div class="tooltip-date">
+        {{ milestone.date | date : "yyyy/MM/dd" }}
+      </div>
     </div>
   </div>
   <div class="tooltip-arrow"></div>

@@ -280,6 +280,18 @@
   gap: 4px;
 }
 
+.tooltip-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tooltip-item + .tooltip-item {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
 .tooltip-project {
   font-weight: 500;
   color: #ffd700;
