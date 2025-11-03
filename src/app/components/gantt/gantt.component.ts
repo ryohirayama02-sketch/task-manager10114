@@ -101,8 +101,13 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('rightPane') rightPane?: ElementRef<HTMLDivElement>;
   @ViewChild('leftHeader') leftHeader?: ElementRef<HTMLDivElement>;
   @ViewChild('rightHeader') rightHeader?: ElementRef<HTMLDivElement>;
+  @ViewChild('timelineContainer') timelineContainer?: ElementRef<HTMLDivElement>;
   private isSyncingVerticalScroll = false;
   private headerResizeObserver?: ResizeObserver;
+  private pendingHorizontalScroll: number | null = null;
+  private hasUserHorizontalScrolled = false;
+  private isApplyingHorizontalScroll = false;
+  private timelineScrollListener?: () => void;
 
   constructor(
     private projectService: ProjectService,
@@ -119,10 +124,17 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     this.syncVerticalScroll();
     this.initializeHeaderHeightSync();
+    this.initializeHorizontalScrollTracking();
+    this.applyPendingHorizontalScroll();
   }
 
   ngOnDestroy(): void {
     this.headerResizeObserver?.disconnect();
+    const container = this.timelineContainer?.nativeElement;
+    if (container && this.timelineScrollListener) {
+      container.removeEventListener('scroll', this.timelineScrollListener);
+    }
+    this.timelineScrollListener = undefined;
   }
 
   /** 日付範囲を初期化 */
@@ -135,6 +147,7 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
     this.startDate = new Date(today.getFullYear(), today.getMonth(), 1);
     this.endDate = new Date(today.getFullYear(), today.getMonth() + 3, 0);
     this.generateDateRange();
+    this.scheduleScrollToDate(today, !this.hasUserHorizontalScrolled);
   }
 
   private initializeHeaderHeightSync(): void {
@@ -633,38 +646,42 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
     let maxDate: Date | null = null;
 
     tasks.forEach((task) => {
-      const start = task.startDate ? new Date(task.startDate) : null;
       const due = task.dueDate ? new Date(task.dueDate) : null;
+      const fallbackStart = task.startDate ? new Date(task.startDate) : null;
+      const candidate = due && !isNaN(due.getTime())
+        ? due
+        : fallbackStart && !isNaN(fallbackStart.getTime())
+        ? fallbackStart
+        : null;
 
-      if (start && !isNaN(start.getTime())) {
-        if (!minDate || start < minDate) {
-          minDate = start;
-        }
+      if (!candidate) {
+        return;
       }
 
-      if (due && !isNaN(due.getTime())) {
-        if (!maxDate || due > maxDate) {
-          maxDate = due;
-        }
+      if (!minDate || candidate < minDate) {
+        minDate = candidate;
+      }
+      if (!maxDate || candidate > maxDate) {
+        maxDate = candidate;
       }
     });
 
-    if (!minDate && !maxDate) {
+    if (!minDate || !maxDate) {
       this.setDefaultDateRange();
       return;
     }
 
-    const effectiveStart = minDate || maxDate!;
-    const effectiveEnd = maxDate || minDate!;
+    const ensuredMinDate = minDate as Date;
+    const ensuredMaxDate = maxDate as Date;
 
     const paddedStart = new Date(
-      effectiveStart.getFullYear(),
-      effectiveStart.getMonth() - 1,
+      ensuredMinDate.getFullYear(),
+      ensuredMinDate.getMonth() - 2,
       1
     );
     const paddedEnd = new Date(
-      effectiveEnd.getFullYear(),
-      effectiveEnd.getMonth() + 2,
+      ensuredMaxDate.getFullYear(),
+      ensuredMaxDate.getMonth() + 3,
       0
     );
 
@@ -676,6 +693,74 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
     this.startDate = paddedStart;
     this.endDate = paddedEnd;
     this.generateDateRange();
+    this.scheduleScrollToDate(new Date(), !this.hasUserHorizontalScrolled);
+  }
+
+  private scheduleScrollToDate(targetDate: Date, force = false): void {
+    if (this.hasUserHorizontalScrolled && !force) {
+      return;
+    }
+
+    if (!targetDate || !this.startDate || !this.endDate) {
+      return;
+    }
+
+    const startTime = this.startDate.getTime();
+    const endTime = this.endDate.getTime();
+    const targetTime = targetDate.getTime();
+    const clampedTime = Math.min(Math.max(targetTime, startTime), endTime);
+    const msPerDay = 1000 * 60 * 60 * 24;
+    const diffDays = Math.floor((clampedTime - startTime) / msPerDay);
+    this.pendingHorizontalScroll = Math.max(diffDays * 30, 0);
+
+    this.applyPendingHorizontalScroll();
+    setTimeout(() => this.applyPendingHorizontalScroll());
+  }
+
+  private applyPendingHorizontalScroll(): void {
+    if (this.pendingHorizontalScroll === null) {
+      return;
+    }
+
+    const container = this.timelineContainer?.nativeElement;
+    if (!container) {
+      return;
+    }
+
+    const maxScroll = Math.max(container.scrollWidth - container.clientWidth, 0);
+    const targetScrollLeft = Math.min(this.pendingHorizontalScroll, maxScroll);
+
+    this.isApplyingHorizontalScroll = true;
+    container.scrollLeft = targetScrollLeft;
+    this.updateScrollPosition(targetScrollLeft);
+    this.updateVisibleYearMonth();
+    this.pendingHorizontalScroll = null;
+
+    requestAnimationFrame(() => {
+      this.isApplyingHorizontalScroll = false;
+    });
+  }
+
+  private initializeHorizontalScrollTracking(): void {
+    const container = this.timelineContainer?.nativeElement;
+    if (!container) {
+      return;
+    }
+
+    if (this.timelineScrollListener) {
+      container.removeEventListener('scroll', this.timelineScrollListener);
+    }
+
+    this.timelineScrollListener = () => {
+      if (this.isApplyingHorizontalScroll) {
+        return;
+      }
+      this.hasUserHorizontalScrolled = true;
+      this.updateScrollPosition(container.scrollLeft);
+      this.updateVisibleYearMonth();
+    };
+
+    container.addEventListener('scroll', this.timelineScrollListener);
   }
 
   /** タイムライン高さを算出 */
