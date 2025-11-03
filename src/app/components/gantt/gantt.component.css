@@ -763,8 +763,8 @@
 
 .year-month-labels-spacer-row {
   display: flex;
-  height: 32px;
-  border-bottom: 1px solid #dee2e6;
+  height: 0;
+  border-bottom: none;
   background-color: transparent;
   flex-shrink: 0;
   min-width: min-content;
@@ -784,9 +784,9 @@
 }
 
 .month-label-spacer {
-  height: 32px;
+  height: 0;
   background: transparent;
-  border-bottom: 1px solid #dee2e6;
+  border-bottom: none;
   flex-shrink: 0;
 }
 

@@ -620,23 +620,20 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** タイムライン高さを算出 */
   getGanttBarsHeight(): number {
-    const headerOffset = 32;
     const rowHeight = 40;
     const rowCount = this.tasks.length;
-    return headerOffset + rowCount * rowHeight;
+    return rowCount * rowHeight;
   }
 
   /** タスクヘッダー直下の区切り線位置 */
   getTaskHeaderDividerPosition(): number {
-    const headerOffset = 32;
-    return headerOffset;
+    return 0;
   }
 
   /** タスク行の区切り線位置を算出 */
   getTaskRowLinePosition(index: number): number {
-    const headerOffset = 32;
     const rowHeight = 40;
-    return headerOffset + (index + 1) * rowHeight;
+    return (index + 1) * rowHeight;
   }
 
   /** タスク詳細画面に遷移 */
