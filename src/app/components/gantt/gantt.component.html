@@ -134,8 +134,9 @@
             [style.max-width.px]="totalInfoWidth"
           >
             <div
-              class="info-cell project-name"
+              class="info-cell project-name clickable"
               [ngStyle]="getProjectNameStyle(task)"
+              (click)="openProjectDetail(task.projectId)"
               [appTruncateOverflow]="task.projectName"
             ></div>
             <div

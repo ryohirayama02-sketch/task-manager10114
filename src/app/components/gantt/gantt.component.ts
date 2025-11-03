@@ -579,6 +579,15 @@ export class GanttComponent implements OnInit {
     }
   }
 
+  /** プロジェクト詳細画面に遷移 */
+  openProjectDetail(projectId?: string | null) {
+    if (projectId) {
+      this.router.navigate(['/project', projectId]);
+    } else {
+      console.error('プロジェクトIDが不足しています');
+    }
+  }
+
   /** スクロール同期を設定 */
   setupScrollSync() {
     // DOMが完全に読み込まれた後に実行
