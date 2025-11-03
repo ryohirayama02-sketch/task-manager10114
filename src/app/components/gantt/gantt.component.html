@@ -21,6 +21,14 @@
       <button mat-stroked-button (click)="clearProjectSelection()">
         すべてのチェックをクリア
       </button>
+      <button
+        mat-raised-button
+        color="primary"
+        class="create-project-button"
+        (click)="openProjectDialog()"
+      >
+        + プロジェクトを作成
+      </button>
     </div>
   </div>
 
@@ -66,13 +74,6 @@
 
     <button mat-button (click)="resetFilters()">フィルターリセット</button>
   </div>
-</div>
-
-<!-- アクションボタン -->
-<div class="action-buttons">
-  <button mat-raised-button color="primary" (click)="openProjectDialog()">
-    + プロジェクトを作成
-  </button>
 </div>
 
 <!-- ガントチャート -->
