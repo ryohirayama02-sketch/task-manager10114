@@ -160,7 +160,7 @@
 .gantt-body-left {
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
+  overflow-y: scroll;
   flex: 1;
   direction: rtl; /* スクロールバーを左側に配置 */
   scrollbar-width: thin;
