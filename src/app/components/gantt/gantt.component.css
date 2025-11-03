@@ -835,6 +835,7 @@
   align-items: center;
   padding: 0 8px;
   z-index: 5;
+  overflow: visible;
 }
 
 .task-bar:hover {
@@ -848,9 +849,7 @@
   font-weight: 500;
   color: inherit;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
+  overflow: visible;
 }
 
 /* クリック可能な要素のスタイル */
