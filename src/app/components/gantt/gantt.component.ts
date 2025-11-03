@@ -127,6 +127,10 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** 日付範囲を初期化 */
   initializeDateRange() {
+    this.setDefaultDateRange();
+  }
+
+  private setDefaultDateRange(): void {
     const today = new Date();
     this.startDate = new Date(today.getFullYear(), today.getMonth(), 1);
     this.endDate = new Date(today.getFullYear(), today.getMonth() + 3, 0);
@@ -299,6 +303,7 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
     // フィルター後の結果を表示
     this.tasks = filteredTasks.map((task) => this.withTaskTheme(task));
     this.calculateAssigneeColumnWidth(); // フィルター適用後も担当者列の幅を計算
+    this.updateTimelineRange(this.tasks);
   }
 
   /** プロジェクト選択をトグル */
@@ -616,6 +621,61 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
         (taskEnd.getTime() - taskStart.getTime()) / (1000 * 60 * 60 * 24)
       ) + 1;
     return totalDays * 30; // 1日 = 30px
+  }
+
+  private updateTimelineRange(tasks: Task[]): void {
+    if (!tasks || tasks.length === 0) {
+      this.setDefaultDateRange();
+      return;
+    }
+
+    let minDate: Date | null = null;
+    let maxDate: Date | null = null;
+
+    tasks.forEach((task) => {
+      const start = task.startDate ? new Date(task.startDate) : null;
+      const due = task.dueDate ? new Date(task.dueDate) : null;
+
+      if (start && !isNaN(start.getTime())) {
+        if (!minDate || start < minDate) {
+          minDate = start;
+        }
+      }
+
+      if (due && !isNaN(due.getTime())) {
+        if (!maxDate || due > maxDate) {
+          maxDate = due;
+        }
+      }
+    });
+
+    if (!minDate && !maxDate) {
+      this.setDefaultDateRange();
+      return;
+    }
+
+    const effectiveStart = minDate || maxDate!;
+    const effectiveEnd = maxDate || minDate!;
+
+    const paddedStart = new Date(
+      effectiveStart.getFullYear(),
+      effectiveStart.getMonth() - 1,
+      1
+    );
+    const paddedEnd = new Date(
+      effectiveEnd.getFullYear(),
+      effectiveEnd.getMonth() + 2,
+      0
+    );
+
+    if (paddedEnd < paddedStart) {
+      this.setDefaultDateRange();
+      return;
+    }
+
+    this.startDate = paddedStart;
+    this.endDate = paddedEnd;
+    this.generateDateRange();
   }
 
   /** タイムライン高さを算出 */
