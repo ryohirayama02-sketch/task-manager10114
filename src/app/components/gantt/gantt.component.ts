@@ -674,11 +674,12 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
     this.isSyncingVerticalScroll = true;
     const targetScrollTop =
       origin === 'right' ? right.scrollTop : left.scrollTop;
-    if (origin === 'right') {
-      left.scrollTop = targetScrollTop;
-    } else {
-      right.scrollTop = targetScrollTop;
-    }
+    const leftMaxScroll = Math.max(left.scrollHeight - left.clientHeight, 0);
+    const rightMaxScroll = Math.max(right.scrollHeight - right.clientHeight, 0);
+    const maxSharedScroll = Math.min(leftMaxScroll, rightMaxScroll);
+    const clampedScrollTop = Math.min(targetScrollTop, maxSharedScroll);
+    left.scrollTop = clampedScrollTop;
+    right.scrollTop = clampedScrollTop;
     requestAnimationFrame(() => {
       this.isSyncingVerticalScroll = false;
     });
