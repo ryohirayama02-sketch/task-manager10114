@@ -18,6 +18,7 @@ import {
   DEFAULT_PROJECT_THEME_COLOR,
   resolveProjectThemeColor,
 } from '../../constants/project-theme-colors';
+import { TruncateOverflowDirective } from '../../directives/truncate-overflow.directive';
 
 @Component({
   selector: 'app-gantt',
@@ -33,6 +34,7 @@ import {
     MatChipsModule,
     MatMenuModule,
     FormsModule,
+    TruncateOverflowDirective,
   ],
   templateUrl: './gantt.component.html',
   styleUrls: ['./gantt.component.css'],

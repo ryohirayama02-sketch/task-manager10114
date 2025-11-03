@@ -136,15 +136,13 @@
             <div
               class="info-cell project-name"
               [ngStyle]="getProjectNameStyle(task)"
-            >
-              {{ task.projectName }}
-            </div>
+              [appTruncateOverflow]="task.projectName"
+            ></div>
             <div
               class="info-cell task-name clickable"
               (click)="openTaskDetail(task)"
-            >
-              {{ task.taskName }}
-            </div>
+              [appTruncateOverflow]="task.taskName"
+            ></div>
             <div
               class="info-cell priority"
               [ngClass]="'priority-' + task.priority"
@@ -156,10 +154,8 @@
               [style.width.px]="assigneeColumnWidth"
               [style.min-width.px]="assigneeColumnWidth"
               [style.max-width.px]="assigneeColumnWidth"
-              style="white-space: nowrap"
-            >
-              {{ task.assignee }}
-            </div>
+              [appTruncateOverflow]="task.assignee"
+            ></div>
           </div>
         </div>
       </div>
