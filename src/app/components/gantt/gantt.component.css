@@ -220,6 +220,13 @@
   min-width: min-content;
   padding-bottom: 16px;
   box-sizing: border-box;
+  -ms-overflow-style: none; /* IE, Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.gantt-body-right::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 /* レスポンシブ対応 */
