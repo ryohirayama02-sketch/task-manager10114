@@ -2,6 +2,7 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
+  OnDestroy,
   OnInit,
   ViewChild,
 } from '@angular/core';
@@ -45,7 +46,7 @@ import { TruncateOverflowDirective } from '../../directives/truncate-overflow.di
   templateUrl: './gantt.component.html',
   styleUrls: ['./gantt.component.css'],
 })
-export class GanttComponent implements OnInit, AfterViewInit {
+export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
   tasks: Task[] = [];
   projects: IProject[] = [];
   selectedProjectIds: string[] = [];
@@ -98,7 +99,10 @@ export class GanttComponent implements OnInit, AfterViewInit {
   yearMonthHeaderStyle: { [key: string]: string } = {};
   @ViewChild('leftPane') leftPane?: ElementRef<HTMLDivElement>;
   @ViewChild('rightPane') rightPane?: ElementRef<HTMLDivElement>;
+  @ViewChild('leftHeader') leftHeader?: ElementRef<HTMLDivElement>;
+  @ViewChild('rightHeader') rightHeader?: ElementRef<HTMLDivElement>;
   private isSyncingVerticalScroll = false;
+  private headerResizeObserver?: ResizeObserver;
 
   constructor(
     private projectService: ProjectService,
@@ -114,6 +118,11 @@ export class GanttComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit(): void {
     this.syncVerticalScroll();
+    this.initializeHeaderHeightSync();
+  }
+
+  ngOnDestroy(): void {
+    this.headerResizeObserver?.disconnect();
   }
 
   /** 日付範囲を初期化 */
@@ -122,6 +131,34 @@ export class GanttComponent implements OnInit, AfterViewInit {
     this.startDate = new Date(today.getFullYear(), today.getMonth(), 1);
     this.endDate = new Date(today.getFullYear(), today.getMonth() + 3, 0);
     this.generateDateRange();
+  }
+
+  private initializeHeaderHeightSync(): void {
+    this.updateLeftHeaderHeight();
+    // Ensure measurement after view rendering completes
+    setTimeout(() => this.updateLeftHeaderHeight());
+
+    const rightHeaderEl = this.rightHeader?.nativeElement;
+    if (!rightHeaderEl || typeof ResizeObserver === 'undefined') {
+      return;
+    }
+
+    this.headerResizeObserver = new ResizeObserver(() => {
+      this.updateLeftHeaderHeight();
+    });
+    this.headerResizeObserver.observe(rightHeaderEl);
+  }
+
+  private updateLeftHeaderHeight(): void {
+    const leftHeaderEl = this.leftHeader?.nativeElement;
+    const rightHeaderEl = this.rightHeader?.nativeElement;
+    if (!leftHeaderEl || !rightHeaderEl) {
+      return;
+    }
+    const rightHeaderHeight = rightHeaderEl.offsetHeight;
+    if (rightHeaderHeight > 0) {
+      leftHeaderEl.style.height = `${rightHeaderHeight}px`;
+    }
   }
 
   /** 日付範囲を生成 */

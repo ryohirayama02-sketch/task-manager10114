@@ -137,7 +137,7 @@
   display: flex;
   background-color: #e9ecef;
   border-bottom: 2px solid #dee2e6;
-  height: 64px;
+  min-height: 64px;
   position: sticky;
   top: 0;
   z-index: 13;
@@ -202,7 +202,7 @@
   flex-direction: column;
   background-color: #f8f9fa;
   border-bottom: 2px solid #dee2e6;
-  height: 64px;
+  min-height: 64px;
   position: sticky;
   top: 0;
   z-index: 11;
@@ -339,7 +339,7 @@
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   height: 100%; /* 親の高さいっぱい */
   box-sizing: border-box;
 }
