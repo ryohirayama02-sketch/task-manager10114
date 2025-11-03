@@ -565,6 +565,19 @@ export class GanttComponent implements OnInit {
     return totalDays * 30; // 1日 = 30px
   }
 
+  /** タスクヘッダー直下の区切り線位置 */
+  getTaskHeaderDividerPosition(): number {
+    const headerOffset = 32;
+    return headerOffset;
+  }
+
+  /** タスク行の区切り線位置を算出 */
+  getTaskRowLinePosition(index: number): number {
+    const headerOffset = 32;
+    const rowHeight = 40;
+    return headerOffset + (index + 1) * rowHeight;
+  }
+
   /** タスク詳細画面に遷移 */
   openTaskDetail(task: Task) {
     console.log('タスク詳細画面に遷移:', task);

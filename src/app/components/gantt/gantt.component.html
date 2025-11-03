@@ -209,6 +209,18 @@
               <!-- 日付セル -->
             </div>
           </div>
+          <!-- タスク行の区切り線 -->
+          <div class="task-row-lines">
+            <div
+              class="task-row-divider"
+              [style.top.px]="getTaskHeaderDividerPosition()"
+            ></div>
+            <div
+              *ngFor="let task of tasks; let i = index"
+              class="task-row-divider"
+              [style.top.px]="getTaskRowLinePosition(i)"
+            ></div>
+          </div>
           <!-- タスク期間バー -->
           <ng-container *ngFor="let task of tasks; let i = index">
             <div
