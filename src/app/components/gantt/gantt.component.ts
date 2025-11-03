@@ -676,12 +676,12 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
 
     const paddedStart = new Date(
       ensuredMinDate.getFullYear(),
-      ensuredMinDate.getMonth() - 2,
+      ensuredMinDate.getMonth() - 1,
       1
     );
     const paddedEnd = new Date(
       ensuredMaxDate.getFullYear(),
-      ensuredMaxDate.getMonth() + 3,
+      ensuredMaxDate.getMonth() + 2,
       0
     );
 
