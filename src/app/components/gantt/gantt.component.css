@@ -130,6 +130,7 @@
   border-right: 2px solid #dee2e6;
   z-index: 12;
   box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+  --gantt-scrollbar-width: 12px;
 }
 
 .gantt-header-left {
@@ -141,6 +142,19 @@
   top: 0;
   z-index: 13;
   flex-shrink: 0;
+  padding-left: var(--gantt-scrollbar-width);
+  box-sizing: border-box;
+}
+
+.gantt-header-left::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: var(--gantt-scrollbar-width);
+  background-color: #e9ecef;
+  border-right: 1px solid #dee2e6;
 }
 
 .gantt-body-left {
@@ -148,8 +162,31 @@
   flex-direction: column;
   overflow-y: auto;
   flex: 1;
+  direction: rtl; /* スクロールバーを左側に配置 */
+  scrollbar-width: thin;
 }
 
+.gantt-body-left::-webkit-scrollbar {
+  width: var(--gantt-scrollbar-width);
+}
+
+.gantt-body-left::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.gantt-body-left::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.gantt-body-left::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+.gantt-body-left .task-row,
+.gantt-body-left .task-info {
+  direction: ltr; /* コンテンツの表示方向は従来どおり */
+}
 /* 右ペイン（タイムライン） */
 .gantt-right-pane {
   display: flex;
