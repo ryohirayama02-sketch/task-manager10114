@@ -78,7 +78,7 @@ export class GanttComponent implements OnInit, AfterViewInit {
   // ツールチップ
   tooltipVisible: boolean = false;
   tooltipPosition: { x: number; y: number } = { x: 0, y: 0 };
-  tooltipMilestone: any = null;
+  tooltipMilestones: any[] = [];
 
   // ステータス色
   statusColors: { [key: string]: string } = {
@@ -509,8 +509,11 @@ export class GanttComponent implements OnInit, AfterViewInit {
   }
 
   /** マイルストーンツールチップを表示 */
-  showMilestoneTooltip(event: MouseEvent, milestone: any) {
-    this.tooltipMilestone = milestone;
+  showMilestoneTooltip(event: MouseEvent, milestones: any[]) {
+    if (!milestones || milestones.length === 0) {
+      return;
+    }
+    this.tooltipMilestones = milestones;
     this.tooltipPosition = {
       x: event.clientX + 10,
       y: event.clientY - 10,
@@ -521,7 +524,7 @@ export class GanttComponent implements OnInit, AfterViewInit {
   /** マイルストーンツールチップを非表示 */
   hideMilestoneTooltip() {
     this.tooltipVisible = false;
-    this.tooltipMilestone = null;
+    this.tooltipMilestones = [];
   }
 
   /** プロジェクト作成ダイアログを開く */
