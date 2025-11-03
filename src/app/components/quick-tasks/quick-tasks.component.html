@@ -57,10 +57,18 @@
               <div class="task-header">
                 <h3 class="task-title">{{ task.taskName }}</h3>
                 <div class="task-badges">
-                  <mat-chip [color]="getPriorityColor(task.priority)" selected>
+                  <mat-chip
+                    class="priority-chip"
+                    [ngClass]="'priority-' + task.priority"
+                    selected
+                  >
                     {{ task.priority }}
                   </mat-chip>
-                  <mat-chip [color]="getStatusColor(task.status)" selected>
+                  <mat-chip
+                    class="status-chip"
+                    [ngClass]="'status-' + task.status"
+                    selected
+                  >
                     {{ task.status }}
                   </mat-chip>
                 </div>
@@ -157,10 +165,18 @@
           <div class="task-header">
             <h3 class="task-title">{{ task.taskName }}</h3>
             <div class="task-badges">
-              <mat-chip [color]="getPriorityColor(task.priority)" selected>
+              <mat-chip
+                class="priority-chip"
+                [ngClass]="'priority-' + task.priority"
+                selected
+              >
                 {{ task.priority }}
               </mat-chip>
-              <mat-chip [color]="getStatusColor(task.status)" selected>
+              <mat-chip
+                class="status-chip"
+                [ngClass]="'status-' + task.status"
+                selected
+              >
                 {{ task.status }}
               </mat-chip>
             </div>

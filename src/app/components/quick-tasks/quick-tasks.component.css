@@ -149,6 +149,100 @@
   flex-shrink: 0;
 }
 
+.priority-chip,
+.status-chip {
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0 16px;
+  min-height: 36px;
+  border-radius: 18px;
+  display: inline-flex;
+  align-items: center;
+  letter-spacing: 0.02em;
+  border: none;
+  box-shadow: none;
+}
+
+:host ::ng-deep .priority-chip .mdc-evolution-chip__action,
+:host ::ng-deep .status-chip .mdc-evolution-chip__action {
+  padding: 0 8px;
+  border-radius: 18px;
+}
+
+:host ::ng-deep .priority-chip .mdc-evolution-chip__text-label,
+:host ::ng-deep .status-chip .mdc-evolution-chip__text-label {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+:host ::ng-deep .priority-chip,
+:host ::ng-deep .status-chip {
+  --mdc-chip-outline-width: 0;
+}
+
+:host ::ng-deep .priority-chip.priority-高,
+:host ::ng-deep .status-chip.status-未着手 {
+  background-color: #fdd6d5 !important;
+  --mdc-chip-container-color: #fdd6d5;
+  --mdc-chip-label-text-color: #000;
+}
+
+:host ::ng-deep .priority-chip.priority-中,
+:host ::ng-deep .status-chip.status-作業中 {
+  background-color: #fef6c3 !important;
+  --mdc-chip-container-color: #fef6c3;
+  --mdc-chip-label-text-color: #000;
+}
+
+:host ::ng-deep .priority-chip.priority-低,
+:host ::ng-deep .status-chip.status-完了 {
+  background-color: #b2e9cb !important;
+  --mdc-chip-container-color: #b2e9cb;
+  --mdc-chip-label-text-color: #000;
+}
+
+:host ::ng-deep .priority-chip.priority-高 .mdc-evolution-chip__action,
+:host ::ng-deep .status-chip.status-未着手 .mdc-evolution-chip__action {
+  background-color: #fdd6d5;
+  border: none;
+}
+
+:host ::ng-deep .priority-chip.priority-高 .mat-mdc-chip-focus-overlay,
+:host ::ng-deep .status-chip.status-未着手 .mat-mdc-chip-focus-overlay {
+  background-color: #fdd6d5;
+  border-radius: 18px;
+  border: none;
+  opacity: 1;
+}
+
+:host ::ng-deep .priority-chip.priority-中 .mdc-evolution-chip__action,
+:host ::ng-deep .status-chip.status-作業中 .mdc-evolution-chip__action {
+  background-color: #fef6c3;
+  border: none;
+}
+
+:host ::ng-deep .priority-chip.priority-中 .mat-mdc-chip-focus-overlay,
+:host ::ng-deep .status-chip.status-作業中 .mat-mdc-chip-focus-overlay {
+  background-color: #fef6c3;
+  border-radius: 18px;
+  border: none;
+  opacity: 1;
+}
+
+:host ::ng-deep .priority-chip.priority-低 .mdc-evolution-chip__action,
+:host ::ng-deep .status-chip.status-完了 .mdc-evolution-chip__action {
+  background-color: #b2e9cb;
+  border: none;
+}
+
+:host ::ng-deep .priority-chip.priority-低 .mat-mdc-chip-focus-overlay,
+:host ::ng-deep .status-chip.status-完了 .mat-mdc-chip-focus-overlay {
+  background-color: #b2e9cb;
+  border-radius: 18px;
+  border: none;
+  opacity: 1;
+}
+
 /* タスク情報 */
 .task-info {
   display: flex;
