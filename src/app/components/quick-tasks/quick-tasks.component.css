@@ -150,8 +150,25 @@
 .task-info {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0;
   margin: 16px 0;
+}
+
+.task-info > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #666;
+  border-top: 1px solid rgba(15, 23, 42, 0.18);
+  padding-top: 12px;
+  margin-top: 12px;
+}
+
+.task-info > div:first-child {
+  border-top: none;
+  padding-top: 0;
+  margin-top: 0;
 }
 
 .project-info,
