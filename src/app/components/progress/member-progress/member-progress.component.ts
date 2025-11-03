@@ -7,6 +7,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router } from '@angular/router';
 import { ProjectService } from '../../../services/project.service';
 import { Task } from '../../../models/task.model';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { PeriodFilterDialogComponent } from '../member-detail/member-detail.component';
 
 interface MemberProgress {
   name: string;
@@ -31,6 +33,7 @@ interface MemberProgress {
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    MatDialogModule,
   ],
   templateUrl: './member-progress.component.html',
   styleUrls: ['./member-progress.component.css'],
@@ -38,9 +41,13 @@ interface MemberProgress {
 export class MemberProgressComponent implements OnInit {
   private projectService = inject(ProjectService);
   private router = inject(Router);
+  private dialog = inject(MatDialog);
 
   members: MemberProgress[] = [];
   isLoading = true;
+  private allTasks: Task[] = [];
+  periodStartDate: Date | null = null;
+  periodEndDate: Date | null = null;
 
   ngOnInit() {
     this.loadMemberProgress();
@@ -86,11 +93,16 @@ export class MemberProgressComponent implements OnInit {
 
   processMemberProgress(allTasks: Task[]) {
     console.log('全タスク:', allTasks);
+    this.allTasks = allTasks;
+    this.applyPeriodFilter();
+    this.isLoading = false;
+  }
 
+  private buildMemberProgress(tasks: Task[]): MemberProgress[] {
     // 担当者ごとにタスクをグループ化
     const memberTaskMap = new Map<string, Task[]>();
 
-    allTasks.forEach((task) => {
+    tasks.forEach((task) => {
       if (task.assignee) {
         if (!memberTaskMap.has(task.assignee)) {
           memberTaskMap.set(task.assignee, []);
@@ -102,7 +114,7 @@ export class MemberProgressComponent implements OnInit {
     console.log('メンバー別タスク:', memberTaskMap);
 
     // 各メンバーの進捗を計算
-    this.members = Array.from(memberTaskMap.entries()).map(
+    const members = Array.from(memberTaskMap.entries()).map(
       ([memberName, tasks]) => {
         const totalTasks = tasks.length;
         const completedTasks = tasks.filter((t) => t.status === '完了');
@@ -137,10 +149,31 @@ export class MemberProgressComponent implements OnInit {
     );
 
     // 完了率でソート（高い順）
-    this.members.sort((a, b) => b.completionRate - a.completionRate);
+    members.sort((a, b) => b.completionRate - a.completionRate);
 
-    console.log('メンバー進捗:', this.members);
-    this.isLoading = false;
+    console.log('メンバー進捗:', members);
+    return members;
+  }
+
+  private applyPeriodFilter() {
+    const filteredTasks = this.filterTasksByPeriod(this.allTasks);
+    this.members = this.buildMemberProgress(filteredTasks);
+  }
+
+  private filterTasksByPeriod(tasks: Task[]): Task[] {
+    if (!this.periodStartDate && !this.periodEndDate) {
+      return tasks;
+    }
+
+    return tasks.filter((task) => {
+      const dueDate = task.dueDate ? new Date(task.dueDate) : null;
+      if (!dueDate) return false;
+
+      const afterStart = this.periodStartDate ? dueDate >= this.periodStartDate : true;
+      const beforeEnd = this.periodEndDate ? dueDate <= this.periodEndDate : true;
+
+      return afterStart && beforeEnd;
+    });
   }
 
   getStatusColor(status: string): string {
@@ -173,5 +206,23 @@ export class MemberProgressComponent implements OnInit {
   goToMemberDetail(memberName: string) {
     console.log('メンバー詳細画面に遷移:', memberName);
     this.router.navigate(['/progress/members', memberName]);
+  }
+
+  openPeriodDialog() {
+    const dialogRef = this.dialog.open(PeriodFilterDialogComponent, {
+      width: '300px',
+      data: {
+        startDate: this.periodStartDate,
+        endDate: this.periodEndDate,
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.periodStartDate = result.startDate;
+        this.periodEndDate = result.endDate;
+        this.applyPeriodFilter();
+      }
+    });
   }
 }
