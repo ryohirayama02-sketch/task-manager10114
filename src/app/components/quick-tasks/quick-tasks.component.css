@@ -129,6 +129,9 @@
   align-items: flex-start;
   width: 100%;
   gap: 16px;
+  padding-bottom: 12px;
+  border-bottom: 4px solid #606b80;
+  margin-bottom: 8px;
 }
 
 .task-title {
