@@ -75,6 +75,7 @@ export class MemberDetailComponent implements OnInit {
   readonly defaultThemeColor = DEFAULT_PROJECT_THEME_COLOR;
 
   // フィルター用
+  filterProjects: string[] = [];
   filterStatus: string[] = [];
   filterPriority: string[] = [];
   filterDueDateSort: string = ''; // 'near' (近い順) or 'far' (遠い順)
@@ -208,6 +209,13 @@ export class MemberDetailComponent implements OnInit {
 
     let filtered = [...this.memberDetail.tasks];
 
+    // プロジェクトフィルター
+    if (this.filterProjects.length > 0) {
+      filtered = filtered.filter((task) =>
+        this.filterProjects.includes(task.projectName)
+      );
+    }
+
     // ステータスフィルター
     if (this.filterStatus.length > 0) {
       filtered = filtered.filter((task) =>
@@ -242,6 +250,7 @@ export class MemberDetailComponent implements OnInit {
 
   /** フィルターをリセット */
   resetTaskFilters() {
+    this.filterProjects = [];
     this.filterStatus = [];
     this.filterPriority = [];
     this.filterDueDateSort = '';

@@ -123,6 +123,22 @@
         <mat-card-title>タスク一覧</mat-card-title>
         <div class="header-actions">
           <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>プロジェクト</mat-label>
+            <mat-select
+              [(ngModel)]="filterProjects"
+              (selectionChange)="applyTaskFilters()"
+              multiple
+            >
+              <mat-option
+                *ngFor="let project of memberDetail?.projects"
+                [value]="project"
+              >
+                {{ project }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
             <mat-label>期日</mat-label>
             <mat-select [(ngModel)]="filterDueDateSort" (selectionChange)="applyTaskFilters()">
               <mat-option value="">ソートなし</mat-option>
