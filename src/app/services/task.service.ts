@@ -75,8 +75,7 @@ export class TaskService {
                   projectId: projectId,
                   projectName: projectData['projectName'] || 'プロジェクト',
                   ...taskData,
-                  projectThemeColor:
-                    taskData['projectThemeColor'] || projectThemeColor,
+                  projectThemeColor,
                 });
               });
             });
@@ -160,8 +159,7 @@ export class TaskService {
                   projectId: projectId,
                   projectName: projectData['projectName'] || 'プロジェクト',
                   ...taskData,
-                  projectThemeColor:
-                    taskData['projectThemeColor'] || projectThemeColor,
+                  projectThemeColor,
                 } as Task);
               });
             });

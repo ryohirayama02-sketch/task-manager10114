@@ -12,6 +12,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { TaskService } from '../../services/task.service';
 import { AuthService } from '../../services/auth.service';
 import { Task } from '../../models/task.model';
+import { DEFAULT_PROJECT_THEME_COLOR } from '../../constants/project-theme-colors';
 
 @Component({
   selector: 'app-quick-tasks',
@@ -30,6 +31,7 @@ import { Task } from '../../models/task.model';
   styleUrl: './quick-tasks.component.css',
 })
 export class QuickTasksComponent implements OnInit, OnDestroy {
+  readonly defaultThemeColor = DEFAULT_PROJECT_THEME_COLOR;
   tasks: Task[] = [];
   filteredTasks: Task[] = [];
   loading = false;
@@ -189,6 +191,14 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
   // テンプレート内でMath.abs()を使用するためのヘルパーメソッド
   getAbsoluteValue(value: number): number {
     return Math.abs(value);
+  }
+
+  getProjectNameStyle(task: Task) {
+    const color = task.projectThemeColor || this.defaultThemeColor;
+    return {
+      backgroundColor: color,
+      color: '#1f2933',
+    };
   }
 
   // デバッグ用：すべてのタスクを取得

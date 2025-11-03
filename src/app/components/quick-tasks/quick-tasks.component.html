@@ -72,7 +72,12 @@
               <div class="task-info">
                 <div class="project-info">
                   <mat-icon>folder</mat-icon>
-                  <span>{{ task.projectName }}</span>
+                  <span
+                    class="project-name-pill"
+                    [ngStyle]="getProjectNameStyle(task)"
+                  >
+                    {{ task.projectName }}
+                  </span>
                 </div>
 
                 <div class="assignee-info">
@@ -167,7 +172,12 @@
           <div class="task-info">
             <div class="project-info">
               <mat-icon>folder</mat-icon>
-              <span>{{ task.projectName }}</span>
+              <span
+                class="project-name-pill"
+                [ngStyle]="getProjectNameStyle(task)"
+              >
+                {{ task.projectName }}
+              </span>
             </div>
 
             <div class="assignee-info">
