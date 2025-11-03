@@ -367,17 +367,6 @@
     </div>
   </div>
 
-  <div style="margin-top: 20px">
-    <button
-      mat-raised-button
-      color="primary"
-      (click)="openEditProjectDialog()"
-      [disabled]="isInlineEditMode"
-    >
-      プロジェクト編集
-    </button>
-  </div>
-
   <!-- プロジェクトチャット -->
   <app-project-chat *ngIf="projectId" [projectId]="projectId">
   </app-project-chat>

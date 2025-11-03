@@ -430,6 +430,11 @@
   border-top: 1px solid rgba(15, 23, 42, 0.18);
 }
 
+.project-info-display h3 + * {
+  padding-top: 12px;
+  border-top: none;
+}
+
 .project-info-display h3 {
   margin: 0;
   font-size: 1.7rem;
@@ -493,6 +498,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-top: 24px;
 }
 
 .project-actions {
