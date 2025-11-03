@@ -125,7 +125,7 @@
         </div>
       </div>
       <!-- 左ボディ -->
-      <div class="gantt-body-left">
+      <div class="gantt-body-left" #leftPane (scroll)="onLeftScroll()">
         <div *ngFor="let task of tasks" class="task-row">
           <div
             class="task-info"
@@ -193,8 +193,8 @@
         </div>
       </div>
       <!-- 右ボディ -->
-      <div class="gantt-body-right">
-        <div class="gantt-bars">
+      <div class="gantt-body-right" #rightPane (scroll)="onRightScroll()">
+        <div class="gantt-bars" [style.height.px]="getGanttBarsHeight()">
           <!-- 年月ラベル行のスペース -->
           <div class="year-month-labels-spacer-row">
             <div
@@ -204,13 +204,19 @@
             ></div>
           </div>
           <!-- 背景の日付セル -->
-          <div class="date-cells-background">
+          <div
+            class="date-cells-background"
+            [style.height.px]="getGanttBarsHeight()"
+          >
             <div *ngFor="let date of dateRange" class="date-cell">
               <!-- 日付セル -->
             </div>
           </div>
           <!-- タスク行の区切り線 -->
-          <div class="task-row-lines">
+          <div
+            class="task-row-lines"
+            [style.height.px]="getGanttBarsHeight()"
+          >
             <div
               class="task-row-divider"
               [style.top.px]="getTaskHeaderDividerPosition()"

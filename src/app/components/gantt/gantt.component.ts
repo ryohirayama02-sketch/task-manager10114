@@ -1,4 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -39,7 +45,7 @@ import { TruncateOverflowDirective } from '../../directives/truncate-overflow.di
   templateUrl: './gantt.component.html',
   styleUrls: ['./gantt.component.css'],
 })
-export class GanttComponent implements OnInit {
+export class GanttComponent implements OnInit, AfterViewInit {
   tasks: Task[] = [];
   projects: IProject[] = [];
   selectedProjectIds: string[] = [];
@@ -90,6 +96,9 @@ export class GanttComponent implements OnInit {
   // 年月ヘッダー用
   currentYearMonthGroup: any = null;
   yearMonthHeaderStyle: { [key: string]: string } = {};
+  @ViewChild('leftPane') leftPane?: ElementRef<HTMLDivElement>;
+  @ViewChild('rightPane') rightPane?: ElementRef<HTMLDivElement>;
+  private isSyncingVerticalScroll = false;
 
   constructor(
     private projectService: ProjectService,
@@ -101,6 +110,10 @@ export class GanttComponent implements OnInit {
     this.initializeDateRange();
     this.loadProjects();
     this.setupScrollSync();
+  }
+
+  ngAfterViewInit(): void {
+    this.syncVerticalScroll();
   }
 
   /** 日付範囲を初期化 */
@@ -565,6 +578,14 @@ export class GanttComponent implements OnInit {
     return totalDays * 30; // 1日 = 30px
   }
 
+  /** タイムライン高さを算出 */
+  getGanttBarsHeight(): number {
+    const headerOffset = 32;
+    const rowHeight = 40;
+    const rowCount = this.tasks.length;
+    return headerOffset + rowCount * rowHeight;
+  }
+
   /** タスクヘッダー直下の区切り線位置 */
   getTaskHeaderDividerPosition(): number {
     const headerOffset = 32;
@@ -590,6 +611,40 @@ export class GanttComponent implements OnInit {
         task: task,
       });
     }
+  }
+
+  /** 左右の縦スクロールを同期 */
+  onLeftScroll(): void {
+    if (this.isSyncingVerticalScroll) {
+      return;
+    }
+    this.syncVerticalScroll('left');
+  }
+
+  onRightScroll(): void {
+    if (this.isSyncingVerticalScroll) {
+      return;
+    }
+    this.syncVerticalScroll('right');
+  }
+
+  private syncVerticalScroll(origin?: 'left' | 'right'): void {
+    const left = this.leftPane?.nativeElement;
+    const right = this.rightPane?.nativeElement;
+    if (!left || !right) {
+      return;
+    }
+    this.isSyncingVerticalScroll = true;
+    const targetScrollTop =
+      origin === 'right' ? right.scrollTop : left.scrollTop;
+    if (origin === 'right') {
+      left.scrollTop = targetScrollTop;
+    } else {
+      right.scrollTop = targetScrollTop;
+    }
+    requestAnimationFrame(() => {
+      this.isSyncingVerticalScroll = false;
+    });
   }
 
   /** プロジェクト詳細画面に遷移 */

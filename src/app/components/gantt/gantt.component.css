@@ -157,7 +157,8 @@
 .gantt-body-right {
   display: flex;
   flex: 1;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   min-width: min-content;
 }
 
