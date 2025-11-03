@@ -282,6 +282,7 @@
   align-items: center;
   justify-content: center;
   height: 100%; /* 親の高さいっぱい */
+  box-sizing: border-box;
 }
 
 .header-cell:nth-child(1) {
@@ -581,6 +582,7 @@
   overflow: hidden;
   flex-shrink: 0;
   height: 100%; /* 親の高さいっぱい */
+  box-sizing: border-box;
 }
 
 .info-cell.project-name {
