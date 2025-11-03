@@ -164,6 +164,8 @@
   flex: 1;
   direction: rtl; /* スクロールバーを左側に配置 */
   scrollbar-width: thin;
+  padding-bottom: 16px;
+  box-sizing: border-box;
 }
 
 .gantt-body-left::-webkit-scrollbar {
@@ -216,6 +218,8 @@
   overflow-x: hidden;
   overflow-y: auto;
   min-width: min-content;
+  padding-bottom: 16px;
+  box-sizing: border-box;
 }
 
 /* レスポンシブ対応 */
