@@ -59,10 +59,10 @@ export class GanttComponent implements OnInit {
   currentScrollLeft: number = 0;
 
   // 担当者列の動的幅
-  assigneeColumnWidth: number = 118;
+  assigneeColumnWidth: number = 140;
 
   // 全体の動的幅
-  totalInfoWidth: number = 525;
+  totalInfoWidth: number = 583;
 
   // マイルストーン
   allMilestones: any[] = [];
@@ -468,32 +468,14 @@ export class GanttComponent implements OnInit {
 
   /** 担当者列の幅を動的に計算 */
   calculateAssigneeColumnWidth(): void {
-    if (!this.tasks || this.tasks.length === 0) {
-      this.assigneeColumnWidth = 118; // デフォルト幅
-      this.calculateTotalInfoWidth();
-      return;
-    }
-
-    // 担当者名の最大長を計算
-    const maxLength = Math.max(
-      ...this.tasks.map((task) => (task.assignee ? task.assignee.length : 0)),
-      3 // 最小値は「担当者」の3文字
-    );
-
-    // より正確な幅計算（日本語文字は約14px、英数字は約8px、パディング16px + ボーダー1px）
-    const calculatedWidth = Math.max(
-      maxLength * 14 + 16 + 1, // 日本語文字を考慮して14px/文字
-      118 // 最小幅
-    );
-
-    this.assigneeColumnWidth = Math.min(calculatedWidth, 300); // 最大300pxに拡張
+    this.assigneeColumnWidth = 140;
     this.calculateTotalInfoWidth();
   }
 
   /** 全体の情報列幅を計算 */
   calculateTotalInfoWidth(): void {
-    // プロジェクト名(148) + タスク名(198) + 優先度(58) + 担当者(動的) + ボーダー(3)
-    this.totalInfoWidth = 148 + 198 + 58 + this.assigneeColumnWidth + 3;
+    // プロジェクト名(160) + タスク名(220) + 優先度(60) + 担当者(固定) + ボーダー(3)
+    this.totalInfoWidth = 160 + 220 + 60 + this.assigneeColumnWidth + 3;
   }
 
   /** マイルストーンの位置を計算 */

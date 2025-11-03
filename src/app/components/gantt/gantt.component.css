@@ -164,11 +164,11 @@
 /* レスポンシブ対応 */
 @media (max-width: 1200px) {
   .task-info {
-    min-width: 475px;
+    min-width: 583px;
   }
 
   .task-info-header {
-    min-width: 475px;
+    min-width: 583px;
   }
 
   .year-month-cell-fixed {
@@ -176,37 +176,37 @@
   }
 
   .info-cell.project-name {
-    width: 118px;
-    min-width: 118px;
-    max-width: 118px;
+    width: 160px;
+    min-width: 160px;
+    max-width: 160px;
   }
 
   .info-cell.task-name {
-    width: 178px;
-    min-width: 178px;
-    max-width: 178px;
+    width: 220px;
+    min-width: 220px;
+    max-width: 220px;
   }
 
   .header-cell:nth-child(1) {
-    width: 118px;
-    min-width: 118px;
-    max-width: 118px;
+    width: 160px;
+    min-width: 160px;
+    max-width: 160px;
   }
 
   .header-cell:nth-child(2) {
-    width: 178px;
-    min-width: 178px;
-    max-width: 178px;
+    width: 220px;
+    min-width: 220px;
+    max-width: 220px;
   }
 }
 
 @media (max-width: 768px) {
   .task-info {
-    min-width: 425px;
+    min-width: 583px;
   }
 
   .task-info-header {
-    min-width: 425px;
+    min-width: 583px;
   }
 
   .year-month-cell-fixed {
@@ -214,49 +214,51 @@
   }
 
   .info-cell.project-name {
-    width: 98px;
-    min-width: 98px;
-    max-width: 98px;
+    width: 160px;
+    min-width: 160px;
+    max-width: 160px;
   }
 
   .info-cell.task-name {
-    width: 148px;
-    min-width: 148px;
-    max-width: 148px;
+    width: 220px;
+    min-width: 220px;
+    max-width: 220px;
   }
 
   .info-cell.priority {
-    width: 48px;
-    min-width: 48px;
-    max-width: 48px;
+    width: 60px;
+    min-width: 60px;
+    max-width: 60px;
   }
 
   .info-cell.assignee {
-    min-width: 100px;
-    flex: 0 0 auto;
+    width: 140px;
+    min-width: 140px;
+    max-width: 140px;
   }
 
   .header-cell:nth-child(1) {
-    width: 98px;
-    min-width: 98px;
-    max-width: 98px;
+    width: 160px;
+    min-width: 160px;
+    max-width: 160px;
   }
 
   .header-cell:nth-child(2) {
-    width: 148px;
-    min-width: 148px;
-    max-width: 148px;
+    width: 220px;
+    min-width: 220px;
+    max-width: 220px;
   }
 
   .header-cell:nth-child(3) {
-    width: 48px;
-    min-width: 48px;
-    max-width: 48px;
+    width: 60px;
+    min-width: 60px;
+    max-width: 60px;
   }
 
   .header-cell:nth-child(4) {
-    min-width: 100px;
-    flex: 0 0 auto;
+    width: 140px;
+    min-width: 140px;
+    max-width: 140px;
   }
 
   .info-cell {
@@ -286,21 +288,21 @@
 }
 
 .header-cell:nth-child(1) {
-  width: 148px;
-  min-width: 148px;
-  max-width: 148px;
+  width: 160px;
+  min-width: 160px;
+  max-width: 160px;
 }
 
 .header-cell:nth-child(2) {
-  width: 198px;
-  min-width: 198px;
-  max-width: 198px;
+  width: 220px;
+  min-width: 220px;
+  max-width: 220px;
 }
 
 .header-cell:nth-child(3) {
-  width: 58px;
-  min-width: 58px;
-  max-width: 58px;
+  width: 60px;
+  min-width: 60px;
+  max-width: 60px;
 }
 
 .year-month-labels-row {
@@ -586,23 +588,29 @@
 }
 
 .info-cell.project-name {
-  width: 148px;
-  min-width: 148px;
-  max-width: 148px;
+  width: 160px;
+  min-width: 160px;
+  max-width: 160px;
 }
 
 .info-cell.task-name {
-  width: 198px;
-  min-width: 198px;
-  max-width: 198px;
+  width: 220px;
+  min-width: 220px;
+  max-width: 220px;
 }
 
 .info-cell.priority {
-  width: 58px;
-  min-width: 58px;
-  max-width: 58px;
+  width: 60px;
+  min-width: 60px;
+  max-width: 60px;
   justify-content: center;
   text-align: center;
+}
+
+.info-cell.assignee {
+  width: 140px;
+  min-width: 140px;
+  max-width: 140px;
 }
 
 .project-name {
