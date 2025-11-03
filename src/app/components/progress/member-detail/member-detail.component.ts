@@ -255,11 +255,19 @@ export class MemberDetailComponent implements OnInit {
     let filteredTasks = this.memberDetail.tasks;
 
     // 期間でフィルター
-    if (this.periodStartDate && this.periodEndDate) {
+    if (this.periodStartDate || this.periodEndDate) {
       filteredTasks = filteredTasks.filter((task) => {
         const dueDate = task.dueDate ? new Date(task.dueDate) : null;
         if (!dueDate) return false;
-        return dueDate >= this.periodStartDate! && dueDate <= this.periodEndDate!;
+
+        const afterStart = this.periodStartDate
+          ? dueDate >= this.periodStartDate
+          : true;
+        const beforeEnd = this.periodEndDate
+          ? dueDate <= this.periodEndDate
+          : true;
+
+        return afterStart && beforeEnd;
       });
     }
 
@@ -510,6 +518,24 @@ export class PeriodFilterDialogComponent {
         startDate: new Date(normalizedStartDate),
         endDate: new Date(normalizedEndDate),
       });
+      return;
+    }
+
+    if (hasStartDate && !hasEndDate) {
+      this.endDate = null;
+      this.dialogRef.close({
+        startDate: new Date(normalizedStartDate),
+        endDate: null,
+      });
+      return;
+    }
+
+    if (!hasStartDate && hasEndDate) {
+      this.startDate = null;
+      this.dialogRef.close({
+        startDate: null,
+        endDate: new Date(normalizedEndDate),
+      });
     }
   }
 
@@ -523,7 +549,11 @@ export class PeriodFilterDialogComponent {
     const hasStartDate = !!normalizedStartDate;
     const hasEndDate = !!normalizedEndDate;
 
-    return (hasStartDate && !hasEndDate) || (!hasStartDate && hasEndDate);
+    if (hasStartDate && hasEndDate) {
+      return new Date(normalizedStartDate) > new Date(normalizedEndDate);
+    }
+
+    return false;
   }
 
   private formatDateToString(date: Date): string {
