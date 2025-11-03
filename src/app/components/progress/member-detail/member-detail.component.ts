@@ -437,7 +437,7 @@ export class MemberDetailComponent implements OnInit {
         mat-raised-button
         color="primary"
         (click)="onConfirm()"
-        [disabled]="!startDate || !endDate"
+        [disabled]="isConfirmDisabled()"
       >
         確定
       </button>
@@ -489,16 +489,41 @@ export class PeriodFilterDialogComponent {
   }
 
   onConfirm() {
-    if (this.startDate && this.endDate) {
+    const normalizedStartDate = this.normalizeDateInput(this.startDate);
+    const normalizedEndDate = this.normalizeDateInput(this.endDate);
+
+    const hasStartDate = !!normalizedStartDate;
+    const hasEndDate = !!normalizedEndDate;
+
+    if (!hasStartDate && !hasEndDate) {
+      this.startDate = null;
+      this.endDate = null;
       this.dialogRef.close({
-        startDate: new Date(this.startDate),
-        endDate: new Date(this.endDate),
+        startDate: null,
+        endDate: null,
+      });
+      return;
+    }
+
+    if (hasStartDate && hasEndDate) {
+      this.dialogRef.close({
+        startDate: new Date(normalizedStartDate),
+        endDate: new Date(normalizedEndDate),
       });
     }
   }
 
   onCancel() {
     this.dialogRef.close();
+  }
+
+  isConfirmDisabled(): boolean {
+    const normalizedStartDate = this.normalizeDateInput(this.startDate);
+    const normalizedEndDate = this.normalizeDateInput(this.endDate);
+    const hasStartDate = !!normalizedStartDate;
+    const hasEndDate = !!normalizedEndDate;
+
+    return (hasStartDate && !hasEndDate) || (!hasStartDate && hasEndDate);
   }
 
   private formatDateToString(date: Date): string {
@@ -509,5 +534,11 @@ export class PeriodFilterDialogComponent {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+  }
+
+  private normalizeDateInput(value: string | null): string | null {
+    if (!value) return null;
+    const trimmed = value.trim();
+    return trimmed === '' ? null : trimmed;
   }
 }
