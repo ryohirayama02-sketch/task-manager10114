@@ -600,8 +600,8 @@ textarea {
 
 /* タスク一覧 */
 .tasks-grid {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 15px;
   margin-bottom: 20px;
 }
@@ -609,12 +609,11 @@ textarea {
 .task-card {
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  width: 100%;
-  max-width: none;
   border: 1px solid #ddd;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   background-color: #fff;
+  height: 100%;
 }
 
 .task-card.completed {
@@ -661,6 +660,42 @@ textarea {
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 300px;
+}
+
+.status-chip,
+.priority-chip {
+  --mdc-chip-label-text-color: #000;
+  --mdc-chip-selected-label-text-color: #000;
+  font-weight: 500;
+  border: 1px solid transparent;
+  color: #000 !important;
+}
+
+.status-chip.status-未着手,
+.priority-chip.priority-高 {
+  --mdc-chip-elevated-container-color: #fdd6d5;
+  --mdc-chip-hover-state-layer-color: #fdd6d5;
+  --mdc-chip-disabled-container-color: #fdd6d5;
+  background-color: #fdd6d5 !important;
+  border-color: #fdd6d5;
+}
+
+.status-chip.status-作業中,
+.priority-chip.priority-中 {
+  --mdc-chip-elevated-container-color: #fef6c3;
+  --mdc-chip-hover-state-layer-color: #fef6c3;
+  --mdc-chip-disabled-container-color: #fef6c3;
+  background-color: #fef6c3 !important;
+  border-color: #fef6c3;
+}
+
+.status-chip.status-完了,
+.priority-chip.priority-低 {
+  --mdc-chip-elevated-container-color: #b2e9cb;
+  --mdc-chip-hover-state-layer-color: #b2e9cb;
+  --mdc-chip-disabled-container-color: #b2e9cb;
+  background-color: #b2e9cb !important;
+  border-color: #b2e9cb;
 }
 
 /* タスクが存在しない場合 */

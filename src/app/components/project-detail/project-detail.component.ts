@@ -980,31 +980,4 @@ export class ProjectDetailComponent implements OnInit {
     document.body.removeChild(link);
   }
 
-  /** ステータスの色を取得 */
-  getStatusColor(status: string): string {
-    switch (status) {
-      case '完了':
-        return 'primary';
-      case '作業中':
-        return 'accent';
-      case '未着手':
-        return 'warn';
-      default:
-        return '';
-    }
-  }
-
-  /** 優先度の色を取得 */
-  getPriorityColor(priority: string): string {
-    switch (priority) {
-      case '高':
-        return 'warn';
-      case '中':
-        return 'accent';
-      case '低':
-        return 'primary';
-      default:
-        return '';
-    }
-  }
 }

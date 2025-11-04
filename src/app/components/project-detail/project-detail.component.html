@@ -484,10 +484,18 @@
         <mat-card-title>{{ task.taskName }}</mat-card-title>
         <mat-card-subtitle>
           <mat-chip-set>
-            <mat-chip [color]="getStatusColor(task.status)" selected>
+            <mat-chip
+              class="status-chip"
+              [ngClass]="'status-' + task.status"
+              selected
+            >
               {{ task.status }}
             </mat-chip>
-            <mat-chip [color]="getPriorityColor(task.priority)" selected>
+            <mat-chip
+              class="priority-chip"
+              [ngClass]="'priority-' + task.priority"
+              selected
+            >
               {{ task.priority }}
             </mat-chip>
           </mat-chip-set>
