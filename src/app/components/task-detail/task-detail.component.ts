@@ -21,7 +21,6 @@ import { TaskService } from '../../services/task.service';
 import { MemberManagementService } from '../../services/member-management.service';
 import { CalendarService } from '../../services/calendar.service';
 import { TaskFormComponent } from '../task-form/task-form.component';
-import { TaskEditDialogComponent } from './task-edit-dialog.component';
 import { Task, Project, ChatMessage } from '../../models/task.model';
 import { Member } from '../../models/member.model';
 import { ProjectChatComponent } from '../project-chat/project-chat.component';
@@ -51,7 +50,6 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
     MatCheckboxModule,
     MatProgressSpinnerModule,
     MatSlideToggleModule,
-    TaskEditDialogComponent,
     ProjectChatComponent,
     TranslatePipe,
   ],
