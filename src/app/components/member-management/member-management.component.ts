@@ -14,6 +14,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MemberManagementService } from '../../services/member-management.service';
 import { Member } from '../../models/member.model';
 import { MemberFormDialogComponent } from './member-form-dialog/member-form-dialog.component';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-member-management',
@@ -39,14 +40,18 @@ export class MemberManagementComponent implements OnInit {
   members: Member[] = [];
   displayedColumns: string[] = ['name', 'email', 'createdAt', 'actions'];
   loading = false;
+  private memberAddedFeedback = false;
 
   constructor(
     private memberService: MemberManagementService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
+    const historyState = window.history.state as { memberAdded?: boolean };
+    this.memberAddedFeedback = !!historyState?.memberAdded;
     this.loadMembers();
   }
 
@@ -60,6 +65,15 @@ export class MemberManagementComponent implements OnInit {
         this.members = members;
         this.loading = false;
         console.log('メンバー一覧を読み込みました:', members.length, '件');
+        if (this.memberAddedFeedback) {
+          this.memberAddedFeedback = false;
+          this.snackBar.open('メンバーを追加しました', '閉じる', {
+            duration: 3000,
+          });
+          const historyState = window.history.state ?? {};
+          const { memberAdded, ...rest } = historyState;
+          window.history.replaceState(rest, document.title);
+        }
       },
       error: (error) => {
         console.error('メンバー一覧の読み込みエラー:', error);
@@ -75,19 +89,7 @@ export class MemberManagementComponent implements OnInit {
    * メンバー追加ダイアログを開く
    */
   openAddMemberDialog(): void {
-    const dialogRef = this.dialog.open(MemberFormDialogComponent, {
-      width: '400px',
-      data: { mode: 'add' },
-    });
-
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result === 'success') {
-        this.loadMembers();
-        this.snackBar.open('メンバーを追加しました', '閉じる', {
-          duration: 3000,
-        });
-      }
-    });
+    this.router.navigate(['/members/add']);
   }
 
   /**

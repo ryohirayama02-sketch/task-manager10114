@@ -1,0 +1,71 @@
+<div class="member-form-page">
+  <div class="form-container">
+    <div class="form-header">
+      <mat-icon>person_add</mat-icon>
+      <h2>メンバーを追加</h2>
+    </div>
+
+    <form [formGroup]="memberForm" (ngSubmit)="onSubmit()">
+      <div class="form-fields">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>名前</mat-label>
+          <input
+            matInput
+            formControlName="name"
+            placeholder="例: 田中太郎"
+            autocomplete="name"
+          />
+          <mat-icon matSuffix>person</mat-icon>
+          <mat-error
+            *ngIf="
+              memberForm.get('name')?.invalid && memberForm.get('name')?.touched
+            "
+          >
+            {{ getErrorMessage('name') }}
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>メールアドレス</mat-label>
+          <input
+            matInput
+            formControlName="email"
+            type="email"
+            placeholder="例: tanaka@example.com"
+            autocomplete="email"
+          />
+          <mat-icon matSuffix>email</mat-icon>
+          <mat-error
+            *ngIf="
+              memberForm.get('email')?.invalid &&
+              memberForm.get('email')?.touched
+            "
+          >
+            {{ getErrorMessage('email') }}
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="form-actions">
+        <button
+          mat-button
+          type="button"
+          (click)="onCancel()"
+          [disabled]="isSubmitting"
+        >
+          キャンセル
+        </button>
+        <button
+          mat-raised-button
+          color="primary"
+          type="submit"
+          [disabled]="memberForm.invalid || isSubmitting"
+        >
+          <mat-icon *ngIf="!isSubmitting">add</mat-icon>
+          <mat-spinner *ngIf="isSubmitting" diameter="18"></mat-spinner>
+          {{ isSubmitting ? "追加中..." : "＋追加" }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

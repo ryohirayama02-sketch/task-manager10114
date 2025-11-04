@@ -14,6 +14,7 @@ import { TaskSearchComponent } from './components/task-search/task-search.compon
 import { SettingsComponent } from './components/settings/settings.component';
 import { LogsComponent } from './components/logs/logs.component';
 import { MemberManagementComponent } from './components/member-management/member-management.component';
+import { MemberFormPageComponent } from './components/member-management/member-form-page/member-form-page.component';
 import { LoginComponent } from './components/auth/login/login.component';
 import { ProjectFormComponent } from './components/project-form/project-form.component';
 import { OfflineTestComponent } from './components/offline-test/offline-test.component';
@@ -59,6 +60,11 @@ export const routes: Routes = [
   { path: 'search', component: TaskSearchComponent, canActivate: [AuthGuard] },
   { path: 'settings', component: SettingsComponent, canActivate: [AuthGuard] },
   { path: 'logs', component: LogsComponent, canActivate: [AuthGuard] },
+  {
+    path: 'members/add',
+    component: MemberFormPageComponent,
+    canActivate: [AuthGuard],
+  },
   {
     path: 'members',
     component: MemberManagementComponent,
