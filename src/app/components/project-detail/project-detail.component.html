@@ -480,9 +480,9 @@
       [ngClass]="{ completed: task.status === '完了' }"
       (click)="goToTaskDetail(task.id!)"
     >
-      <mat-card-header>
+      <mat-card-header class="task-card-header">
         <mat-card-title>{{ task.taskName }}</mat-card-title>
-        <mat-card-subtitle>
+        <div class="task-card-meta">
           <mat-chip-set>
             <mat-chip
               class="status-chip"
@@ -499,7 +499,7 @@
               {{ task.priority }}
             </mat-chip>
           </mat-chip-set>
-        </mat-card-subtitle>
+        </div>
       </mat-card-header>
 
       <mat-card-content>
