@@ -255,27 +255,6 @@ export class NotificationSchedulerService {
           errorMessage: emailSuccess ? undefined : 'メール送信に失敗しました',
         });
       }
-
-      // Slack通知
-      if (settings.notificationChannels.slack.enabled) {
-        const slackSuccess =
-          await this.notificationService.sendSlackNotification(
-            settings.notificationChannels.slack.webhookUrl,
-            `*${template.title}*\n${template.message}`,
-            settings.notificationChannels.slack.channel
-          );
-
-        await this.notificationService.logNotification({
-          userId: settings.userId,
-          taskId: task.taskId,
-          type: type,
-          channel: 'slack',
-          status: slackSuccess ? 'sent' : 'failed',
-          message: template.message,
-          sentAt: slackSuccess ? new Date() : undefined,
-          errorMessage: slackSuccess ? undefined : 'Slack送信に失敗しました',
-        });
-      }
     } catch (error) {
       console.error('通知送信エラー:', error);
     }

@@ -40,10 +40,7 @@ export class LanguageService {
     },
     'settings.notifications.targets': { ja: '通知先設定', en: 'Notification Targets' },
     'settings.notifications.email': { ja: 'メール通知', en: 'Email Notifications' },
-    'settings.notifications.slack': { ja: 'Slack通知', en: 'Slack Notifications' },
     'settings.notifications.address': { ja: 'メールアドレス', en: 'Email Address' },
-    'settings.notifications.webhook': { ja: 'Webhook URL', en: 'Webhook URL' },
-    'settings.notifications.channel': { ja: 'チャンネル', en: 'Channel' },
     'settings.deadline.title': { ja: 'タスク期限通知', en: 'Task Deadline Notifications' },
     'settings.deadline.enable': {
       ja: '期限通知を有効にする',

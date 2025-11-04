@@ -116,50 +116,6 @@
               </div>
             </div>
 
-            <!-- Slack通知設定 -->
-            <div class="channel-section">
-              <div class="channel-header">
-                <mat-slide-toggle
-                  [(ngModel)]="
-                    notificationSettings.notificationChannels.slack.enabled
-                  "
-                  name="slackEnabled"
-                >
-                  <mat-icon>chat</mat-icon>
-                  {{ 'settings.notifications.slack' | translate }}
-                </mat-slide-toggle>
-              </div>
-
-              <div
-                *ngIf="notificationSettings.notificationChannels.slack.enabled"
-                class="channel-settings"
-              >
-                <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>{{ 'settings.notifications.webhook' | translate }}</mat-label>
-                  <input
-                    matInput
-                    type="url"
-                    [(ngModel)]="
-                      notificationSettings.notificationChannels.slack.webhookUrl
-                    "
-                    name="slackWebhook"
-                    placeholder="https://hooks.slack.com/services/..."
-                  />
-                </mat-form-field>
-
-                <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>{{ 'settings.notifications.channel' | translate }}</mat-label>
-                  <input
-                    matInput
-                    [(ngModel)]="
-                      notificationSettings.notificationChannels.slack.channel
-                    "
-                    name="slackChannel"
-                    placeholder="#general"
-                  />
-                </mat-form-field>
-              </div>
-            </div>
           </div>
         </mat-expansion-panel>
 
@@ -492,20 +448,6 @@
             </mat-select>
           </mat-form-field>
 
-          <div class="home-screen-preview">
-            <h4>{{ 'settings.home.preview' | translate }}</h4>
-            <div
-              class="preview-card"
-              [ngClass]="'preview-' + selectedHomeScreen"
-            >
-              <mat-icon class="preview-icon">
-                {{ getSelectedHomeScreenIcon() }}
-              </mat-icon>
-              <span class="preview-label">
-                {{ getSelectedHomeScreenLabel() }}
-              </span>
-            </div>
-          </div>
         </div>
       </mat-card-content>
     </mat-card>

@@ -123,11 +123,6 @@ export class NotificationService {
           enabled: true,
           address: currentUser.email || '',
         },
-        slack: {
-          enabled: false,
-          webhookUrl: '',
-          channel: '#general',
-        },
       },
       taskDeadlineNotifications: {
         enabled: true,
@@ -282,33 +277,6 @@ export class NotificationService {
     } catch (error) {
       console.error('期限切れチェックエラー:', error);
       return [];
-    }
-  }
-
-  /** Slack通知を送信 */
-  async sendSlackNotification(
-    webhookUrl: string,
-    message: string,
-    channel?: string
-  ): Promise<boolean> {
-    try {
-      const payload = {
-        text: message,
-        channel: channel || '#general',
-      };
-
-      const response = await fetch(webhookUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      return response.ok;
-    } catch (error) {
-      console.error('Slack通知エラー:', error);
-      return false;
     }
   }
 

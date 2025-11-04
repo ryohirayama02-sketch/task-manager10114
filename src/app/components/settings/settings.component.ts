@@ -439,19 +439,6 @@ export class SettingsComponent implements OnInit {
     this.saveHomeScreenSettings();
   }
 
-  /** 選択されたホーム画面のアイコンを取得 */
-  getSelectedHomeScreenIcon(): string {
-    const option = this.homeScreenOptions.find(
-      (opt) => opt.value === this.selectedHomeScreen
-    );
-    return option?.icon || 'home';
-  }
-
-  /** 選択されたホーム画面のラベルを取得 */
-  getSelectedHomeScreenLabel(): string {
-    return this.getHomeScreenLabel(this.selectedHomeScreen);
-  }
-
   getHomeScreenLabel(value: HomeScreenType): string {
     return this.languageService.translate(`homeScreen.${value}`);
   }

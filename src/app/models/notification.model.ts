@@ -8,11 +8,6 @@ export interface NotificationSettings {
       enabled: boolean;
       address: string;
     };
-    slack: {
-      enabled: boolean;
-      webhookUrl: string;
-      channel: string;
-    };
   };
 
   // タスク期限通知設定
@@ -66,7 +61,7 @@ export interface NotificationLog {
   userId: string;
   taskId?: string;
   type: string;
-  channel: 'email' | 'slack' | 'push';
+  channel: 'email' | 'push';
   status: 'pending' | 'sent' | 'failed';
   message: string;
   sentAt?: Date | string;
