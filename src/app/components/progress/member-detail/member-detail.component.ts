@@ -208,12 +208,29 @@ export class MemberDetailComponent implements OnInit {
     this.isLoading = false;
   }
 
-  navigateToProject(projectName: string) {
+  navigateToProject(projectName: string, event?: Event) {
+    event?.preventDefault();
+    event?.stopPropagation();
     const projectId = this.projectNameToId[projectName];
     if (!projectId) {
       return;
     }
     this.router.navigate(['/project', projectId]);
+  }
+
+  navigateToTask(task: Task, event?: Event) {
+    event?.preventDefault();
+    event?.stopPropagation();
+    const projectId =
+      task.projectId || this.projectNameToId[task.projectName] || null;
+    if (!projectId) {
+      return;
+    }
+    if (!task.id) {
+      this.router.navigate(['/project', projectId]);
+      return;
+    }
+    this.router.navigate(['/project', projectId, 'task', task.id]);
   }
 
   /** タスクフィルターを適用 */

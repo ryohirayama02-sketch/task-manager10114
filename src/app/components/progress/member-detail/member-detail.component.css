@@ -105,6 +105,56 @@
   cursor: pointer;
 }
 
+.table-clickable {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 8px 12px;
+  border-radius: 0;
+  box-sizing: border-box;
+  background-color: transparent;
+  color: #1f2937;
+  gap: 0;
+}
+
+.project-cell {
+  font-weight: 600;
+}
+
+.task-cell {
+  font-weight: 600;
+  color: #111827;
+}
+
+.truncate-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.mat-mdc-cell.mat-column-projectName,
+.mat-mdc-cell.mat-column-taskName {
+  padding: 0 !important;
+}
+
+.mat-mdc-cell.mat-column-projectName .mat-mdc-cell-content,
+.mat-mdc-cell.mat-column-taskName .mat-mdc-cell-content {
+  padding: 0;
+}
+
+.clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clickable:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+}
+
 .priority-stats-card,
 .tasks-card {
   border-radius: 12px;

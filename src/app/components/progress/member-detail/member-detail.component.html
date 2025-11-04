@@ -35,9 +35,9 @@
               class="project-chip"
               role="button"
               tabindex="0"
-              (click)="navigateToProject(project)"
-              (keydown.enter)="navigateToProject(project)"
-              (keydown.space)="navigateToProject(project)"
+              (click)="navigateToProject(project, $event)"
+              (keydown.enter)="navigateToProject(project, $event)"
+              (keydown.space)="navigateToProject(project, $event)"
             >
               {{ project }}
             </span>
@@ -192,19 +192,35 @@
             <ng-container matColumnDef="projectName">
               <th mat-header-cell *matHeaderCellDef>プロジェクト名</th>
               <td mat-cell *matCellDef="let task">
-                <span
-                  class="project-name-pill"
+                <div
+                  class="table-clickable project-cell clickable"
                   [ngStyle]="getProjectNameStyle(task)"
+                  role="button"
+                  tabindex="0"
+                  (click)="navigateToProject(task.projectName, $event)"
+                  (keydown.enter)="navigateToProject(task.projectName, $event)"
+                  (keydown.space)="navigateToProject(task.projectName, $event)"
                 >
-                  {{ task.projectName }}
-                </span>
+                  <span class="truncate-text">{{ task.projectName }}</span>
+                </div>
               </td>
             </ng-container>
 
             <!-- タスク名列 -->
             <ng-container matColumnDef="taskName">
               <th mat-header-cell *matHeaderCellDef>タスク名</th>
-              <td mat-cell *matCellDef="let task">{{ task.taskName }}</td>
+              <td mat-cell *matCellDef="let task">
+                <div
+                  class="table-clickable task-cell clickable"
+                  role="button"
+                  tabindex="0"
+                  (click)="navigateToTask(task, $event)"
+                  (keydown.enter)="navigateToTask(task, $event)"
+                  (keydown.space)="navigateToTask(task, $event)"
+                >
+                  <span class="truncate-text">{{ task.taskName }}</span>
+                </div>
+              </td>
             </ng-container>
 
             <!-- ステータス列 -->
