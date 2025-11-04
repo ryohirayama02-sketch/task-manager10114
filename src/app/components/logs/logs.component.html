@@ -104,17 +104,9 @@
         </div>
 
         <div class="log-description">
-          <strong>📋 変更内容:</strong> {{ log.changeDescription }}
+          <strong>📋 変更内容:</strong> {{ formatChangeDescription(log) }}
         </div>
 
-        <div *ngIf="log.oldValue || log.newValue" class="log-changes">
-          <div *ngIf="log.oldValue" class="change-old">
-            <strong>変更前:</strong> {{ log.oldValue }}
-          </div>
-          <div *ngIf="log.newValue" class="change-new">
-            <strong>変更後:</strong> {{ log.newValue }}
-          </div>
-        </div>
       </div>
     </div>
   </div>

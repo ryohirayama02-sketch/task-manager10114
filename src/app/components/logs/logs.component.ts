@@ -8,6 +8,8 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { PeriodFilterDialogComponent } from '../progress/member-detail/member-detail.component';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
+import { ProjectService } from '../../services/project.service';
+import { take } from 'rxjs';
 
 @Component({
   selector: 'app-logs',
@@ -24,6 +26,7 @@ import { MatSelectModule } from '@angular/material/select';
 })
 export class LogsComponent implements OnInit {
   private readonly dialog = inject(MatDialog);
+  private readonly projectService = inject(ProjectService);
 
   editLogs: EditLog[] = [];
   private allLogs: EditLog[] = [];
@@ -38,10 +41,12 @@ export class LogsComponent implements OnInit {
   memberOptions: string[] = [];
   periodStartDate: Date | null = null;
   periodEndDate: Date | null = null;
+  private projectNameMap = new Map<string, string>();
 
   constructor(private editLogService: EditLogService) {}
 
   ngOnInit() {
+    this.loadProjectNames();
     this.loadRecentLogs();
   }
 
@@ -50,9 +55,10 @@ export class LogsComponent implements OnInit {
     this.loading = true;
     try {
       const result = await this.editLogService.getRecentEditLogs();
-      this.allLogs = result.logs;
+      this.allLogs = result.logs.map((log) => ({ ...log }));
       this.lastDocument = result.lastDocument;
       this.hasMoreLogs = result.logs.length === 30 && !!this.lastDocument;
+      this.applyProjectNameFallback();
       this.updateFilterOptions();
       this.applyFilters();
       console.log('編集ログを読み込みました:', this.allLogs.length, '件');
@@ -74,9 +80,10 @@ export class LogsComponent implements OnInit {
       const result = await this.editLogService.getMoreEditLogs(
         this.lastDocument
       );
-      this.allLogs = [...this.allLogs, ...result.logs];
+      this.allLogs = [...this.allLogs, ...result.logs.map((log) => ({ ...log }))];
       this.lastDocument = result.lastDocument;
       this.hasMoreLogs = result.logs.length === 30 && !!this.lastDocument;
+      this.applyProjectNameFallback();
       this.updateFilterOptions();
       this.applyFilters();
       console.log('追加で編集ログを読み込みました:', result.logs.length, '件');
@@ -95,6 +102,35 @@ export class LogsComponent implements OnInit {
   /** アクション名を取得 */
   getActionLabel(action: string): string {
     return this.editLogService.getActionLabel(action);
+  }
+
+  /** 変更内容を整形 */
+  formatChangeDescription(log: EditLog): string {
+    const baseLabel = log.changeDescription?.trim() || '';
+    const oldValue = log.oldValue?.toString().trim();
+    const newValue = log.newValue?.toString().trim();
+    const hasOld = !!oldValue;
+    const hasNew = !!newValue;
+
+    if (!hasOld && !hasNew) {
+      return baseLabel ? `・${baseLabel}` : '・変更内容なし';
+    }
+
+    if (hasOld && hasNew) {
+      return baseLabel
+        ? `・${baseLabel}：${oldValue}→${newValue}`
+        : `・${oldValue}→${newValue}`;
+    }
+
+    if (hasNew) {
+      return baseLabel
+        ? `・${baseLabel}：「${newValue}」が追加`
+        : `・「${newValue}」が追加`;
+    }
+
+    return baseLabel
+      ? `・${baseLabel}：「${oldValue}」が削除`
+      : `・「${oldValue}」が削除`;
   }
 
   /** 日付をフォーマット */
@@ -120,16 +156,19 @@ export class LogsComponent implements OnInit {
         new Set(values.filter((value): value is string => !!value?.trim()))
       ).sort((a, b) => a.localeCompare(b, 'ja'));
 
-    this.projectOptions = toUnique(this.allLogs.map((log) => log.projectName));
+    this.projectOptions = toUnique(
+      this.allLogs.map((log) => this.resolveProjectName(log))
+    );
     this.taskOptions = toUnique(this.allLogs.map((log) => log.taskName));
     this.memberOptions = toUnique(this.allLogs.map((log) => log.userName));
   }
 
   applyFilters(): void {
     const filtered = this.allLogs.filter((log) => {
+      const projectName = this.resolveProjectName(log);
       const matchProject =
         this.filterProjects.length === 0 ||
-        (log.projectName && this.filterProjects.includes(log.projectName));
+        (projectName && this.filterProjects.includes(projectName));
       const matchTask =
         this.filterTasks.length === 0 ||
         (log.taskName && this.filterTasks.includes(log.taskName));
@@ -230,5 +269,42 @@ export class LogsComponent implements OnInit {
       : true;
     const beforeEnd = this.periodEndDate ? targetDate <= this.periodEndDate : true;
     return afterStart && beforeEnd;
+  }
+
+  private loadProjectNames(): void {
+    this.projectService
+      .getProjects()
+      .pipe(take(1))
+      .subscribe((projects) => {
+        this.projectNameMap.clear();
+        projects.forEach((project) => {
+          if (project.id && project.projectName) {
+            this.projectNameMap.set(project.id, project.projectName);
+          }
+        });
+        this.applyProjectNameFallback();
+        this.updateFilterOptions();
+        this.applyFilters();
+      });
+  }
+
+  private applyProjectNameFallback(): void {
+    if (this.projectNameMap.size === 0) {
+      return;
+    }
+    this.allLogs.forEach((log) => {
+      const resolved = this.projectNameMap.get(log.projectId);
+      if (resolved && (!log.projectName || log.projectName === 'プロジェクト')) {
+        log.projectName = resolved;
+      }
+    });
+  }
+
+  private resolveProjectName(log: EditLog): string {
+    if (log.projectName && log.projectName !== 'プロジェクト') {
+      return log.projectName;
+    }
+    const resolved = this.projectNameMap.get(log.projectId);
+    return resolved || log.projectName || '';
   }
 }
