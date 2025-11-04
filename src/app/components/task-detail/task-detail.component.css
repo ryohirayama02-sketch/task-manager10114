@@ -1,41 +1,49 @@
-.task-detail-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
-/* ヘッダー */
-.task-header {
+.page-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 30px;
-  padding-bottom: 20px;
-  border-bottom: 2px solid #e0e0e0;
+  gap: 16px;
+  max-width: 960px;
+  margin: 24px auto 0;
 }
 
-.task-header h1 {
+.page-header h2 {
   margin: 0;
   color: #333;
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 500;
 }
 
 .back-button {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #666;
+  padding: 0 12px;
 }
 
-.back-button:hover {
-  background-color: #f5f5f5;
+.back-button mat-icon {
+  margin-right: 4px;
 }
 
-.header-actions {
+/* タスクカード */
+.task-card {
+  position: relative;
+  max-width: 960px;
+  width: 100%;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  margin: 24px auto;
+}
+
+.task-toolbar {
   display: flex;
-  gap: 12px;
+  justify-content: space-between;
   align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.toolbar-spacer {
+  flex: 1;
 }
 
 .header-calendar-toggle {
@@ -44,8 +52,8 @@
   gap: 8px;
   padding: 6px 12px;
   border-radius: 999px;
-  background-color: #f5f7fa;
-  border: 1px solid #e0e0e0;
+  background-color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .header-calendar-toggle .calendar-switch-label {
@@ -55,169 +63,190 @@
   letter-spacing: 0.4px;
 }
 
-.header-actions .edit-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 600;
-  color: #fff;
-  background: linear-gradient(135deg, #546e7a 0%, #78909c 100%);
-  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.header-actions .edit-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(25, 118, 210, 0.35);
-}
-
-.header-actions .calendar-switch {
-  position: relative;
-  width: 52px;
-  height: 30px;
-  border-radius: 999px;
-  border: none;
-  background-color: #cfd8dc;
-  cursor: pointer;
-  transition: background-color 0.25s ease, box-shadow 0.25s ease;
-  padding: 0;
-  outline: none;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
-}
-
-.header-actions .calendar-switch.on {
-  background-color: #34c759;
-  box-shadow: inset 0 0 0 1px rgba(52, 199, 89, 0.3);
-}
-
-.header-actions .calendar-switch:disabled {
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
-.header-actions .calendar-switch:focus-visible {
-  box-shadow: 0 0 0 4px rgba(52, 144, 220, 0.35);
-}
-
-.header-actions .calendar-switch-handle {
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background-color: #ffffff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-  transition: transform 0.25s ease;
-}
-
-.header-actions .calendar-switch.on .calendar-switch-handle {
-  transform: translateX(22px);
-}
-
-/* メインコンテンツ */
-.task-content {
+.task-main-content {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 0;
 }
 
-/* カード */
-.info-card,
-.action-card,
-.chat-card {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border-radius: 12px;
-}
-
-.info-card mat-card-header {
-  background-color: #f8f9fa;
-  border-radius: 12px 12px 0 0;
-  margin: -16px -16px 16px -16px;
-  padding: 16px;
-}
-
-.info-card mat-card-title {
-  color: #333;
-  font-size: 18px;
-  font-weight: 600;
-}
-
-/* フォーム */
-.form-row {
+.task-header-section {
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
   margin-bottom: 20px;
 }
 
-.form-field {
+.task-title {
+  margin: 0;
+  color: #333;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.task-info-section,
+.task-tags-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  margin-bottom: 20px;
+}
+
+.task-chat-section {
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  margin-bottom: 20px;
+}
+
+.task-chat-section h3 {
+  margin: 0 0 12px 0;
+  color: #333;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.info-row {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 24px;
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  align-items: flex-start;
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-row label {
+  font-weight: 600;
+  color: #555;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+}
+
+.info-value {
+  color: #333;
+  font-size: 14px;
+  word-break: break-word;
+}
+
+.info-value mat-chip-set {
+  margin-top: 4px;
+}
+
+.task-inline-edit-form {
+  display: grid;
+  gap: 16px;
+}
+
+.full-width-field {
+  width: 100%;
+}
+
+.inline-date-row {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.date-field {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.form-field label {
-  font-weight: 600;
-  color: #555;
+.date-field label {
+  font-weight: 500;
+  color: #333;
   font-size: 14px;
 }
 
-.form-field input,
-.form-field textarea,
-.form-field mat-select {
-  width: 100%;
-}
-
-.readonly-field {
-  padding: 12px;
-  background-color: #f8f9fa;
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
-  color: #666;
-  min-height: 20px;
-}
-
-.date-inputs {
+.date-input-wrapper {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 12px;
 }
 
 .date-input {
-  flex: 1;
-  padding: 12px;
-  border: 1px solid #ccc;
+  width: 100%;
+  padding: 12px 40px 12px 12px;
+  border: 1px solid #e0e0e0;
   border-radius: 4px;
   font-size: 14px;
+  background-color: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
 }
 
-.full-width {
-  width: 100%;
+.date-input:focus {
+  border-color: #1976d2;
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+  outline: none;
 }
 
-.date-inputs span {
+.date-input:hover {
+  border-color: #1976d2;
+}
+
+.date-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
   color: #666;
-  font-weight: 500;
+  pointer-events: none;
+  font-size: 20px;
 }
 
-/* タグとチップ */
-.tag-input,
-.file-input {
-  margin-bottom: 12px;
+.tag-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.tag-input input,
-.file-input input {
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
+.tag-input-field {
+  min-width: 200px;
+  margin-top: 8px;
+}
+
+.task-actions-section {
+  padding-top: 20px;
+  padding-bottom: 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  margin-top: 20px;
+}
+
+.action-buttons-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: flex-start;
+}
+
+.action-buttons-left,
+.action-buttons-right {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.action-buttons-right {
+  margin-left: auto;
+}
+
+.delete-button-styled {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 mat-chip-set {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 8px;
 }
 
 mat-chip {
@@ -233,56 +262,215 @@ mat-chip mat-icon {
   margin-right: 4px;
 }
 
-/* アクションボタン */
-.action-buttons {
+/* 子タスクセクション */
+.child-tasks-section {
+  margin-top: 20px;
+  padding: 24px;
+  border-radius: 12px;
+  background-color: rgba(227, 242, 253, 0.5);
+}
+
+.child-tasks-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.child-tasks-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.child-tasks-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.child-filter-section {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  justify-content: center;
+  margin-bottom: 20px;
+  align-items: flex-end;
 }
 
-.action-buttons > button {
+.child-filter-section mat-form-field {
+  min-width: 180px;
+}
+
+.child-tasks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.child-task-card {
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  background-color: #ffffff;
+}
+
+.child-task-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+}
+
+.child-task-card.completed {
+  opacity: 0.7;
+}
+
+.child-task-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.child-task-detail-item {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 500;
-  transition: all 0.2s ease;
+  font-size: 13px;
+  color: #666;
 }
 
-.action-buttons > button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+.child-task-detail-item mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: #999;
 }
 
-.calendar-toggle {
-  display: inline-flex;
+.child-no-tasks {
+  text-align: center;
+  padding: 40px;
+  color: #999;
+}
+
+.child-no-tasks mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 16px;
+}
+
+/* 詳細設定ダイアログ */
+.detail-settings-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.detail-settings-dialog {
+  background-color: #ffffff;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.settings-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+}
+
+.settings-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.setting-item {
+  margin-bottom: 20px;
+}
+
+.setting-item label {
+  display: block;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.notification-toggle {
+  display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 18px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #ffffff, #f3f4f7);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .calendar-toggle-label {
   font-weight: 600;
-  font-size: 15px;
+  font-size: 14px;
   color: #344054;
 }
 
 .calendar-toggle-state {
   font-weight: 600;
-  font-size: 13px;
+  font-size: 12px;
   color: #6c757d;
-  min-width: 32px;
-  text-align: right;
-  letter-spacing: 0.5px;
 }
 
 .calendar-toggle-state.on {
   color: #2e7d32;
+}
+
+.notification-select {
+  margin-top: 16px;
+}
+
+.notification-select mat-form-field {
+  width: 100%;
+}
+
+.notification-recipient-chips {
+  margin-top: 12px;
+}
+
+.time-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.time-field {
+  width: 80px;
+}
+
+.time-separator {
+  font-weight: 600;
+  color: #666;
+}
+
+.settings-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 20px;
+  border-top: 1px solid #e0e0e0;
 }
 
 .calendar-switch {
@@ -297,15 +485,6 @@ mat-chip mat-icon {
   padding: 0;
   outline: none;
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
-}
-
-.calendar-switch::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.12);
-  pointer-events: none;
 }
 
 .calendar-switch.on {
@@ -324,10 +503,10 @@ mat-chip mat-icon {
 
 .calendar-switch-handle {
   position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 26px;
-  height: 26px;
+  top: 4px;
+  left: 4px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   background-color: #ffffff;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
@@ -338,802 +517,46 @@ mat-chip mat-icon {
   transform: translateX(24px);
 }
 
-/* チャット */
-.chat-messages {
-  max-height: 300px;
-  overflow-y: auto;
-  margin-bottom: 16px;
-  padding: 16px;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-}
-
-.chat-message {
-  margin-bottom: 12px;
-  padding: 12px;
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.message-content {
-  color: #333;
-  margin-bottom: 4px;
-}
-
-.message-time {
-  font-size: 12px;
-  color: #666;
-}
-
-.no-messages {
-  text-align: center;
-  color: #666;
-  font-style: italic;
-  padding: 20px;
-}
-
-.chat-input {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.chat-input input {
-  flex: 1;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 24px;
-  outline: none;
-}
-
-.chat-input input:focus {
-  border-color: #1976d2;
-  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
-}
-
-.chat-input button {
-  background-color: #1976d2;
-  color: white;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-}
-
-.chat-input button:hover {
-  background-color: #1565c0;
-}
-
-/* 詳細設定ダイアログ */
-.detail-settings-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.detail-settings-dialog {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  max-width: 600px;
-  width: 90%;
-  max-height: 80vh;
-  overflow-y: auto;
-}
-
-.settings-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px 24px;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.settings-header h2 {
-  margin: 0;
-  color: #333;
-  font-size: 20px;
-  font-weight: 600;
-}
-
-.settings-content {
-  padding: 24px;
-}
-
-.setting-item {
-  margin-bottom: 16px;
-  padding: 12px;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-}
-
-.notification-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.notification-select mat-form-field {
-  width: 100%;
-}
-
-.notification-recipient-chips {
-  margin-top: 8px;
-}
-
-.notification-recipient-chips mat-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background-color: #e3f2fd;
-  color: #0d47a1;
-}
-
-.setting-item label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 600;
-  color: #555;
-}
-
-.setting-item input {
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-}
-
-.time-picker {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.time-field {
-  width: 90px;
-}
-
-.time-separator {
-  font-size: 18px;
-  font-weight: 600;
-  color: #455a64;
-}
-
-.child-tasks-section {
-  margin-top: 30px;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-}
-
-.child-tasks-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.child-tasks-header h3 {
-  margin: 0;
-  color: #333;
-  font-weight: 600;
-}
-
-.child-tasks-actions {
-  display: flex;
-  gap: 10px;
-}
-
-.child-filter-section {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-.child-filter-section mat-form-field {
-  min-width: 150px;
-}
-
-.child-tasks-grid {
+.loading-container {
   display: flex;
   flex-direction: column;
-  gap: 15px;
-}
-
-.child-task-card {
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  background-color: #fff;
-}
-
-.child-task-card.completed {
-  background-color: #f5f5f5;
-  opacity: 0.9;
-}
-
-.child-task-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
-}
-
-.child-task-details {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
+  justify-content: center;
   align-items: center;
-}
-
-.child-task-detail-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  color: #555;
-  min-width: 0;
-}
-
-.child-task-detail-item mat-icon {
-  font-size: 18px;
-  width: 18px;
-  height: 18px;
-}
-
-.child-no-tasks {
-  text-align: center;
-  padding: 40px 20px;
-  color: #666;
-}
-
-.child-no-tasks mat-icon {
-  font-size: 48px;
-  width: 48px;
-  height: 48px;
-  color: #ccc;
-  margin-bottom: 12px;
-}
-
-.settings-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  padding: 20px 24px;
-  border-top: 1px solid #e0e0e0;
+  min-height: 400px;
+  gap: 20px;
+  color: #999;
 }
 
 /* レスポンシブ */
 @media (max-width: 768px) {
-  .task-detail-container {
+  .task-card {
     padding: 16px;
   }
 
-  .task-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-  }
-
-  .header-actions {
-    width: 100%;
-    justify-content: flex-end;
-  }
-
-  .action-buttons {
-    flex-direction: column;
-  }
-
-  .action-buttons button {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .date-inputs {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .detail-settings-dialog {
-    width: 95%;
-    margin: 20px;
-  }
-
-  .child-filter-section {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
-  }
-
-  .child-filter-section mat-form-field {
-    width: 100%;
-    min-width: auto;
-  }
-
-  .child-tasks-actions {
-    width: 100%;
-    justify-content: flex-start;
-    flex-wrap: wrap;
+  .info-row {
+    grid-template-columns: 1fr;
     gap: 8px;
   }
-}
 
-@media (max-width: 480px) {
-  .task-header h1 {
-    font-size: 24px;
+  .child-tasks-grid {
+    grid-template-columns: 1fr;
   }
 
-  .form-field input,
-  .form-field textarea {
-    font-size: 16px; /* iOS Safari でのズーム防止 */
-  }
-
-  .child-tasks-actions {
+  .action-buttons-container {
     flex-direction: column;
   }
-}
 
-/* メンバー選択関連のスタイル */
-.loading-members {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #666;
-  margin-bottom: 12px;
-}
-
-.no-members {
-  text-align: center;
-  padding: 16px;
-  color: #666;
-}
-
-.no-members p {
-  margin: 0 0 8px 0;
-  font-size: 14px;
-}
-
-.no-members button {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-/* 編集中のUI改善 */
-.editing-mode .form-field {
-  background-color: #f8f9fa;
-  border: 2px solid #e3f2fd;
-  border-radius: 8px;
-  padding: 16px;
-  transition: all 0.3s ease;
-}
-
-.editing-mode .form-field:hover {
-  background-color: #f0f7ff;
-  border-color: #1976d2;
-  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.1);
-}
-
-.editing-mode .form-field label {
-  color: #1976d2;
-  font-weight: 600;
-  font-size: 14px;
-  margin-bottom: 8px;
-  display: block;
-}
-
-.editing-mode .form-field input,
-.editing-mode .form-field textarea,
-.editing-mode .form-field mat-select {
-  background-color: white;
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
-  padding: 12px;
-  font-size: 14px;
-  transition: all 0.2s ease;
-}
-
-.editing-mode .form-field input:focus,
-.editing-mode .form-field textarea:focus,
-.editing-mode .form-field mat-select:focus {
-  border-color: #1976d2;
-  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
-  outline: none;
-}
-
-.editing-mode .form-field mat-select {
-  min-height: 48px;
-}
-
-/* 編集可能なボタンのスタイル */
-.editing-mode .form-field button {
-  background-color: #1976d2;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  padding: 8px 16px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.editing-mode .form-field button:hover {
-  background-color: #1565c0;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(25, 118, 210, 0.3);
-}
-
-.editing-mode .form-field button:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(25, 118, 210, 0.3);
-}
-
-/* 編集モードのヘッダー */
-.editing-mode .task-header {
-  background: linear-gradient(135deg, #e3f2fd 0%, #f0f7ff 100%);
-  border: 2px solid #1976d2;
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 30px;
-}
-
-.editing-mode .task-header h1 {
-  color: #1976d2;
-  font-weight: 600;
-}
-
-/* 編集モードのカード */
-.editing-mode .info-card {
-  border: 2px solid #e3f2fd;
-  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.1);
-}
-
-.editing-mode .info-card mat-card-header {
-  background-color: #f0f7ff;
-  border-bottom: 1px solid #e3f2fd;
-}
-
-.editing-mode .info-card mat-card-title {
-  color: #1976d2;
-  font-weight: 600;
-}
-
-/* 編集モードのアクションボタン */
-.editing-mode .header-actions button[color="primary"] {
-  background-color: #4caf50;
-  color: white;
-  font-weight: 600;
-  padding: 12px 24px;
-  border-radius: 6px;
-  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
-}
-
-.editing-mode .header-actions button[color="primary"]:hover {
-  background-color: #45a049;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
-}
-
-.editing-mode .header-actions button:not([color="primary"]) {
-  background-color: #f5f5f5;
-  color: #666;
-  border: 1px solid #e0e0e0;
-}
-
-.editing-mode .header-actions button:not([color="primary"]):hover {
-  background-color: #eeeeee;
-  color: #333;
-}
-
-/* 編集中インジケーター */
-.editing-indicator {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background-color: #ff9800;
-  color: white;
-  padding: 4px 12px;
-  border-radius: 16px;
-  font-size: 12px;
-  font-weight: 500;
-  margin-left: 12px;
-  animation: pulse 2s infinite;
-}
-
-.editing-indicator mat-icon {
-  font-size: 16px;
-  width: 16px;
-  height: 16px;
-}
-
-@keyframes pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.7);
+  .action-buttons-left,
+  .action-buttons-right {
+    width: 100%;
   }
-  70% {
-    box-shadow: 0 0 0 10px rgba(255, 152, 0, 0);
+
+  .action-buttons-right {
+    margin-left: 0;
   }
-  100% {
-    box-shadow: 0 0 0 0 rgba(255, 152, 0, 0);
+
+  .action-buttons-left button,
+  .action-buttons-right button {
+    width: 100%;
   }
-}
-
-/* フィールドヒント */
-.field-hint {
-  display: inline-block;
-  background-color: #e3f2fd;
-  color: #1976d2;
-  font-size: 11px;
-  font-weight: 500;
-  padding: 2px 8px;
-  border-radius: 12px;
-  margin-left: 8px;
-  border: 1px solid #bbdefb;
-  animation: fadeInOut 3s infinite;
-}
-
-@keyframes fadeInOut {
-  0%,
-  100% {
-    opacity: 0.7;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
-/* タスクが見つからない場合 */
-.task-not-found {
-  max-width: 600px;
-  margin: 50px auto;
-}
-
-.not-found-content {
-  text-align: center;
-  padding: 40px 20px;
-}
-
-.error-icon {
-  font-size: 64px;
-  width: 64px;
-  height: 64px;
-  color: #f44336;
-  margin-bottom: 20px;
-}
-
-.not-found-content h2 {
-  color: #333;
-  margin-bottom: 16px;
-  font-size: 24px;
-}
-
-.not-found-content p {
-  color: #666;
-  margin-bottom: 30px;
-  line-height: 1.6;
-}
-
-/* ローディング状態 */
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  text-align: center;
-}
-
-.loading-container mat-spinner {
-  margin-bottom: 20px;
-}
-
-.loading-container p {
-  color: #666;
-  font-size: 16px;
-}
-
-.action-buttons-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-}
-
-.action-buttons-left {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.action-buttons-right {
-  display: flex;
-  gap: 12px;
-  justify-content: flex-end;
-  width: 100%;
-}
-
-.delete-button-styled {
-  background-color: #f44336 !important;
-  color: #ffffff !important;
-}
-
-.delete-button-styled:hover {
-  background-color: #d32f2f !important;
-}
-
-.action-buttons-left button,
-.action-buttons-right button {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
-
-.action-buttons-left button:hover,
-.action-buttons-right button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.edit-textarea {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-family: inherit;
-  font-size: 14px;
-  resize: vertical;
-}
-
-.full-width-field {
-  width: 100%;
-}
-
-.task-inline-edit-form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.task-inline-edit-form mat-form-field {
-  width: 100%;
-}
-
-.inline-date-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-
-.date-field {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.date-field label {
-  font-weight: 500;
-  font-size: 12px;
-  color: #666;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.date-input-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.date-input {
-  flex: 1;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-  font-family: inherit;
-}
-
-.date-icon {
-  position: absolute;
-  right: 12px;
-  color: #999;
-  pointer-events: none;
-}
-
-.tag-editor {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.tag-input-field {
-  width: 100%;
-}
-
-.page-header {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 20px;
-  padding-bottom: 20px;
-  border-bottom: 2px solid #e0e0e0;
-}
-
-.page-header h2 {
-  margin: 0;
-  font-size: 24px;
-  color: #333;
-}
-
-.back-button {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #666;
-}
-
-.back-button:hover {
-  background-color: #f5f5f5;
-}
-
-.task-card {
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  max-width: 960px;
-  margin: 24px auto;
-  width: 100%;
-}
-
-.task-toolbar-section {
-  padding: 20px;
-  border-radius: 8px 8px 0 0;
-}
-
-.task-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-.toolbar-spacer {
-  flex: 1;
-}
-
-.task-header {
-  margin: 20px;
-  margin-bottom: 0;
-}
-
-.task-header h1 {
-  margin: 0;
-  font-size: 28px;
-  font-weight: 500;
-  color: #333;
-}
-
-.task-content {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  padding: 20px;
 }
