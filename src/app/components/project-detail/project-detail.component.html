@@ -523,7 +523,13 @@
             <mat-icon>subdirectory_arrow_right</mat-icon>
             <span>親タスク：{{ taskNameById[task.parentTaskId] }}</span>
           </div>
-          <div class="task-detail-item" *ngIf="task.description">
+          <div
+            class="task-detail-item"
+            *ngIf="
+              task.description &&
+              !(task.parentTaskId && taskNameById[task.parentTaskId])
+            "
+          >
             <mat-icon>description</mat-icon>
             <span>{{ task.description }}</span>
           </div>
