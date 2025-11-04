@@ -1045,3 +1045,4 @@ export const sendUserTaskNotificationsManual = onCall(
     }
   }
 );
+export {addTaskToCalendar} from "./calendarSync";
