@@ -170,30 +170,6 @@
             </mat-chip-set>
           </div>
 
-          <div class="tag-editor">
-            <mat-chip-set>
-              <mat-chip
-                *ngFor="let tag of editableTags"
-                selected
-                removable
-                (removed)="removeTag(tag)"
-              >
-                {{ tag }}
-                <mat-icon matChipRemove>close</mat-icon>
-              </mat-chip>
-            </mat-chip-set>
-            <mat-form-field appearance="outline" class="tag-input-field">
-              <mat-label>タグを追加</mat-label>
-              <input
-                matInput
-                [(ngModel)]="tagInputValue"
-                name="inlineTagInput"
-                placeholder="#タグ名を入力してEnter"
-                (keydown.enter)="onTagInputEnter($event)"
-              />
-            </mat-form-field>
-          </div>
-
           <div class="inline-attachments">
             <div class="attachment-actions">
               <button
