@@ -51,52 +51,35 @@
     <div class="task-info-section">
       <ng-container *ngIf="!isEditing; else taskEditForm">
         <!-- 読み取りモード -->
-        <div class="info-row">
-          <label>プロジェクト</label>
-          <div class="info-value">
-            {{ taskData.projectName || project?.projectName || "—" }}
-          </div>
-        </div>
+        <p>
+          <strong>プロジェクト:</strong>
+          {{ taskData.projectName || project?.projectName || "—" }}
+        </p>
 
-        <div class="info-row" *ngIf="parentTaskName && task?.parentTaskId">
-          <label>親タスク</label>
-          <div class="info-value">{{ parentTaskName }}</div>
-        </div>
+        <p *ngIf="parentTaskName && task?.parentTaskId">
+          <strong>親タスク:</strong> {{ parentTaskName }}
+        </p>
 
-        <div class="info-row">
-          <label>説明</label>
-          <div class="info-value">{{ taskData.description || "説明なし" }}</div>
-        </div>
+        <p><strong>説明:</strong> {{ taskData.description || "説明なし" }}</p>
 
-        <div class="info-row">
-          <label>期間</label>
-          <div class="info-value">
-            {{
-              taskData.startDate
-                ? (taskData.startDate | date : "yyyy/MM/dd")
-                : "—"
-            }}
-            ～
-            {{
-              taskData.dueDate ? (taskData.dueDate | date : "yyyy/MM/dd") : "—"
-            }}
-          </div>
-        </div>
+        <p>
+          <strong>期間:</strong>
+          {{
+            taskData.startDate
+              ? (taskData.startDate | date : "yyyy/MM/dd")
+              : "—"
+          }}
+          ～
+          {{
+            taskData.dueDate ? (taskData.dueDate | date : "yyyy/MM/dd") : "—"
+          }}
+        </p>
 
-        <div class="info-row">
-          <label>担当者</label>
-          <div class="info-value">{{ taskData.assignee || "—" }}</div>
-        </div>
+        <p><strong>担当者:</strong> {{ taskData.assignee || "—" }}</p>
 
-        <div class="info-row">
-          <label>ステータス</label>
-          <div class="info-value">{{ taskData.status }}</div>
-        </div>
+        <p><strong>ステータス:</strong> {{ taskData.status }}</p>
 
-        <div class="info-row">
-          <label>優先度</label>
-          <div class="info-value">{{ taskData.priority }}</div>
-        </div>
+        <p><strong>優先度:</strong> {{ taskData.priority }}</p>
       </ng-container>
 
       <!-- 編集モード -->
@@ -191,39 +174,33 @@
     <div class="task-tags-section">
       <ng-container *ngIf="!isEditing; else editTagsForm">
         <!-- 読み取りモード -->
-        <div class="info-row">
-          <label>タグ</label>
-          <div class="info-value">
-            <mat-chip-set *ngIf="taskData.tags && taskData.tags.length > 0">
-              <mat-chip *ngFor="let tag of taskData.tags || []">
-                {{ tag }}
-              </mat-chip>
-            </mat-chip-set>
-            <span *ngIf="!taskData.tags || taskData.tags.length === 0"
-              >タグなし</span
-            >
-          </div>
-        </div>
+        <p>
+          <strong>タグ:</strong>
+          <mat-chip-set *ngIf="taskData.tags && taskData.tags.length > 0">
+            <mat-chip *ngFor="let tag of taskData.tags || []">
+              {{ tag }}
+            </mat-chip>
+          </mat-chip-set>
+          <span *ngIf="!taskData.tags || taskData.tags.length === 0"
+            >タグなし</span
+          >
+        </p>
 
-        <div class="info-row">
-          <label>関連資料</label>
-          <div class="info-value">
-            <mat-chip-set
-              *ngIf="taskData.relatedFiles && taskData.relatedFiles.length > 0"
-            >
-              <mat-chip *ngFor="let file of taskData.relatedFiles || []">
-                <mat-icon>attach_file</mat-icon>
-                {{ file }}
-              </mat-chip>
-            </mat-chip-set>
-            <span
-              *ngIf="
-                !taskData.relatedFiles || taskData.relatedFiles.length === 0
-              "
-              >関連資料なし</span
-            >
-          </div>
-        </div>
+        <p>
+          <strong>関連資料:</strong>
+          <mat-chip-set
+            *ngIf="taskData.relatedFiles && taskData.relatedFiles.length > 0"
+          >
+            <mat-chip *ngFor="let file of taskData.relatedFiles || []">
+              <mat-icon>attach_file</mat-icon>
+              {{ file }}
+            </mat-chip>
+          </mat-chip-set>
+          <span
+            *ngIf="!taskData.relatedFiles || taskData.relatedFiles.length === 0"
+            >関連資料なし</span
+          >
+        </p>
       </ng-container>
 
       <!-- 編集モード -->
