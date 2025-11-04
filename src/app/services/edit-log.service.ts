@@ -90,7 +90,10 @@ export class EditLogService {
   }
 
   /** 編集ログを取得（直近30件） */
-  async getRecentEditLogs(): Promise<EditLog[]> {
+  async getRecentEditLogs(): Promise<{
+    logs: EditLog[];
+    lastDocument: DocumentSnapshot | null;
+  }> {
     try {
       console.log('🔍 EditLogService.getRecentEditLogs が呼び出されました');
 
@@ -130,12 +133,15 @@ export class EditLogService {
         } as EditLog);
       });
 
+      const lastDocument =
+        querySnapshot.docs[querySnapshot.docs.length - 1] || null;
+
       console.log('✅ 編集ログを取得しました:', logs.length, '件');
       console.log('取得したログ:', logs);
-      return logs;
+      return { logs, lastDocument };
     } catch (error) {
       console.error('❌ 編集ログの取得エラー:', error);
-      return [];
+      return { logs: [], lastDocument: null };
     }
   }
 

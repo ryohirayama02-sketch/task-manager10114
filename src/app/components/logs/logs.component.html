@@ -10,6 +10,71 @@
     </button>
   </div>
 
+  <!-- フィルター -->
+  <div class="logs-filters" *ngIf="!loading">
+    <div class="filter-group">
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>プロジェクト</mat-label>
+        <mat-select
+          multiple
+          [(ngModel)]="filterProjects"
+          name="projectFilter"
+          (ngModelChange)="onProjectFilterChange()"
+        >
+          <mat-option *ngFor="let project of projectOptions" [value]="project">
+            {{ project }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="filter-group">
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>タスク</mat-label>
+        <mat-select
+          multiple
+          [(ngModel)]="filterTasks"
+          name="taskFilter"
+          (ngModelChange)="onTaskFilterChange()"
+        >
+          <mat-option *ngFor="let task of taskOptions" [value]="task">
+            {{ task }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="filter-group">
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>メンバー</mat-label>
+        <mat-select
+          multiple
+          [(ngModel)]="filterMembers"
+          name="memberFilter"
+          (ngModelChange)="onMemberFilterChange()"
+        >
+          <mat-option *ngFor="let member of memberOptions" [value]="member">
+            {{ member }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="filter-actions">
+      <button type="button" class="period-btn" (click)="openPeriodDialog()">
+        📅 {{ periodLabel() }}
+      </button>
+      <button
+        type="button"
+        class="reset-btn"
+        (click)="resetFilters()"
+        [disabled]="!isFilterActive()"
+      >
+        リセット
+      </button>
+    </div>
+  </div>
+
   <!-- ローディング表示 -->
   <div *ngIf="loading" class="loading">
     <p>読み込み中...</p>
