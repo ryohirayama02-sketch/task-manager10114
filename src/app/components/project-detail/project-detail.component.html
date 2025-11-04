@@ -481,7 +481,9 @@
       (click)="goToTaskDetail(task.id!)"
     >
       <mat-card-header class="task-card-header">
-        <mat-card-title>{{ task.taskName }}</mat-card-title>
+        <mat-card-title>
+          <span class="task-card-title-text">{{ task.taskName }}</span>
+        </mat-card-title>
         <div class="task-card-meta">
           <mat-chip-set>
             <mat-chip

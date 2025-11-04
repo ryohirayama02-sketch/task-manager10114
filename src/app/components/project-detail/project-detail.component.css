@@ -617,27 +617,36 @@ textarea {
 }
 
 .task-card-header {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: flex-start;
   gap: 12px;
-  padding-right: 8px;
 }
 
 .task-card-header .mat-mdc-card-title {
   font-size: 18px;
   line-height: 1.4;
+  min-width: 0;
+  margin: 0;
 }
 
 .task-card-meta {
-  margin-left: auto;
   display: flex;
+  justify-self: flex-end;
   align-items: flex-start;
+  flex-shrink: 0;
 }
 
 .task-card-meta mat-chip-set {
   display: flex;
   gap: 6px;
+}
+
+.task-card-title-text {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .task-card.completed {
