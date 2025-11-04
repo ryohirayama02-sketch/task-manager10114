@@ -15,6 +15,8 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { Functions, httpsCallable } from '@angular/fire/functions';
+import { Auth } from '@angular/fire/auth';
 import { ProjectService } from '../../services/project.service';
 import { TaskService } from '../../services/task.service';
 import { MemberManagementService } from '../../services/member-management.service';
@@ -64,6 +66,8 @@ export class TaskDetailComponent implements OnInit {
   private memberService = inject(MemberManagementService);
   private dialog = inject(MatDialog);
   private location = inject(Location);
+  private functions = inject(Functions);
+  private auth = inject(Auth);
 
   @Output() taskUpdated = new EventEmitter<any>();
 
@@ -433,9 +437,27 @@ export class TaskDetailComponent implements OnInit {
     this.isCalendarSyncSaving = true;
 
     try {
+      // ON の場合のみ Google Calendar API を呼び出し
+      if (nextValue) {
+        const user = this.auth.currentUser;
+        if (!user) {
+          throw new Error('ユーザーがログインしていません');
+        }
+        const idToken = await user.getIdToken();
+        const addTaskToCalendar = httpsCallable(
+          this.functions,
+          'addTaskToCalendar'
+        );
+
+        await addTaskToCalendar({
+          taskName: this.taskData.taskName,
+          dueDate: this.taskData.dueDate,
+        });
+      }
+
+      // タスクの calendarSyncEnabled フラグを更新
       await this.projectService.updateTask(this.task.projectId, this.task.id, {
         calendarSyncEnabled: nextValue,
-        taskName: this.taskData.taskName,
       });
       this.task.calendarSyncEnabled = nextValue;
       console.log(
@@ -443,8 +465,11 @@ export class TaskDetailComponent implements OnInit {
           this.task.id
         })`
       );
-    } catch (error) {
+    } catch (error: any) {
       console.error('カレンダー連携の更新に失敗しました', error);
+
+      const errorMsg = error?.message || 'エラーが発生しました';
+      alert(`カレンダー連携に失敗しました: ${errorMsg}`);
       this.taskData.calendarSyncEnabled = !nextValue;
       this.task.calendarSyncEnabled = this.taskData.calendarSyncEnabled;
     } finally {
