@@ -302,39 +302,6 @@ export class TaskSearchComponent implements OnInit {
     }
   }
 
-  getTaskCardStyle(task: Task) {
-    return {
-      '--task-theme-color':
-        task.projectThemeColor || this.getProjectThemeColor(task.projectId),
-    };
-  }
-
-  getStatusColor(status: string): string {
-    switch (status) {
-      case '完了':
-        return '#4caf50';
-      case '作業中':
-        return '#2196f3';
-      case '未着手':
-        return '#f44336';
-      default:
-        return '#9e9e9e';
-    }
-  }
-
-  getPriorityColor(priority: string): string {
-    switch (priority) {
-      case '高':
-        return '#f44336';
-      case '中':
-        return '#ff9800';
-      case '低':
-        return '#4caf50';
-      default:
-        return '#9e9e9e';
-    }
-  }
-
   private updateThemeColorMap(projects: IProject[]): void {
     this.themeColorByProjectId = projects.reduce((acc, project) => {
       if (project.id) {

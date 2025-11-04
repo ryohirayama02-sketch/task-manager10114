@@ -112,59 +112,72 @@
     </div>
 
     <!-- 検索結果一覧 -->
-    <div *ngIf="!isLoading && searchResults.length > 0" class="results-grid">
+    <div *ngIf="!isLoading && searchResults.length > 0" class="tasks-grid">
       <mat-card
         *ngFor="let task of searchResults"
         class="task-card"
-        [ngStyle]="getTaskCardStyle(task)"
+        [ngClass]="{ completed: task.status === '完了' }"
         (click)="goToTaskDetail(task, $event)"
       >
-        <mat-card-content>
-          <div class="task-header">
-            <h4 class="task-title">
-              {{ task.projectName }} - {{ task.taskName }}
-            </h4>
-            <div class="task-badges">
-              <span
-                class="status-badge"
-                [style.background-color]="getStatusColor(task.status)"
+        <mat-card-header class="task-card-header">
+          <mat-card-title>
+            <span class="task-card-title-text">{{ task.taskName }}</span>
+          </mat-card-title>
+          <div class="task-card-meta">
+            <mat-chip-set>
+              <mat-chip
+                class="status-chip"
+                [ngClass]="'status-' + task.status"
+                selected
               >
                 {{ task.status }}
-              </span>
-              <span
-                class="priority-badge"
-                [style.background-color]="getPriorityColor(task.priority)"
+              </mat-chip>
+              <mat-chip
+                class="priority-chip"
+                [ngClass]="'priority-' + task.priority"
+                selected
               >
                 {{ task.priority }}
-              </span>
-            </div>
-          </div>
-
-          <div class="task-details">
-            <div class="task-detail-item">
-              <mat-icon class="detail-icon">schedule</mat-icon>
-              <span class="detail-label">期日:</span>
-              <span class="detail-value">{{ task.dueDate }}</span>
-            </div>
-            <div class="task-detail-item">
-              <mat-icon class="detail-icon">person</mat-icon>
-              <span class="detail-label">担当者:</span>
-              <span class="detail-value">{{ task.assignee }}</span>
-            </div>
-          </div>
-
-          <!-- タグ表示 -->
-          <div *ngIf="task.tags && task.tags.length > 0" class="task-tags">
-            <mat-chip-set>
-              <mat-chip *ngFor="let tag of task.tags" class="task-tag">
-                {{ tag }}
               </mat-chip>
             </mat-chip-set>
           </div>
+        </mat-card-header>
 
-          <!-- 説明表示 -->
-          <div *ngIf="task.description" class="task-description">
-            <p>{{ task.description }}</p>
+        <mat-card-content>
+          <div class="task-details">
+            <div class="task-main-info">
+              <div class="task-detail-item task-detail-member">
+                <mat-icon>person</mat-icon>
+                <span class="task-member-name">{{ task.assignee }}</span>
+                <div class="task-member-due" *ngIf="task.dueDate">
+                  <mat-icon>schedule</mat-icon>
+                  <span>{{ task.dueDate }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="task-detail-item" *ngIf="task.projectName">
+              <mat-icon>widgets</mat-icon>
+              <span>プロジェクト：{{ task.projectName }}</span>
+            </div>
+
+            <div class="task-detail-item" *ngIf="task.tags?.length">
+              <mat-icon>sell</mat-icon>
+              <mat-chip-set>
+                <mat-chip
+                  *ngFor="let tag of task.tags"
+                  class="task-tag-chip"
+                  selected
+                >
+                  {{ tag }}
+                </mat-chip>
+              </mat-chip-set>
+            </div>
+
+            <div class="task-detail-item" *ngIf="task.description">
+              <mat-icon>description</mat-icon>
+              <span class="task-description-text">{{ task.description }}</span>
+            </div>
           </div>
         </mat-card-content>
       </mat-card>
