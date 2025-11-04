@@ -44,7 +44,17 @@
   <div class="task-main-content" *ngIf="!isLoading && task">
     <!-- タスク名ヘッダー -->
     <div class="task-header-section">
-      <h1 class="task-title">{{ taskData.taskName || "タスク詳細" }}</h1>
+      <h1 class="task-title" *ngIf="!isEditing">
+        {{ taskData.taskName || "タスク詳細" }}
+      </h1>
+      <mat-form-field
+        *ngIf="isEditing"
+        appearance="outline"
+        class="full-width-field task-name-edit-field"
+      >
+        <mat-label>タスク名</mat-label>
+        <input matInput [(ngModel)]="taskData.taskName" name="taskName" />
+      </mat-form-field>
     </div>
 
     <!-- 基本情報セクション -->
@@ -85,6 +95,11 @@
       <!-- 編集モード -->
       <ng-template #taskEditForm>
         <form class="task-inline-edit-form" novalidate>
+          <mat-form-field appearance="outline" class="full-width-field">
+            <mat-label>タスク名</mat-label>
+            <input matInput [(ngModel)]="taskData.taskName" name="taskName" />
+          </mat-form-field>
+
           <mat-form-field appearance="outline" class="full-width-field">
             <mat-label>プロジェクト名</mat-label>
             <input matInput [value]="taskData.projectName" disabled />
@@ -192,8 +207,14 @@
             *ngIf="taskData.relatedFiles && taskData.relatedFiles.length > 0"
           >
             <mat-chip *ngFor="let file of taskData.relatedFiles || []">
-              <mat-icon>attach_file</mat-icon>
-              {{ file }}
+              <mat-icon>{{ isUrl(file) ? "link" : "attach_file" }}</mat-icon>
+              <a
+                *ngIf="isUrl(file)"
+                class="file-link"
+                (click)="openUrl(file)"
+                >{{ file }}</a
+              >
+              <span *ngIf="!isUrl(file)">{{ file }}</span>
             </mat-chip>
           </mat-chip-set>
           <span
@@ -206,58 +227,60 @@
       <!-- 編集モード -->
       <ng-template #editTagsForm>
         <div class="tag-editor">
-          <div class="info-row">
-            <label>タグ</label>
-            <div class="info-value">
-              <mat-chip-set>
-                <mat-chip
-                  *ngFor="let tag of taskData.tags || []"
-                  removable
-                  (removed)="removeTag(tag)"
-                >
-                  {{ tag }}
-                  <mat-icon matChipRemove>close</mat-icon>
-                </mat-chip>
-              </mat-chip-set>
-              <mat-form-field appearance="outline" class="tag-input-field">
-                <mat-label>タグを追加</mat-label>
-                <input
-                  matInput
-                  #tagInput
-                  placeholder="タグを入力してEnter"
-                  (keyup.enter)="addTag(tagInput.value); tagInput.value = ''"
-                />
-              </mat-form-field>
-            </div>
-          </div>
+          <p>
+            <strong>タグ:</strong>
+            <mat-chip-set>
+              <mat-chip
+                *ngFor="let tag of taskData.tags || []"
+                removable
+                (removed)="removeTag(tag)"
+              >
+                {{ tag }}
+                <mat-icon matChipRemove>close</mat-icon>
+              </mat-chip>
+            </mat-chip-set>
+            <mat-form-field appearance="outline" class="tag-input-field">
+              <mat-label>タグを追加</mat-label>
+              <input
+                matInput
+                #tagInput
+                placeholder="タグを入力してEnter"
+                (keyup.enter)="addTag(tagInput.value); tagInput.value = ''"
+              />
+            </mat-form-field>
+          </p>
 
-          <div class="info-row">
-            <label>関連資料</label>
-            <div class="info-value">
-              <mat-chip-set>
-                <mat-chip
-                  *ngFor="let file of taskData.relatedFiles || []"
-                  removable
-                  (removed)="removeRelatedFile(file)"
+          <p>
+            <strong>関連資料:</strong>
+            <mat-chip-set>
+              <mat-chip
+                *ngFor="let file of taskData.relatedFiles || []"
+                removable
+                (removed)="removeRelatedFile(file)"
+              >
+                <mat-icon>{{ isUrl(file) ? "link" : "attach_file" }}</mat-icon>
+                <a
+                  *ngIf="isUrl(file)"
+                  class="file-link"
+                  (click)="openUrl(file)"
+                  >{{ file }}</a
                 >
-                  <mat-icon>attach_file</mat-icon>
-                  {{ file }}
-                  <mat-icon matChipRemove>close</mat-icon>
-                </mat-chip>
-              </mat-chip-set>
-              <mat-form-field appearance="outline" class="tag-input-field">
-                <mat-label>資料を追加</mat-label>
-                <input
-                  matInput
-                  #fileInput
-                  placeholder="ファイル名を入力してEnter"
-                  (keyup.enter)="
-                    addRelatedFile(fileInput.value); fileInput.value = ''
-                  "
-                />
-              </mat-form-field>
-            </div>
-          </div>
+                <span *ngIf="!isUrl(file)">{{ file }}</span>
+                <mat-icon matChipRemove>close</mat-icon>
+              </mat-chip>
+            </mat-chip-set>
+            <mat-form-field appearance="outline" class="tag-input-field">
+              <mat-label>URLまたはファイル名</mat-label>
+              <input
+                matInput
+                #fileInput
+                placeholder="https://... またはファイル名を入力してEnter"
+                (keyup.enter)="
+                  addRelatedFile(fileInput.value); fileInput.value = ''
+                "
+              />
+            </mat-form-field>
+          </p>
         </div>
       </ng-template>
     </div>

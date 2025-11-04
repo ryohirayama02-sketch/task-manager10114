@@ -518,6 +518,23 @@ export class TaskDetailComponent implements OnInit {
     }
   }
 
+  /** URLかどうかを判定 */
+  isUrl(str: string): boolean {
+    try {
+      new URL(str);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /** URLをクリック時に新しいウィンドウで開く */
+  openUrl(url: string) {
+    if (this.isUrl(url)) {
+      window.open(url, '_blank');
+    }
+  }
+
   /** 詳細設定を保存 */
   saveDetailSettings() {
     if (this.task && this.task.projectId && this.task.id) {

@@ -81,6 +81,10 @@
   font-weight: 600;
 }
 
+.task-name-edit-field {
+  width: 100%;
+}
+
 .task-info-section,
 .task-tags-section {
   display: flex;
@@ -222,9 +226,42 @@
   gap: 16px;
 }
 
+.tag-editor > p {
+  margin: 0;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  color: rgba(31, 41, 55, 0.85);
+  font-size: 14px;
+}
+
+.tag-editor > p:last-child {
+  border-bottom: none;
+}
+
+.tag-editor > p strong {
+  margin-right: 6px;
+  font-weight: 600;
+  color: #555;
+}
+
+.tag-editor mat-chip-set {
+  margin-right: 8px;
+}
+
 .tag-input-field {
   min-width: 200px;
-  margin-top: 8px;
+  margin-left: 8px;
+}
+
+.file-link {
+  color: #1976d2;
+  text-decoration: underline;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.file-link:hover {
+  color: #1565c0;
 }
 
 .task-actions-section {
