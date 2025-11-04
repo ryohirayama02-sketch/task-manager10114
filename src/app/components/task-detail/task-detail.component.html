@@ -381,6 +381,7 @@
       *ngIf="childTasks.length > 0"
       class="child-tasks-section"
       [style.background]="getChildTasksSectionBackground()"
+      [ngStyle]="{ '--project-theme-color': projectThemeColor }"
     >
       <div class="child-tasks-header">
         <h3>{{ "taskDetail.childTasks" | translate }}</h3>

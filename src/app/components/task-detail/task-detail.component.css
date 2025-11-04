@@ -361,7 +361,7 @@ mat-chip mat-icon {
 .child-task-card {
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  background-color: #ffffff;
+  background-color: var(--project-theme-color, #fde4ec);
 }
 
 .child-task-card:hover {
