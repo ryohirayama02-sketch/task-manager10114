@@ -15,11 +15,11 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { Functions, httpsCallable } from '@angular/fire/functions';
 import { Auth } from '@angular/fire/auth';
 import { ProjectService } from '../../services/project.service';
 import { TaskService } from '../../services/task.service';
 import { MemberManagementService } from '../../services/member-management.service';
+import { CalendarService } from '../../services/calendar.service';
 import { TaskFormComponent } from '../task-form/task-form.component';
 import { TaskEditDialogComponent } from './task-edit-dialog.component';
 import { Task, Project, ChatMessage } from '../../models/task.model';
@@ -66,8 +66,8 @@ export class TaskDetailComponent implements OnInit {
   private memberService = inject(MemberManagementService);
   private dialog = inject(MatDialog);
   private location = inject(Location);
-  private functions = inject(Functions);
   private auth = inject(Auth);
+  private calendarService = inject(CalendarService);
 
   @Output() taskUpdated = new EventEmitter<any>();
 
@@ -437,28 +437,19 @@ export class TaskDetailComponent implements OnInit {
     this.isCalendarSyncSaving = true;
 
     try {
-      // ON の場合のみ Google Calendar API を呼び出し
+      // ON の場合のみ Googleカレンダーにタスクを追加
       if (nextValue) {
-        const user = this.auth.currentUser;
-        if (!user) {
-          throw new Error('ユーザーがログインしていません');
-        }
-        const idToken = await user.getIdToken();
-        const addTaskToCalendar = httpsCallable(
-          this.functions,
-          'addTaskToCalendar'
+        await this.calendarService.addTaskToCalendar(
+          this.taskData.taskName,
+          this.taskData.dueDate
         );
-
-        await addTaskToCalendar({
-          taskName: this.taskData.taskName,
-          dueDate: this.taskData.dueDate,
-        });
       }
 
       // タスクの calendarSyncEnabled フラグを更新
       await this.projectService.updateTask(this.task.projectId, this.task.id, {
         calendarSyncEnabled: nextValue,
       });
+
       this.task.calendarSyncEnabled = nextValue;
       console.log(
         `カレンダー連携を${nextValue ? 'ON' : 'OFF'}に更新しました (taskId: ${

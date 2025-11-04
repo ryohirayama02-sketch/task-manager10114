@@ -1,86 +1,154 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
-import { defineSecret } from 'firebase-functions/params';
-import * as admin from 'firebase-admin';
 import { google } from 'googleapis';
-
-if (!admin.apps.length) admin.initializeApp();
-
-// Secrets（v2は defineSecret で宣言）
-const GOOGLE_CLIENT_ID = defineSecret('GOOGLE_CLIENT_ID');
-const GOOGLE_CLIENT_SECRET = defineSecret('GOOGLE_CLIENT_SECRET');
 
 export const addTaskToCalendar = onCall(
   {
     timeoutSeconds: 60,
     memory: '256MiB',
-    secrets: [GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET],
   },
   async (request) => {
-    const { taskName, dueDate } = request.data || {};
-
-    if (!request.auth) {
-      throw new HttpsError('unauthenticated', 'ログインが必要です。');
-    }
-    if (!taskName || !dueDate) {
-      throw new HttpsError('invalid-argument', 'taskName/dueDate は必須です。');
-    }
-
     try {
-      const userId = request.auth.uid;
-      const db = admin.firestore();
+      const { taskName, dueDate, userAccessToken } = request.data || {};
 
-      // Firestore から ユーザーの Google OAuth トークンを取得
-      const userDoc = await db.collection('users').doc(userId).get();
-      const userData = userDoc.data();
+      console.log('📨 受け取ったパラメータ:', {
+        taskName,
+        dueDate,
+        hasUserAccessToken: !!userAccessToken,
+      });
 
-      if (!userData?.googleRefreshToken) {
+      // バリデーション: 必須パラメータの確認
+      if (!taskName || !dueDate || !userAccessToken) {
+        console.error('❌ 必須パラメータが不足しています:', {
+          taskName: !taskName ? '不足' : '✓',
+          dueDate: !dueDate ? '不足' : '✓',
+          userAccessToken: !userAccessToken ? '不足' : '✓',
+        });
         throw new HttpsError(
-          'failed-precondition',
-          'Google カレンダーにアクセスするための認証情報が見つかりません。Google カレンダーを連携してください。'
+          'invalid-argument',
+          'taskName/dueDate/userAccessToken は必須です。'
         );
       }
 
-      const oauth2Client = new google.auth.OAuth2(
-        GOOGLE_CLIENT_ID.value(),
-        GOOGLE_CLIENT_SECRET.value(),
-        'https://kensyu10114.web.app'
-      );
+      console.log('✅ バリデーション成功');
 
-      // リフレッシュトークンを使ってアクセストークンを取得
-      oauth2Client.setCredentials({
-        refresh_token: userData.googleRefreshToken,
-      });
-      const { credentials } = await oauth2Client.refreshAccessToken();
+      // OAuth2 クライアントを初期化
+      const oauth2Client = new google.auth.OAuth2();
 
+      // ユーザーのアクセストークンを設定
+      oauth2Client.setCredentials({ access_token: userAccessToken });
+
+      console.log('🔑 OAuth2クライアントにアクセストークンを設定しました');
+
+      // Google Calendar API クライアントを作成
       const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
 
       // 期日を Date オブジェクトに変換
       const dueDateObj = new Date(dueDate);
-      const formattedDueDate = dueDateObj.toISOString().split('T')[0];
+      const startDate = dueDateObj.toISOString();
+      const endDate = new Date(
+        dueDateObj.getTime() + 24 * 60 * 60 * 1000
+      ).toISOString();
 
-      await calendar.events.insert({
-        calendarId: 'primary',
-        requestBody: {
-          summary: `${taskName}　期日`,
-          description: `タスク: ${taskName}`,
-          start: { date: formattedDueDate },
-          end: { date: formattedDueDate },
+      console.log('📅 日時変換結果:', {
+        inputDate: dueDate,
+        startDate,
+        endDate,
+      });
+
+      // イベントリソースを構築
+      const event = {
+        summary: `${taskName}（期日：${dueDate}）`,
+        description: `タスク: ${taskName}\n期日: ${dueDate}`,
+        start: {
+          dateTime: startDate,
+          timeZone: 'Asia/Tokyo',
         },
+        end: {
+          dateTime: endDate,
+          timeZone: 'Asia/Tokyo',
+        },
+      };
+
+      console.log('📝 イベントリソース:', JSON.stringify(event, null, 2));
+
+      // Google Calendar にイベントを追加
+      const response = await calendar.events.insert({
+        calendarId: 'primary',
+        resource: event,
+      });
+
+      console.log('✅ Google Calendar API レスポンス:', {
+        eventId: response.data.id,
+        status: response.status,
+        statusText: response.statusText,
+        created: response.data.created,
       });
 
       return {
         success: true,
-        message: 'Googleカレンダーに予定を追加しました。',
+        message: 'イベントをGoogleカレンダーに追加しました',
+        eventId: response.data.id,
+        eventUrl: response.data.htmlLink,
       };
-    } catch (e: any) {
-      console.error('❌ Googleカレンダー登録エラー:', e);
-      if (e.statusCode === 401) {
+    } catch (error: any) {
+      console.error('❌ エラーが発生しました:', {
+        message: error?.message,
+        code: error?.code,
+        statusCode: error?.statusCode,
+        errors: error?.errors,
+      });
+
+      // エラーの詳細ログを出力
+      if (error?.errors && Array.isArray(error.errors)) {
+        console.error('❌ Google API エラー詳細:', error.errors);
+      }
+
+      // Google Calendar API の認証エラー
+      if (error?.statusCode === 401 || error?.code === 'UNAUTHENTICATED') {
+        console.error('🔐 認証エラー: アクセストークンが無効または期限切れです');
         throw new HttpsError(
           'unauthenticated',
-          'Google認証が無効です。再度Google連携を行ってください。'
+          'Google認証が無効です。アクセストークンが期限切れの可能性があります。'
         );
       }
-      throw new HttpsError('unknown', 'カレンダー登録に失敗しました。', e);
+
+      // Google Calendar API の権限エラー
+      if (error?.statusCode === 403 || error?.code === 'PERMISSION_DENIED') {
+        console.error('🚫 権限エラー: Google Calendar へのアクセス権限がありません');
+        throw new HttpsError(
+          'permission-denied',
+          'Google Calendarへのアクセス権限がありません。'
+        );
+      }
+
+      // Google Calendar API のリクエストエラー
+      if (error?.statusCode === 400 || error?.code === 'INVALID_ARGUMENT') {
+        console.error('📋 リクエストエラー:', error.message);
+        throw new HttpsError(
+          'invalid-argument',
+          `リクエストが不正です: ${error.message}`
+        );
+      }
+
+      // その他の Google Calendar API エラー
+      if (error instanceof HttpsError) {
+        throw error;
+      }
+
+      // 予期しないエラー
+      console.error('⚠️ 予期しないエラーが発生しました:', {
+        errorType: error?.constructor?.name,
+        stack: error?.stack,
+      });
+
+      throw new HttpsError(
+        'unknown',
+        'カレンダー登録に失敗しました。',
+        {
+          originalMessage: error?.message,
+          originalCode: error?.code,
+        }
+      );
     }
   }
 );
