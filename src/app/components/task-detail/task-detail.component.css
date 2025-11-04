@@ -39,7 +39,6 @@
   align-items: center;
   margin-bottom: 24px;
   padding-bottom: 16px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .toolbar-spacer {
@@ -71,7 +70,7 @@
 
 .task-header-section {
   padding-bottom: 16px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 5px solid rgba(0, 0, 0, 0.08);
   margin-bottom: 20px;
 }
 
@@ -94,15 +93,11 @@
 
 .task-chat-section {
   padding-bottom: 20px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
   margin-bottom: 20px;
 }
 
 .task-chat-section h3 {
-  margin: 0 0 12px 0;
-  color: #333;
-  font-size: 16px;
-  font-weight: 600;
+  display: none;
 }
 
 .info-row {
@@ -215,7 +210,6 @@
 .task-actions-section {
   padding-top: 20px;
   padding-bottom: 0;
-  border-top: 1px solid rgba(0, 0, 0, 0.08);
   margin-top: 20px;
 }
 
