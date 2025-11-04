@@ -57,18 +57,21 @@
 }
 
 .member-card {
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  cursor: pointer;
-  border-left: 4px solid #1976d2;
+  border-radius: 16px;
+  padding: 22px;
   background-color: #f3f8ff;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  box-shadow: 0 14px 32px rgba(25, 118, 210, 0.16),
+    0 4px 10px rgba(25, 118, 210, 0.12);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
+  cursor: pointer;
 }
 
 .member-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  border-left-color: #42a5f5;
+  transform: translateY(-5px);
+  box-shadow: 0 22px 40px rgba(25, 118, 210, 0.2),
+    0 6px 14px rgba(25, 118, 210, 0.16);
+  filter: brightness(1.01);
 }
 
 .member-header {
