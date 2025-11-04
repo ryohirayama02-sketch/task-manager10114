@@ -55,14 +55,14 @@
     <!-- タスク名ヘッダー -->
     <div class="task-header-section">
       <h1 class="task-title" *ngIf="!isEditing">
-        {{ taskData.taskName || "タスク詳細" }}
+        {{ taskData.taskName || ("taskDetail.title" | translate) }}
       </h1>
       <mat-form-field
         *ngIf="isEditing"
         appearance="outline"
         class="full-width-field task-name-edit-field"
       >
-        <mat-label>タスク名</mat-label>
+        <mat-label>{{ "taskDetail.taskName" | translate }}</mat-label>
         <input matInput [(ngModel)]="taskData.taskName" name="taskName" />
       </mat-form-field>
     </div>
@@ -119,12 +119,12 @@
       <ng-template #taskEditForm>
         <form class="task-inline-edit-form" novalidate>
           <mat-form-field appearance="outline" class="full-width-field">
-            <mat-label>タスク名</mat-label>
+            <mat-label>{{ "taskDetail.taskName" | translate }}</mat-label>
             <input matInput [(ngModel)]="taskData.taskName" name="taskName" />
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width-field">
-            <mat-label>プロジェクト名</mat-label>
+            <mat-label>{{ "taskDetail.projectName" | translate }}</mat-label>
             <input matInput [value]="taskData.projectName" disabled />
           </mat-form-field>
 
@@ -133,12 +133,12 @@
             appearance="outline"
             class="full-width-field"
           >
-            <mat-label>親タスク名</mat-label>
+            <mat-label>{{ "taskDetail.parentTaskName" | translate }}</mat-label>
             <input matInput [value]="parentTaskName" disabled />
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width-field">
-            <mat-label>タスクの説明</mat-label>
+            <mat-label>{{ "taskDetail.description" | translate }}</mat-label>
             <textarea
               matInput
               rows="3"
@@ -182,7 +182,7 @@
           </div>
 
           <mat-form-field appearance="outline" class="full-width-field">
-            <mat-label>担当者</mat-label>
+            <mat-label>{{ "taskDetail.assignee" | translate }}</mat-label>
             <mat-select [(ngModel)]="taskData.assignee" name="assignee">
               <mat-option value="">{{
                 "taskDetail.unassigned" | translate
@@ -194,7 +194,7 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width-field">
-            <mat-label>ステータス</mat-label>
+            <mat-label>{{ "taskDetail.status" | translate }}</mat-label>
             <mat-select [(ngModel)]="taskData.status" name="status">
               <mat-option value="未着手">{{
                 "taskDetail.status.notStarted" | translate
@@ -209,7 +209,7 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width-field">
-            <mat-label>優先度</mat-label>
+            <mat-label>{{ "taskDetail.priority" | translate }}</mat-label>
             <mat-select [(ngModel)]="taskData.priority" name="priority">
               <mat-option value="高">{{
                 "taskDetail.priority.high" | translate
