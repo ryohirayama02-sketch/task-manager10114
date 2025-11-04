@@ -55,6 +55,7 @@ interface FirestoreTimestamp {
 })
 export class ProjectChatComponent implements OnInit, OnDestroy {
   @Input() projectId!: string;
+  @Input() chatTitle: string = 'プロジェクトチャット';
   @ViewChild('chatContainer', { static: false }) chatContainer!: ElementRef;
   @ViewChild('messageInput', { static: false }) messageInput!: ElementRef;
 

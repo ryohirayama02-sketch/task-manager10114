@@ -265,7 +265,11 @@
     <!-- チャットセクション -->
     <div class="task-chat-section">
       <h3>タスクチャット</h3>
-      <app-project-chat *ngIf="task?.id" [projectId]="task.id!">
+      <app-project-chat
+        *ngIf="task?.id"
+        [projectId]="task.id!"
+        [chatTitle]="'タスクチャット'"
+      >
       </app-project-chat>
     </div>
 
