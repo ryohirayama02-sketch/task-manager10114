@@ -156,27 +156,11 @@
               </div>
             </div>
 
-            <div class="task-detail-item" *ngIf="task.projectName">
+            <div class="task-detail-item project-name" *ngIf="task.projectName">
               <mat-icon>widgets</mat-icon>
-              <span>プロジェクト：{{ task.projectName }}</span>
-            </div>
-
-            <div class="task-detail-item" *ngIf="task.tags?.length">
-              <mat-icon>sell</mat-icon>
-              <mat-chip-set>
-                <mat-chip
-                  *ngFor="let tag of task.tags"
-                  class="task-tag-chip"
-                  selected
-                >
-                  {{ tag }}
-                </mat-chip>
-              </mat-chip-set>
-            </div>
-
-            <div class="task-detail-item" *ngIf="task.description">
-              <mat-icon>description</mat-icon>
-              <span class="task-description-text">{{ task.description }}</span>
+              <span class="project-name-text"
+                >プロジェクト：{{ task.projectName }}</span
+              >
             </div>
           </div>
         </mat-card-content>

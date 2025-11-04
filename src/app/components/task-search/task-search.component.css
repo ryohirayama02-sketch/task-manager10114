@@ -204,6 +204,20 @@
   flex-shrink: 0;
 }
 
+.task-detail-item.project-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  flex-shrink: 1;
+}
+
+.project-name-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .task-detail-item mat-icon {
   font-size: 18px;
   width: 18px;
