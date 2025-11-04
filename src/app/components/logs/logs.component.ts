@@ -10,6 +10,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { ProjectService } from '../../services/project.service';
 import { take } from 'rxjs';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-logs',
@@ -20,6 +21,7 @@ import { take } from 'rxjs';
     MatDialogModule,
     MatFormFieldModule,
     MatSelectModule,
+    TranslatePipe,
   ],
   templateUrl: './logs.component.html',
   styleUrl: './logs.component.css',

@@ -1,18 +1,18 @@
-<h2 class="calendar-title">カレンダー式課題管理</h2>
+<h2 class="calendar-title">{{ 'calendar.title' | translate }}</h2>
 
 <!-- オフライン時のタスク追加ボタン -->
 <div *ngIf="!isOnline" class="offline-task-add">
   <button mat-raised-button color="primary" (click)="openOfflineTaskDialog()">
     <mat-icon>add</mat-icon>
-    オフラインでタスク追加
+    {{ 'calendar.offlineTaskAdd' | translate }}
   </button>
-  <p class="offline-note">オフライン時は簡易的なタスク追加のみ可能です</p>
+  <p class="offline-note">{{ 'calendar.offlineNote' | translate }}</p>
 </div>
 
 <!-- プロジェクト選択とフィルター -->
 <div class="controls-section" style="justify-content: space-between; align-items: flex-start;">
   <div class="project-selector">
-    <h3>表示するプロジェクトを選択</h3>
+    <h3>{{ 'calendar.projectSelector.title' | translate }}</h3>
     <div class="project-checkboxes">
       <mat-checkbox
         *ngFor="let project of projects"
@@ -25,10 +25,10 @@
     </div>
     <div class="project-selection-actions">
       <button mat-stroked-button (click)="selectAllProjects()">
-        すべてにチェック
+        {{ 'calendar.projectSelector.selectAll' | translate }}
       </button>
       <button mat-stroked-button (click)="clearProjectSelection()">
-        すべてのチェックをクリア
+        {{ 'calendar.projectSelector.clearAll' | translate }}
       </button>
     </div>
   </div>
@@ -36,7 +36,7 @@
   <!-- フィルター -->
   <div class="filter-section">
     <mat-form-field appearance="outline">
-      <mat-label>ステータス</mat-label>
+      <mat-label>{{ 'calendar.filter.status' | translate }}</mat-label>
       <mat-select [(ngModel)]="filterStatus" (selectionChange)="applyFilters()" multiple>
         <mat-option value="未着手">未着手</mat-option>
         <mat-option value="作業中">作業中</mat-option>
@@ -45,7 +45,7 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline">
-      <mat-label>優先度</mat-label>
+      <mat-label>{{ 'calendar.filter.priority' | translate }}</mat-label>
       <mat-select
         [(ngModel)]="filterPriority"
         (selectionChange)="applyFilters()"
@@ -58,7 +58,7 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline">
-      <mat-label>担当者</mat-label>
+      <mat-label>{{ 'calendar.filter.assignee' | translate }}</mat-label>
       <mat-select
         [(ngModel)]="filterAssignee"
         (selectionChange)="applyFilters()"
@@ -73,7 +73,7 @@
       </mat-select>
     </mat-form-field>
 
-    <button mat-button (click)="resetFilters()">フィルターリセット</button>
+    <button mat-button (click)="resetFilters()">{{ 'calendar.filter.reset' | translate }}</button>
   </div>
 </div>
 
@@ -91,7 +91,7 @@
     </mat-button-toggle-group>
   </div>
   <button mat-raised-button color="primary" (click)="openProjectDialog()">
-    + プロジェクトを作成
+    + {{ 'calendar.actionButtons.addProject' | translate }}
   </button>
 </div>
 
@@ -106,7 +106,7 @@
     <button mat-icon-button (click)="changeDate(1)">
       <mat-icon>chevron_right</mat-icon>
     </button>
-    <button mat-button (click)="goToCurrentDate()">今日</button>
+    <button mat-button (click)="goToCurrentDate()">{{ 'calendar.header.today' | translate }}</button>
   </div>
 
   <!-- カレンダーグリッド -->
@@ -173,28 +173,28 @@
 
 <!-- 凡例 -->
 <div class="legend">
-  <h4>ステータス</h4>
+  <h4>{{ 'calendar.legend.status' | translate }}</h4>
   <div class="legend-items">
     <div class="legend-item">
       <div
         class="legend-color"
         [style.background-color]="statusColors['未着手']"
       ></div>
-      <span>未着手</span>
+      <span>{{ 'calendar.legend.status.notStarted' | translate }}</span>
     </div>
     <div class="legend-item">
       <div
         class="legend-color"
         [style.background-color]="statusColors['作業中']"
       ></div>
-      <span>作業中</span>
+      <span>{{ 'calendar.legend.status.inProgress' | translate }}</span>
     </div>
     <div class="legend-item">
       <div
         class="legend-color"
         [style.background-color]="statusColors['完了']"
       ></div>
-      <span>完了</span>
+      <span>{{ 'calendar.legend.status.completed' | translate }}</span>
     </div>
   </div>
 </div>
@@ -208,7 +208,7 @@
 >
   <div class="tooltip-header">
     <span class="tooltip-icon">🚩</span>
-    <span class="tooltip-title">マイルストーン</span>
+    <span class="tooltip-title">{{ 'calendar.milestoneTooltip.title' | translate }}</span>
   </div>
   <div class="tooltip-content">
     <div class="tooltip-item" *ngFor="let milestone of tooltipMilestones">

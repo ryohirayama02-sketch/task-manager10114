@@ -1,22 +1,22 @@
 <div class="page-header">
   <button mat-button (click)="goBack()" class="back-button">
     <mat-icon>arrow_back</mat-icon>
-    戻る
+    {{ 'taskCreate.back' | translate }}
   </button>
-  <h2>タスク作成</h2>
+  <h2>{{ 'taskCreate.title' | translate }}</h2>
 </div>
 
 <div class="task-create-container">
   <mat-card class="task-form-card">
     <mat-card-header>
-      <h3>{{ projectName ? projectName + ' - タスク作成' : 'タスク作成' }}</h3>
+      <h3>{{ projectName ? projectName + ' - ' + ('taskCreate.title' | translate) : ('taskCreate.title' | translate) }}</h3>
     </mat-card-header>
 
     <mat-card-content>
       <form (ngSubmit)="save()" #taskCreateForm="ngForm">
         <!-- タスク名 -->
         <mat-form-field appearance="outline" class="full-width-field">
-          <mat-label>タスク名</mat-label>
+          <mat-label>{{ 'taskCreate.taskName' | translate }}</mat-label>
           <input
             matInput
             [(ngModel)]="taskForm.taskName"
@@ -27,7 +27,7 @@
 
         <!-- 説明 -->
         <mat-form-field appearance="outline" class="full-width-field">
-          <mat-label>説明</mat-label>
+          <mat-label>{{ 'taskCreate.description' | translate }}</mat-label>
           <textarea
             matInput
             rows="3"
@@ -39,7 +39,7 @@
         <!-- 日付範囲 -->
         <div class="date-row">
           <div class="date-field">
-            <label for="startDate">開始日</label>
+            <label for="startDate">{{ 'taskCreate.startDate' | translate }}</label>
             <div class="date-input-wrapper">
               <input
                 id="startDate"
@@ -52,7 +52,7 @@
           </div>
 
           <div class="date-field">
-            <label for="dueDate">終了日</label>
+            <label for="dueDate">{{ 'taskCreate.dueDate' | translate }}</label>
             <div class="date-input-wrapper">
               <input
                 id="dueDate"
@@ -67,7 +67,7 @@
 
         <!-- 担当者 -->
         <mat-form-field appearance="outline" class="full-width-field">
-          <mat-label>担当者</mat-label>
+          <mat-label>{{ 'taskCreate.assignee' | translate }}</mat-label>
           <mat-select
             [(ngModel)]="selectedMemberIds"
             name="assignee"
@@ -82,7 +82,7 @@
 
         <!-- ステータス -->
         <mat-form-field appearance="outline" class="full-width-field">
-          <mat-label>ステータス</mat-label>
+          <mat-label>{{ 'taskCreate.status' | translate }}</mat-label>
           <mat-select [(ngModel)]="taskForm.status" name="status">
             <mat-option *ngFor="let status of statusOptions" [value]="status">
               {{ status }}
@@ -92,7 +92,7 @@
 
         <!-- 優先度 -->
         <mat-form-field appearance="outline" class="full-width-field">
-          <mat-label>優先度</mat-label>
+          <mat-label>{{ 'taskCreate.priority' | translate }}</mat-label>
           <mat-select [(ngModel)]="taskForm.priority" name="priority">
             <mat-option *ngFor="let priority of priorityOptions" [value]="priority">
               {{ priority }}
@@ -102,15 +102,15 @@
 
         <!-- タグ -->
         <div class="tag-section">
-          <label>タグ</label>
+          <label>{{ 'taskCreate.tags' | translate }}</label>
           <div class="tag-input-row">
             <mat-form-field appearance="outline" class="tag-input-field">
-              <mat-label>タグを追加</mat-label>
+              <mat-label>{{ 'taskCreate.addTag' | translate }}</mat-label>
               <input
                 matInput
                 [(ngModel)]="newTag"
                 name="newTag"
-                placeholder="タグを入力してEnter"
+                placeholder="{{ 'taskCreate.enterTag' | translate }}"
                 (keyup.enter)="addTag()"
               />
             </mat-form-field>
@@ -143,7 +143,7 @@
               [(ngModel)]="taskForm.calendarSyncEnabled"
               name="calendarSyncEnabled"
             />
-            カレンダーと連携する
+            {{ 'taskCreate.calendarSync' | translate }}
           </label>
         </div>
 
@@ -155,7 +155,7 @@
             (click)="cancel()"
             [disabled]="isSaving"
           >
-            キャンセル
+            {{ 'taskCreate.cancel' | translate }}
           </button>
           <button
             mat-raised-button
@@ -164,7 +164,7 @@
             [disabled]="isSaving"
           >
             <mat-icon *ngIf="isSaving">schedule</mat-icon>
-            {{ isSaving ? '保存中...' : 'タスクを作成' }}
+            {{ isSaving ? ('taskCreate.saving' | translate) : ('taskCreate.createTask' | translate) }}
           </button>
         </div>
       </form>

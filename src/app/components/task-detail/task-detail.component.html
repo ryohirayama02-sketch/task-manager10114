@@ -1,9 +1,9 @@
 <div class="page-header">
   <button mat-button (click)="goBack()" class="back-button">
     <mat-icon>arrow_back</mat-icon>
-    戻る
+    {{ "taskDetail.back" | translate }}
   </button>
-  <h2>タスク詳細</h2>
+  <h2>{{ "taskDetail.title" | translate }}</h2>
 </div>
 
 <div
@@ -19,7 +19,12 @@
       [disabled]="isSaving"
       (change)="toggleEdit()"
     >
-      編集モード {{ isEditing ? "ON" : "OFF" }}
+      {{ "taskDetail.editMode" | translate }}
+      {{
+        isEditing
+          ? ("taskDetail.on" | translate)
+          : ("taskDetail.off" | translate)
+      }}
     </mat-slide-toggle>
     <div class="toolbar-spacer"></div>
     <div class="header-calendar-toggle">
@@ -35,7 +40,12 @@
         <span class="calendar-switch-handle"></span>
       </button>
       <span class="calendar-switch-label">
-        カレンダー連携 {{ taskData.calendarSyncEnabled ? "ON" : "OFF" }}
+        {{ "taskDetail.calendarSync" | translate }}
+        {{
+          taskData.calendarSyncEnabled
+            ? ("taskDetail.on" | translate)
+            : ("taskDetail.off" | translate)
+        }}
       </span>
     </div>
   </div>
@@ -62,18 +72,22 @@
       <ng-container *ngIf="!isEditing; else taskEditForm">
         <!-- 読み取りモード -->
         <p>
-          <strong>プロジェクト:</strong>
+          <strong>{{ "taskDetail.project" | translate }}:</strong>
           {{ taskData.projectName || project?.projectName || "—" }}
         </p>
 
         <p *ngIf="parentTaskName && task?.parentTaskId">
-          <strong>親タスク:</strong> {{ parentTaskName }}
+          <strong>{{ "taskDetail.parentTask" | translate }}:</strong>
+          {{ parentTaskName }}
         </p>
 
-        <p><strong>説明:</strong> {{ taskData.description || "説明なし" }}</p>
+        <p>
+          <strong>{{ "taskDetail.description" | translate }}:</strong>
+          {{ taskData.description || "説明なし" }}
+        </p>
 
         <p>
-          <strong>期間:</strong>
+          <strong>{{ "taskDetail.period" | translate }}:</strong>
           {{
             taskData.startDate
               ? (taskData.startDate | date : "yyyy/MM/dd")
@@ -85,11 +99,20 @@
           }}
         </p>
 
-        <p><strong>担当者:</strong> {{ taskData.assignee || "—" }}</p>
+        <p>
+          <strong>{{ "taskDetail.assignee" | translate }}:</strong>
+          {{ taskData.assignee || "—" }}
+        </p>
 
-        <p><strong>ステータス:</strong> {{ taskData.status }}</p>
+        <p>
+          <strong>{{ "taskDetail.status" | translate }}:</strong>
+          {{ taskData.status }}
+        </p>
 
-        <p><strong>優先度:</strong> {{ taskData.priority }}</p>
+        <p>
+          <strong>{{ "taskDetail.priority" | translate }}:</strong>
+          {{ taskData.priority }}
+        </p>
       </ng-container>
 
       <!-- 編集モード -->
@@ -126,7 +149,9 @@
 
           <div class="inline-date-row">
             <div class="date-field">
-              <label for="startDate">開始日</label>
+              <label for="startDate">{{
+                "taskDetail.startDate" | translate
+              }}</label>
               <div class="date-input-wrapper">
                 <input
                   id="startDate"
@@ -140,7 +165,9 @@
             </div>
 
             <div class="date-field">
-              <label for="dueDate">終了日</label>
+              <label for="dueDate">{{
+                "taskDetail.dueDate" | translate
+              }}</label>
               <div class="date-input-wrapper">
                 <input
                   id="dueDate"
@@ -157,7 +184,9 @@
           <mat-form-field appearance="outline" class="full-width-field">
             <mat-label>担当者</mat-label>
             <mat-select [(ngModel)]="taskData.assignee" name="assignee">
-              <mat-option value="">未割当</mat-option>
+              <mat-option value="">{{
+                "taskDetail.unassigned" | translate
+              }}</mat-option>
               <mat-option *ngFor="let member of members" [value]="member.name">
                 {{ member.name }}
               </mat-option>
@@ -167,18 +196,30 @@
           <mat-form-field appearance="outline" class="full-width-field">
             <mat-label>ステータス</mat-label>
             <mat-select [(ngModel)]="taskData.status" name="status">
-              <mat-option value="未着手">未着手</mat-option>
-              <mat-option value="作業中">作業中</mat-option>
-              <mat-option value="完了">完了</mat-option>
+              <mat-option value="未着手">{{
+                "taskDetail.status.notStarted" | translate
+              }}</mat-option>
+              <mat-option value="作業中">{{
+                "taskDetail.status.inProgress" | translate
+              }}</mat-option>
+              <mat-option value="完了">{{
+                "taskDetail.status.completed" | translate
+              }}</mat-option>
             </mat-select>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width-field">
             <mat-label>優先度</mat-label>
             <mat-select [(ngModel)]="taskData.priority" name="priority">
-              <mat-option value="高">高</mat-option>
-              <mat-option value="中">中</mat-option>
-              <mat-option value="低">低</mat-option>
+              <mat-option value="高">{{
+                "taskDetail.priority.high" | translate
+              }}</mat-option>
+              <mat-option value="中">{{
+                "taskDetail.priority.medium" | translate
+              }}</mat-option>
+              <mat-option value="低">{{
+                "taskDetail.priority.low" | translate
+              }}</mat-option>
             </mat-select>
           </mat-form-field>
         </form>
@@ -190,19 +231,19 @@
       <ng-container *ngIf="!isEditing; else editTagsForm">
         <!-- 読み取りモード -->
         <p>
-          <strong>タグ:</strong>
+          <strong>{{ "taskDetail.tags" | translate }}:</strong>
           <mat-chip-set *ngIf="taskData.tags && taskData.tags.length > 0">
             <mat-chip *ngFor="let tag of taskData.tags || []">
               {{ tag }}
             </mat-chip>
           </mat-chip-set>
-          <span *ngIf="!taskData.tags || taskData.tags.length === 0"
-            >タグなし</span
-          >
+          <span *ngIf="!taskData.tags || taskData.tags.length === 0">{{
+            "taskDetail.noTags" | translate
+          }}</span>
         </p>
 
         <p>
-          <strong>関連資料:</strong>
+          <strong>{{ "taskDetail.relatedFiles" | translate }}:</strong>
           <mat-chip-set
             *ngIf="taskData.relatedFiles && taskData.relatedFiles.length > 0"
           >
@@ -219,7 +260,7 @@
           </mat-chip-set>
           <span
             *ngIf="!taskData.relatedFiles || taskData.relatedFiles.length === 0"
-            >関連資料なし</span
+            >{{ "taskDetail.noRelatedFiles" | translate }}</span
           >
         </p>
       </ng-container>
@@ -228,7 +269,7 @@
       <ng-template #editTagsForm>
         <div class="tag-editor">
           <p>
-            <strong>タグ:</strong>
+            <strong>{{ "taskDetail.tags" | translate }}:</strong>
             <mat-chip-set>
               <mat-chip
                 *ngFor="let tag of taskData.tags || []"
@@ -240,18 +281,18 @@
               </mat-chip>
             </mat-chip-set>
             <mat-form-field appearance="outline" class="tag-input-field">
-              <mat-label>タグを追加</mat-label>
+              <mat-label>{{ "taskDetail.addTag" | translate }}</mat-label>
               <input
                 matInput
                 #tagInput
-                placeholder="タグを入力してEnter"
+                placeholder="{{ 'taskDetail.enterTag' | translate }}"
                 (keyup.enter)="addTag(tagInput.value); tagInput.value = ''"
               />
             </mat-form-field>
           </p>
 
           <p>
-            <strong>関連資料:</strong>
+            <strong>{{ "taskDetail.relatedFiles" | translate }}:</strong>
             <mat-chip-set>
               <mat-chip
                 *ngFor="let file of taskData.relatedFiles || []"
@@ -270,11 +311,15 @@
               </mat-chip>
             </mat-chip-set>
             <mat-form-field appearance="outline" class="tag-input-field">
-              <mat-label>URLまたはファイル名</mat-label>
+              <mat-label>{{
+                "taskDetail.enterUrlOrFileName" | translate
+              }}</mat-label>
               <input
                 matInput
                 #fileInput
-                placeholder="https://... またはファイル名を入力してEnter"
+                placeholder="{{
+                  'taskDetail.enterUrlOrFileNamePlaceholder' | translate
+                }}"
                 (keyup.enter)="
                   addRelatedFile(fileInput.value); fileInput.value = ''
                 "
@@ -287,7 +332,7 @@
 
     <!-- チャットセクション -->
     <div class="task-chat-section">
-      <h3>タスクチャット</h3>
+      <h3>{{ "taskDetail.taskChat" | translate }}</h3>
       <app-project-chat
         *ngIf="task?.id"
         [projectId]="task.id!"
@@ -306,15 +351,15 @@
             *ngIf="!task?.parentTaskId"
           >
             <mat-icon>add</mat-icon>
-            子タスク
+            {{ "taskDetail.createSubtask" | translate }}
           </button>
           <button mat-raised-button (click)="duplicateTask()">
             <mat-icon>content_copy</mat-icon>
-            複製
+            {{ "taskDetail.duplicate" | translate }}
           </button>
           <button mat-raised-button (click)="openDetailSettings()">
             <mat-icon>settings</mat-icon>
-            詳細設定
+            {{ "taskDetail.detailSettings" | translate }}
           </button>
         </div>
         <div class="action-buttons-right" *ngIf="isEditing">
@@ -325,7 +370,7 @@
             (click)="deleteTask()"
           >
             <mat-icon>delete</mat-icon>
-            タスクを削除
+            {{ "taskDetail.deleteTask" | translate }}
           </button>
         </div>
       </div>
@@ -338,7 +383,7 @@
       [style.background]="getChildTasksSectionBackground()"
     >
       <div class="child-tasks-header">
-        <h3>子タスク一覧</h3>
+        <h3>{{ "taskDetail.childTasks" | translate }}</h3>
         <div class="child-tasks-actions">
           <button
             mat-raised-button
@@ -346,19 +391,19 @@
             (click)="exportChildTasksToCSV()"
           >
             <mat-icon>download</mat-icon>
-            出力
+            {{ "taskDetail.export" | translate }}
           </button>
         </div>
       </div>
 
       <div class="child-filter-section">
         <mat-form-field appearance="outline">
-          <mat-label>ステータス</mat-label>
+          <mat-label>{{ "taskDetail.status" | translate }}</mat-label>
           <mat-select
             [(ngModel)]="childFilterStatus"
             (selectionChange)="applyChildFilter()"
           >
-            <mat-option value="">すべて</mat-option>
+            <mat-option value="">{{ "taskDetail.all" | translate }}</mat-option>
             <mat-option *ngFor="let status of statusOptions" [value]="status">
               {{ status }}
             </mat-option>
@@ -366,12 +411,12 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>優先度</mat-label>
+          <mat-label>{{ "taskDetail.priority" | translate }}</mat-label>
           <mat-select
             [(ngModel)]="childFilterPriority"
             (selectionChange)="applyChildFilter()"
           >
-            <mat-option value="">すべて</mat-option>
+            <mat-option value="">{{ "taskDetail.all" | translate }}</mat-option>
             <mat-option
               *ngFor="let priority of priorityOptions"
               [value]="priority"
@@ -382,12 +427,12 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>担当者</mat-label>
+          <mat-label>{{ "taskDetail.assignee" | translate }}</mat-label>
           <mat-select
             [(ngModel)]="childFilterAssignee"
             (selectionChange)="applyChildFilter()"
           >
-            <mat-option value="">すべて</mat-option>
+            <mat-option value="">{{ "taskDetail.all" | translate }}</mat-option>
             <mat-option
               *ngFor="let assignee of childAssigneeOptions"
               [value]="assignee"
@@ -398,7 +443,7 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>期日</mat-label>
+          <mat-label>{{ "taskDetail.dueDate" | translate }}</mat-label>
           <input
             matInput
             #childDueDateInput
@@ -411,7 +456,7 @@
             matSuffix
             type="button"
             (click)="openChildDatePicker(childDueDateInput)"
-            aria-label="期日を選択"
+            aria-label="{{ 'taskDetail.selectDueDate' | translate }}"
           >
             <mat-icon>event</mat-icon>
           </button>
@@ -419,7 +464,7 @@
 
         <button mat-stroked-button (click)="resetChildFilter()">
           <mat-icon>refresh</mat-icon>
-          リセット
+          {{ "taskDetail.reset" | translate }}
         </button>
       </div>
 
@@ -468,7 +513,7 @@
       <ng-template #noChildTasks>
         <div class="child-no-tasks">
           <mat-icon>inbox</mat-icon>
-          <p>条件に一致する子タスクがありません。</p>
+          <p>{{ "taskDetail.noChildTasks" | translate }}</p>
         </div>
       </ng-template>
     </div>
@@ -482,7 +527,7 @@
   >
     <div class="detail-settings-dialog" (click)="$event.stopPropagation()">
       <div class="settings-header">
-        <h2>詳細設定</h2>
+        <h2>{{ "taskDetail.detailSettings" | translate }}</h2>
         <button mat-icon-button (click)="closeDetailSettings()">
           <mat-icon>close</mat-icon>
         </button>
@@ -492,10 +537,14 @@
         <!-- 通知設定 -->
         <mat-expansion-panel>
           <mat-expansion-panel-header>
-            <mat-panel-title>通知設定</mat-panel-title>
+            <mat-panel-title>{{
+              "taskDetail.notificationSettings" | translate
+            }}</mat-panel-title>
           </mat-expansion-panel-header>
           <div class="setting-item notification-toggle">
-            <span class="calendar-toggle-label">タスク期限通知</span>
+            <span class="calendar-toggle-label">{{
+              "taskDetail.taskDeadlineNotification" | translate
+            }}</span>
             <button
               type="button"
               class="calendar-switch"
@@ -510,12 +559,18 @@
               class="calendar-toggle-state"
               [class.on]="detailSettings.notifications.beforeDeadline"
             >
-              {{ detailSettings.notifications.beforeDeadline ? "ON" : "OFF" }}
+              {{
+                detailSettings.notifications.beforeDeadline
+                  ? ("taskDetail.on" | translate)
+                  : ("taskDetail.off" | translate)
+              }}
             </span>
           </div>
           <div class="setting-item notification-select">
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>通知先</mat-label>
+              <mat-label>{{
+                "taskDetail.notificationRecipients" | translate
+              }}</mat-label>
               <mat-select
                 [(ngModel)]="detailSettings.notifications.recipients"
                 name="notificationRecipients"
@@ -554,13 +609,15 @@
         <!-- タスクの順番管理 -->
         <mat-expansion-panel>
           <mat-expansion-panel-header>
-            <mat-panel-title>タスクの順番管理</mat-panel-title>
+            <mat-panel-title>{{
+              "taskDetail.taskOrder" | translate
+            }}</mat-panel-title>
           </mat-expansion-panel-header>
           <div class="setting-item">
             <mat-checkbox
               [(ngModel)]="detailSettings.taskOrder.requireSubtaskCompletion"
             >
-              子タスク完了まで完了ステータスにできない
+              {{ "taskDetail.cannotCompleteUntilSubtasksDone" | translate }}
             </mat-checkbox>
           </div>
         </mat-expansion-panel>
@@ -568,13 +625,15 @@
         <!-- 作業時間記録 -->
         <mat-expansion-panel>
           <mat-expansion-panel-header>
-            <mat-panel-title>作業時間記録</mat-panel-title>
+            <mat-panel-title>{{
+              "taskDetail.timeTracking" | translate
+            }}</mat-panel-title>
           </mat-expansion-panel-header>
           <div class="setting-item">
-            <label>予定時間</label>
+            <label>{{ "taskDetail.estimatedTime" | translate }}</label>
             <div class="time-picker">
               <mat-form-field appearance="outline" class="time-field">
-                <mat-label>時間</mat-label>
+                <mat-label>{{ "taskDetail.hour" | translate }}</mat-label>
                 <mat-select
                   [(ngModel)]="estimatedHours.hour"
                   (selectionChange)="onEstimatedTimeChange()"
@@ -589,7 +648,7 @@
               </mat-form-field>
               <span class="time-separator">:</span>
               <mat-form-field appearance="outline" class="time-field">
-                <mat-label>分</mat-label>
+                <mat-label>{{ "taskDetail.minute" | translate }}</mat-label>
                 <mat-select
                   [(ngModel)]="estimatedHours.minute"
                   (selectionChange)="onEstimatedTimeChange()"
@@ -605,10 +664,10 @@
             </div>
           </div>
           <div class="setting-item">
-            <label>実績時間</label>
+            <label>{{ "taskDetail.actualTime" | translate }}</label>
             <div class="time-picker">
               <mat-form-field appearance="outline" class="time-field">
-                <mat-label>時間</mat-label>
+                <mat-label>{{ "taskDetail.hour" | translate }}</mat-label>
                 <mat-select
                   [(ngModel)]="actualHours.hour"
                   (selectionChange)="onActualTimeChange()"
@@ -623,7 +682,7 @@
               </mat-form-field>
               <span class="time-separator">:</span>
               <mat-form-field appearance="outline" class="time-field">
-                <mat-label>分</mat-label>
+                <mat-label>{{ "taskDetail.minute" | translate }}</mat-label>
                 <mat-select
                   [(ngModel)]="actualHours.minute"
                   (selectionChange)="onActualTimeChange()"
@@ -642,13 +701,15 @@
       </div>
 
       <div class="settings-actions">
-        <button mat-button (click)="closeDetailSettings()">キャンセル</button>
+        <button mat-button (click)="closeDetailSettings()">
+          {{ "taskDetail.cancel" | translate }}
+        </button>
         <button
           mat-raised-button
           color="primary"
           (click)="saveDetailSettings()"
         >
-          保存
+          {{ "taskDetail.save" | translate }}
         </button>
       </div>
     </div>
@@ -659,6 +720,6 @@
 <ng-template #loading>
   <div class="loading-container">
     <mat-spinner></mat-spinner>
-    <p>タスク情報を読み込み中...</p>
+    <p>{{ "taskDetail.loadingTaskInfo" | translate }}</p>
   </div>
 </ng-template>

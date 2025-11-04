@@ -1,9 +1,9 @@
 <div class="page-header">
   <button mat-button (click)="goBack()" class="back-button">
     <mat-icon>arrow_back</mat-icon>
-    戻る
+    {{ 'projectDetail.back' | translate }}
   </button>
-  <h2>プロジェクト詳細</h2>
+  <h2>{{ 'projectDetail.title' | translate }}</h2>
 </div>
 
 <div
@@ -18,7 +18,7 @@
       [disabled]="isSavingInlineEdit"
       (change)="onInlineEditToggle($event)"
     >
-      編集モード {{ isInlineEditMode ? 'ON' : 'OFF' }}
+      {{ 'projectDetail.editMode' | translate }} {{ isInlineEditMode ? ('projectDetail.on' | translate) : ('projectDetail.off' | translate) }}
     </mat-slide-toggle>
   </div>
 
@@ -26,22 +26,22 @@
     <div class="project-info">
       <div class="project-info-display" *ngIf="!isInlineEditMode; else inlineEditForm">
         <h3>{{ project.projectName }}</h3>
-        <p><strong>概要:</strong> {{ project.overview || "未設定" }}</p>
+        <p><strong>{{ 'projectDetail.overview' | translate }}:</strong> {{ project.overview || ("projectDetail.notSet" | translate) }}</p>
         <p>
-          <strong>期間:</strong>
+          <strong>{{ 'projectDetail.period' | translate }}:</strong>
           {{ toDateDisplay(project.startDate) }} -
           {{ toDateDisplay(project.endDate) }}
         </p>
         <p>
-          <strong>責任者:</strong>
+          <strong>{{ 'projectDetail.responsible' | translate }}:</strong>
           {{ getResponsiblesDisplay() }}
         </p>
-        <p><strong>メンバー:</strong> {{ project.members || "未設定" }}</p>
+        <p><strong>{{ 'projectDetail.members' | translate }}:</strong> {{ project.members || ("projectDetail.notSet" | translate) }}</p>
         <div
           class="project-attachments"
           *ngIf="project.attachments?.length; else noProjectAttachments"
         >
-          <strong>資料:</strong>
+          <strong>{{ 'projectDetail.materials' | translate }}:</strong>
           <div class="attachment-links">
             <a
               *ngFor="let attachment of project.attachments"
@@ -61,7 +61,7 @@
       <ng-template #inlineEditForm>
         <form class="project-inline-edit-form" novalidate>
           <mat-form-field appearance="outline" class="full-width-field">
-            <mat-label>プロジェクト名</mat-label>
+            <mat-label>{{ 'projectDetail.projectName' | translate }}</mat-label>
             <input
               matInput
               [(ngModel)]="editableProject!.projectName"
@@ -71,7 +71,7 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width-field">
-            <mat-label>概要</mat-label>
+            <mat-label>{{ 'projectDetail.overview' | translate }}</mat-label>
             <textarea
               matInput
               rows="3"
@@ -82,7 +82,7 @@
 
           <div class="inline-date-row">
             <div class="date-field">
-              <label for="inlineStartDate">開始日</label>
+              <label for="inlineStartDate">{{ 'projectDetail.startDate' | translate }}</label>
               <div class="date-input-wrapper">
                 <input
                   id="inlineStartDate"
@@ -96,7 +96,7 @@
             </div>
 
             <div class="date-field">
-              <label for="inlineEndDate">終了日</label>
+              <label for="inlineEndDate">{{ 'projectDetail.endDate' | translate }}</label>
               <div class="date-input-wrapper">
                 <input
                   id="inlineEndDate"
@@ -111,7 +111,7 @@
           </div>
 
           <mat-form-field appearance="outline" class="full-width-field">
-            <mat-label>責任者</mat-label>
+            <mat-label>{{ 'projectDetail.responsible' | translate }}</mat-label>
             <mat-select
               multiple
               [(ngModel)]="selectedResponsibleIds"
@@ -141,13 +141,13 @@
           </div>
 
           <mat-form-field appearance="outline" class="full-width-field">
-            <mat-label>担当メンバー</mat-label>
+            <mat-label>{{ 'projectDetail.assignee' | translate }}</mat-label>
             <mat-select
               multiple
               [(ngModel)]="selectedMemberIds"
               name="inlineMemberIds"
               (ngModelChange)="onMembersSelectionChange($event)"
-              placeholder="メンバーを選択"
+              placeholder="{{ 'projectDetail.selectMember' | translate }}"
               [disabled]="membersLoading"
             >
               <mat-option *ngFor="let member of members" [value]="member.id">
@@ -178,7 +178,7 @@
                 (click)="fileInput.click()"
                 [disabled]="isUploading"
               >
-                ファイルを追加
+                {{ 'projectDetail.addFile' | translate }}
               </button>
               <input
                 #fileInput
@@ -190,17 +190,17 @@
               />
 
               <mat-form-field appearance="outline" class="attachment-link-field">
-                <mat-label>資料名</mat-label>
+                <mat-label>{{ 'projectDetail.materialName' | translate }}</mat-label>
                 <input
                   matInput
                   [(ngModel)]="linkTitle"
                   name="inlineLinkTitle"
-                  placeholder="設計資料"
+                  placeholder="{{ 'projectDetail.designMaterial' | translate }}"
                 />
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="attachment-link-field">
-                <mat-label>資料URL</mat-label>
+                <mat-label>{{ 'projectDetail.materialUrl' | translate }}</mat-label>
                 <input
                   matInput
                   [(ngModel)]="linkUrl"
@@ -210,19 +210,19 @@
               </mat-form-field>
 
               <button mat-button type="button" (click)="addLinkAttachment()">
-                URLを追加
+                {{ 'projectDetail.addUrl' | translate }}
               </button>
             </div>
 
             <div class="pending-files" *ngIf="pendingFiles.length > 0">
-              <p>保存時にアップロードされるファイル:</p>
+              <p>{{ 'projectDetail.uploadingFiles' | translate }}:</p>
               <ul>
                 <li *ngFor="let pending of pendingFiles">{{ pending.file.name }}</li>
               </ul>
             </div>
 
             <div class="attachment-list" *ngIf="editableAttachments.length > 0">
-              <h4>登録済み資料</h4>
+              <h4>{{ 'projectDetail.registeredMaterials' | translate }}</h4>
               <div
                 class="attachment-chip"
                 *ngFor="let attachment of editableAttachments; trackBy: trackAttachment"
@@ -242,7 +242,7 @@
                   mat-icon-button
                   type="button"
                   (click)="removeAttachment(attachment)"
-                  aria-label="添付を削除"
+                  [attr.aria-label]="'projectDetail.removeAttachment' | translate"
                 >
                   <mat-icon>close</mat-icon>
                 </button>
@@ -253,24 +253,24 @@
               class="no-attachments"
               *ngIf="editableAttachments.length === 0 && pendingFiles.length === 0"
             >
-              登録済みの資料はありません
+              {{ 'projectDetail.noRegisteredMaterials' | translate }}
             </div>
 
             <div class="uploading-indicator" *ngIf="isUploading">
               <mat-spinner diameter="24"></mat-spinner>
-              <span>添付ファイルをアップロード中...</span>
+              <span>{{ 'projectDetail.uploadingAttachments' | translate }}</span>
             </div>
           </div>
 
           <div class="inline-milestones">
-            <h4>マイルストーン</h4>
+            <h4>{{ 'projectDetail.milestones' | translate }}</h4>
             <div class="milestones-container">
               <div
                 *ngFor="let milestone of editableMilestones; let i = index; trackBy: trackMilestone"
                 class="milestone-item"
               >
                 <div class="milestone-date-field">
-                  <label [attr.for]="'inlineMilestoneDate' + i">日付</label>
+                  <label [attr.for]="'inlineMilestoneDate' + i">{{ 'projectDetail.date' | translate }}</label>
                   <div class="date-input-wrapper">
                     <input
                       [id]="'inlineMilestoneDate' + i"
@@ -283,20 +283,20 @@
                   </div>
                 </div>
                 <mat-form-field appearance="outline" class="milestone-name">
-                  <mat-label>マイルストーン名</mat-label>
+                  <mat-label>{{ 'projectDetail.milestoneName' | translate }}</mat-label>
                   <input
                     matInput
                     type="text"
                     [(ngModel)]="milestone.name"
                     name="inlineMilestoneName{{ i }}"
-                    placeholder="マイルストーン名"
+                    placeholder="{{ 'projectDetail.milestoneName' | translate }}"
                   />
                 </mat-form-field>
                 <button
                   mat-icon-button
                   type="button"
                   (click)="removeMilestone(i)"
-                  aria-label="マイルストーンを削除"
+                  [attr.aria-label]="'projectDetail.removeMilestone' | translate"
                   color="warn"
                 >
                   <mat-icon>delete</mat-icon>
@@ -304,7 +304,7 @@
               </div>
               <button mat-button type="button" (click)="addMilestone()">
                 <mat-icon>add</mat-icon>
-                マイルストーンを追加
+                {{ 'projectDetail.addMilestone' | translate }}
               </button>
             </div>
           </div>
@@ -313,7 +313,7 @@
     </div>
 
     <ng-template #noProjectAttachments>
-      <p><strong>資料:</strong> -</p>
+      <p><strong>{{ 'projectDetail.materials' | translate }}:</strong> -</p>
     </ng-template>
 
     <!-- 進捗率円グラフ -->
@@ -333,7 +333,7 @@
     *ngIf="project.milestones && project.milestones.length > 0"
     style="margin-top: 20px"
   >
-    <h4>マイルストーン</h4>
+    <h4>{{ 'projectDetail.milestones' | translate }}</h4>
     <div *ngFor="let milestone of project.milestones" class="milestone-item">
       <div class="milestone-date">
         {{ milestone.date | date : "yyyy/MM/dd" }}
@@ -358,7 +358,7 @@
       [disabled]="isSavingInlineEdit || isDeletingProject"
     >
       <mat-icon>delete</mat-icon>
-      プロジェクトを削除
+      {{ 'projectDetail.deleteProject' | translate }}
     </button>
   </div>
 </div>
@@ -370,14 +370,14 @@
   [style.background]="getTasksSectionBackground()"
 >
   <div class="tasks-header">
-    <h3>タスク一覧</h3>
+    <h3>{{ 'projectDetail.taskList' | translate }}</h3>
     <div class="tasks-actions">
       <button mat-raised-button color="accent" (click)="openAddTaskDialog()">
-        ＋ タスク
+        {{ 'projectDetail.addTask' | translate }}
       </button>
       <button mat-raised-button color="accent" (click)="exportToCSV()">
         <mat-icon>download</mat-icon>
-        出力
+        {{ 'projectDetail.export' | translate }}
       </button>
     </div>
   </div>
@@ -385,9 +385,9 @@
   <!-- フィルター -->
   <div class="filter-section">
     <mat-form-field appearance="outline">
-      <mat-label>ステータス</mat-label>
+      <mat-label>{{ 'projectDetail.status' | translate }}</mat-label>
       <mat-select [(ngModel)]="filterStatus" (selectionChange)="applyFilter()">
-        <mat-option value="">すべて</mat-option>
+        <mat-option value="">{{ 'projectDetail.all' | translate }}</mat-option>
         <mat-option *ngFor="let status of statusOptions" [value]="status">
           {{ status }}
         </mat-option>
@@ -395,12 +395,12 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline">
-      <mat-label>優先度</mat-label>
+      <mat-label>{{ 'projectDetail.priority' | translate }}</mat-label>
       <mat-select
         [(ngModel)]="filterPriority"
         (selectionChange)="applyFilter()"
       >
-        <mat-option value="">すべて</mat-option>
+        <mat-option value="">{{ 'projectDetail.all' | translate }}</mat-option>
         <mat-option *ngFor="let priority of priorityOptions" [value]="priority">
           {{ priority }}
         </mat-option>
@@ -408,13 +408,13 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline">
-      <mat-label>担当者</mat-label>
+      <mat-label>{{ 'projectDetail.assignee' | translate }}</mat-label>
       <mat-select
         [(ngModel)]="filterAssignee"
         (selectionChange)="applyFilter()"
-        placeholder="担当者を選択"
+        placeholder="{{ 'projectDetail.selectAssignee' | translate }}"
       >
-        <mat-option value="">すべて</mat-option>
+        <mat-option value="">{{ 'projectDetail.all' | translate }}</mat-option>
         <mat-option *ngFor="let assignee of assigneeOptions" [value]="assignee">
           {{ assignee }}
         </mat-option>
@@ -422,7 +422,7 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline">
-      <mat-label>期日</mat-label>
+      <mat-label>{{ 'projectDetail.dueDate' | translate }}</mat-label>
       <input
         matInput
         #filterDueDateInput
@@ -431,19 +431,14 @@
         (change)="applyFilter()"
       />
       <button
-        mat-icon-button
-        matSuffix
-        type="button"
-        (click)="openNativeDatePicker(filterDueDateInput)"
-        aria-label="期日を選択"
-      >
+        mat-raised-button type="button" [disabled]="filterDueDateInput.disabled" (click)="openNativeDatePicker(filterDueDateInput)" [attr.aria-label]="'projectDetail.selectDueDate' | translate">
         <mat-icon>event</mat-icon>
       </button>
     </mat-form-field>
 
     <button mat-stroked-button (click)="resetFilter()">
       <mat-icon>refresh</mat-icon>
-      リセット
+      {{ 'projectDetail.reset' | translate }}
     </button>
   </div>
 
@@ -496,7 +491,7 @@
             *ngIf="task.parentTaskId && taskNameById[task.parentTaskId]"
           >
             <mat-icon>subdirectory_arrow_right</mat-icon>
-            <span>親タスク：{{ taskNameById[task.parentTaskId] }}</span>
+            <span>{{ 'projectDetail.parentTask' | translate }}: {{ taskNameById[task.parentTaskId] }}</span>
           </div>
           <div
             class="task-detail-item"
@@ -516,13 +511,13 @@
   <!-- タスクが存在しない場合 -->
   <div *ngIf="filteredTasks.length === 0" class="no-tasks">
     <mat-icon>assignment</mat-icon>
-    <p>タスクがありません</p>
+    <p>{{ 'projectDetail.noTasks' | translate }}</p>
     <button mat-raised-button color="primary" (click)="openAddTaskDialog()">
-      ＋ タスクを追加
+      {{ 'projectDetail.addTask' | translate }}
     </button>
   </div>
 </div>
 
 <ng-template #loading>
-  <p>読み込み中...</p>
+  <p>{{ 'projectDetail.loading' | translate }}</p>
 </ng-template>

@@ -28,6 +28,8 @@ import {
   resolveProjectThemeColor,
 } from '../../constants/project-theme-colors';
 
+import { TranslatePipe } from '../../pipes/translate.pipe';
+
 @Component({
   selector: 'app-task-detail',
   standalone: true,
@@ -49,6 +51,7 @@ import {
     MatSlideToggleModule,
     TaskEditDialogComponent,
     ProjectChatComponent,
+    TranslatePipe,
   ],
   templateUrl: './task-detail.component.html',
   styleUrl: './task-detail.component.css',

@@ -1,16 +1,16 @@
 <div class="member-management-container">
   <div class="header">
-    <h1>メンバー管理</h1>
+    <h1>{{ 'memberManagement.title' | translate }}</h1>
     <button mat-raised-button color="primary" (click)="openAddMemberDialog()">
       <mat-icon>person_add</mat-icon>
-      メンバーを追加
+      {{ 'memberManagement.addMember' | translate }}
     </button>
   </div>
 
   <!-- ローディング表示 -->
   <div *ngIf="loading" class="loading-container">
     <mat-spinner></mat-spinner>
-    <p>メンバー一覧を読み込み中...</p>
+    <p>{{ 'memberManagement.loading' | translate }}</p>
   </div>
 
   <!-- メンバー一覧 -->
@@ -19,8 +19,8 @@
       <mat-card-content>
         <div class="no-members-content">
           <mat-icon class="no-members-icon">people_outline</mat-icon>
-          <h3>メンバーが登録されていません</h3>
-          <p>「メンバーを追加」ボタンから最初のメンバーを登録してください。</p>
+          <h3>{{ 'memberManagement.noMembers' | translate }}</h3>
+          <p>{{ 'memberManagement.addFirstMember' | translate }}</p>
         </div>
       </mat-card-content>
     </mat-card>
@@ -30,7 +30,7 @@
         <table mat-table [dataSource]="members" class="members-table">
           <!-- 名前列 -->
           <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef>名前</th>
+            <th mat-header-cell *matHeaderCellDef>{{ 'memberManagement.name' | translate }}</th>
             <td mat-cell *matCellDef="let member">
               <div class="member-name">
                 <mat-icon class="member-icon">person</mat-icon>
@@ -41,7 +41,7 @@
 
           <!-- メールアドレス列 -->
           <ng-container matColumnDef="email">
-            <th mat-header-cell *matHeaderCellDef>メールアドレス</th>
+            <th mat-header-cell *matHeaderCellDef>{{ 'memberManagement.email' | translate }}</th>
             <td mat-cell *matCellDef="let member">
               <div class="member-email">
                 <mat-icon class="email-icon">email</mat-icon>

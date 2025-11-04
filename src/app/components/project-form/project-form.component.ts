@@ -28,6 +28,7 @@ import {
   PROJECT_THEME_COLORS,
   ProjectThemeColor,
 } from '../../constants/project-theme-colors';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-project-form',
@@ -46,6 +47,7 @@ import {
     MatTooltipModule,
     MatSnackBarModule,
     MatProgressSpinnerModule,
+    TranslatePipe,
   ],
   templateUrl: './project-form.component.html',
   styleUrl: './project-form.component.css',

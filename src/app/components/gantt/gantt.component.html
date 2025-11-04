@@ -1,9 +1,9 @@
-<h2>ガントチャート式課題管理</h2>
+<h2>{{ 'gantt.title' | translate }}</h2>
 
 <!-- プロジェクト選択とフィルター -->
 <div class="controls-section" style="justify-content: space-between; align-items: flex-start;">
   <div class="project-selector">
-    <h3>表示するプロジェクトを選択</h3>
+    <h3>{{ 'gantt.projectSelector.title' | translate }}</h3>
     <div class="project-checkboxes">
       <mat-checkbox
         *ngFor="let project of projects"
@@ -16,10 +16,10 @@
     </div>
     <div class="project-selection-actions">
       <button mat-stroked-button (click)="selectAllProjects()">
-        すべてにチェック
+        {{ 'gantt.projectSelector.selectAll' | translate }}
       </button>
       <button mat-stroked-button (click)="clearProjectSelection()">
-        すべてのチェックをクリア
+        {{ 'gantt.projectSelector.clearAll' | translate }}
       </button>
       <button
         mat-raised-button
@@ -27,7 +27,7 @@
         class="create-project-button"
         (click)="openProjectDialog()"
       >
-        + プロジェクトを作成
+        {{ 'gantt.projectSelector.createProject' | translate }}
       </button>
     </div>
   </div>
@@ -35,7 +35,7 @@
   <!-- フィルター -->
   <div class="filter-section">
     <mat-form-field appearance="outline">
-      <mat-label>ステータス</mat-label>
+      <mat-label>{{ 'gantt.filter.status' | translate }}</mat-label>
       <mat-select [(ngModel)]="filterStatus" (selectionChange)="applyFilters()" multiple>
         <mat-option value="未着手">未着手</mat-option>
         <mat-option value="作業中">作業中</mat-option>
@@ -44,7 +44,7 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline">
-      <mat-label>優先度</mat-label>
+      <mat-label>{{ 'gantt.filter.priority' | translate }}</mat-label>
       <mat-select
         [(ngModel)]="filterPriority"
         (selectionChange)="applyFilters()"
@@ -57,7 +57,7 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline">
-      <mat-label>担当者</mat-label>
+      <mat-label>{{ 'gantt.filter.assignee' | translate }}</mat-label>
       <mat-select
         [(ngModel)]="filterAssignee"
         (selectionChange)="applyFilters()"
@@ -72,7 +72,7 @@
       </mat-select>
     </mat-form-field>
 
-    <button mat-button (click)="resetFilters()">フィルターリセット</button>
+    <button mat-button (click)="resetFilters()">{{ 'gantt.filter.reset' | translate }}</button>
   </div>
 </div>
 
@@ -80,28 +80,28 @@
 <div class="gantt-container">
   <!-- 凡例 -->
   <div class="legend">
-    <h4>ステータス</h4>
+    <h4>{{ 'gantt.legend.status' | translate }}</h4>
     <div class="legend-items">
       <div class="legend-item status-not-started">
         <div
           class="legend-color"
           [style.background-color]="statusColors['未着手']"
         ></div>
-        <span>未着手</span>
+        <span>{{ 'gantt.legend.notStarted' | translate }}</span>
       </div>
       <div class="legend-item status-in-progress">
         <div
           class="legend-color"
           [style.background-color]="statusColors['作業中']"
         ></div>
-        <span>作業中</span>
+        <span>{{ 'gantt.legend.inProgress' | translate }}</span>
       </div>
       <div class="legend-item status-completed">
         <div
           class="legend-color"
           [style.background-color]="statusColors['完了']"
         ></div>
-        <span>完了</span>
+        <span>{{ 'gantt.legend.completed' | translate }}</span>
       </div>
     </div>
   </div>
@@ -112,9 +112,9 @@
     <div class="gantt-left-pane">
       <!-- 左ヘッダー -->
       <div class="gantt-header-left" #leftHeader>
-        <div class="header-cell">プロジェクト名</div>
-        <div class="header-cell">タスク名</div>
-        <div class="header-cell">優先度</div>
+        <div class="header-cell">{{ 'gantt.header.projectName' | translate }}</div>
+        <div class="header-cell">{{ 'gantt.header.taskName' | translate }}</div>
+        <div class="header-cell">{{ 'gantt.header.priority' | translate }}</div>
         <div
           class="header-cell"
           [style.width.px]="assigneeColumnWidth"
@@ -122,7 +122,7 @@
           [style.max-width.px]="assigneeColumnWidth"
           style="white-space: nowrap"
         >
-          担当者
+          {{ 'gantt.header.assignee' | translate }}
         </div>
       </div>
       <!-- 左ボディ -->
@@ -273,7 +273,7 @@
 >
   <div class="tooltip-header">
     <span class="tooltip-icon">🚩</span>
-    <span class="tooltip-title">マイルストーン</span>
+    <span class="tooltip-title">{{ 'gantt.tooltip.milestone' | translate }}</span>
   </div>
   <div class="tooltip-content">
     <div

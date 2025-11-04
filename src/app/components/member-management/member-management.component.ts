@@ -15,6 +15,7 @@ import { MemberManagementService } from '../../services/member-management.servic
 import { Member } from '../../models/member.model';
 import { MemberFormDialogComponent } from './member-form-dialog/member-form-dialog.component';
 import { Router } from '@angular/router';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-member-management',
@@ -32,6 +33,7 @@ import { Router } from '@angular/router';
     MatProgressSpinnerModule,
     MatFormFieldModule,
     MatInputModule,
+    TranslatePipe,
   ],
   templateUrl: './member-management.component.html',
   styleUrls: ['./member-management.component.css'],

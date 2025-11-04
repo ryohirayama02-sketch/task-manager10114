@@ -33,6 +33,7 @@ import {
   resolveProjectThemeColor,
 } from '../../constants/project-theme-colors';
 import { inject } from '@angular/core';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-project-detail',
@@ -53,6 +54,7 @@ import { inject } from '@angular/core';
     MatSnackBarModule,
     ProgressCircleComponent,
     ProjectChatComponent,
+    TranslatePipe,
   ],
   templateUrl: './project-detail.component.html',
   styleUrls: ['./project-detail.component.css'],

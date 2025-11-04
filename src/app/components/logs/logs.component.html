@@ -1,12 +1,12 @@
 <div class="logs-container">
   <div class="logs-header">
-    <h2>編集ログ</h2>
+    <h2>{{ 'logs.title' | translate }}</h2>
     <button
       class="csv-export-btn"
       (click)="exportToCSV()"
       [disabled]="editLogs.length === 0"
     >
-      📊 CSV出力
+      📊 {{ 'logs.csvExport' | translate }}
     </button>
   </div>
 
@@ -14,7 +14,7 @@
   <div class="logs-filters" *ngIf="!loading">
     <div class="filter-group">
       <mat-form-field appearance="outline" class="filter-field">
-        <mat-label>プロジェクト</mat-label>
+        <mat-label>{{ 'logs.filterProject' | translate }}</mat-label>
         <mat-select
           multiple
           [(ngModel)]="filterProjects"
@@ -30,7 +30,7 @@
 
     <div class="filter-group">
       <mat-form-field appearance="outline" class="filter-field">
-        <mat-label>タスク</mat-label>
+        <mat-label>{{ 'logs.filterTask' | translate }}</mat-label>
         <mat-select
           multiple
           [(ngModel)]="filterTasks"
@@ -46,7 +46,7 @@
 
     <div class="filter-group">
       <mat-form-field appearance="outline" class="filter-field">
-        <mat-label>メンバー</mat-label>
+        <mat-label>{{ 'logs.filterMember' | translate }}</mat-label>
         <mat-select
           multiple
           [(ngModel)]="filterMembers"

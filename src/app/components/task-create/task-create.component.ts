@@ -14,6 +14,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ProjectService } from '../../services/project.service';
 import { MemberManagementService } from '../../services/member-management.service';
 import { Member } from '../../models/member.model';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-task-create',
@@ -30,6 +31,7 @@ import { Member } from '../../models/member.model';
     MatChipsModule,
     MatTooltipModule,
     MatProgressSpinnerModule,
+    TranslatePipe,
   ],
   templateUrl: './task-create.component.html',
   styleUrl: './task-create.component.css',
