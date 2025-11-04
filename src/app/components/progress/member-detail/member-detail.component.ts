@@ -83,6 +83,7 @@ export class MemberDetailComponent implements OnInit {
   
   // プロジェクト情報
   private projectMap: Record<string, any> = {};
+  private projectNameToId: Record<string, string> = {};
 
   // 期間フィルター用
   periodStartDate: Date | null = null;
@@ -149,11 +150,15 @@ export class MemberDetailComponent implements OnInit {
     let memberTasks = allTasks.filter((task) => task.assignee === memberName);
 
     // タスクにプロジェクトテーマ色を付与
+    this.projectNameToId = {};
     memberTasks = memberTasks.map((task) => {
       const project = this.projectMap[task.projectId];
       const themeColor = project
         ? resolveProjectThemeColor(project)
         : this.defaultThemeColor;
+      if (task.projectName && task.projectId) {
+        this.projectNameToId[task.projectName] = task.projectId;
+      }
       return {
         ...task,
         projectThemeColor: themeColor,
@@ -201,6 +206,14 @@ export class MemberDetailComponent implements OnInit {
     console.log('メンバー詳細:', this.memberDetail);
     this.applyTaskFilters();
     this.isLoading = false;
+  }
+
+  navigateToProject(projectName: string) {
+    const projectId = this.projectNameToId[projectName];
+    if (!projectId) {
+      return;
+    }
+    this.router.navigate(['/project', projectId]);
   }
 
   /** タスクフィルターを適用 */

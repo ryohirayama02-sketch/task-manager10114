@@ -33,6 +33,11 @@
             <span
               *ngFor="let project of memberDetail.projects"
               class="project-chip"
+              role="button"
+              tabindex="0"
+              (click)="navigateToProject(project)"
+              (keydown.enter)="navigateToProject(project)"
+              (keydown.space)="navigateToProject(project)"
             >
               {{ project }}
             </span>
