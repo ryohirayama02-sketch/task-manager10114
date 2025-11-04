@@ -1,0 +1,175 @@
+<div class="page-header">
+  <button mat-button (click)="goBack()" class="back-button">
+    <mat-icon>arrow_back</mat-icon>
+    戻る
+  </button>
+  <h2>タスク作成</h2>
+</div>
+
+<div class="task-create-container">
+  <mat-card class="task-form-card">
+    <mat-card-header>
+      <h3>{{ projectName ? projectName + ' - タスク作成' : 'タスク作成' }}</h3>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form (ngSubmit)="save()" #taskCreateForm="ngForm">
+        <!-- タスク名 -->
+        <mat-form-field appearance="outline" class="full-width-field">
+          <mat-label>タスク名</mat-label>
+          <input
+            matInput
+            [(ngModel)]="taskForm.taskName"
+            name="taskName"
+            required
+          />
+        </mat-form-field>
+
+        <!-- 説明 -->
+        <mat-form-field appearance="outline" class="full-width-field">
+          <mat-label>説明</mat-label>
+          <textarea
+            matInput
+            rows="3"
+            [(ngModel)]="taskForm.description"
+            name="description"
+          ></textarea>
+        </mat-form-field>
+
+        <!-- 日付範囲 -->
+        <div class="date-row">
+          <div class="date-field">
+            <label for="startDate">開始日</label>
+            <div class="date-input-wrapper">
+              <input
+                id="startDate"
+                class="date-input"
+                type="date"
+                [(ngModel)]="taskForm.startDate"
+                name="startDate"
+              />
+              <mat-icon class="date-icon">event</mat-icon>
+            </div>
+          </div>
+
+          <div class="date-field">
+            <label for="dueDate">終了日</label>
+            <div class="date-input-wrapper">
+              <input
+                id="dueDate"
+                class="date-input"
+                type="date"
+                [(ngModel)]="taskForm.dueDate"
+                name="dueDate"
+              />
+              <mat-icon class="date-icon">event</mat-icon>
+            </div>
+          </div>
+        </div>
+
+        <!-- 担当者 -->
+        <mat-form-field appearance="outline" class="full-width-field">
+          <mat-label>担当者</mat-label>
+          <mat-select
+            [(ngModel)]="selectedMemberId"
+            name="assignee"
+            (ngModelChange)="onMemberSelectionChange($event)"
+          >
+            <mat-option value="">未割当</mat-option>
+            <mat-option *ngFor="let member of members" [value]="member.id">
+              {{ member.name }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <!-- ステータス -->
+        <mat-form-field appearance="outline" class="full-width-field">
+          <mat-label>ステータス</mat-label>
+          <mat-select [(ngModel)]="taskForm.status" name="status">
+            <mat-option *ngFor="let status of statusOptions" [value]="status">
+              {{ status }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <!-- 優先度 -->
+        <mat-form-field appearance="outline" class="full-width-field">
+          <mat-label>優先度</mat-label>
+          <mat-select [(ngModel)]="taskForm.priority" name="priority">
+            <mat-option *ngFor="let priority of priorityOptions" [value]="priority">
+              {{ priority }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <!-- タグ -->
+        <div class="tag-section">
+          <label>タグ</label>
+          <div class="tag-input-row">
+            <mat-form-field appearance="outline" class="tag-input-field">
+              <mat-label>タグを追加</mat-label>
+              <input
+                matInput
+                [(ngModel)]="newTag"
+                name="newTag"
+                placeholder="タグを入力してEnter"
+                (keyup.enter)="addTag()"
+              />
+            </mat-form-field>
+            <button
+              mat-icon-button
+              type="button"
+              (click)="addTag()"
+              [disabled]="!newTag"
+            >
+              <mat-icon>add</mat-icon>
+            </button>
+          </div>
+          <mat-chip-set *ngIf="taskForm.tags.length > 0">
+            <mat-chip
+              *ngFor="let tag of taskForm.tags"
+              removable
+              (removed)="removeTag(tag)"
+            >
+              {{ tag }}
+              <mat-icon matChipRemove>close</mat-icon>
+            </mat-chip>
+          </mat-chip-set>
+        </div>
+
+        <!-- カレンダー連携 -->
+        <div class="calendar-sync-section">
+          <label>
+            <input
+              type="checkbox"
+              [(ngModel)]="taskForm.calendarSyncEnabled"
+              name="calendarSyncEnabled"
+            />
+            カレンダーに同期
+          </label>
+        </div>
+
+        <!-- ボタン群 -->
+        <div class="form-actions">
+          <button
+            mat-raised-button
+            type="button"
+            (click)="cancel()"
+            [disabled]="isSaving"
+          >
+            キャンセル
+          </button>
+          <button
+            mat-raised-button
+            color="primary"
+            type="submit"
+            [disabled]="isSaving"
+          >
+            <mat-icon *ngIf="isSaving">schedule</mat-icon>
+            {{ isSaving ? '保存中...' : 'タスクを作成' }}
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

@@ -18,6 +18,7 @@ import { MemberFormPageComponent } from './components/member-management/member-f
 import { LoginComponent } from './components/auth/login/login.component';
 import { ProjectFormComponent } from './components/project-form/project-form.component';
 import { OfflineTestComponent } from './components/offline-test/offline-test.component';
+import { TaskCreatePageComponent } from './components/task-create/task-create.component';
 import { AuthGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
@@ -54,6 +55,11 @@ export const routes: Routes = [
   {
     path: 'project/:projectId/task/:taskId',
     component: TaskDetailComponent,
+    canActivate: [AuthGuard],
+  },
+  {
+    path: 'task-create',
+    component: TaskCreatePageComponent,
     canActivate: [AuthGuard],
   },
   { path: 'quick', component: QuickTasksComponent, canActivate: [AuthGuard] },

@@ -24,7 +24,6 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MemberManagementService } from '../../services/member-management.service';
 import { Member } from '../../models/member.model';
 import { ProjectAttachmentService } from '../../services/project-attachment.service';
-import { TaskFormComponent } from '../task-form/task-form.component';
 import { ProjectFormDialogComponent } from '../project-form-dialog/project-form-dialog.component';
 import { ProjectDeleteConfirmDialogComponent } from './project-delete-confirm-dialog.component';
 import { ProgressCircleComponent } from '../progress/projects-overview/progress-circle.component';
@@ -33,6 +32,7 @@ import {
   DEFAULT_PROJECT_THEME_COLOR,
   resolveProjectThemeColor,
 } from '../../constants/project-theme-colors';
+import { inject } from '@angular/core';
 
 @Component({
   selector: 'app-project-detail',
@@ -113,7 +113,6 @@ export class ProjectDetailComponent implements OnInit {
     private router: Router,
     private projectService: ProjectService,
     private progressService: ProgressService,
-    private dialog: MatDialog,
     private snackBar: MatSnackBar,
     private memberService: MemberManagementService,
     private attachmentService: ProjectAttachmentService,
@@ -126,6 +125,8 @@ export class ProjectDetailComponent implements OnInit {
       | undefined;
     this.returnUrl = navState?.returnUrl ?? historyState?.returnUrl ?? null;
   }
+
+  private dialog = inject(MatDialog);
 
   ngOnInit() {
     this.loadMembers();
@@ -178,7 +179,9 @@ export class ProjectDetailComponent implements OnInit {
       startDate: this.project.startDate || '',
       endDate: this.project.endDate || '',
       responsible: this.extractResponsibleNames(this.project).join(', '),
-      members: this.project.members ? this.normalizeMembersField(this.project.members) : '',
+      members: this.project.members
+        ? this.normalizeMembersField(this.project.members)
+        : '',
       tags: Array.isArray(this.project.tags)
         ? (this.project.tags as unknown as string[])
             .filter((tag) => !!tag)
@@ -186,16 +189,20 @@ export class ProjectDetailComponent implements OnInit {
         : this.project.tags || '',
     };
     this.editableTags = this.parseTags(this.project.tags);
-    this.editableMilestones = (this.project.milestones || []).map((milestone) => ({
-      id: milestone.id || this.generateId(),
-      name: milestone.name || '',
-      date: milestone.date || '',
-      description: milestone.description || '',
-    }));
-    this.editableAttachments = (this.project.attachments || []).map((attachment) => ({
-      ...attachment,
-      id: attachment.id || this.generateId(),
-    }));
+    this.editableMilestones = (this.project.milestones || []).map(
+      (milestone) => ({
+        id: milestone.id || this.generateId(),
+        name: milestone.name || '',
+        date: milestone.date || '',
+        description: milestone.description || '',
+      })
+    );
+    this.editableAttachments = (this.project.attachments || []).map(
+      (attachment) => ({
+        ...attachment,
+        id: attachment.id || this.generateId(),
+      })
+    );
     this.pendingFiles = [];
     this.attachmentsToRemove = [];
     this.linkTitle = '';
@@ -204,7 +211,9 @@ export class ProjectDetailComponent implements OnInit {
     this.syncSelectionsFromProject();
   }
 
-  private async saveInlineEditChanges(event: MatSlideToggleChange): Promise<void> {
+  private async saveInlineEditChanges(
+    event: MatSlideToggleChange
+  ): Promise<void> {
     if (!this.project || !this.editableProject) {
       event.source.checked = false;
       this.isInlineEditMode = false;
@@ -221,12 +230,13 @@ export class ProjectDetailComponent implements OnInit {
       return;
     }
 
-    const membersString = this.selectedMembers.length > 0
-      ? this.selectedMembers
-          .map((member) => member.name)
-          .filter((name) => !!name)
-          .join(', ')
-      : this.editableProject.members?.trim() || this.project.members || '';
+    const membersString =
+      this.selectedMembers.length > 0
+        ? this.selectedMembers
+            .map((member) => member.name)
+            .filter((name) => !!name)
+            .join(', ')
+        : this.editableProject.members?.trim() || this.project.members || '';
     const tagsString = this.editableTags.join(', ');
 
     const responsiblesPayload = this.selectedResponsibles.map((member) => ({
@@ -264,8 +274,11 @@ export class ProjectDetailComponent implements OnInit {
 
     if (this.attachmentsToRemove.length > 0) {
       await this.deleteMarkedAttachments(this.project.id);
-      attachments = attachments.filter((attachment) =>
-        !this.attachmentsToRemove.some((removed) => removed.id === attachment.id)
+      attachments = attachments.filter(
+        (attachment) =>
+          !this.attachmentsToRemove.some(
+            (removed) => removed.id === attachment.id
+          )
       );
       this.attachmentsToRemove = [];
     }
@@ -284,7 +297,8 @@ export class ProjectDetailComponent implements OnInit {
       overview: this.editableProject.overview?.trim() || '',
       startDate: this.editableProject.startDate || '',
       endDate: this.editableProject.endDate || '',
-      responsible: responsibleNames || this.editableProject.responsible?.trim() || '',
+      responsible:
+        responsibleNames || this.editableProject.responsible?.trim() || '',
       responsibleId: primaryResponsibleId,
       responsibleEmail: primaryResponsibleEmail,
       responsibles: responsiblesPayload,
@@ -363,7 +377,10 @@ export class ProjectDetailComponent implements OnInit {
       return [];
     }
     const names: string[] = [];
-    if (Array.isArray(project.responsibles) && project.responsibles.length > 0) {
+    if (
+      Array.isArray(project.responsibles) &&
+      project.responsibles.length > 0
+    ) {
       project.responsibles.forEach((entry) => {
         const name = entry.memberName || '';
         if (name) {
@@ -418,9 +435,12 @@ export class ProjectDetailComponent implements OnInit {
       const namesFromEntries = responsibleEntries
         .map((entry) => entry.memberName)
         .filter((name): name is string => !!name);
-      const additional = this.members.filter((member) =>
-        namesFromEntries.includes(member.name || '') &&
-        !this.selectedResponsibles.some((selected) => selected.id === member.id)
+      const additional = this.members.filter(
+        (member) =>
+          namesFromEntries.includes(member.name || '') &&
+          !this.selectedResponsibles.some(
+            (selected) => selected.id === member.id
+          )
       );
       this.selectedResponsibles = [...this.selectedResponsibles, ...additional];
     }
@@ -461,9 +481,7 @@ export class ProjectDetailComponent implements OnInit {
   }
 
   onResponsibleSelectionChange(selectedIds: string[]): void {
-    this.selectedResponsibleIds = Array.isArray(selectedIds)
-      ? selectedIds
-      : [];
+    this.selectedResponsibleIds = Array.isArray(selectedIds) ? selectedIds : [];
     this.selectedResponsibles = this.members.filter((member) =>
       this.selectedResponsibleIds.includes(member.id || '')
     );
@@ -477,7 +495,9 @@ export class ProjectDetailComponent implements OnInit {
 
   removeSelectedMember(member: Member): void {
     const memberId = member.id || '';
-    this.selectedMemberIds = this.selectedMemberIds.filter((id) => id !== memberId);
+    this.selectedMemberIds = this.selectedMemberIds.filter(
+      (id) => id !== memberId
+    );
     this.selectedMembers = this.selectedMembers.filter(
       (selected) => (selected.id || '') !== memberId
     );
@@ -515,7 +535,9 @@ export class ProjectDetailComponent implements OnInit {
   }
 
   removeTag(tag: string): void {
-    this.editableTags = this.editableTags.filter((existing) => existing !== tag);
+    this.editableTags = this.editableTags.filter(
+      (existing) => existing !== tag
+    );
   }
 
   addMilestone(): void {
@@ -659,7 +681,9 @@ export class ProjectDetailComponent implements OnInit {
     return `${bytes} B`;
   }
 
-  private async uploadPendingFiles(projectId: string): Promise<ProjectAttachment[]> {
+  private async uploadPendingFiles(
+    projectId: string
+  ): Promise<ProjectAttachment[]> {
     const uploaded: ProjectAttachment[] = [];
 
     for (const pending of this.pendingFiles) {
@@ -793,24 +817,13 @@ export class ProjectDetailComponent implements OnInit {
   openAddTaskDialog() {
     if (!this.project) return;
 
-    console.log('📤 ダイアログに渡すprojectName:', this.project?.projectName);
-    const dialogRef = this.dialog.open(TaskFormComponent, {
-      width: '90vw',
-      maxWidth: '800px',
-      maxHeight: '90vh',
-      data: { projectName: this.project.projectName }, // ✅ 自動で渡す
-    });
-
-    dialogRef.afterClosed().subscribe(async (result) => {
-      if (!result || !this.projectId) return;
-
-      try {
-        await this.projectService.addTaskToProject(this.projectId, result);
-        console.log('タスク追加成功:', result);
-      } catch (error) {
-        console.error('Firestoreへの追加失敗:', error);
-        alert('保存に失敗しました。');
-      }
+    // タスク作成ページに移行
+    this.router.navigate(['/task-create'], {
+      state: {
+        projectName: this.project.projectName,
+        projectId: this.projectId,
+        returnUrl: `/project/${this.projectId}`,
+      },
     });
   }
 
@@ -831,9 +844,7 @@ export class ProjectDetailComponent implements OnInit {
         this.tasks = this.sortTasks(tasks);
         this.assigneeOptions = [
           ...new Set(
-            tasks
-              .map((task) => task.assignee)
-              .filter((assignee) => !!assignee)
+            tasks.map((task) => task.assignee).filter((assignee) => !!assignee)
           ),
         ];
         this.filteredTasks = [...this.tasks];
@@ -979,5 +990,4 @@ export class ProjectDetailComponent implements OnInit {
     link.click();
     document.body.removeChild(link);
   }
-
 }
