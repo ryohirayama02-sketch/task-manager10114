@@ -54,7 +54,7 @@ export class TaskCreatePageComponent implements OnInit {
     calendarSyncEnabled: false,
   };
 
-  selectedMemberId: string = '';
+  selectedMemberIds: string[] = [];
   newTag: string = '';
   statusOptions = ['未着手', '作業中', '完了'];
   priorityOptions = ['高', '中', '低'];
@@ -85,11 +85,9 @@ export class TaskCreatePageComponent implements OnInit {
     });
   }
 
-  onMemberSelectionChange(memberId: string) {
-    const member = this.members.find((m) => m.id === memberId);
-    if (member) {
-      this.taskForm.assignee = member.name;
-    }
+  onMembersSelectionChange(memberIds: string[]) {
+    this.selectedMemberIds = memberIds;
+    this.taskForm.assignee = this.selectedMemberIds.map(id => this.members.find(m => m.id === id)?.name).join(', ');
   }
 
   addTag() {

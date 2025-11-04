@@ -48,7 +48,6 @@
                 [(ngModel)]="taskForm.startDate"
                 name="startDate"
               />
-              <mat-icon class="date-icon">event</mat-icon>
             </div>
           </div>
 
@@ -62,7 +61,6 @@
                 [(ngModel)]="taskForm.dueDate"
                 name="dueDate"
               />
-              <mat-icon class="date-icon">event</mat-icon>
             </div>
           </div>
         </div>
@@ -71,11 +69,11 @@
         <mat-form-field appearance="outline" class="full-width-field">
           <mat-label>担当者</mat-label>
           <mat-select
-            [(ngModel)]="selectedMemberId"
+            [(ngModel)]="selectedMemberIds"
             name="assignee"
-            (ngModelChange)="onMemberSelectionChange($event)"
+            multiple
+            (ngModelChange)="onMembersSelectionChange($event)"
           >
-            <mat-option value="">未割当</mat-option>
             <mat-option *ngFor="let member of members" [value]="member.id">
               {{ member.name }}
             </mat-option>
@@ -145,7 +143,7 @@
               [(ngModel)]="taskForm.calendarSyncEnabled"
               name="calendarSyncEnabled"
             />
-            カレンダーに同期
+            カレンダーと連携する
           </label>
         </div>
 
