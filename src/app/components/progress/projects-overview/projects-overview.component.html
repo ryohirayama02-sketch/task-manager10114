@@ -1,6 +1,6 @@
 <div class="projects-overview-container">
   <div class="header">
-    <h2>全プロジェクト進捗</h2>
+    <h2>{{ 'progress.projects.title' | translate }}</h2>
     <div class="header-actions">
       <button
         mat-stroked-button
@@ -9,12 +9,12 @@
         class="sort-button"
       >
         <mat-icon>sort</mat-icon>
-        並び替え: {{ getSortLabel(sortOption) }}
+        {{ 'progress.projects.sortBy' | translate }}: {{ getSortLabel(sortOption) }}
         <mat-icon class="expand-icon">arrow_drop_down</mat-icon>
       </button>
       <button mat-raised-button color="primary" (click)="openProjectForm()">
         <mat-icon>add</mat-icon>
-        プロジェクトを作成
+        {{ 'progress.projects.createProject' | translate }}
       </button>
     </div>
   </div>
@@ -52,26 +52,26 @@
         </h3>
 
         <p class="project-overview">
-          <strong>概要:</strong>
+          <strong>{{ 'progress.projects.overview' | translate }}:</strong>
           <span class="info-text">
             {{ project.overview || "（概要未設定）" }}
           </span>
         </p>
         <p class="project-meta-line">
-          <strong>期間:</strong>
+          <strong>{{ 'progress.projects.period' | translate }}:</strong>
           <span class="info-text">
             {{ toDateDisplay(project.startDate) }} -
             {{ toDateDisplay(project.endDate) }}
           </span>
         </p>
         <p class="project-meta-line">
-          <strong>責任者:</strong>
+          <strong>{{ 'progress.projects.responsible' | translate }}:</strong>
           <span class="info-text">
             {{ project.responsible || "（責任者未設定）" }}
           </span>
         </p>
         <p class="project-meta-line">
-          <strong>メンバー:</strong>
+          <strong>{{ 'progress.projects.members' | translate }}:</strong>
           <span class="info-text">
             {{ getMemberDisplay(project) }}
           </span>

@@ -18,6 +18,7 @@ import { ProjectSelectionService } from '../../services/project-selection.servic
 import { OfflineService } from '../../services/offline.service';
 import { Task } from '../../models/task.model';
 import { IProject } from '../../models/project.model';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-calendar',
@@ -35,6 +36,7 @@ import { IProject } from '../../models/project.model';
     MatButtonToggleModule,
     MatSnackBarModule,
     FormsModule,
+    TranslatePipe,
   ],
   templateUrl: './calendar.component.html',
   styleUrls: ['./calendar.component.css'],

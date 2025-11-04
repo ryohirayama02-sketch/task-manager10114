@@ -26,6 +26,7 @@ import {
   resolveProjectThemeColor,
 } from '../../constants/project-theme-colors';
 import { TruncateOverflowDirective } from '../../directives/truncate-overflow.directive';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-gantt',
@@ -42,6 +43,7 @@ import { TruncateOverflowDirective } from '../../directives/truncate-overflow.di
     MatMenuModule,
     FormsModule,
     TruncateOverflowDirective,
+    TranslatePipe,
   ],
   templateUrl: './gantt.component.html',
   styleUrls: ['./gantt.component.css'],

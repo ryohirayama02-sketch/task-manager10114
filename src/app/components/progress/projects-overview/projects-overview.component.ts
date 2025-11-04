@@ -15,6 +15,8 @@ import {
   DEFAULT_PROJECT_THEME_COLOR,
   resolveProjectThemeColor,
 } from '../../../constants/project-theme-colors';
+import { TranslatePipe } from '../../../pipes/translate.pipe';
+import { LanguageService } from '../../../services/language.service';
 
 @Component({
   selector: 'app-projects-overview',
@@ -26,29 +28,37 @@ import {
     MatIconModule,
     MatMenuModule,
     ProgressCircleComponent,
+    TranslatePipe,
   ],
   templateUrl: './projects-overview.component.html',
   styleUrls: ['./projects-overview.component.css'],
 })
 export class ProjectsOverviewComponent implements OnInit {
   private readonly sortStorageKey = 'projectsOverview.sortOption';
-  readonly sortOptions = [
-    { value: 'endDateAsc', label: '期日が近い順' },
-    { value: 'endDateDesc', label: '期日が遠い順' },
-    { value: 'progressDesc', label: '進捗率が高い順' },
-    { value: 'progressAsc', label: '進捗率が低い順' },
-  ] as const;
+  sortOptions: Array<{ value: 'endDateAsc' | 'endDateDesc' | 'progressDesc' | 'progressAsc'; label: string }> = [];
   private readonly projectNameMaxLength = 39;
-  sortOption: (typeof this.sortOptions)[number]['value'] = 'endDateAsc';
+  sortOption: 'endDateAsc' | 'endDateDesc' | 'progressDesc' | 'progressAsc' = 'endDateAsc';
   projects: IProject[] = [];
   projectProgress: { [key: string]: ProjectProgress } = {};
   readonly defaultThemeColor = DEFAULT_PROJECT_THEME_COLOR;
 
   constructor(
-    private router: Router, // ✅ Routerを追加
+    private router: Router,
     private projectService: ProjectService,
-    private progressService: ProgressService
-  ) {}
+    private progressService: ProgressService,
+    private languageService: LanguageService
+  ) {
+    this.initializeSortOptions();
+  }
+
+  private initializeSortOptions() {
+    this.sortOptions = [
+      { value: 'endDateAsc', label: this.languageService.translate('progress.projects.sortBy.dueDate') + ' - ' + this.languageService.translate('progress.projects.sortBy.soon') },
+      { value: 'endDateDesc', label: this.languageService.translate('progress.projects.sortBy.dueDate') + ' - ' + this.languageService.translate('progress.projects.sortBy.later') },
+      { value: 'progressDesc', label: this.languageService.translate('progress.projects.sortBy.progress') + ' - ' + this.languageService.translate('progress.projects.sortBy.high') },
+      { value: 'progressAsc', label: this.languageService.translate('progress.projects.sortBy.progress') + ' - ' + this.languageService.translate('progress.projects.sortBy.low') },
+    ];
+  }
 
   ngOnInit() {
     const storedOption = localStorage.getItem(this.sortStorageKey);

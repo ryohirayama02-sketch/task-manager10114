@@ -2,15 +2,15 @@
   <div class="header">
     <button mat-button (click)="goBack()" class="back-button">
       <mat-icon>arrow_back</mat-icon>
-      戻る
+      {{ 'progress.member.back' | translate }}
     </button>
-    <h2>個別メンバーの進捗</h2>
+    <h2>{{ 'progress.member.title' | translate }}</h2>
   </div>
 
   <!-- ローディング表示 -->
   <div *ngIf="isLoading" class="loading-container">
     <mat-spinner></mat-spinner>
-    <p>メンバー詳細を読み込み中...</p>
+    <p>{{ 'progress.member.loading' | translate }}</p>
   </div>
 
   <!-- メンバー詳細 -->
@@ -22,14 +22,14 @@
           <h3 class="member-name">{{ memberDetail.name }}</h3>
           <div class="member-meta">
             <span class="completion-rate"
-              >完了率: {{ memberDetail.completionRate }}%</span
+              >{{ 'progress.member.completionRate' | translate }}: {{ memberDetail.completionRate }}%</span
             >
             <span class="total-tasks"
-              >総タスク数: {{ memberDetail.totalTasks }}件</span
+              >{{ 'progress.member.totalTasks' | translate }}: {{ memberDetail.totalTasks }}件</span
             >
           </div>
           <div class="projects">
-            <strong>所属プロジェクト:</strong>
+            <strong>{{ 'progress.member.projects' | translate }}:</strong>
             <span
               *ngFor="let project of memberDetail.projects"
               class="project-chip"
@@ -49,13 +49,13 @@
     <!-- 優先度別統計 -->
     <mat-card class="priority-stats-card">
       <mat-card-header>
-        <mat-card-title>全保有タスクのステータスと優先度</mat-card-title>
+        <mat-card-title>{{ 'progress.member.allTasksStatus' | translate }}</mat-card-title>
         <div class="header-actions">
           <button mat-button class="period-button" (click)="openPeriodDialog()">
             <mat-icon>date_range</mat-icon>
             {{ periodStartDate && periodEndDate ? 
               (periodStartDate | date:'MM/dd') + ' - ' + (periodEndDate | date:'MM/dd') 
-              : '期間' }}
+              : ('progress.member.period' | translate) }}
           </button>
         </div>
       </mat-card-header>
@@ -72,7 +72,7 @@
           </div>
 
           <div class="status-row completed">
-            <div class="status-label">完了</div>
+            <div class="status-label">{{ 'progress.status.completed' | translate }}</div>
             <div class="status-total">{{ memberDetail.completedTasks }}件</div>
             <div class="priority-details">
               <span class="priority-item high">{{
@@ -88,7 +88,7 @@
           </div>
 
           <div class="status-row in-progress">
-            <div class="status-label">作業中</div>
+            <div class="status-label">{{ 'progress.status.inProgress' | translate }}</div>
             <div class="status-total">{{ memberDetail.inProgressTasks }}件</div>
             <div class="priority-details">
               <span class="priority-item high">{{
@@ -104,7 +104,7 @@
           </div>
 
           <div class="status-row not-started">
-            <div class="status-label">未着手</div>
+            <div class="status-label">{{ 'progress.status.notStarted' | translate }}</div>
             <div class="status-total">{{ memberDetail.notStartedTasks }}件</div>
             <div class="priority-details">
               <span class="priority-item high">{{

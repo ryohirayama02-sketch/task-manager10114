@@ -17,6 +17,8 @@ import { TaskFormComponent } from '../task-form/task-form.component';
 import { TaskService } from '../../services/task.service';
 import { Task } from '../../models/task.model';
 import { IProject } from '../../models/project.model';
+import { TranslatePipe } from '../../pipes/translate.pipe';
+import { LanguageService } from '../../services/language.service';
 
 @Component({
   selector: 'app-kanban',
@@ -33,6 +35,7 @@ import { IProject } from '../../models/project.model';
     MatCheckboxModule,
     MatChipsModule,
     FormsModule,
+    TranslatePipe,
   ],
   templateUrl: './kanban.component.html',
   styleUrls: ['./kanban.component.css'],
@@ -49,7 +52,8 @@ export class KanbanComponent implements OnInit {
     private projectService: ProjectService,
     private projectSelectionService: ProjectSelectionService,
     private dialog: MatDialog,
-    private router: Router
+    private router: Router,
+    private languageService: LanguageService
   ) {}
 
   ngOnInit(): void {
@@ -201,7 +205,9 @@ export class KanbanComponent implements OnInit {
         parentTask.detailSettings?.taskOrder?.requireSubtaskCompletion
       ) {
         alert(
-          `「親タスク：${parentTask.taskName || '名称未設定'}」のステータスを作業中に変更します`
+          this.languageService.translateWithParams('kanban.alert.parentTaskStatusChange', {
+            taskName: parentTask.taskName || '名称未設定'
+          })
         );
         try {
           await this.taskService.updateTaskStatus(
@@ -232,7 +238,9 @@ export class KanbanComponent implements OnInit {
 
       if (incompleteChild) {
         const childName = incompleteChild.taskName || '名称未設定';
-        alert(`「子タスク：${childName}」が完了していません`);
+        alert(this.languageService.translateWithParams('kanban.alert.incompleteSubtask', {
+          taskName: childName
+        }));
         return;
       }
     }
@@ -273,13 +281,13 @@ export class KanbanComponent implements OnInit {
   /** ＋タスク：ダイアログを開く */
   openTaskDialog() {
     if (this.selectedProjectIds.length === 0) {
-      alert('タスクを追加するプロジェクトを選択してください');
+      alert(this.languageService.translate('kanban.selectProjectToAdd'));
       return;
     }
 
     if (this.selectedProjectIds.length > 1) {
       alert(
-        '複数プロジェクトが選択されています。タスクを追加するには1つのプロジェクトのみを選択してください'
+        this.languageService.translate('kanban.multipleProjectsSelected')
       );
       return;
     }

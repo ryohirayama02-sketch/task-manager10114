@@ -20,6 +20,8 @@ import {
 } from '../../../constants/project-theme-colors';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { Inject } from '@angular/core';
+import { TranslatePipe } from '../../../pipes/translate.pipe';
+import { LanguageService } from '../../../services/language.service';
 
 interface MemberDetail {
   name: string;
@@ -52,6 +54,7 @@ interface MemberDetail {
     FormsModule,
     MatDatepickerModule,
     MatNativeDateModule,
+    TranslatePipe,
   ],
   templateUrl: './member-detail.component.html',
   styleUrls: ['./member-detail.component.css'],
@@ -62,6 +65,7 @@ export class MemberDetailComponent implements OnInit {
   private projectService = inject(ProjectService);
   private location = inject(Location);
   private dialog = inject(MatDialog);
+  private languageService = inject(LanguageService);
 
   memberDetail: MemberDetail | null = null;
   isLoading = true;

@@ -1,9 +1,9 @@
 <div class="header">
   <button mat-button (click)="goBack()" class="back-button">
     <mat-icon>arrow_back</mat-icon>
-    戻る
+    {{ 'progress.project.back' | translate }}
   </button>
-  <h2>個別プロジェクト進捗</h2>
+  <h2>{{ 'progress.project.title' | translate }}</h2>
 </div>
 
 <div *ngIf="project" class="project-summary" [ngStyle]="getProjectThemeStyle()">
@@ -13,15 +13,15 @@
   >
     {{ project.projectName }}
   </h3>
-  <p><strong>概要:</strong> {{ project.overview }}</p>
-  <p><strong>期間:</strong> {{ project.startDate }} ～ {{ project.endDate }}</p>
-  <p><strong>責任者:</strong> {{ project.responsible || "未設定" }}</p>
-  <p><strong>メンバー:</strong> {{ project.members }}</p>
+  <p><strong>{{ 'progress.project.overview' | translate }}:</strong> {{ project.overview }}</p>
+  <p><strong>{{ 'progress.project.period' | translate }}:</strong> {{ project.startDate }} ～ {{ project.endDate }}</p>
+  <p><strong>{{ 'progress.project.responsible' | translate }}:</strong> {{ project.responsible || ("progress.project.notSet" | translate) }}</p>
+  <p><strong>{{ 'progress.project.members' | translate }}:</strong> {{ project.members }}</p>
 </div>
 
 <hr />
 
-<h3>タスク一覧</h3>
+<h3>{{ 'progress.project.taskList' | translate }}</h3>
 <div *ngIf="tasks.length > 0; else noTasks">
   <div
     *ngFor="let task of tasks"
@@ -29,13 +29,13 @@
     class="task-card"
     [ngStyle]="getTaskThemeStyle(task)"
   >
-    <p><strong>タスク名:</strong> {{ task.taskName }}</p>
-    <p><strong>担当:</strong> {{ task.assignee }}</p>
-    <p><strong>期限:</strong> {{ task.dueDate }}</p>
-    <p><strong>状態:</strong> {{ task.status }}</p>
+    <p><strong>{{ 'progress.project.taskName' | translate }}:</strong> {{ task.taskName }}</p>
+    <p><strong>{{ 'progress.project.assignee' | translate }}:</strong> {{ task.assignee }}</p>
+    <p><strong>{{ 'progress.project.dueDate' | translate }}:</strong> {{ task.dueDate }}</p>
+    <p><strong>{{ 'progress.project.status' | translate }}:</strong> {{ task.status }}</p>
   </div>
 </div>
 
 <ng-template #noTasks>
-  <p>タスクが登録されていません。</p>
+  <p>{{ 'progress.project.noTasks' | translate }}</p>
 </ng-template>

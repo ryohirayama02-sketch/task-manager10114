@@ -1,8 +1,8 @@
-<h2>カンバン式課題管理</h2>
+<h2>{{ 'kanban.title' | translate }}</h2>
 
 <!-- プロジェクト選択 -->
 <div class="project-selector">
-  <h3>表示するプロジェクトを選択</h3>
+  <h3>{{ 'kanban.projectSelector.title' | translate }}</h3>
   <div class="project-checkboxes">
       <mat-checkbox
         *ngFor="let project of projects"
@@ -15,10 +15,10 @@
   </div>
   <div class="project-selection-actions">
     <button mat-stroked-button (click)="selectAllProjects()">
-      すべてにチェック
+      {{ 'kanban.projectSelector.selectAll' | translate }}
     </button>
     <button mat-stroked-button (click)="clearProjectSelection()">
-      すべてのチェックをクリア
+      {{ 'kanban.projectSelector.clearAll' | translate }}
     </button>
   </div>
 </div>
@@ -32,7 +32,7 @@
   "
 >
   <button mat-raised-button color="primary" (click)="openProjectDialog()">
-    + プロジェクトを作成
+    {{ 'kanban.createProject' | translate }}
   </button>
   <button
     mat-raised-button
@@ -40,7 +40,7 @@
     (click)="openTaskDialog()"
     [disabled]="selectedProjectIds.length !== 1"
   >
-    + タスク
+    {{ 'kanban.createTask' | translate }}
   </button>
 </div>
 
@@ -86,8 +86,8 @@
             </span>
           </div>
           <div class="task-meta">
-            <span *ngIf="task.dueDate">期限: {{ task.dueDate }}</span>
-            <span *ngIf="task.assignee">担当: {{ task.assignee }}</span>
+            <span *ngIf="task.dueDate">{{ 'kanban.dueDate' | translate }}: {{ task.dueDate }}</span>
+            <span *ngIf="task.assignee">{{ 'kanban.assignee' | translate }}: {{ task.assignee }}</span>
           </div>
           <div class="priority" [ngClass]="'priority-' + task.priority">
             {{ task.priority }}

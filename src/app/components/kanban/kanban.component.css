@@ -1,3 +1,7 @@
+h2 {
+  color: green;
+}
+
 .project-selector {
   margin-bottom: 16px;
   padding: 16px;
@@ -229,8 +233,4 @@
   background-color: #b2e9cb;
   color: #000;
   border: 1px solid #b2e9cb;
-}
-
-h2 {
-  color: blue;
 }

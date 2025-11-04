@@ -10,11 +10,13 @@ import {
 } from '../../../constants/project-theme-colors';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { TranslatePipe } from '../../../pipes/translate.pipe';
+import { LanguageService } from '../../../services/language.service';
 
 @Component({
   selector: 'app-project-progress',
   standalone: true,
-  imports: [CommonModule, RouterLink, MatButtonModule, MatIconModule],
+  imports: [CommonModule, RouterLink, MatButtonModule, MatIconModule, TranslatePipe],
   templateUrl: './project-progress.component.html',
   styleUrls: ['./project-progress.component.css'],
 })
@@ -29,7 +31,8 @@ export class ProjectProgressComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private projectService: ProjectService,
-    private location: Location
+    private location: Location,
+    private languageService: LanguageService
   ) {}
 
   ngOnInit() {

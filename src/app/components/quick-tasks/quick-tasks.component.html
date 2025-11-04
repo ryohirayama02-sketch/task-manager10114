@@ -1,23 +1,23 @@
 <div class="quick-tasks-container">
   <!-- ヘッダー -->
   <div class="header">
-    <h1>すぐやるタスク</h1>
+    <h1>{{ 'quickTasks.title' | translate }}</h1>
     <div class="filter-controls">
       <mat-form-field appearance="outline" class="days-filter">
-        <mat-label>期日設定</mat-label>
+        <mat-label>{{ 'quickTasks.dueDate' | translate }}</mat-label>
         <mat-select
           [(value)]="daysFilter"
           (selectionChange)="onDaysFilterChange()"
         >
           <mat-option *ngFor="let days of daysOptions" [value]="days">
-            {{ days }}日以内
+            {{ days }}{{ 'quickTasks.daysSuffix' | translate }}
           </mat-option>
         </mat-select>
       </mat-form-field>
       <!-- 一時的にデバッグボタンを有効化 -->
       <button mat-button color="accent" (click)="toggleDebugMode()">
         <mat-icon>bug_report</mat-icon>
-        {{ debugMode ? "デバッグOFF" : "デバッグON" }}
+        {{ debugMode ? ('quickTasks.debugOff' | translate) : ('quickTasks.debugOn' | translate) }}
       </button>
     </div>
   </div>
@@ -25,7 +25,7 @@
   <!-- ローディング表示 -->
   <div *ngIf="loading" class="loading-container">
     <mat-spinner diameter="50"></mat-spinner>
-    <p>タスクを読み込み中...</p>
+    <p>{{ 'quickTasks.loading' | translate }}</p>
   </div>
 
   <!-- 一時的にデバッグ情報を有効化 -->
@@ -148,8 +148,8 @@
     <!-- タスクが見つからない場合 -->
     <div *ngIf="filteredTasks.length === 0" class="no-tasks">
       <mat-icon>task_alt</mat-icon>
-      <h3>該当するタスクがありません</h3>
-      <p>{{ daysFilter }}日以内に期限が来る未完了のタスクはありません。</p>
+      <h3>{{ 'quickTasks.noTasksFound' | translate }}</h3>
+      <p>{{ daysFilter }}{{ 'quickTasks.daysSuffix' | translate }}以内に期限が来る未完了のタスクはありません。</p>
     </div>
 
     <!-- タスクカード一覧 -->

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -7,12 +7,19 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
+import { ProjectService } from '../../services/project.service';
 import { TaskService } from '../../services/task.service';
 import { AuthService } from '../../services/auth.service';
 import { Task } from '../../models/task.model';
+import { IProject } from '../../models/project.model';
 import { DEFAULT_PROJECT_THEME_COLOR } from '../../constants/project-theme-colors';
+import { TranslatePipe } from '../../pipes/translate.pipe';
+import { LanguageService } from '../../services/language.service';
 
 @Component({
   selector: 'app-quick-tasks',
@@ -26,6 +33,10 @@ import { DEFAULT_PROJECT_THEME_COLOR } from '../../constants/project-theme-color
     MatFormFieldModule,
     MatSelectModule,
     MatProgressSpinnerModule,
+    MatCheckboxModule,
+    MatSnackBarModule,
+    FormsModule,
+    TranslatePipe,
   ],
   templateUrl: './quick-tasks.component.html',
   styleUrl: './quick-tasks.component.css',
@@ -47,7 +58,8 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
   constructor(
     private taskService: TaskService,
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
+    private languageService: LanguageService
   ) {}
 
   ngOnInit() {

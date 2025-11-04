@@ -152,6 +152,92 @@ export class LanguageService {
       ja: 'オフラインモードになりました。変更は自動的に同期されます。',
       en: 'You are offline. Changes will sync automatically.',
     },
+    // カンバン画面
+    'kanban.title': { ja: 'カンバン式課題管理', en: 'Kanban Board' },
+    'kanban.projectSelector.title': { ja: '表示するプロジェクトを選択', en: 'Select Projects to Display' },
+    'kanban.projectSelector.selectAll': { ja: 'すべてにチェック', en: 'Select All' },
+    'kanban.projectSelector.clearAll': { ja: 'すべてのチェックをクリア', en: 'Clear All' },
+    'kanban.createProject': { ja: '+ プロジェクトを作成', en: '+ Create Project' },
+    'kanban.createTask': { ja: '+ タスク', en: '+ Task' },
+    'kanban.selectProjectToAdd': { ja: 'タスクを追加するプロジェクトを選択してください', en: 'Please select a project to add a task' },
+    'kanban.multipleProjectsSelected': { ja: '複数プロジェクトが選択されています。タスクを追加するには1つのプロジェクトのみを選択してください', en: 'Multiple projects are selected. Please select only one project to add a task' },
+    'kanban.status.notStarted': { ja: '未着手', en: 'Not Started' },
+    'kanban.status.inProgress': { ja: '作業中', en: 'In Progress' },
+    'kanban.status.completed': { ja: '完了', en: 'Completed' },
+    'kanban.alert.parentTaskStatusChange': { ja: '「親タスク：{taskName}」のステータスを作業中に変更します', en: 'The parent task "{taskName}" status will be changed to in progress' },
+    'kanban.alert.incompleteSubtask': { ja: '「子タスク：{taskName}」が完了していません', en: 'The subtask "{taskName}" is not completed' },
+    'kanban.dueDate': { ja: '期限', en: 'Due Date' },
+    'kanban.assignee': { ja: '担当', en: 'Assigned To' },
+    // 進捗画面（全プロジェクト）
+    'progress.projects.title': { ja: '全プロジェクト進捗', en: 'All Projects Progress' },
+    'progress.projects.sortBy': { ja: '並び替え', en: 'Sort By' },
+    'progress.projects.createProject': { ja: 'プロジェクトを作成', en: 'Create Project' },
+    'progress.projects.sortBy.name': { ja: 'プロジェクト名', en: 'Project Name' },
+    'progress.projects.sortBy.dueDate': { ja: '期限', en: 'Due Date' },
+    'progress.projects.sortBy.status': { ja: '状態', en: 'Status' },
+    'progress.projects.sortBy.assignee': { ja: '担当', en: 'Assigned To' },
+    'progress.projects.sortBy.progress': { ja: '進捗', en: 'Progress' },
+    'progress.projects.sortBy.soon': { ja: '近い順', en: 'Soon' },
+    'progress.projects.sortBy.later': { ja: '遠い順', en: 'Later' },
+    'progress.projects.sortBy.high': { ja: '高い順', en: 'High' },
+    'progress.projects.sortBy.low': { ja: '低い順', en: 'Low' },
+    'progress.projects.overview': { ja: '概要', en: 'Overview' },
+    'progress.projects.period': { ja: '期間', en: 'Period' },
+    'progress.projects.responsible': { ja: '責任者', en: 'Responsible' },
+    'progress.projects.members': { ja: 'メンバー', en: 'Members' },
+    // 進捗画面（メンバー概要）
+    'progress.members.title': { ja: '全メンバーの進捗', en: 'All Members Progress' },
+    'progress.members.description': { ja: '自身が所属するプロジェクトに属している全メンバーの進捗概要を一覧で確認', en: 'View progress overview of all members in your projects' },
+    'progress.members.period': { ja: '期間', en: 'Period' },
+    'progress.members.loading': { ja: 'メンバー進捗を読み込み中...', en: 'Loading member progress...' },
+    'progress.members.noMembers': { ja: 'メンバーが見つかりません', en: 'No Members Found' },
+    'progress.members.noMembersDesc': { ja: 'タスクに担当者が設定されていないか、タスクが存在しません。', en: 'No members have been assigned to tasks or no tasks exist.' },
+    'progress.members.after': { ja: '以降', en: 'after' },
+    'progress.members.before': { ja: '以前', en: 'before' },
+    'progress.status.completed': { ja: '完了', en: 'Completed' },
+    'progress.status.inProgress': { ja: '作業中', en: 'In Progress' },
+    'progress.status.notStarted': { ja: '未着手', en: 'Not Started' },
+    // 進捗画面（プロジェクト詳細）
+    'progress.project.title': { ja: '個別プロジェクト進捗', en: 'Project Progress Details' },
+    'progress.project.back': { ja: '戻る', en: 'Back' },
+    'progress.project.overview': { ja: '概要', en: 'Overview' },
+    'progress.project.period': { ja: '期間', en: 'Period' },
+    'progress.project.responsible': { ja: '責任者', en: 'Project Owner' },
+    'progress.project.members': { ja: 'メンバー', en: 'Members' },
+    'progress.project.notSet': { ja: '未設定', en: 'Not Set' },
+    'progress.project.taskList': { ja: 'タスク一覧', en: 'Tasks' },
+    'progress.project.noTasks': { ja: 'タスクが登録されていません。', en: 'No tasks registered.' },
+    'progress.project.taskName': { ja: 'タスク名', en: 'Task Name' },
+    'progress.project.assignee': { ja: '担当', en: 'Assigned To' },
+    'progress.project.dueDate': { ja: '期限', en: 'Due Date' },
+    'progress.project.status': { ja: '状態', en: 'Status' },
+    // 進捗画面（メンバー詳細）
+    'progress.member.title': { ja: '個別メンバーの進捗', en: 'Member Progress Details' },
+    'progress.member.back': { ja: '戻る', en: 'Back' },
+    'progress.member.loading': { ja: 'メンバー詳細を読み込み中...', en: 'Loading member details...' },
+    'progress.member.completionRate': { ja: '完了率', en: 'Completion Rate' },
+    'progress.member.totalTasks': { ja: '総タスク数', en: 'Total Tasks' },
+    'progress.member.projects': { ja: '所属プロジェクト', en: 'Projects' },
+    'progress.member.allTasksStatus': { ja: '全保有タスクのステータスと優先度', en: 'All Tasks Status and Priority' },
+    'progress.member.period': { ja: '期間', en: 'Period' },
+    // 素早いタスク
+    'quickTasks.title': { ja: 'すぐやるタスク', en: 'Quick Tasks' },
+    'quickTasks.dueDate': { ja: '期日設定', en: 'Due Date Setting' },
+    'quickTasks.days': { ja: '{days}日以内', en: 'Within {days} days' },
+    'quickTasks.loading': { ja: 'タスクを読み込み中...', en: 'Loading tasks...' },
+    'quickTasks.debug': { ja: 'デバッグ{mode}', en: 'Debug {mode}' },
+    'quickTasks.debugOn': { ja: 'ON', en: 'ON' },
+    'quickTasks.debugOff': { ja: 'OFF', en: 'OFF' },
+    'quickTasks.daysSuffix': { ja: '日以内', en: ' days within' },
+    'quickTasks.noTasksFound': { ja: '該当するタスクがありません', en: 'No matching tasks found' },
+    // ガント チャート
+    'gantt.title': { ja: 'ガントチャート', en: 'Gantt Chart' },
+    'gantt.milestone': { ja: 'マイルストーン', en: 'Milestone' },
+    // カレンダー
+    'calendar.title': { ja: 'カレンダー', en: 'Calendar' },
+    'calendar.month': { ja: '月', en: 'Month' },
+    'calendar.week': { ja: '週', en: 'Week' },
+    'calendar.day': { ja: '日', en: 'Day' },
   };
   private readonly languageSubject = new BehaviorSubject<SupportedLanguage>(
     this.loadInitialLanguage()
@@ -230,6 +316,15 @@ export class LanguageService {
       return entry[this.languageSubject.value] || entry[this.defaultLanguage];
     }
     return key;
+  }
+
+  /** プレースホルダー対応の翻訳を取得 */
+  translateWithParams(key: string, params: Record<string, string>): string {
+    let text = this.translate(key);
+    Object.entries(params).forEach(([key, value]) => {
+      text = text.replace(`{${key}}`, value);
+    });
+    return text;
   }
 
   /** ブラウザ環境かどうかを判定 */

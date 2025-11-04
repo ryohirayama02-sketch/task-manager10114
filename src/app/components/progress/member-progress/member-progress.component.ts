@@ -9,6 +9,8 @@ import { ProjectService } from '../../../services/project.service';
 import { Task } from '../../../models/task.model';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { PeriodFilterDialogComponent } from '../member-detail/member-detail.component';
+import { TranslatePipe } from '../../../pipes/translate.pipe';
+import { LanguageService } from '../../../services/language.service';
 
 interface MemberProgress {
   name: string;
@@ -34,6 +36,7 @@ interface MemberProgress {
     MatIconModule,
     MatProgressSpinnerModule,
     MatDialogModule,
+    TranslatePipe,
   ],
   templateUrl: './member-progress.component.html',
   styleUrls: ['./member-progress.component.css'],
@@ -42,6 +45,7 @@ export class MemberProgressComponent implements OnInit {
   private projectService = inject(ProjectService);
   private router = inject(Router);
   private dialog = inject(MatDialog);
+  private languageService = inject(LanguageService);
 
   members: MemberProgress[] = [];
   isLoading = true;
