@@ -87,7 +87,9 @@ export class TaskCreatePageComponent implements OnInit {
 
   onMembersSelectionChange(memberIds: string[]) {
     this.selectedMemberIds = memberIds;
-    this.taskForm.assignee = this.selectedMemberIds.map(id => this.members.find(m => m.id === id)?.name).join(', ');
+    this.taskForm.assignee = this.selectedMemberIds
+      .map((id) => this.members.find((m) => m.id === id)?.name)
+      .join(', ');
   }
 
   addTag() {
