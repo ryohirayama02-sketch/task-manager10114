@@ -284,15 +284,14 @@ export class KanbanComponent implements OnInit {
       return;
     }
 
-    // 選択されたプロジェクトの名前を取得
+    // 選択されたプロジェクトを取得
     const selectedProject = this.projects.find(
       (p) => p.id === this.selectedProjectIds[0]
     );
-    const projectName = selectedProject ? selectedProject.projectName : '';
 
     const ref = this.dialog.open(TaskFormComponent, {
       width: '450px',
-      data: { projectName: projectName }, // プロジェクト名を渡す
+      data: { project: selectedProject }, // プロジェクト全体を渡す
     });
     ref.afterClosed().subscribe((result) => {
       if (result && this.selectedProjectIds.length === 1) {

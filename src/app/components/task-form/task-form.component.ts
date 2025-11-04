@@ -16,6 +16,11 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MemberManagementService } from '../../services/member-management.service';
 import { Member } from '../../models/member.model';
+import { IProject } from '../../models/project.model';
+import {
+  resolveProjectThemeColor,
+  DEFAULT_PROJECT_THEME_COLOR,
+} from '../../constants/project-theme-colors';
 
 interface TaskFormModel {
   projectName: string;
@@ -53,10 +58,13 @@ interface TaskFormModel {
 export class TaskFormComponent implements OnInit {
   // ✅ inject 構文を使った依存注入
   private dialogRef = inject(MatDialogRef<TaskFormComponent>);
-  private data = inject(MAT_DIALOG_DATA, { optional: true }); // ← 追加（projectNameを受け取る）
+  private data = inject(MAT_DIALOG_DATA, { optional: true }); // ← 追加（projectを受け取る）
   private memberService = inject(MemberManagementService);
   private snackBar = inject(MatSnackBar);
   parentTaskName = '';
+
+  // プロジェクト情報
+  project: IProject | undefined;
 
   // メンバー関連
   members: Member[] = [];
@@ -119,7 +127,11 @@ export class TaskFormComponent implements OnInit {
 
   constructor() {
     // ダイアログ呼び出し時に受け取ったデータを初期セット
-    if (this.data?.projectName) {
+    if (this.data?.project) {
+      this.project = this.data.project;
+      this.model.projectName = this.data.project.projectName;
+    } else if (this.data?.projectName) {
+      // 後方互換性を保つ
       this.model.projectName = this.data.projectName;
     }
 
@@ -290,5 +302,19 @@ export class TaskFormComponent implements OnInit {
 
   cancel() {
     this.dialogRef.close();
+  }
+
+  /**
+   * プロジェクトのテーマカラーに基づいた背景色スタイルを取得
+   */
+  getThemeBackgroundStyle(): Record<string, string> {
+    if (!this.project) {
+      return {};
+    }
+    const themeColor = resolveProjectThemeColor(this.project);
+    if (themeColor === DEFAULT_PROJECT_THEME_COLOR) {
+      return {};
+    }
+    return { 'background-color': themeColor };
   }
 }
