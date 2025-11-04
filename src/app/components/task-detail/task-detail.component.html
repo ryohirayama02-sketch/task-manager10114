@@ -456,7 +456,7 @@
             matSuffix
             type="button"
             (click)="openChildDatePicker(childDueDateInput)"
-            aria-label="{{ 'taskDetail.selectDueDate' | translate }}"
+            [attr.aria-label]="'taskDetail.selectDueDate' | translate"
           >
             <mat-icon>event</mat-icon>
           </button>

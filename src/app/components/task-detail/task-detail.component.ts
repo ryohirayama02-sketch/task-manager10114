@@ -137,7 +137,10 @@ export class TaskDetailComponent implements OnInit {
         this.loadTaskDetails(projectId, taskId);
         this.loadMembers();
       } else {
-        console.error('必要なパラメータが不足しています:', { taskId, projectId });
+        console.error('必要なパラメータが不足しています:', {
+          taskId,
+          projectId,
+        });
       }
     });
   }
@@ -451,8 +454,7 @@ export class TaskDetailComponent implements OnInit {
 
   /** タスク期限通知を切り替え */
   toggleTaskDeadlineNotification(): void {
-    const current =
-      this.detailSettings.notifications.beforeDeadline ?? true;
+    const current = this.detailSettings.notifications.beforeDeadline ?? true;
     const nextValue = !current;
     this.detailSettings.notifications.beforeDeadline = nextValue;
 
@@ -694,7 +696,9 @@ export class TaskDetailComponent implements OnInit {
     }
 
     alert(
-      `「親タスク：${this.task.taskName || '名称未設定'}」のステータスを作業中に変更します`
+      `「親タスク：${
+        this.task.taskName || '名称未設定'
+      }」のステータスを作業中に変更します`
     );
 
     const previousStatus = this.task.status;
@@ -721,7 +725,9 @@ export class TaskDetailComponent implements OnInit {
     );
     this.childTasks = children;
     this.childAssigneeOptions = [
-      ...new Set(children.map((task) => task.assignee).filter((name) => !!name)),
+      ...new Set(
+        children.map((task) => task.assignee).filter((name) => !!name)
+      ),
     ];
 
     if (
