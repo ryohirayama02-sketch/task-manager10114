@@ -858,8 +858,7 @@ export class TaskDetailComponent implements OnInit {
   }
 
   getChildTasksSectionBackground(): string {
-    const color = this.project?.themeColor || '#e3f2fd';
-    return color;
+    return '#ffffff';
   }
 
   getStatusColor(status: string): string {

@@ -318,7 +318,7 @@ mat-chip mat-icon {
   margin-top: 20px;
   padding: 24px;
   border-radius: 12px;
-  background-color: rgba(227, 242, 253, 0.5);
+  background-color: #ffffff;
 }
 
 .child-tasks-header {
