@@ -661,10 +661,8 @@ textarea {
 
 .task-details {
   display: flex;
-  flex-direction: row;
-  gap: 20px;
-  flex-wrap: wrap;
-  align-items: center;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .task-detail-item {
@@ -683,16 +681,35 @@ textarea {
   height: 18px;
 }
 
-.task-detail-item:last-child {
-  flex: 1;
-  min-width: 200px;
+.task-main-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: nowrap;
+  min-width: 0;
 }
 
-.task-detail-item:last-child span {
+.task-detail-member {
+  flex: 1 1 auto;
+  min-width: 0;
+  flex-shrink: 1;
+}
+
+.task-member-name {
+  flex: 1 1 auto;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 300px;
+}
+
+.task-member-due {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  margin-left: 8px;
+  white-space: nowrap;
 }
 
 .status-chip,

@@ -506,13 +506,15 @@
 
       <mat-card-content>
         <div class="task-details">
-          <div class="task-detail-item">
-            <mat-icon>person</mat-icon>
-            <span>{{ task.assignee }}</span>
-          </div>
-          <div class="task-detail-item">
-            <mat-icon>schedule</mat-icon>
-            <span>{{ task.dueDate }}</span>
+          <div class="task-main-info">
+            <div class="task-detail-item task-detail-member">
+              <mat-icon>person</mat-icon>
+              <span class="task-member-name">{{ task.assignee }}</span>
+              <div class="task-member-due">
+                <mat-icon>schedule</mat-icon>
+                <span>{{ task.dueDate }}</span>
+              </div>
+            </div>
           </div>
           <div
             class="task-detail-item"
