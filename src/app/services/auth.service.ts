@@ -4,12 +4,15 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
-  signInWithPopup,
   GoogleAuthProvider,
+  signInWithPopup,
   User,
   onAuthStateChanged,
+  browserLocalPersistence,
+  setPersistence,
 } from '@angular/fire/auth';
-import { Observable, BehaviorSubject } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
+import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root',
@@ -18,9 +21,17 @@ export class AuthService {
   private userSubject = new BehaviorSubject<User | null>(null);
   public user$ = this.userSubject.asObservable();
 
-  constructor(private auth: Auth) {
-    // 認証状態の変更を監視
+  constructor(private auth: Auth, private router: Router) {
+    // 🔧 永続化設定（セッションを保持）
+    setPersistence(this.auth, browserLocalPersistence)
+      .then(() => {
+        console.log('🧭 Persistence: browserLocalPersistence 設定完了');
+      })
+      .catch((err) => console.error('Persistence設定エラー:', err));
+
+    // 🔐 認証状態の変更を監視
     onAuthStateChanged(this.auth, (user) => {
+      console.log('🔐 onAuthStateChanged:', user?.email || 'ユーザーなし');
       this.userSubject.next(user);
     });
   }
@@ -33,9 +44,11 @@ export class AuthService {
         email,
         password
       );
+      console.log('✅ メールログイン成功:', result.user.email);
+      this.userSubject.next(result.user);
       return result.user;
     } catch (error) {
-      console.error('サインインエラー:', error);
+      console.error('❌ メールサインインエラー:', error);
       throw error;
     }
   }
@@ -48,21 +61,28 @@ export class AuthService {
         email,
         password
       );
+      console.log('✅ サインアップ成功:', result.user.email);
+      this.userSubject.next(result.user);
       return result.user;
     } catch (error) {
-      console.error('サインアップエラー:', error);
+      console.error('❌ サインアップエラー:', error);
       throw error;
     }
   }
 
-  /** Googleでサインイン */
-  async signInWithGoogle(): Promise<User> {
+  /** ✅ Googleでサインイン（Popup方式） */
+  async signInWithGoogle(): Promise<void> {
     try {
+      console.log('🔵 Google認証を開始します...');
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(this.auth, provider);
-      return result.user;
+      console.log('✅ Google認証成功:', result.user.email);
+      this.userSubject.next(result.user);
+
+      // ログイン後のリダイレクト（必要なら）
+      await this.router.navigate(['/']);
     } catch (error) {
-      console.error('Googleサインインエラー:', error);
+      console.error('❌ Googleサインインエラー:', error);
       throw error;
     }
   }
@@ -71,8 +91,11 @@ export class AuthService {
   async signOut(): Promise<void> {
     try {
       await signOut(this.auth);
+      console.log('🚪 サインアウト完了');
+      this.userSubject.next(null);
+      await this.router.navigate(['/login']);
     } catch (error) {
-      console.error('サインアウトエラー:', error);
+      console.error('❌ サインアウトエラー:', error);
       throw error;
     }
   }

@@ -15,7 +15,10 @@ import { SettingsComponent } from './components/settings/settings.component';
 import { LogsComponent } from './components/logs/logs.component';
 import { MemberManagementComponent } from './components/member-management/member-management.component';
 import { MemberFormPageComponent } from './components/member-management/member-form-page/member-form-page.component';
-import { LoginComponent } from './components/auth/login/login.component';
+
+// ✅ ここを修正（auth → login）
+import { LoginComponent } from './components/login/login.component';
+
 import { ProjectFormComponent } from './components/project-form/project-form.component';
 import { OfflineTestComponent } from './components/offline-test/offline-test.component';
 import { TaskCreatePageComponent } from './components/task-create/task-create.component';

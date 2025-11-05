@@ -1,2 +1,32 @@
-<h2>ログイン画面</h2>
-<p>ここにログイン画面を表示予定</p>
+<div class="login-container">
+  <h2>ログイン</h2>
+
+  <button
+    mat-raised-button
+    color="primary"
+    (click)="onGoogleLogin()"
+    [disabled]="isLoading"
+  >
+    <span *ngIf="!isLoading">Googleでログイン</span>
+    <span *ngIf="isLoading">ログイン中...</span>
+  </button>
+
+  <hr />
+
+  <p>またはメールでログイン:</p>
+  <form
+    #loginForm="ngForm"
+    (ngSubmit)="onEmailLogin(email.value, password.value)"
+  >
+    <input #email type="email" placeholder="メールアドレス" required />
+    <input #password type="password" placeholder="パスワード" required />
+    <button
+      mat-raised-button
+      color="accent"
+      type="submit"
+      [disabled]="isLoading"
+    >
+      メールでログイン
+    </button>
+  </form>
+</div>

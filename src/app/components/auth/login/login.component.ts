@@ -85,11 +85,13 @@ export class LoginComponent {
     this.errorMessage = '';
 
     try {
+      // リダイレクト型認証はリダイレクトするため、
+      // AuthServiceが自動的にナビゲーションを処理します
       await this.authService.signInWithGoogle();
-      this.router.navigate(['/']);
+      // リダイレクト後はこの行には到達しない（ページがリダイレクトされる）
     } catch (error: any) {
-      this.errorMessage = this.getErrorMessage(error.code);
-    } finally {
+      // ここでエラーキャッチするのはリダイレクト前のエラーのみ
+      this.errorMessage = this.getErrorMessage(error.code || error.message);
       this.isLoading = false;
     }
   }

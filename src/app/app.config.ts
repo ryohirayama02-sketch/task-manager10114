@@ -6,15 +6,9 @@ import {
 import { provideRouter } from '@angular/router';
 import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
 import { provideAuth, getAuth } from '@angular/fire/auth';
-import {
-  provideFirestore,
-  getFirestore,
-  connectFirestoreEmulator,
-  enableNetwork,
-  disableNetwork,
-} from '@angular/fire/firestore';
+import { provideFirestore, getFirestore } from '@angular/fire/firestore';
 import { provideFunctions, getFunctions } from '@angular/fire/functions';
-
+import { provideStorage, getStorage } from '@angular/fire/storage';
 import { routes } from './app.routes';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { MatButtonModule } from '@angular/material/button';
@@ -26,13 +20,11 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideAnimationsAsync(),
     importProvidersFrom(MatButtonModule),
+    // Firebase (1回だけ初期化)
     provideFirebaseApp(() => initializeApp(environment.firebase)),
     provideAuth(() => getAuth()),
-    provideFirestore(() => {
-      const firestore = getFirestore();
-      // オフライン機能を有効化（デフォルトで有効）
-      return firestore;
-    }),
+    provideFirestore(() => getFirestore()),
     provideFunctions(() => getFunctions()),
+    provideStorage(() => getStorage()),
   ],
 };

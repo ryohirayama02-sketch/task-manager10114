@@ -40,6 +40,11 @@ export class AppComponent implements OnInit, OnDestroy {
       } else {
         // ログアウト時は通知スケジューラーを停止
         this.notificationScheduler.stopScheduler();
+        // ログイン画面にいない場合のみログイン画面へナビゲート
+        if (!this.router.url.includes('/login')) {
+          console.log('🚪 ユーザーがログアウトしたため、ログイン画面へ遷移します');
+          this.router.navigate(['/login']);
+        }
       }
     });
   }
@@ -48,6 +53,12 @@ export class AppComponent implements OnInit, OnDestroy {
    * ホーム画面設定に基づいてリダイレクト
    */
   private redirectToHomeScreen() {
+    // ログイン画面にいる場合はスキップ
+    if (this.router.url.includes('/login')) {
+      console.log('🚪 ログイン画面でのホーム画面設定リダイレクトはスキップ');
+      return;
+    }
+
     console.log('🏠 ホーム画面設定を読み込み中...');
     this.homeScreenSettingsService.getHomeScreenSettings().subscribe({
       next: (settings) => {
