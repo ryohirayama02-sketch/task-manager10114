@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, isDevMode } from '@angular/core';
 import {
   Auth,
   signInWithEmailAndPassword,
@@ -6,103 +6,98 @@ import {
   signOut,
   GoogleAuthProvider,
   signInWithPopup,
-  User,
+  signInWithRedirect,
+  getRedirectResult,
   onAuthStateChanged,
   browserLocalPersistence,
   setPersistence,
+  User,
 } from '@angular/fire/auth';
 import { BehaviorSubject } from 'rxjs';
 import { Router } from '@angular/router';
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class AuthService {
   private userSubject = new BehaviorSubject<User | null>(null);
   public user$ = this.userSubject.asObservable();
 
   constructor(private auth: Auth, private router: Router) {
-    // 🔧 永続化設定（セッションを保持）
     setPersistence(this.auth, browserLocalPersistence)
-      .then(() => {
-        console.log('🧭 Persistence: browserLocalPersistence 設定完了');
-      })
+      .then(() => console.log('🧭 Persistence設定完了'))
       .catch((err) => console.error('Persistence設定エラー:', err));
 
-    // 🔐 認証状態の変更を監視
     onAuthStateChanged(this.auth, (user) => {
       console.log('🔐 onAuthStateChanged:', user?.email || 'ユーザーなし');
       this.userSubject.next(user);
     });
-  }
 
-  /** メール・パスワードでサインイン */
-  async signInWithEmail(email: string, password: string): Promise<User> {
-    try {
-      const result = await signInWithEmailAndPassword(
-        this.auth,
-        email,
-        password
-      );
-      console.log('✅ メールログイン成功:', result.user.email);
-      this.userSubject.next(result.user);
-      return result.user;
-    } catch (error) {
-      console.error('❌ メールサインインエラー:', error);
-      throw error;
+    if (!isDevMode()) {
+      this.checkRedirectResult();
     }
   }
 
-  /** メール・パスワードでサインアップ */
-  async signUpWithEmail(email: string, password: string): Promise<User> {
-    try {
-      const result = await createUserWithEmailAndPassword(
-        this.auth,
-        email,
-        password
-      );
-      console.log('✅ サインアップ成功:', result.user.email);
-      this.userSubject.next(result.user);
-      return result.user;
-    } catch (error) {
-      console.error('❌ サインアップエラー:', error);
-      throw error;
-    }
-  }
-
-  /** ✅ Googleでサインイン（Popup方式） */
+  /** Googleログイン（環境により自動切替） */
   async signInWithGoogle(): Promise<void> {
     try {
-      console.log('🔵 Google認証を開始します...');
       const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(this.auth, provider);
-      console.log('✅ Google認証成功:', result.user.email);
-      this.userSubject.next(result.user);
-
-      // ログイン後のリダイレクト（必要なら）
+      console.log('🔵 Google認証開始...');
+      if (isDevMode()) {
+        const result = await signInWithPopup(this.auth, provider);
+        console.log('✅ Popup認証成功:', result.user.email);
+        this.userSubject.next(result.user);
+      } else {
+        await signInWithRedirect(this.auth, provider);
+      }
       await this.router.navigate(['/']);
     } catch (error) {
       console.error('❌ Googleサインインエラー:', error);
-      throw error;
     }
+  }
+
+  /** 本番用のリダイレクト結果 */
+  private async checkRedirectResult(): Promise<void> {
+    try {
+      const result = await getRedirectResult(this.auth);
+      if (result?.user) {
+        console.log('✅ Redirect認証成功:', result.user.email);
+        this.userSubject.next(result.user);
+        await this.router.navigate(['/']);
+      }
+    } catch (err) {
+      console.error('❌ リダイレクト結果エラー:', err);
+    }
+  }
+
+  /** ✅ メールログイン（既存呼び出し互換） */
+  async signInWithEmail(email: string, password: string): Promise<User> {
+    const result = await signInWithEmailAndPassword(this.auth, email, password);
+    console.log('✅ メールログイン成功:', result.user.email);
+    this.userSubject.next(result.user);
+    return result.user;
+  }
+
+  /** ✅ メールサインアップ（既存呼び出し互換） */
+  async signUpWithEmail(email: string, password: string): Promise<User> {
+    const result = await createUserWithEmailAndPassword(
+      this.auth,
+      email,
+      password
+    );
+    console.log('✅ サインアップ成功:', result.user.email);
+    this.userSubject.next(result.user);
+    return result.user;
+  }
+
+  /** ✅ 現在のユーザーを取得（既存呼び出し互換） */
+  getCurrentUser(): User | null {
+    return this.auth.currentUser;
   }
 
   /** サインアウト */
   async signOut(): Promise<void> {
-    try {
-      await signOut(this.auth);
-      console.log('🚪 サインアウト完了');
-      this.userSubject.next(null);
-      await this.router.navigate(['/login']);
-    } catch (error) {
-      console.error('❌ サインアウトエラー:', error);
-      throw error;
-    }
-  }
-
-  /** 現在のユーザーを取得 */
-  getCurrentUser(): User | null {
-    return this.auth.currentUser;
+    await signOut(this.auth);
+    this.userSubject.next(null);
+    await this.router.navigate(['/login']);
   }
 
   /** 認証状態を取得 */
