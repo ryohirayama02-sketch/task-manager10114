@@ -40,8 +40,12 @@ export interface TaskAttachment {
 export interface ChatMessage {
   id: string;
   content: string;
-  timestamp: Date | string; // Firestoreとの互換性のため
+  timestamp?: Date | string; // Firestoreとの互換性のため
   sender: string;
+  senderId?: string;
+  mentions?: string[]; // メンションされたユーザーのUID配列
+  createdAt?: Date | string; // Firestore保存時のフィールド
+  updatedAt?: Date | string; // 更新時刻
 }
 
 export interface Project {

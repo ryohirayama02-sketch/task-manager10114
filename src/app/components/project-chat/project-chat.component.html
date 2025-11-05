@@ -1,105 +1,84 @@
-<div class="project-chat">
-  <div class="chat-header">
-    <h4>
-      <mat-icon>chat</mat-icon>
-      {{ chatTitle }}
-    </h4>
-    <div class="chat-info">
-      <span class="message-count">{{ messages.length }}件のメッセージ</span>
-    </div>
+<div class="project-chat-container">
+  <h4>{{ chatTitle }}</h4>
+
+  <!-- ローディング表示 -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="30"></mat-spinner>
+    <p>チャットを読み込み中...</p>
   </div>
 
-  <div class="chat-container" #chatContainer (scroll)="onScroll($event)">
-    <!-- より多くのメッセージを読み込むボタン -->
-    <div *ngIf="hasMoreMessages && !isLoading" class="load-more-container">
-      <button
-        mat-stroked-button
-        (click)="loadMoreMessages()"
-        class="load-more-button"
-      >
-        <mat-icon>expand_less</mat-icon>
-        過去のメッセージを読み込み
-      </button>
-    </div>
-
-    <!-- ローディング表示 -->
-    <div *ngIf="isLoading" class="loading-container">
-      <mat-icon class="loading-icon">refresh</mat-icon>
-      <span>読み込み中...</span>
-    </div>
-
-    <!-- メッセージ一覧 -->
-    <div class="messages-list">
-      <!-- 全メッセージを表示（スクロール可能） -->
-      <div
-        *ngFor="let message of messages; trackBy: trackByMessageId"
-        class="message-item"
-        [class.own-message]="isOwnMessage(message)"
-      >
-        <div class="message-content">
-          <div class="message-header">
-            <span class="sender-name">{{ message.sender }}</span>
-            <span class="message-time">{{
-              formatTimestamp(message.timestamp)
-            }}</span>
-          </div>
-          <div class="message-text">{{ message.content }}</div>
-        </div>
+  <!-- メッセージ一覧 -->
+  <div *ngIf="!loading" class="messages-container">
+    <div
+      *ngFor="let message of messages"
+      class="message-item"
+      [ngClass]="{ 'own-message': message.senderId === currentUserId }"
+    >
+      <div class="message-header">
+        <span class="message-sender">{{ message.sender }}</span>
+        <span class="message-time">{{ formatTime(message.timestamp) }}</span>
+      </div>
+      <div class="message-content">
+        <span *ngIf="!message.mentions || message.mentions.length === 0">
+          {{ message.content }}
+        </span>
+        <ng-container *ngIf="message.mentions && message.mentions.length > 0">
+          <span [innerHTML]="highlightMentions(message.content, message.mentions)"></span>
+        </ng-container>
       </div>
     </div>
 
-    <!-- メッセージが存在しない場合 -->
-    <div *ngIf="messages.length === 0 && !isLoading" class="no-messages">
-      <mat-icon>chat_bubble_outline</mat-icon>
-      <p>まだメッセージがありません</p>
-      <p class="no-messages-sub">最初のメッセージを送信してみましょう！</p>
+    <!-- メッセージが空の場合 -->
+    <div *ngIf="messages.length === 0" class="no-messages">
+      <p>まだメッセージはありません</p>
     </div>
   </div>
 
-  <!-- メッセージ入力エリア -->
-  <div class="message-input-container" *ngIf="currentUser">
-    <div class="input-wrapper">
-      <mat-form-field appearance="outline" class="message-input-field">
-        <mat-label>メッセージを入力...</mat-label>
-        <textarea
-          matInput
-          #messageInput
-          [(ngModel)]="newMessage"
-          (keypress)="onKeyPress($event)"
-          placeholder="メッセージを入力..."
-          rows="2"
-          maxlength="500"
-        >
-        </textarea>
-        <mat-hint align="end">{{ newMessage.length }}/500</mat-hint>
-      </mat-form-field>
+  <!-- メッセージ入力フォーム -->
+  <div class="chat-input-section">
+    <div class="mention-candidates" *ngIf="showMentionCandidates">
+      <div
+        *ngFor="let candidate of mentionCandidates; let i = index"
+        class="mention-candidate-item"
+        [ngClass]="{ selected: i === selectedMentionCandidate }"
+        (click)="selectMentionCandidate(candidate)"
+        role="option"
+        [attr.aria-selected]="i === selectedMentionCandidate"
+      >
+        <img
+          *ngIf="candidate.photoURL"
+          [src]="candidate.photoURL"
+          class="member-avatar"
+          alt="{{ candidate.displayName }}"
+        />
+        <div *ngIf="!candidate.photoURL" class="member-avatar-placeholder">
+          {{ candidate.displayName.charAt(0).toUpperCase() }}
+        </div>
+        <span class="member-name">{{ candidate.displayName }}</span>
+      </div>
+    </div>
 
+    <div class="input-group">
+      <textarea
+        #messageInput
+        class="message-textarea"
+        [(ngModel)]="newMessage"
+        (change)="onMessageInputChange($event)"
+        (input)="onMessageInputChange($event)"
+        (keydown)="onMentionKeyDown($event)"
+        placeholder="@でメンションを追加できます。例：@田中"
+        rows="3"
+      ></textarea>
       <button
-        mat-fab
+        mat-raised-button
         color="primary"
         (click)="sendMessage()"
         [disabled]="!newMessage.trim()"
         class="send-button"
       >
         <mat-icon>send</mat-icon>
+        送信
       </button>
     </div>
   </div>
-
-  <!-- ログインが必要な場合 -->
-  <div *ngIf="!currentUser" class="login-required">
-    <mat-icon>lock</mat-icon>
-    <p>チャット機能を使用するにはログインが必要です</p>
-  </div>
-
-  <!-- 最下部にスクロールボタン -->
-  <button
-    *ngIf="showScrollToBottom"
-    mat-fab
-    color="accent"
-    class="scroll-to-bottom-button"
-    (click)="scrollToBottom()"
-  >
-    <mat-icon>keyboard_arrow_down</mat-icon>
-  </button>
 </div>
