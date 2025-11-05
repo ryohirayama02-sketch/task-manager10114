@@ -181,15 +181,35 @@
 
           <mat-form-field appearance="outline" class="full-width-field">
             <mat-label>{{ "taskDetail.assignee" | translate }}</mat-label>
-            <mat-select [(ngModel)]="taskData.assignee" name="assignee">
-              <mat-option value="">{{
-                "taskDetail.unassigned" | translate
-              }}</mat-option>
-              <mat-option *ngFor="let member of members" [value]="member.name">
+            <mat-select
+              [(ngModel)]="selectedAssignedMemberIds"
+              name="assignedMembers"
+              multiple
+              (ngModelChange)="onAssignedMembersChange($event)"
+              [disabled]="membersLoading"
+            >
+              <mat-option
+                *ngFor="let member of projectMembers"
+                [value]="member.id"
+              >
                 {{ member.name }}
               </mat-option>
             </mat-select>
           </mat-form-field>
+
+          <div
+            class="selected-members-chips"
+            *ngIf="selectedAssignedMemberIds.length > 0"
+          >
+            <mat-chip-set>
+              <mat-chip
+                *ngFor="let memberId of selectedAssignedMemberIds"
+                selected
+              >
+                {{ getMemberNameById(memberId) }}
+              </mat-chip>
+            </mat-chip-set>
+          </div>
 
           <mat-form-field appearance="outline" class="full-width-field">
             <mat-label>{{ "taskDetail.status" | translate }}</mat-label>

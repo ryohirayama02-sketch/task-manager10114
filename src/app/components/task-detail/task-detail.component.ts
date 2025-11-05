@@ -91,6 +91,8 @@ export class TaskDetailComponent implements OnInit {
   childAssigneeOptions: string[] = [];
   projectThemeColor = DEFAULT_PROJECT_THEME_COLOR;
   parentTaskName: string | null = null;
+  projectMembers: Member[] = [];
+  selectedAssignedMemberIds: string[] = [];
 
   // タスクの基本情報
   taskData: Task = {
@@ -158,6 +160,8 @@ export class TaskDetailComponent implements OnInit {
       this.project = project;
       this.projectThemeColor = resolveProjectThemeColor(project);
       this.updateNotificationRecipientOptions();
+      // プロジェクトメンバーを読み込み
+      this.loadProjectMembers(projectId);
     });
 
     // タスク情報を取得
@@ -186,6 +190,7 @@ export class TaskDetailComponent implements OnInit {
             calendarSyncEnabled: this.task.calendarSyncEnabled ?? false,
             tags: this.task.tags || [],
             relatedFiles: this.task.relatedFiles || [],
+            assignedMembers: this.task.assignedMembers || [],
           };
           this.initializeDetailSettings((this.task as any).detailSettings);
           this.updateNotificationRecipientOptions();
@@ -272,6 +277,38 @@ export class TaskDetailComponent implements OnInit {
     }
   }
 
+  /** プロジェクトメンバーを読み込み */
+  private loadProjectMembers(projectId: string): void {
+    this.membersLoading = true;
+    this.memberService.getMembers().subscribe({
+      next: (members) => {
+        this.projectMembers = members;
+        this.membersLoading = false;
+        console.log(
+          'プロジェクトメンバーを読み込みました:',
+          members.length,
+          '件'
+        );
+      },
+      error: (error) => {
+        console.error('プロジェクトメンバーの読み込みエラー:', error);
+        this.membersLoading = false;
+      },
+    });
+  }
+
+  /** 複数メンバー選択の変更 */
+  onAssignedMembersChange(selectedIds: string[]): void {
+    console.log('割り当てメンバー選択変更:', selectedIds);
+    this.selectedAssignedMemberIds = selectedIds || [];
+    this.taskData.assignedMembers = selectedIds || [];
+  }
+
+  getMemberNameById(memberId: string): string {
+    const member = this.projectMembers.find((m) => m.id === memberId);
+    return member ? member.name : memberId;
+  }
+
   /** 編集モードを切り替え */
   toggleEdit() {
     if (this.isEditing) {
@@ -323,7 +360,9 @@ export class TaskDetailComponent implements OnInit {
         priority: this.task.priority || '中',
         tags: this.task.tags || [],
         relatedFiles: this.task.relatedFiles || [],
+        assignedMembers: this.task.assignedMembers || [],
       };
+      this.selectedAssignedMemberIds = [];
       console.log('データを元に戻しました');
     }
   }

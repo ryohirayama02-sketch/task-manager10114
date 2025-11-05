@@ -8,6 +8,7 @@ export interface Task {
   priority: '高' | '中' | '低';
   assignee: string;
   assigneeEmail?: string;
+  assignedMembers?: string[]; // 複数メンバーの割り当て用（uid配列）
   projectThemeColor?: string;
   calendarSyncEnabled?: boolean;
   parentTaskId?: string;
