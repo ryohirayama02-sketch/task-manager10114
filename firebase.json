@@ -3,6 +3,9 @@
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   },
+  "storage": {
+    "rules": "storage.rules"
+  },
   "hosting": {
     "public": "dist/task-manager/browser",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],

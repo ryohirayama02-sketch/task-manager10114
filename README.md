@@ -6,6 +6,34 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 
 Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
 
+## 🔧 Initial Setup
+
+### 1. Environment Configuration
+
+See [ENVIRONMENT_SETUP.md](./ENVIRONMENT_SETUP.md) for Firebase API key setup.
+
+### 2. Firebase Storage CORS Configuration
+
+To enable file uploads from the Angular app, you must configure CORS on Firebase Storage:
+
+**On Windows (PowerShell):**
+```powershell
+.\scripts\setup-cors.ps1
+```
+
+**On macOS/Linux (Bash):**
+```bash
+bash scripts/setup-cors.sh
+```
+
+Or manually:
+```bash
+gcloud auth login
+gsutil cors set cors.json gs://kensyu10114.appspot.com
+```
+
+For detailed instructions, see [ENVIRONMENT_SETUP.md § Firebase Storage CORS Configuration](./ENVIRONMENT_SETUP.md#-firebase-storage-cors-設定).
+
 ## Code scaffolding
 
 Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.

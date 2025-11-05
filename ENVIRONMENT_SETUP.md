@@ -105,3 +105,101 @@ ng serve
 2. 新しい API キーを生成
 3. ローカルの `environment.ts` を更新
 4. GitHub のリポジトリ履歴から API キーを削除（必要に応じて）
+
+---
+
+## 🔗 Firebase Storage CORS 設定
+
+Angular アプリから Firebase Storage へファイルをアップロードする際に CORS エラーが発生する場合は、以下の手順で CORS 設定を行ってください。
+
+### 📋 CORS エラーの症状
+
+```
+Access to XMLHttpRequest at 'https://firebasestorage.googleapis.com/v0/b/kensyu10114.appspot.com/o?...'
+from origin 'http://localhost:4200' has been blocked by CORS policy:
+Response to preflight request doesn't pass access control check
+```
+
+### 🔧 CORS 設定手順
+
+#### 1. Google Cloud SDK のインストール確認
+
+CORS 設定を行うには、Google Cloud SDK がインストールされている必要があります。
+
+```bash
+# インストール確認
+gsutil -m ls
+
+# インストール済みの場合: gs://... で始まる一覧が表示されます
+# インストール未済みの場合: 以下からインストール
+# https://cloud.google.com/sdk/docs/install
+```
+
+#### 2. Google Cloud 認証
+
+```bash
+gcloud auth login
+```
+
+初回実行時は、ブラウザが開いて Google アカウントでのログインが要求されます。
+
+#### 3. CORS 設定ファイルの確認
+
+プロジェクトルートに `cors.json` ファイルが存在することを確認してください。
+
+内容:
+```json
+[
+  {
+    "origin": [
+      "http://localhost:4200",
+      "http://localhost:8080",
+      "https://kensyu10114.web.app"
+    ],
+    "method": [
+      "GET",
+      "POST",
+      "PUT",
+      "DELETE",
+      "HEAD"
+    ],
+    "responseHeader": [
+      "Content-Type",
+      "x-goog-resumable",
+      "Authorization",
+      "Access-Control-Allow-Origin"
+    ],
+    "maxAgeSeconds": 3600
+  }
+]
+```
+
+#### 4. CORS 設定を Firebase Storage バケットに適用
+
+```bash
+# バケット名確認
+gsutil cors get gs://kensyu10114.appspot.com
+
+# CORS 設定の適用
+gsutil cors set cors.json gs://kensyu10114.appspot.com
+
+# 適用確認（設定が表示されれば成功）
+gsutil cors get gs://kensyu10114.appspot.com
+```
+
+### ✅ CORS 設定が正常に適用された場合
+
+- ブラウザの OPTIONS (Preflight) リクエストに対して、Firebase Storage が正しいヘッダーを返すようになります
+- ファイルアップロードが正常に動作します
+
+```
+Access-Control-Allow-Origin: http://localhost:4200
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, HEAD
+Access-Control-Allow-Headers: Content-Type, x-goog-resumable, Authorization, Access-Control-Allow-Origin
+```
+
+### ⚠️ CORS 設定時の注意事項
+
+1. **バケット名の確認**: 設定ファイルで誤ったバケット名を指定しないようご注意ください
+2. **本番環境**: 本番環境への配署後は、`cors.json` の `origin` に本番 URL（`https://kensyu10114.web.app` など）が含まれていることを確認してください
+3. **キャッシュ**: ブラウザでキャッシュされている場合は、キャッシュをクリアしてから再度試してください

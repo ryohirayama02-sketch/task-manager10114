@@ -1,0 +1,23 @@
+[
+  {
+    "origin": [
+      "http://localhost:4200",
+      "http://localhost:8080",
+      "https://kensyu10114.web.app"
+    ],
+    "method": [
+      "GET",
+      "POST",
+      "PUT",
+      "DELETE",
+      "HEAD"
+    ],
+    "responseHeader": [
+      "Content-Type",
+      "x-goog-resumable",
+      "Authorization",
+      "Access-Control-Allow-Origin"
+    ],
+    "maxAgeSeconds": 3600
+  }
+]
