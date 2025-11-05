@@ -44,6 +44,7 @@ export class TaskCreatePageComponent implements OnInit {
   projectId: string = '';
   returnUrl: string = '';
   parentTaskId: string = '';
+  parentTaskName: string = '';
   isSubtaskCreation: boolean = false;
   members: Member[] = [];
   isLoading = false;
@@ -97,6 +98,22 @@ export class TaskCreatePageComponent implements OnInit {
       if (params['parentTaskId']) {
         this.parentTaskId = params['parentTaskId'];
         this.isSubtaskCreation = true;
+        
+        // Fetch parent task information
+        if (this.projectId && this.parentTaskId) {
+          this.projectService.getTask(this.projectId, this.parentTaskId).subscribe({
+            next: (task) => {
+              this.parentTaskName = task.taskName || '';
+              // projectName already set from navState, but can be overridden from task if needed
+              if (!this.projectName && task.projectName) {
+                this.projectName = task.projectName;
+              }
+            },
+            error: (error) => {
+              console.error('親タスク情報の取得に失敗しました:', error);
+            }
+          });
+        }
       }
     });
 

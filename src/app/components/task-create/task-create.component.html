@@ -18,9 +18,15 @@
 
     <mat-card-content>
       <form (ngSubmit)="save()" #taskCreateForm="ngForm">
+        <!-- 親タスク情報表示（サブタスク作成時のみ） -->
+        <div *ngIf="isSubtaskCreation" class="parent-task-info">
+          <p class="info-line">プロジェクト名: <strong>{{ projectName }}</strong></p>
+          <p class="info-line">親タスク名: <strong>{{ parentTaskName }}</strong></p>
+        </div>
+
         <!-- タスク名 -->
         <mat-form-field appearance="outline" class="full-width-field">
-          <mat-label>{{ 'taskCreate.taskName' | translate }}</mat-label>
+          <mat-label>{{ isSubtaskCreation ? '子タスク名' : ('taskCreate.taskName' | translate) }}</mat-label>
           <input
             matInput
             [(ngModel)]="taskForm.taskName"
@@ -277,7 +283,7 @@
             [disabled]="isSaving"
           >
             <mat-icon *ngIf="isSaving">schedule</mat-icon>
-            {{ isSaving ? ('taskCreate.saving' | translate) : (isSubtaskCreation ? ('taskCreate.createSubtask' | translate) : ('taskCreate.createTask' | translate)) }}
+            {{ isSaving ? ('taskCreate.saving' | translate) : (isSubtaskCreation ? '保存' : ('taskCreate.createTask' | translate)) }}
           </button>
         </div>
       </form>

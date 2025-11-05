@@ -41,6 +41,24 @@
   color: #333;
 }
 
+/* 親タスク情報表示 */
+.parent-task-info {
+  margin-bottom: 24px;
+  padding: 0;
+}
+
+.parent-task-info .info-line {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  color: #333;
+  text-align: left;
+}
+
+.parent-task-info .info-line strong {
+  font-weight: 600;
+  color: #1976d2;
+}
+
 .full-width-field {
   width: 100%;
   margin-bottom: 16px;

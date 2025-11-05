@@ -35,6 +35,12 @@ export class ProjectService {
     return collectionData(tasksRef, { idField: 'id' }) as Observable<any[]>;
   }
 
+  /** 🔹 指定されたタスクを取得 */
+  getTask(projectId: string, taskId: string): Observable<any> {
+    const taskRef = doc(this.firestore, `projects/${projectId}/tasks/${taskId}`);
+    return docData(taskRef, { idField: 'id' }) as Observable<any>;
+  }
+
   getProjectById(projectId: string): Observable<IProject> {
     const projectRef = doc(this.firestore, `projects/${projectId}`);
     return docData(projectRef, { idField: 'id' }) as Observable<IProject>;
