@@ -62,7 +62,7 @@
         appearance="outline"
         class="full-width-field task-name-edit-field"
       >
-        <mat-label>{{ "taskDetail.taskName" | translate }}</mat-label>
+        <mat-label>{{ "taskDetail.childTaskName" | translate }}</mat-label>
         <input matInput [(ngModel)]="taskData.taskName" name="taskName" />
       </mat-form-field>
     </div>
@@ -185,11 +185,6 @@
       <!-- 編集モード -->
       <ng-template #taskEditForm>
         <form class="task-inline-edit-form" novalidate>
-          <mat-form-field appearance="outline" class="full-width-field">
-            <mat-label>{{ "taskDetail.taskName" | translate }}</mat-label>
-            <input matInput [(ngModel)]="taskData.taskName" name="taskName" />
-          </mat-form-field>
-
           <mat-form-field appearance="outline" class="full-width-field">
             <mat-label>{{ "taskDetail.projectName" | translate }}</mat-label>
             <input matInput [value]="taskData.projectName" disabled />

@@ -326,6 +326,7 @@ export class LanguageService {
     'taskDetail.off': { ja: 'OFF', en: 'OFF' },
     'taskDetail.description': { ja: 'タスク説明', en: 'Description' },
     'taskDetail.taskName': { ja: 'タスク名', en: 'Task Name' },
+    'taskDetail.childTaskName': { ja: '子タスク名', en: 'Child Task Name' },
     'taskDetail.projectName': { ja: 'プロジェクト名', en: 'Project Name' },
     'taskDetail.parentTaskName': { ja: '親タスク名', en: 'Parent Task Name' },
     'taskDetail.calendarSync': { ja: 'カレンダー連携', en: 'Calendar Sync' },
