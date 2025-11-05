@@ -17,10 +17,23 @@ export interface Task {
   endDate?: string;
   tags?: string[];
   relatedFiles?: string[];
+  attachments?: TaskAttachment[];
   chatMessages?: ChatMessage[];
   detailSettings?: any;
   createdAt?: Date | string; // Firestoreとの互換性のため
   updatedAt?: Date | string; // Firestoreとの互換性のため
+}
+
+export interface TaskAttachment {
+  id: string;
+  name: string;
+  url: string;
+  type: 'file' | 'link';
+  size?: number;
+  contentType?: string;
+  storagePath?: string;
+  uploadedAt?: string;
+  description?: string;
 }
 
 export interface ChatMessage {

@@ -21,6 +21,8 @@ import {
   resolveProjectThemeColor,
   DEFAULT_PROJECT_THEME_COLOR,
 } from '../../constants/project-theme-colors';
+import { LanguageService } from '../../services/language.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 interface TaskFormModel {
   projectName: string;
@@ -51,6 +53,7 @@ interface TaskFormModel {
     MatTooltipModule,
     MatProgressSpinnerModule,
     MatSnackBarModule,
+    TranslatePipe,
   ],
   templateUrl: './task-form.component.html',
   styleUrls: ['./task-form.component.css'],
@@ -61,6 +64,7 @@ export class TaskFormComponent implements OnInit {
   private data = inject(MAT_DIALOG_DATA, { optional: true }); // ← 追加（projectを受け取る）
   private memberService = inject(MemberManagementService);
   private snackBar = inject(MatSnackBar);
+  private languageService = inject(LanguageService);
   parentTaskName = '';
 
   // プロジェクト情報

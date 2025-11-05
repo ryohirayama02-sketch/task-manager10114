@@ -244,6 +244,123 @@
       </ng-template>
     </div>
 
+    <!-- 添付ファイルセクション -->
+    <div class="task-attachments-section" *ngIf="isEditing">
+      <div class="attachment-section">
+        <label>{{ "taskDetail.attachments" | translate }}</label>
+
+        <div class="attachment-actions">
+          <button
+            mat-stroked-button
+            type="button"
+            (click)="fileInput.click()"
+            [disabled]="isUploading"
+          >
+            {{ "taskDetail.addFile" | translate }}
+          </button>
+          <input
+            #fileInput
+            type="file"
+            multiple
+            [accept]="fileAccept"
+            (change)="onFilesSelected($event)"
+            hidden
+          />
+        </div>
+
+        <div class="pending-files" *ngIf="pendingFiles.length > 0">
+          <p>{{ "taskDetail.uploadingFiles" | translate }}:</p>
+          <ul>
+            <li *ngFor="let pending of pendingFiles">
+              {{ pending.file.name }}
+            </li>
+          </ul>
+        </div>
+
+        <div class="attachment-list" *ngIf="editableAttachments.length > 0">
+          <h4>{{ "taskDetail.attachedFiles" | translate }}</h4>
+          <div
+            class="attachment-chip"
+            *ngFor="
+              let attachment of editableAttachments;
+              trackBy: trackAttachment
+            "
+          >
+            <mat-icon>{{
+              attachment.type === "link" ? "link" : "attach_file"
+            }}</mat-icon>
+            <a
+              [href]="attachment.url"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {{ attachment.name }}
+            </a>
+            <ng-container *ngIf="attachment.type === 'file' && attachment.size">
+              <span class="size-text"
+                >({{ formatFileSize(attachment.size) }})</span
+              >
+            </ng-container>
+            <button
+              mat-icon-button
+              type="button"
+              (click)="removeAttachment(attachment)"
+              [attr.aria-label]="'taskDetail.removeAttachment' | translate"
+            >
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+        </div>
+
+        <div
+          class="no-attachments"
+          *ngIf="editableAttachments.length === 0 && pendingFiles.length === 0"
+        >
+          {{ "taskDetail.noAttachments" | translate }}
+        </div>
+
+        <div class="uploading-indicator" *ngIf="isUploading">
+          <mat-spinner diameter="24"></mat-spinner>
+          <span>{{ "taskDetail.uploadingAttachments" | translate }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 読み取りモード時の添付ファイル表示 -->
+    <div
+      class="task-attachments-view"
+      *ngIf="!isEditing && editableAttachments.length > 0"
+    >
+      <div class="attachment-section">
+        <label>{{ "taskDetail.attachments" | translate }}</label>
+        <div class="attachment-list">
+          <div
+            class="attachment-chip"
+            *ngFor="
+              let attachment of editableAttachments;
+              trackBy: trackAttachment
+            "
+          >
+            <mat-icon>{{
+              attachment.type === "link" ? "link" : "attach_file"
+            }}</mat-icon>
+            <a
+              [href]="attachment.url"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {{ attachment.name }}
+            </a>
+            <ng-container *ngIf="attachment.type === 'file' && attachment.size">
+              <span class="size-text"
+                >({{ formatFileSize(attachment.size) }})</span
+              >
+            </ng-container>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- タグと関連資料セクション -->
     <div class="task-tags-section">
       <ng-container *ngIf="!isEditing; else editTagsForm">

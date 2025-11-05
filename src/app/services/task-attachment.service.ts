@@ -6,30 +6,30 @@ import {
   getDownloadURL,
   deleteObject,
 } from '@angular/fire/storage';
-import { ProjectAttachment } from '../models/project.model';
+import { TaskAttachment } from '../models/task.model';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 @Injectable({
   providedIn: 'root',
 })
-export class ProjectAttachmentService {
+export class TaskAttachmentService {
   constructor(private storage: Storage) {}
 
   /**
    * Firebase Storage にファイルをアップロードし、添付ファイル情報を返す
    */
   async uploadAttachment(
-    projectId: string,
+    taskId: string,
     file: File
-  ): Promise<ProjectAttachment> {
+  ): Promise<TaskAttachment> {
     if (file.size > MAX_FILE_SIZE) {
       throw new Error('ファイルサイズが5MBを超えています');
     }
 
     const attachmentId = this.generateId();
     const cleanFileName = file.name.replace(/\s+/g, '_');
-    const storagePath = `projects/${projectId}/attachments/${attachmentId}-${cleanFileName}`;
+    const storagePath = `tasks/${taskId}/attachments/${attachmentId}-${cleanFileName}`;
     const fileRef = ref(this.storage, storagePath);
 
     await uploadBytes(fileRef, file, {
@@ -53,7 +53,7 @@ export class ProjectAttachmentService {
   /**
    * Firebase Storage から添付ファイルを削除
    */
-  async deleteAttachment(attachment: ProjectAttachment): Promise<void> {
+  async deleteAttachment(attachment: TaskAttachment): Promise<void> {
     if (!attachment.storagePath) {
       return;
     }

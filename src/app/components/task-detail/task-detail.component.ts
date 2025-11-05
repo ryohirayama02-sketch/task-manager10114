@@ -15,13 +15,15 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Auth } from '@angular/fire/auth';
 import { ProjectService } from '../../services/project.service';
 import { TaskService } from '../../services/task.service';
 import { MemberManagementService } from '../../services/member-management.service';
 import { CalendarService } from '../../services/calendar.service';
+import { TaskAttachmentService } from '../../services/task-attachment.service';
 import { TaskFormComponent } from '../task-form/task-form.component';
-import { Task, Project, ChatMessage } from '../../models/task.model';
+import { Task, Project, ChatMessage, TaskAttachment } from '../../models/task.model';
 import { Member } from '../../models/member.model';
 import { ProjectChatComponent } from '../project-chat/project-chat.component';
 import {
@@ -50,6 +52,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
     MatCheckboxModule,
     MatProgressSpinnerModule,
     MatSlideToggleModule,
+    MatSnackBarModule,
     ProjectChatComponent,
     TranslatePipe,
   ],
@@ -66,6 +69,8 @@ export class TaskDetailComponent implements OnInit {
   private location = inject(Location);
   private auth = inject(Auth);
   private calendarService = inject(CalendarService);
+  private snackBar = inject(MatSnackBar);
+  private attachmentService = inject(TaskAttachmentService);
 
   @Output() taskUpdated = new EventEmitter<any>();
 
@@ -93,6 +98,15 @@ export class TaskDetailComponent implements OnInit {
   parentTaskName: string | null = null;
   projectMembers: Member[] = [];
   selectedAssignedMemberIds: string[] = [];
+
+  // 添付ファイル関連
+  editableAttachments: TaskAttachment[] = [];
+  pendingFiles: { id: string; file: File }[] = [];
+  attachmentsToRemove: TaskAttachment[] = [];
+  isUploading = false;
+  readonly MAX_FILE_SIZE = 5 * 1024 * 1024;
+  readonly fileAccept =
+    '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.bmp,.heic,.webp,.svg,.txt,.csv,.zip';
 
   // タスクの基本情報
   taskData: Task = {
@@ -192,6 +206,10 @@ export class TaskDetailComponent implements OnInit {
             relatedFiles: this.task.relatedFiles || [],
             assignedMembers: this.task.assignedMembers || [],
           };
+          // 添付ファイルを初期化
+          this.editableAttachments = (this.task.attachments || []).map(
+            (attachment) => ({ ...attachment })
+          );
           this.initializeDetailSettings((this.task as any).detailSettings);
           this.updateNotificationRecipientOptions();
           this.setupChildTasks(tasksWithProjectId, taskId);
@@ -214,6 +232,7 @@ export class TaskDetailComponent implements OnInit {
           this.childTasks = [];
           this.filteredChildTasks = [];
           this.parentTaskName = null;
+          this.editableAttachments = [];
         }
         this.isLoading = false;
       },
@@ -321,24 +340,41 @@ export class TaskDetailComponent implements OnInit {
   }
 
   /** タスクを保存 */
-  saveTask() {
+  async saveTask() {
     if (!this.task || !this.task.projectId || !this.task.id) {
       return;
     }
 
     this.isSaving = true;
-    this.taskService
-      .updateTask(this.task.id, this.taskData, this.task, this.task.projectId)
-      .then(() => {
-        console.log('タスクが更新されました');
-        this.isEditing = false;
-        this.isSaving = false;
-      })
-      .catch((error: Error) => {
-        console.error('タスク更新エラー:', error);
-        alert('タスクの保存に失敗しました');
-        this.isSaving = false;
-      });
+    try {
+      // 保留中のファイルをアップロード
+      const uploadedAttachments = await this.uploadPendingFiles(this.task.id);
+      
+      // アップロードされたファイルを追加
+      this.editableAttachments.push(...uploadedAttachments);
+
+      // 削除済みファイルをFirebase Storageから削除
+      await this.deleteMarkedAttachments(this.task.id);
+
+      // タスクデータに添付ファイル情報を追加
+      this.taskData.attachments = this.editableAttachments;
+
+      await this.taskService.updateTask(
+        this.task.id,
+        this.taskData,
+        this.task,
+        this.task.projectId
+      );
+
+      console.log('タスクが更新されました');
+      this.isEditing = false;
+      this.isSaving = false;
+    } catch (error: Error | unknown) {
+      console.error('タスク更新エラー:', error);
+      const errorMessage = error instanceof Error ? error.message : '不明なエラーが発生しました';
+      alert(`タスクの保存に失敗しました: ${errorMessage}`);
+      this.isSaving = false;
+    }
   }
 
   /** キャンセル */
@@ -362,7 +398,13 @@ export class TaskDetailComponent implements OnInit {
         relatedFiles: this.task.relatedFiles || [],
         assignedMembers: this.task.assignedMembers || [],
       };
+      // 添付ファイルを元に戻す
+      this.editableAttachments = (this.task.attachments || []).map(
+        (attachment) => ({ ...attachment })
+      );
       this.selectedAssignedMemberIds = [];
+      this.pendingFiles = [];
+      this.attachmentsToRemove = [];
       console.log('データを元に戻しました');
     }
   }
@@ -974,5 +1016,100 @@ export class TaskDetailComponent implements OnInit {
       };
     }
     return { hour: '00', minute: '00' };
+  }
+
+  // ===== 添付ファイル関連メソッド =====
+
+  trackAttachment(_index: number, attachment: TaskAttachment): string {
+    return attachment.id;
+  }
+
+  onFilesSelected(event: Event): void {
+    if (!this.isEditing) {
+      return;
+    }
+    const input = event.target as HTMLInputElement;
+    const files = input.files;
+    if (!files || files.length === 0) {
+      return;
+    }
+
+    Array.from(files).forEach((file) => {
+      if (file.size > this.MAX_FILE_SIZE) {
+        this.snackBar.open(
+          `${file.name} は5MBを超えています。別のファイルを選択してください。`,
+          '閉じる',
+          { duration: 4000 }
+        );
+        return;
+      }
+      this.pendingFiles.push({ id: this.generateId(), file });
+    });
+
+    input.value = '';
+  }
+
+  removeAttachment(attachment: TaskAttachment): void {
+    this.editableAttachments = this.editableAttachments.filter(
+      (item) => item.id !== attachment.id
+    );
+
+    if (attachment.type === 'file' && attachment.storagePath) {
+      this.attachmentsToRemove.push(attachment);
+    }
+  }
+
+  formatFileSize(bytes: number): string {
+    if (bytes >= 1024 * 1024) {
+      return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    }
+    if (bytes >= 1024) {
+      return `${(bytes / 1024).toFixed(1)} KB`;
+    }
+    return `${bytes} B`;
+  }
+
+  private async uploadPendingFiles(
+    taskId: string
+  ): Promise<TaskAttachment[]> {
+    const uploaded: TaskAttachment[] = [];
+
+    for (const pending of this.pendingFiles) {
+      try {
+        const attachment = await this.attachmentService.uploadAttachment(
+          taskId,
+          pending.file
+        );
+        uploaded.push(attachment);
+      } catch (error) {
+        console.error('添付ファイルのアップロードに失敗しました:', error);
+        this.snackBar.open(
+          `${pending.file.name} のアップロードに失敗しました`,
+          '閉じる',
+          { duration: 4000 }
+        );
+      }
+    }
+
+    this.pendingFiles = [];
+    return uploaded;
+  }
+
+  private async deleteMarkedAttachments(taskId: string): Promise<void> {
+    for (const attachment of this.attachmentsToRemove) {
+      try {
+        await this.attachmentService.deleteAttachment(attachment);
+      } catch (error) {
+        console.error('添付ファイルの削除に失敗しました:', error);
+        this.snackBar.open('添付ファイルの削除に失敗しました', '閉じる', {
+          duration: 3000,
+        });
+      }
+    }
+    this.attachmentsToRemove = [];
+  }
+
+  private generateId(): string {
+    return Date.now().toString(36) + Math.random().toString(36).substring(2);
   }
 }
