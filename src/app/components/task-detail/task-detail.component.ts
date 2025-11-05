@@ -861,32 +861,6 @@ export class TaskDetailComponent implements OnInit {
     return '#ffffff';
   }
 
-  getStatusColor(status: string): string {
-    switch (status) {
-      case '完了':
-        return 'primary';
-      case '作業中':
-        return 'accent';
-      case '未着手':
-        return 'warn';
-      default:
-        return '';
-    }
-  }
-
-  getPriorityColor(priority: string): string {
-    switch (priority) {
-      case '高':
-        return 'warn';
-      case '中':
-        return 'accent';
-      case '低':
-        return 'primary';
-      default:
-        return '';
-    }
-  }
-
   private sortTasksByDueDate(tasks: Task[]): Task[] {
     return [...tasks].sort((a, b) => {
       const isCompletedA = a.status === '完了' ? 1 : 0;

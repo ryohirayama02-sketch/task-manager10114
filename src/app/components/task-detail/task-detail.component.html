@@ -381,7 +381,6 @@
       *ngIf="childTasks.length > 0"
       class="child-tasks-section"
       [style.background]="getChildTasksSectionBackground()"
-      [ngStyle]="{ '--project-theme-color': projectThemeColor }"
     >
       <div class="child-tasks-header">
         <h3>{{ "taskDetail.childTasks" | translate }}</h3>
@@ -479,32 +478,48 @@
           [ngClass]="{ completed: child.status === '完了' }"
           (click)="openChildTaskDetail(child)"
         >
-          <mat-card-header>
-            <mat-card-title>{{ child.taskName }}</mat-card-title>
-            <mat-card-subtitle>
+          <mat-card-header class="child-task-card-header">
+            <mat-card-title>
+              <span class="child-task-card-title-text">{{
+                child.taskName
+              }}</span>
+            </mat-card-title>
+            <div class="child-task-card-meta">
               <mat-chip-set>
-                <mat-chip [color]="getStatusColor(child.status)" selected>
+                <mat-chip
+                  class="child-status-chip"
+                  [ngClass]="'status-' + child.status"
+                  selected
+                >
                   {{ child.status }}
                 </mat-chip>
-                <mat-chip [color]="getPriorityColor(child.priority)" selected>
+                <mat-chip
+                  class="child-priority-chip"
+                  [ngClass]="'priority-' + child.priority"
+                  selected
+                >
                   {{ child.priority }}
                 </mat-chip>
               </mat-chip-set>
-            </mat-card-subtitle>
+            </div>
           </mat-card-header>
           <mat-card-content>
             <div class="child-task-details">
-              <div class="child-task-detail-item">
-                <mat-icon>event</mat-icon>
-                <span>{{ child.dueDate || "未設定" }}</span>
+              <div class="child-task-main-info">
+                <div class="child-task-detail-item child-task-detail-member">
+                  <mat-icon>person</mat-icon>
+                  <span class="child-task-member-name">{{
+                    child.assignee || "未割当"
+                  }}</span>
+                  <div class="child-task-member-due">
+                    <mat-icon>schedule</mat-icon>
+                    <span>{{ child.dueDate || "未設定" }}</span>
+                  </div>
+                </div>
               </div>
-              <div class="child-task-detail-item">
-                <mat-icon>person</mat-icon>
-                <span>{{ child.assignee || "未割当" }}</span>
-              </div>
-              <div class="child-task-detail-item">
+              <div class="child-task-detail-item" *ngIf="child.description">
                 <mat-icon>description</mat-icon>
-                <span>{{ child.description || "説明なし" }}</span>
+                <span>{{ child.description }}</span>
               </div>
             </div>
           </mat-card-content>

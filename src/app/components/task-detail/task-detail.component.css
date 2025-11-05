@@ -354,44 +354,150 @@ mat-chip mat-icon {
 
 .child-tasks-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 15px;
 }
 
 .child-task-card {
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  background-color: var(--project-theme-color, #fde4ec);
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+  height: 100%;
 }
 
-.child-task-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+.child-task-card-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.child-task-card-header .mat-mdc-card-title {
+  font-size: 18px;
+  line-height: 1.4;
+  min-width: 0;
+  margin: 0;
+}
+
+.child-task-card-meta {
+  display: flex;
+  justify-self: flex-end;
+  align-items: flex-start;
+  flex-shrink: 0;
+}
+
+.child-task-card-meta mat-chip-set {
+  display: flex;
+  gap: 6px;
+}
+
+.child-task-card-title-text {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .child-task-card.completed {
-  opacity: 0.7;
+  background-color: #f5f5f5;
+  opacity: 0.85;
+}
+
+.child-task-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .child-task-details {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 
 .child-task-detail-item {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: 14px;
   color: #666;
+  min-width: 0;
+  flex-shrink: 0;
 }
 
 .child-task-detail-item mat-icon {
   font-size: 18px;
   width: 18px;
   height: 18px;
-  color: #999;
+}
+
+.child-task-main-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+.child-task-detail-member {
+  flex: 1 1 auto;
+  min-width: 0;
+  flex-shrink: 1;
+}
+
+.child-task-member-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.child-task-member-due {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  margin-left: 8px;
+  white-space: nowrap;
+}
+
+.child-status-chip,
+.child-priority-chip {
+  --mdc-chip-label-text-color: #000;
+  --mdc-chip-selected-label-text-color: #000;
+  font-weight: 500;
+  border: 1px solid transparent;
+  color: #000 !important;
+}
+
+.child-status-chip.status-未着手,
+.child-priority-chip.priority-高 {
+  --mdc-chip-elevated-container-color: #fdd6d5;
+  --mdc-chip-hover-state-layer-color: #fdd6d5;
+  --mdc-chip-disabled-container-color: #fdd6d5;
+  background-color: #fdd6d5 !important;
+  border-color: #fdd6d5;
+}
+
+.child-status-chip.status-作業中,
+.child-priority-chip.priority-中 {
+  --mdc-chip-elevated-container-color: #fef6c3;
+  --mdc-chip-hover-state-layer-color: #fef6c3;
+  --mdc-chip-disabled-container-color: #fef6c3;
+  background-color: #fef6c3 !important;
+  border-color: #fef6c3;
+}
+
+.child-status-chip.status-完了,
+.child-priority-chip.priority-低 {
+  --mdc-chip-elevated-container-color: #b2e9cb;
+  --mdc-chip-hover-state-layer-color: #b2e9cb;
+  --mdc-chip-disabled-container-color: #b2e9cb;
+  background-color: #b2e9cb !important;
+  border-color: #b2e9cb;
 }
 
 .child-no-tasks {
