@@ -62,7 +62,11 @@
         appearance="outline"
         class="full-width-field task-name-edit-field"
       >
-        <mat-label>{{ "taskDetail.childTaskName" | translate }}</mat-label>
+        <mat-label>{{
+          task?.parentTaskId
+            ? ("taskDetail.childTaskName" | translate)
+            : ("taskDetail.taskName" | translate)
+        }}</mat-label>
         <input matInput [(ngModel)]="taskData.taskName" name="taskName" />
       </mat-form-field>
     </div>
