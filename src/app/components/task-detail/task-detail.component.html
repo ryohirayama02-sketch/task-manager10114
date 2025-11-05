@@ -113,6 +113,73 @@
           <strong>{{ "taskDetail.priority" | translate }}:</strong>
           {{ taskData.priority }}
         </p>
+
+        <!-- 資料セクション（読み取りモード）-->
+        <p>
+          <strong>📁 {{ "taskDetail.materials" | translate }}:</strong>
+        </p>
+        <div
+          class="materials-container"
+          *ngIf="
+            (editableAttachments && editableAttachments.length > 0) ||
+              (taskData.urls && taskData.urls.length > 0);
+            else noMaterials
+          "
+        >
+          <div class="materials-list">
+            <!-- 添付ファイル -->
+            <div
+              class="material-item"
+              *ngFor="let attachment of editableAttachments"
+            >
+              <span class="material-icon">📎</span>
+              <a
+                [href]="attachment.url"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="material-link"
+              >
+                {{ attachment.name }}
+              </a>
+              <span
+                class="material-size"
+                *ngIf="attachment.type === 'file' && attachment.size"
+              >
+                ({{ formatFileSize(attachment.size) }})
+              </span>
+            </div>
+            <!-- URLリンク -->
+            <div class="material-item" *ngFor="let url of taskData.urls || []">
+              <span class="material-icon">🔗</span>
+              <a
+                [href]="url"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="material-link"
+              >
+                {{ extractUrlLabel(url) }}
+              </a>
+            </div>
+          </div>
+        </div>
+        <ng-template #noMaterials>
+          <span class="no-materials">{{
+            "taskDetail.noMaterials" | translate
+          }}</span>
+        </ng-template>
+
+        <!-- タグセクション（読み取りモード）-->
+        <p>
+          <strong>{{ "taskDetail.tags" | translate }}:</strong>
+          <mat-chip-set *ngIf="taskData.tags && taskData.tags.length > 0">
+            <mat-chip *ngFor="let tag of taskData.tags || []">
+              {{ tag }}
+            </mat-chip>
+          </mat-chip-set>
+          <span *ngIf="!taskData.tags || taskData.tags.length === 0">{{
+            "taskDetail.noTags" | translate
+          }}</span>
+        </p>
       </ng-container>
 
       <!-- 編集モード -->
@@ -240,6 +307,136 @@
               }}</mat-option>
             </mat-select>
           </mat-form-field>
+
+          <!-- 編集モード時の資料セクション -->
+          <div class="materials-edit-section">
+            <label
+              ><strong>{{ "taskDetail.materials" | translate }}</strong></label
+            >
+            <div class="materials-action-row">
+              <button
+                mat-stroked-button
+                type="button"
+                (click)="fileInput.click()"
+                [disabled]="isUploading"
+              >
+                {{ "taskDetail.addFile" | translate }}
+              </button>
+              <input
+                #fileInput
+                type="file"
+                multiple
+                [accept]="fileAccept"
+                (change)="onFilesSelected($event)"
+                hidden
+              />
+              <mat-form-field appearance="outline" class="url-input-field">
+                <mat-label>{{ "taskDetail.enterUrl" | translate }}</mat-label>
+                <input
+                  matInput
+                  [(ngModel)]="newUrlInput"
+                  placeholder="https://example.com"
+                  (keyup.enter)="addUrl(newUrlInput)"
+                  name="newUrl"
+                />
+              </mat-form-field>
+              <button
+                mat-stroked-button
+                type="button"
+                (click)="addUrl(newUrlInput)"
+              >
+                {{ "taskDetail.add" | translate }}
+              </button>
+            </div>
+            <div
+              class="materials-container"
+              *ngIf="
+                (editableAttachments && editableAttachments.length > 0) ||
+                (taskData.urls && taskData.urls.length > 0)
+              "
+            >
+              <div class="materials-list">
+                <!-- 添付ファイル -->
+                <div
+                  class="material-item edit-mode"
+                  *ngFor="let attachment of editableAttachments"
+                >
+                  <span class="material-icon">📎</span>
+                  <a
+                    [href]="attachment.url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="material-link"
+                  >
+                    {{ attachment.name }}
+                  </a>
+                  <span
+                    class="material-size"
+                    *ngIf="attachment.type === 'file' && attachment.size"
+                  >
+                    ({{ formatFileSize(attachment.size) }})
+                  </span>
+                  <button
+                    mat-icon-button
+                    type="button"
+                    (click)="removeAttachment(attachment)"
+                    class="material-remove"
+                  >
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </div>
+                <!-- URLリンク -->
+                <div
+                  class="material-item edit-mode"
+                  *ngFor="let url of taskData.urls || []"
+                >
+                  <span class="material-icon">🔗</span>
+                  <a
+                    [href]="url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="material-link"
+                  >
+                    {{ extractUrlLabel(url) }}
+                  </a>
+                  <button
+                    mat-icon-button
+                    type="button"
+                    (click)="removeUrl(url)"
+                    class="material-remove"
+                  >
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 編集モード時のタグセクション -->
+          <div class="tag-editor-simple">
+            <p>
+              <strong>{{ "taskDetail.tags" | translate }}:</strong>
+              <mat-chip-set>
+                <mat-chip
+                  *ngFor="let tag of taskData.tags || []"
+                  removable
+                  (removed)="removeTag(tag)"
+                >
+                  {{ tag }}
+                  <mat-icon matChipRemove>close</mat-icon>
+                </mat-chip>
+              </mat-chip-set>
+              <mat-form-field appearance="outline" class="tag-input-field">
+                <mat-label>{{ "taskDetail.addTag" | translate }}</mat-label>
+                <input
+                  matInput
+                  #tagInput
+                  placeholder="{{ 'taskDetail.enterTag' | translate }}"
+                  (keyup.enter)="addTag(tagInput.value); tagInput.value = ''"
+                />
+              </mat-form-field>
+            </p>
+          </div>
         </form>
       </ng-template>
     </div>
@@ -361,8 +558,8 @@
       </div>
     </div>
 
-    <!-- タグと関連資料セクション -->
-    <div class="task-tags-section">
+    <!-- 古いタグと関連資料セクションを削除 -->
+    <div class="task-tags-section" style="display: none">
       <ng-container *ngIf="!isEditing; else editTagsForm">
         <!-- 読み取りモード -->
         <p>

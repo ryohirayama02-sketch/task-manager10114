@@ -17,6 +17,7 @@ export interface Task {
   endDate?: string;
   tags?: string[];
   relatedFiles?: string[];
+  urls?: string[];
   attachments?: TaskAttachment[];
   chatMessages?: ChatMessage[];
   detailSettings?: any;

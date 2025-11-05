@@ -108,6 +108,9 @@ export class TaskDetailComponent implements OnInit {
   readonly fileAccept =
     '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.bmp,.heic,.webp,.svg,.txt,.csv,.zip';
 
+  // URL入力
+  newUrlInput: string = '';
+
   // タスクの基本情報
   taskData: Task = {
     projectId: '',
@@ -122,6 +125,7 @@ export class TaskDetailComponent implements OnInit {
     calendarSyncEnabled: false,
     tags: [],
     relatedFiles: [],
+    urls: [],
   };
 
   // 詳細設定
@@ -205,6 +209,7 @@ export class TaskDetailComponent implements OnInit {
             tags: this.task.tags || [],
             relatedFiles: this.task.relatedFiles || [],
             assignedMembers: this.task.assignedMembers || [],
+            urls: this.task.urls || [],
           };
           // 添付ファイルを初期化
           this.editableAttachments = (this.task.attachments || []).map(
@@ -397,6 +402,7 @@ export class TaskDetailComponent implements OnInit {
         tags: this.task.tags || [],
         relatedFiles: this.task.relatedFiles || [],
         assignedMembers: this.task.assignedMembers || [],
+        urls: this.task.urls || [],
       };
       // 添付ファイルを元に戻す
       this.editableAttachments = (this.task.attachments || []).map(
@@ -632,6 +638,39 @@ export class TaskDetailComponent implements OnInit {
   openUrl(url: string) {
     if (this.isUrl(url)) {
       window.open(url, '_blank');
+    }
+  }
+
+  /** URLのラベルを抽出 */
+  extractUrlLabel(url: string): string {
+    try {
+      const urlObj = new URL(url);
+      // ホスト名またはパス名から短いラベルを作成
+      const hostname = urlObj.hostname.replace('www.', '');
+      return hostname || url.substring(0, 30);
+    } catch {
+      return url.substring(0, 30);
+    }
+  }
+
+  /** URLを追加 */
+  addUrl(url: string): void {
+    if (url && url.trim()) {
+      const trimmedUrl = url.trim();
+      if (!this.taskData.urls) {
+        this.taskData.urls = [];
+      }
+      if (!this.taskData.urls.includes(trimmedUrl)) {
+        this.taskData.urls.push(trimmedUrl);
+        this.newUrlInput = '';
+      }
+    }
+  }
+
+  /** URLを削除 */
+  removeUrl(url: string): void {
+    if (this.taskData.urls) {
+      this.taskData.urls = this.taskData.urls.filter((u: string) => u !== url);
     }
   }
 
