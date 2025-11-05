@@ -90,3 +90,4 @@ try {
     Write-Host "3. Google Cloud の権限が十分か"
     exit 1
 }
+

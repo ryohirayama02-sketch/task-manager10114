@@ -80,3 +80,4 @@ else
     echo "3. Google Cloud の権限が十分か"
     exit 1
 fi
+

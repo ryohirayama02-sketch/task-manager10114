@@ -7,15 +7,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../services/auth.service';
 import { User } from '@angular/fire/auth';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { TranslatePipe } from '../../pipes/translate.pipe';
-import {
-  Firestore,
-  collection,
-  query,
-  where,
-  getDocs,
-} from '@angular/fire/firestore';
-import { filter, take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-navbar',
@@ -33,72 +26,20 @@ import { filter, take } from 'rxjs/operators';
 })
 export class NavbarComponent implements OnInit {
   user$: Observable<User | null>;
-  navbarUserName: string = '';
+  memberName$: Observable<string | null>;
+  displayName$: Observable<string>;
 
-  constructor(private authService: AuthService, private firestore: Firestore) {
+  constructor(private authService: AuthService) {
     this.user$ = this.authService.user$;
+    this.memberName$ = this.authService.currentMemberName$;
+    // memberName$ が null の場合は「ユーザー」を表示
+    this.displayName$ = this.memberName$.pipe(
+      map(name => name || 'ユーザー')
+    );
   }
 
   ngOnInit(): void {
-    // user$ を購読し、email が得られた時点で loadUserInfo を実行
-    this.authService.user$
-      .pipe(
-        filter((user): user is User => user !== null && user.email !== null),
-        take(1)
-      )
-      .subscribe((user) => {
-        this.loadUserInfo();
-      });
-  }
-
-  /** Firestoreメンバー情報を読み込み */
-  private async loadUserInfo(): Promise<void> {
-    try {
-      const currentUser = this.authService.getCurrentUser();
-      if (!currentUser?.email) {
-        console.warn('⚠️ ユーザーまたはメールアドレスが見つかりません');
-        this.navbarUserName = currentUser?.displayName || 'ユーザー';
-        return;
-      }
-
-      // メールアドレスで members コレクションを照合
-      this.navbarUserName = await this.resolveNavbarNameByEmail(
-        currentUser.email
-      );
-    } catch (error) {
-      console.error('❌ ユーザー情報の読み込みエラー:', error);
-      const currentUser = this.authService.getCurrentUser();
-      this.navbarUserName =
-        currentUser?.displayName || currentUser?.email || 'ユーザー';
-    }
-  }
-
-  /** Firestoreの members コレクションからメール照合で名前を取得 */
-  private async resolveNavbarNameByEmail(email: string): Promise<string> {
-    try {
-      const col = collection(this.firestore, 'members');
-      const q = query(col, where('email', '==', email));
-      const snap = await getDocs(q);
-
-      if (!snap.empty) {
-        const doc = snap.docs[0].data() as { name?: string };
-        if (doc?.name) {
-          console.log('✅ メンバー名を取得 (members.name):', doc.name);
-          return doc.name;
-        }
-      }
-
-      // members に一致なし、または name がない場合はフォールバック
-      const currentUser = this.authService.getCurrentUser();
-      const fallbackName =
-        currentUser?.displayName || currentUser?.email || 'ユーザー';
-      console.log('⚠️ members.name なし。フォールバック:', fallbackName);
-      return fallbackName;
-    } catch (error) {
-      console.error('❌ resolveNavbarNameByEmail エラー:', error);
-      const currentUser = this.authService.getCurrentUser();
-      return currentUser?.displayName || currentUser?.email || 'ユーザー';
-    }
+    // memberName$ の購読は template側で async pipe を使用
   }
 
   /** ログアウト */

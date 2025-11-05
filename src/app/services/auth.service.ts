@@ -15,13 +15,17 @@ import {
 } from '@angular/fire/auth';
 import { BehaviorSubject } from 'rxjs';
 import { Router } from '@angular/router';
+import { Firestore, collection, query, where, getDocs } from '@angular/fire/firestore';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private userSubject = new BehaviorSubject<User | null>(null);
   public user$ = this.userSubject.asObservable();
 
-  constructor(private auth: Auth, private router: Router) {
+  private currentMemberNameSubject = new BehaviorSubject<string | null>(null);
+  public currentMemberName$ = this.currentMemberNameSubject.asObservable();
+
+  constructor(private auth: Auth, private router: Router, private firestore: Firestore) {
     setPersistence(this.auth, browserLocalPersistence)
       .then(() => console.log('🧭 Persistence設定完了'))
       .catch((err) => console.error('Persistence設定エラー:', err));
@@ -29,6 +33,12 @@ export class AuthService {
     onAuthStateChanged(this.auth, (user) => {
       console.log('🔐 onAuthStateChanged:', user?.email || 'ユーザーなし');
       this.userSubject.next(user);
+      // ユーザー状態変更時にメンバー名を更新
+      if (user?.email) {
+        this.resolveAndUpdateMemberName(user.email);
+      } else {
+        this.currentMemberNameSubject.next(null);
+      }
     });
 
     if (!isDevMode()) {
@@ -45,6 +55,10 @@ export class AuthService {
         const result = await signInWithPopup(this.auth, provider);
         console.log('✅ Popup認証成功:', result.user.email);
         this.userSubject.next(result.user);
+        // メンバー名を更新
+        if (result.user.email) {
+          await this.resolveAndUpdateMemberName(result.user.email);
+        }
       } else {
         await signInWithRedirect(this.auth, provider);
       }
@@ -61,6 +75,10 @@ export class AuthService {
       if (result?.user) {
         console.log('✅ Redirect認証成功:', result.user.email);
         this.userSubject.next(result.user);
+        // メンバー名を更新
+        if (result.user.email) {
+          await this.resolveAndUpdateMemberName(result.user.email);
+        }
         await this.router.navigate(['/']);
       }
     } catch (err) {
@@ -73,6 +91,8 @@ export class AuthService {
     const result = await signInWithEmailAndPassword(this.auth, email, password);
     console.log('✅ メールログイン成功:', result.user.email);
     this.userSubject.next(result.user);
+    // メンバー名を更新
+    await this.resolveAndUpdateMemberName(result.user.email!);
     return result.user;
   }
 
@@ -85,6 +105,8 @@ export class AuthService {
     );
     console.log('✅ サインアップ成功:', result.user.email);
     this.userSubject.next(result.user);
+    // メンバー名を更新
+    await this.resolveAndUpdateMemberName(result.user.email!);
     return result.user;
   }
 
@@ -97,11 +119,45 @@ export class AuthService {
   async signOut(): Promise<void> {
     await signOut(this.auth);
     this.userSubject.next(null);
+    // ログアウト時はメンバー名もクリア
+    this.currentMemberNameSubject.next(null);
     await this.router.navigate(['/login']);
   }
 
   /** 認証状態を取得 */
   isAuthenticated(): boolean {
     return this.auth.currentUser !== null;
+  }
+
+  /** 
+   * メールアドレスに基づいてFirestoreのmembersコレクションから名前を取得し、
+   * currentMemberNameSubjectを更新する
+   */
+  private async resolveAndUpdateMemberName(email: string): Promise<void> {
+    try {
+      const membersCollection = collection(this.firestore, 'members');
+      const q = query(membersCollection, where('email', '==', email));
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        const memberDoc = querySnapshot.docs[0].data() as { name?: string };
+        if (memberDoc?.name) {
+          console.log('✅ メンバー名を取得 (Firestore):', memberDoc.name);
+          this.currentMemberNameSubject.next(memberDoc.name);
+          return;
+        }
+      }
+
+      // Firestoreに一致なし、または nameフィールドがない場合
+      console.log('⚠️ Firestoreでメンバーが見つからない。フォールバック使用');
+      const currentUser = this.auth.currentUser;
+      const fallbackName = currentUser?.displayName || currentUser?.email || 'ユーザー';
+      this.currentMemberNameSubject.next(fallbackName);
+    } catch (error) {
+      console.error('❌ resolveAndUpdateMemberName エラー:', error);
+      const currentUser = this.auth.currentUser;
+      const fallbackName = currentUser?.displayName || currentUser?.email || 'ユーザー';
+      this.currentMemberNameSubject.next(fallbackName);
+    }
   }
 }
