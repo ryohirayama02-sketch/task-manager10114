@@ -1,12 +1,281 @@
-.login-container {
+/* グラデーション背景 */
+.login-wrapper {
+  width: 100%;
+  min-height: 100vh;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100vh;
+  background: #add8e6;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 背景エフェクト */
+.login-wrapper::before {
+  content: '';
+  position: absolute;
+  width: 400px;
+  height: 400px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  top: -200px;
+  left: -200px;
+  pointer-events: none;
+}
+
+.login-wrapper::after {
+  content: '';
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 50%;
+  bottom: -150px;
+  right: -150px;
+  pointer-events: none;
+}
+
+/* ログインコンテナ */
+.login-container {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  padding: 48px 40px;
+  width: 100%;
+  max-width: 420px;
+  z-index: 1;
+  animation: slideUp 0.6s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ヘッダー */
+.login-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.login-header h1 {
+  margin: 0 0 8px 0;
+  font-size: 32px;
+  font-weight: 700;
+  color: #333;
+  letter-spacing: -0.5px;
+}
+
+.login-header .subtitle {
+  margin: 0;
+  font-size: 14px;
+  color: #999;
+  font-weight: 400;
+}
+
+/* ログインフォームラッパー */
+.login-form-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ボタンスタイル */
+.login-btn {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-transform: none;
+}
+
+/* Googleボタン */
+.google-btn {
+  background: white;
+  color: #333;
+  border: 2px solid #e0e0e0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.google-btn:hover:not(:disabled) {
+  background: #f8f9fa;
+  border-color: #667eea;
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.2);
+  transform: translateY(-2px);
+}
+
+.google-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+}
+
+/* Googleアイコン */
+.google-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* メールボタン */
+.email-btn {
+  background: white;
+  color: #333;
+  border: 2px solid #87ceeb;
+  box-shadow: 0 4px 15px rgba(135, 206, 235, 0.3);
+}
+
+.email-btn:hover:not(:disabled) {
+  background: #f0f8ff;
+  border-color: #5eb3d6;
+  box-shadow: 0 6px 20px rgba(135, 206, 235, 0.4);
+  transform: translateY(-2px);
+}
+
+.email-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 10px rgba(135, 206, 235, 0.25);
+}
+
+/* ボタン無効時 */
+.login-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* 区切り線 */
+.divider {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 8px 0;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #e0e0e0;
+}
+
+.divider span {
+  color: #999;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* メールフォーム */
+.email-form {
+  display: flex;
+  flex-direction: column;
   gap: 16px;
 }
 
-button {
-  width: 220px;
+/* インプットグループ */
+.input-group {
+  position: relative;
+}
+
+.email-input,
+.password-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.email-input::placeholder,
+.password-input::placeholder {
+  color: #bbb;
+}
+
+.email-input:focus,
+.password-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  background: #fafbfc;
+}
+
+.email-input:hover,
+.password-input:hover {
+  border-color: #d0d0d0;
+}
+
+/* フッター */
+.login-footer {
+  text-align: center;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.login-footer p {
+  margin: 0;
+  font-size: 13px;
+  color: #666;
+}
+
+.login-footer a {
+  color: #667eea;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.login-footer a:hover {
+  color: #764ba2;
+  text-decoration: underline;
+}
+
+/* ローディングスピナーアニメーション */
+.loading-spinner {
+  display: inline-block;
+}
+
+@media (max-width: 480px) {
+  .login-container {
+    padding: 32px 20px;
+    max-width: 100%;
+    margin: 16px;
+  }
+
+  .login-header h1 {
+    font-size: 28px;
+  }
+
+  .login-header .subtitle {
+    font-size: 13px;
+  }
+
+  .login-btn {
+    font-size: 14px;
+    padding: 11px 14px;
+  }
+
+  .email-input,
+  .password-input {
+    padding: 11px 12px;
+    font-size: 13px;
+  }
 }
