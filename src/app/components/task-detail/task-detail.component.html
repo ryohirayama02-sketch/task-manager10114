@@ -348,6 +348,21 @@
                 {{ "taskDetail.add" | translate }}
               </button>
             </div>
+
+            <!-- アップロード中のファイル表示 -->
+            <div class="pending-files" *ngIf="pendingFiles.length > 0">
+              <p>{{ "taskDetail.uploadingFiles" | translate }}:</p>
+              <div class="pending-files-list">
+                <div
+                  class="pending-file-item"
+                  *ngFor="let pending of pendingFiles"
+                >
+                  <mat-icon class="pending-icon">file_upload</mat-icon>
+                  <span class="pending-filename">{{ pending.file.name }}</span>
+                </div>
+              </div>
+            </div>
+
             <div
               class="materials-container"
               *ngIf="
@@ -439,88 +454,6 @@
           </div>
         </form>
       </ng-template>
-    </div>
-
-    <!-- 添付ファイルセクション -->
-    <div class="task-attachments-section" *ngIf="isEditing">
-      <div class="attachment-section">
-        <label>{{ "taskDetail.attachments" | translate }}</label>
-
-        <div class="attachment-actions">
-          <button
-            mat-stroked-button
-            type="button"
-            (click)="fileInput.click()"
-            [disabled]="isUploading"
-          >
-            {{ "taskDetail.addFile" | translate }}
-          </button>
-          <input
-            #fileInput
-            type="file"
-            multiple
-            [accept]="fileAccept"
-            (change)="onFilesSelected($event)"
-            hidden
-          />
-        </div>
-
-        <div class="pending-files" *ngIf="pendingFiles.length > 0">
-          <p>{{ "taskDetail.uploadingFiles" | translate }}:</p>
-          <ul>
-            <li *ngFor="let pending of pendingFiles">
-              {{ pending.file.name }}
-            </li>
-          </ul>
-        </div>
-
-        <div class="attachment-list" *ngIf="editableAttachments.length > 0">
-          <h4>{{ "taskDetail.attachedFiles" | translate }}</h4>
-          <div
-            class="attachment-chip"
-            *ngFor="
-              let attachment of editableAttachments;
-              trackBy: trackAttachment
-            "
-          >
-            <mat-icon>{{
-              attachment.type === "link" ? "link" : "attach_file"
-            }}</mat-icon>
-            <a
-              [href]="attachment.url"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {{ attachment.name }}
-            </a>
-            <ng-container *ngIf="attachment.type === 'file' && attachment.size">
-              <span class="size-text"
-                >({{ formatFileSize(attachment.size) }})</span
-              >
-            </ng-container>
-            <button
-              mat-icon-button
-              type="button"
-              (click)="removeAttachment(attachment)"
-              [attr.aria-label]="'taskDetail.removeAttachment' | translate"
-            >
-              <mat-icon>close</mat-icon>
-            </button>
-          </div>
-        </div>
-
-        <div
-          class="no-attachments"
-          *ngIf="editableAttachments.length === 0 && pendingFiles.length === 0"
-        >
-          {{ "taskDetail.noAttachments" | translate }}
-        </div>
-
-        <div class="uploading-indicator" *ngIf="isUploading">
-          <mat-spinner diameter="24"></mat-spinner>
-          <span>{{ "taskDetail.uploadingAttachments" | translate }}</span>
-        </div>
-      </div>
     </div>
 
     <!-- 古いタグと関連資料セクションを削除 -->
