@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -43,6 +43,8 @@ export class TaskCreatePageComponent implements OnInit {
   projectName: string = '';
   projectId: string = '';
   returnUrl: string = '';
+  parentTaskId: string = '';
+  isSubtaskCreation: boolean = false;
   members: Member[] = [];
   isLoading = false;
   isSaving = false;
@@ -76,6 +78,7 @@ export class TaskCreatePageComponent implements OnInit {
 
   constructor(
     private router: Router,
+    private activatedRoute: ActivatedRoute,
     private location: Location,
     private projectService: ProjectService,
     private memberService: MemberManagementService,
@@ -88,6 +91,15 @@ export class TaskCreatePageComponent implements OnInit {
     this.projectName = navState?.projectName || '';
     this.projectId = navState?.projectId || '';
     this.returnUrl = navState?.returnUrl || '/kanban';
+
+    // Check for parentTaskId query parameter
+    this.activatedRoute.queryParams.subscribe((params) => {
+      if (params['parentTaskId']) {
+        this.parentTaskId = params['parentTaskId'];
+        this.isSubtaskCreation = true;
+      }
+    });
+
     this.loadMembers();
   }
 
@@ -200,6 +212,7 @@ export class TaskCreatePageComponent implements OnInit {
         ...this.taskForm,
         projectName: this.projectName,
         attachments: [], // 初期値は空配列
+        ...(this.parentTaskId && { parentTaskId: this.parentTaskId }),
       };
 
       const result = await this.projectService.addTaskToProject(
@@ -228,7 +241,15 @@ export class TaskCreatePageComponent implements OnInit {
       this.pendingFiles = [];
       this.taskForm.urls = [];
 
-      this.goBack();
+      // If this is a subtask creation, navigate to parent task detail
+      if (this.parentTaskId) {
+        this.router.navigate(
+          ['/project', this.projectId, 'task', this.parentTaskId],
+          { replaceUrl: true }
+        );
+      } else {
+        this.goBack();
+      }
     } catch (error) {
       console.error('タスク追加失敗:', error);
       alert('保存に失敗しました');

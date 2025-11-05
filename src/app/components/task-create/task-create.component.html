@@ -3,13 +3,17 @@
     <mat-icon>arrow_back</mat-icon>
     {{ 'taskCreate.back' | translate }}
   </button>
-  <h2>{{ 'taskCreate.title' | translate }}</h2>
+  <h2>
+    {{ isSubtaskCreation ? ('taskCreate.createSubtask' | translate) : ('taskCreate.title' | translate) }}
+  </h2>
 </div>
 
 <div class="task-create-container">
   <mat-card class="task-form-card">
     <mat-card-header>
-      <h3>{{ projectName ? projectName + ' - ' + ('taskCreate.title' | translate) : ('taskCreate.title' | translate) }}</h3>
+      <h3>
+        {{ isSubtaskCreation ? ('taskCreate.createSubtask' | translate) : (projectName ? projectName + ' - ' + ('taskCreate.title' | translate) : ('taskCreate.title' | translate)) }}
+      </h3>
     </mat-card-header>
 
     <mat-card-content>
@@ -273,7 +277,7 @@
             [disabled]="isSaving"
           >
             <mat-icon *ngIf="isSaving">schedule</mat-icon>
-            {{ isSaving ? ('taskCreate.saving' | translate) : ('taskCreate.createTask' | translate) }}
+            {{ isSaving ? ('taskCreate.saving' | translate) : (isSubtaskCreation ? ('taskCreate.createSubtask' | translate) : ('taskCreate.createTask' | translate)) }}
           </button>
         </div>
       </form>

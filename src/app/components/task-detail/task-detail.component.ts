@@ -436,32 +436,13 @@ export class TaskDetailComponent implements OnInit {
       return;
     }
 
-    const ref = this.dialog.open(TaskFormComponent, {
-      width: '90vw',
-      maxWidth: '800px',
-      maxHeight: '90vh',
-      data: {
+    this.router.navigate(['/task-create'], {
+      queryParams: { parentTaskId: this.task?.id },
+      state: {
         projectName: this.project?.projectName,
-        parentTaskId: this.task?.id,
-        parentTaskName: this.task?.taskName,
+        projectId: this.task?.projectId,
+        returnUrl: this.router.url,
       },
-    });
-
-    ref.afterClosed().subscribe((result) => {
-      if (result && this.task) {
-        // 子タスクとして保存
-        this.projectService
-          .addTaskToProject(this.task.projectId, {
-            ...result,
-            parentTaskId: this.task.id,
-          })
-          .then(() => {
-            console.log('子タスクが作成されました');
-            if (this.task && this.task.projectId && this.task.id) {
-              this.loadTaskDetails(this.task.projectId, this.task.id);
-            }
-          });
-      }
     });
   }
 
