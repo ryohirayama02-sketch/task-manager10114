@@ -122,6 +122,186 @@ mat-chip-set {
   margin-top: 8px;
 }
 
+/* 資料セクション */
+.resources-section {
+  margin-top: 16px;
+  margin-bottom: 16px;
+  padding: 16px;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+}
+
+.resources-section label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #333;
+}
+
+.resources-action-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.url-input-field {
+  flex: 1;
+  min-width: 240px;
+  margin-bottom: 0 !important;
+}
+
+.resources-action-row button {
+  min-width: 100px;
+}
+
+/* アップロード中のファイル表示 */
+.pending-files {
+  margin-bottom: 16px;
+  padding: 12px;
+  background-color: #fff9e6;
+  border: 1px solid #ffe082;
+  border-radius: 4px;
+}
+
+.pending-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #f57c00;
+  margin: 0 0 8px 0;
+}
+
+.pending-files-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pending-file-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background-color: #fff;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.pending-icon {
+  color: #f57c00;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.pending-filename {
+  flex: 1;
+  color: #333;
+  word-break: break-word;
+}
+
+.pending-size {
+  font-size: 11px;
+  color: #999;
+}
+
+/* ファイル・URLコンテナ */
+.resources-container {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.resources-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.resource-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background-color: #f5f5f5;
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  font-size: 13px;
+  transition: background-color 0.2s ease;
+}
+
+.resource-item:hover {
+  background-color: #efefef;
+}
+
+.resource-item.pending {
+  background-color: #fff9e6;
+  border-color: #ffe082;
+}
+
+.resource-item.pending:hover {
+  background-color: #fff3cd;
+}
+
+.resource-icon {
+  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.resource-name,
+.resource-link {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #333;
+}
+
+.resource-link {
+  color: #1976d2;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.resource-link:hover {
+  text-decoration: underline;
+}
+
+.resource-size {
+  font-size: 12px;
+  color: #999;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.resource-remove {
+  margin-left: auto;
+  min-width: auto;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.resource-remove:hover {
+  opacity: 1;
+}
+
+.resource-remove mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  line-height: 18px;
+}
+
 .calendar-sync-section {
   margin: 24px 0;
   padding: 16px;

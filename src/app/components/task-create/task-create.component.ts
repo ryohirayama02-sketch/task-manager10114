@@ -11,8 +11,10 @@ import { FormsModule } from '@angular/forms';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ProjectService } from '../../services/project.service';
 import { MemberManagementService } from '../../services/member-management.service';
+import { TaskAttachmentService } from '../../services/task-attachment.service';
 import { Member } from '../../models/member.model';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 
@@ -31,6 +33,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
     MatChipsModule,
     MatTooltipModule,
     MatProgressSpinnerModule,
+    MatSnackBarModule,
     TranslatePipe,
   ],
   templateUrl: './task-create.component.html',
@@ -54,7 +57,17 @@ export class TaskCreatePageComponent implements OnInit {
     tags: [] as string[],
     description: '',
     calendarSyncEnabled: false,
+    attachments: [] as any[],
+    urls: [] as string[],
   };
+
+  // ファイル・URL管理
+  pendingFiles: { id: string; file: File }[] = [];
+  newUrlInput: string = '';
+  isUploading = false;
+  readonly MAX_FILE_SIZE = 5 * 1024 * 1024;
+  readonly fileAccept =
+    '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.bmp,.heic,.webp,.svg,.txt,.csv,.zip';
 
   selectedMemberIds: string[] = [];
   newTag: string = '';
@@ -65,7 +78,9 @@ export class TaskCreatePageComponent implements OnInit {
     private router: Router,
     private location: Location,
     private projectService: ProjectService,
-    private memberService: MemberManagementService
+    private memberService: MemberManagementService,
+    private attachmentService: TaskAttachmentService,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit() {
@@ -105,6 +120,68 @@ export class TaskCreatePageComponent implements OnInit {
     this.taskForm.tags = this.taskForm.tags.filter((t) => t !== tag);
   }
 
+  // ファイル・URL関連メソッド
+  onFilesSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const files = input.files;
+    if (!files || files.length === 0) {
+      return;
+    }
+
+    Array.from(files).forEach((file) => {
+      if (file.size > this.MAX_FILE_SIZE) {
+        this.snackBar.open(
+          `${file.name} は5MBを超えています。別のファイルを選択してください。`,
+          '閉じる',
+          { duration: 4000 }
+        );
+        return;
+      }
+      this.pendingFiles.push({ id: this.generateId(), file });
+    });
+
+    input.value = '';
+  }
+
+  addUrl(url: string): void {
+    if (url && url.trim()) {
+      const trimmedUrl = url.trim();
+      // URLのバリデーション：http/httpsで始まるかチェック
+      if (!trimmedUrl.startsWith('http://') && !trimmedUrl.startsWith('https://')) {
+        this.snackBar.open(
+          'URLはhttp://またはhttps://で始まる必要があります',
+          '閉じる',
+          { duration: 3000 }
+        );
+        return;
+      }
+      if (!this.taskForm.urls.includes(trimmedUrl)) {
+        this.taskForm.urls.push(trimmedUrl);
+        this.newUrlInput = '';
+      }
+    }
+  }
+
+  removeUrl(url: string): void {
+    this.taskForm.urls = this.taskForm.urls.filter((u) => u !== url);
+  }
+
+  removePendingFile(fileId: string): void {
+    this.pendingFiles = this.pendingFiles.filter((f) => f.id !== fileId);
+  }
+
+  private generateId(): string {
+    return Date.now().toString(36) + Math.random().toString(36).substring(2);
+  }
+
+  formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+  }
+
   async save() {
     if (!this.taskForm.taskName.trim()) {
       alert('タスク名を入力してください');
@@ -118,18 +195,72 @@ export class TaskCreatePageComponent implements OnInit {
 
     this.isSaving = true;
     try {
-      await this.projectService.addTaskToProject(this.projectId, {
+      // Step 1: タスクを作成（URL は含める）
+      const taskDataToCreate = {
         ...this.taskForm,
         projectName: this.projectName,
-      });
-      console.log('タスク追加成功');
+        attachments: [], // 初期値は空配列
+      };
+
+      const result = await this.projectService.addTaskToProject(
+        this.projectId,
+        taskDataToCreate
+      );
+      const taskId = result.id;
+      console.log('タスク作成成功:', taskId);
+
+      // Step 2: ペンディングファイルをアップロード
+      if (this.pendingFiles.length > 0) {
+        this.isUploading = true;
+        const uploadedAttachments = await this.uploadPendingFiles(taskId);
+        
+        // Step 3: アップロードされたファイル情報でタスクを更新
+        if (uploadedAttachments.length > 0) {
+          await this.projectService.updateTask(this.projectId, taskId, {
+            attachments: uploadedAttachments,
+          });
+          console.log('タスクの添付ファイル情報を更新しました');
+        }
+        this.isUploading = false;
+      }
+
+      // リスト初期化
+      this.pendingFiles = [];
+      this.taskForm.urls = [];
+
       this.goBack();
     } catch (error) {
       console.error('タスク追加失敗:', error);
       alert('保存に失敗しました');
     } finally {
       this.isSaving = false;
+      this.isUploading = false;
     }
+  }
+
+  /** ペンディングファイルをアップロード */
+  private async uploadPendingFiles(taskId: string): Promise<any[]> {
+    const uploaded: any[] = [];
+
+    for (const pending of this.pendingFiles) {
+      try {
+        const attachment = await this.attachmentService.uploadAttachment(
+          taskId,
+          pending.file
+        );
+        uploaded.push(attachment);
+      } catch (error) {
+        console.error('添付ファイルのアップロードに失敗しました:', error);
+        this.snackBar.open(
+          `${pending.file.name} のアップロードに失敗しました`,
+          '閉じる',
+          { duration: 4000 }
+        );
+      }
+    }
+
+    this.pendingFiles = [];
+    return uploaded;
   }
 
   cancel() {

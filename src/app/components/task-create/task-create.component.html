@@ -100,6 +100,115 @@
           </mat-select>
         </mat-form-field>
 
+        <!-- 資料セクション -->
+        <div class="resources-section">
+          <label><strong>📁 {{ 'taskCreate.resources' | translate }}</strong></label>
+          <div class="resources-action-row">
+            <button
+              mat-stroked-button
+              type="button"
+              (click)="fileInput.click()"
+              [disabled]="isUploading"
+            >
+              {{ 'taskCreate.addFile' | translate }}
+            </button>
+            <input
+              #fileInput
+              type="file"
+              multiple
+              [accept]="fileAccept"
+              (change)="onFilesSelected($event)"
+              hidden
+            />
+            <mat-form-field appearance="outline" class="url-input-field">
+              <mat-label>{{ 'taskCreate.enterUrl' | translate }}</mat-label>
+              <input
+                matInput
+                [(ngModel)]="newUrlInput"
+                placeholder="https://example.com"
+                (keyup.enter)="addUrl(newUrlInput)"
+                name="newUrl"
+              />
+            </mat-form-field>
+            <button
+              mat-stroked-button
+              type="button"
+              (click)="addUrl(newUrlInput)"
+            >
+              {{ 'taskCreate.add' | translate }}
+            </button>
+          </div>
+
+          <!-- アップロード中のファイル表示 -->
+          <div class="pending-files" *ngIf="pendingFiles.length > 0">
+            <p class="pending-label">{{ 'taskCreate.uploadingFiles' | translate }}:</p>
+            <div class="pending-files-list">
+              <div
+                class="pending-file-item"
+                *ngFor="let pending of pendingFiles"
+              >
+                <mat-icon class="pending-icon">file_upload</mat-icon>
+                <span class="pending-filename">{{ pending.file.name }}</span>
+                <span class="pending-size">({{ formatFileSize(pending.file.size) }})</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ファイルとURLのリスト表示 -->
+          <div
+            class="resources-container"
+            *ngIf="
+              (pendingFiles && pendingFiles.length > 0) ||
+              (taskForm.urls && taskForm.urls.length > 0)
+            "
+          >
+            <div class="resources-list">
+              <!-- ペンディングファイル -->
+              <div
+                class="resource-item pending"
+                *ngFor="let pending of pendingFiles"
+              >
+                <span class="resource-icon">📎</span>
+                <span class="resource-name">{{ pending.file.name }}</span>
+                <span class="resource-size">({{ formatFileSize(pending.file.size) }})</span>
+                <button
+                  mat-icon-button
+                  type="button"
+                  (click)="removePendingFile(pending.id)"
+                  class="resource-remove"
+                  tabindex="-1"
+                >
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+              <!-- URLリンク -->
+              <div
+                class="resource-item"
+                *ngFor="let url of taskForm.urls || []"
+              >
+                <span class="resource-icon">🔗</span>
+                <a
+                  [href]="url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="resource-link"
+                >
+                  {{ url }}
+                </a>
+                <button
+                  mat-icon-button
+                  type="button"
+                  (click)="removeUrl(url)"
+                  class="resource-remove"
+                  tabindex="-1"
+                >
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- タグ -->
         <div class="tag-section">
           <label>{{ 'taskCreate.tags' | translate }}</label>

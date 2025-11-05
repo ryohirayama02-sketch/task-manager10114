@@ -430,6 +430,11 @@ export class LanguageService {
     'taskCreate.cancel': { ja: 'キャンセル', en: 'Cancel' },
     'taskCreate.createTask': { ja: 'タスクを作成', en: 'Create Task' },
     'taskCreate.saving': { ja: '保存中...', en: 'Saving...' },
+    'taskCreate.resources': { ja: '資料', en: 'Resources' },
+    'taskCreate.addFile': { ja: 'ファイルを追加', en: 'Add File' },
+    'taskCreate.enterUrl': { ja: 'URLを入力', en: 'Enter URL' },
+    'taskCreate.add': { ja: '追加', en: 'Add' },
+    'taskCreate.uploadingFiles': { ja: 'アップロード中', en: 'Uploading' },
     // タスクフォーム（ダイアログ）
     'taskForm.title': { ja: 'タスクを追加', en: 'Add Task' },
     'taskForm.projectName': { ja: 'プロジェクト名', en: 'Project Name' },
