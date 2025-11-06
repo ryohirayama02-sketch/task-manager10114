@@ -82,6 +82,9 @@ export class KanbanComponent implements OnInit {
         }
 
         this.applyProjectList(projects);
+        // ルーム内全プロジェクトをデフォルト選択
+        const projectIds = projects.map(p => p.id).filter((id): id is string => !!id);
+        this.projectSelectionService.setSelectedProjectIds(projectIds);
       });
 
     // プロジェクト選択状態の変更を監視

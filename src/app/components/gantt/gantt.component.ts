@@ -222,6 +222,9 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
         }
 
         this.applyProjectList(projects);
+        // ルーム内全プロジェクトをデフォルト選択
+        const projectIds = projects.map(p => p.id).filter((id): id is string => !!id);
+        this.projectSelectionService.setSelectedProjectIds(projectIds);
       });
   }
 

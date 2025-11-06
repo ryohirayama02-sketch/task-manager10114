@@ -6,6 +6,7 @@ import {
   getDownloadURL,
   deleteObject,
 } from '@angular/fire/storage';
+import { Auth } from '@angular/fire/auth';
 import { TaskAttachment } from '../models/task.model';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -14,7 +15,7 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
   providedIn: 'root',
 })
 export class TaskAttachmentService {
-  constructor(private storage: Storage) {}
+  constructor(private storage: Storage, private auth: Auth) {}
 
   /**
    * Firebase Storage にファイルをアップロードし、添付ファイル情報を返す
@@ -32,9 +33,15 @@ export class TaskAttachmentService {
     const storagePath = `tasks/${taskId}/attachments/${attachmentId}-${cleanFileName}`;
     const fileRef = ref(this.storage, storagePath);
 
-    await uploadBytes(fileRef, file, {
+    // 認証情報を含めてアップロード
+    const metadata = {
       contentType: file.type || 'application/octet-stream',
-    });
+      customMetadata: {
+        uploadedBy: this.auth.currentUser?.uid || 'anonymous',
+      },
+    };
+
+    await uploadBytes(fileRef, file, metadata);
 
     const downloadUrl = await getDownloadURL(fileRef);
 
