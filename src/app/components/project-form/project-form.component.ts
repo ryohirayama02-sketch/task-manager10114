@@ -97,7 +97,7 @@ export class ProjectFormComponent implements OnInit {
   ) {
     this.projectForm = this.fb.group({
       projectName: ['', [Validators.required, Validators.minLength(1)]],
-      description: [''],
+      overview: [''],
       startDate: [''],
       endDate: [''],
       responsible: [[]],
@@ -337,7 +337,7 @@ export class ProjectFormComponent implements OnInit {
 
       const projectData = {
         projectName: formData.projectName,
-        description: formData.description || '',
+        overview: formData.overview || '',
         startDate: formData.startDate || '',
         endDate: formData.endDate || '',
         themeColor: selectedColor,
