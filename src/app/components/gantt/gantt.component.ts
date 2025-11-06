@@ -27,6 +27,9 @@ import {
 } from '../../constants/project-theme-colors';
 import { TruncateOverflowDirective } from '../../directives/truncate-overflow.directive';
 import { TranslatePipe } from '../../pipes/translate.pipe';
+import { AuthService } from '../../services/auth.service';
+import { combineLatest, of } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-gantt',
@@ -114,13 +117,21 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     private projectService: ProjectService,
     private projectSelectionService: ProjectSelectionService,
-    private router: Router
+    private router: Router,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
     this.initializeDateRange();
-    this.loadProjects();
+    this.observeUserProjects();
     this.setupScrollSync();
+
+    this.projectSelectionService
+      .getSelectedProjectIds()
+      .subscribe((projectIds: string[]) => {
+        this.selectedProjectIds = projectIds;
+        this.filterTasksBySelectedProjects();
+      });
   }
 
   ngAfterViewInit(): void {
@@ -190,42 +201,71 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  /** プロジェクト一覧を読み込み */
-  loadProjects() {
-    this.projectService.getProjects().subscribe((projects) => {
-      this.projects = projects;
-      this.updateThemeColorMap();
-      this.allTasks = this.allTasks.map((task) => this.withTaskTheme(task));
-      this.loadAllTasks();
-      this.loadAllMilestones();
-
-      // 保存されているプロジェクト選択状態を復元
-      this.selectedProjectIds =
-        this.projectSelectionService.getSelectedProjectIdsSync();
-
-      // 保存された選択がない場合は、最初のプロジェクトを選択
-      if (this.selectedProjectIds.length === 0) {
-        const appProject = projects.find(
-          (p) => p.projectName === 'アプリ A改善プロジェクト'
-        );
-        if (appProject) {
-          this.selectedProjectIds = [appProject.id];
-          this.projectSelectionService.setSelectedProjectIds(
-            this.selectedProjectIds
-          );
+  private observeUserProjects(): void {
+    combineLatest([
+      this.authService.currentUserEmail$,
+      this.authService.currentMemberName$,
+    ])
+      .pipe(
+        switchMap(([userEmail, userName]) => {
+          console.log('🔑 現在のユーザー情報(ガント):', {
+            userEmail,
+            userName,
+          });
+          if (!userEmail) {
+            this.resetProjectState(true);
+            return of([]);
+          }
+          return this.projectService.getUserProjects(userEmail, userName || null);
+        })
+      )
+      .subscribe((projects) => {
+        console.log('🎯 ガント用フィルタ済みプロジェクト一覧:', projects);
+        if (projects.length === 0) {
+          this.resetProjectState();
+          this.projectSelectionService.clearSelection();
+          return;
         }
-      }
 
-      this.filterTasksBySelectedProjects();
-    });
-
-    // プロジェクト選択状態の変更を監視
-    this.projectSelectionService
-      .getSelectedProjectIds()
-      .subscribe((projectIds: string[]) => {
-        this.selectedProjectIds = projectIds;
-        this.filterTasksBySelectedProjects();
+        this.applyProjectList(projects);
       });
+  }
+
+  private applyProjectList(projects: IProject[]): void {
+    this.projects = projects;
+    this.updateThemeColorMap();
+
+    const storedSelection =
+      this.projectSelectionService.getSelectedProjectIdsSync();
+    const availableIds = new Set(
+      projects
+        .map((project) => project.id)
+        .filter((id): id is string => !!id)
+    );
+    let nextSelection = storedSelection.filter((id) =>
+      availableIds.has(id)
+    );
+
+    if (nextSelection.length === 0) {
+      const preferredProject = projects.find(
+        (p) => p.projectName === 'アプリ A改善プロジェクト'
+      );
+      const fallbackProject = preferredProject ?? projects[0];
+      if (fallbackProject?.id) {
+        nextSelection = [fallbackProject.id];
+      }
+    }
+
+    if (nextSelection.length > 0) {
+      this.projectSelectionService.setSelectedProjectIds(nextSelection);
+    } else {
+      this.projectSelectionService.clearSelection();
+    }
+    this.selectedProjectIds = nextSelection;
+
+    this.loadAllTasks();
+    this.loadAllMilestones();
+    this.filterTasksBySelectedProjects();
   }
 
   /** 全プロジェクトのタスクを読み込み */
@@ -375,6 +415,18 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
       }
       return acc;
     }, {} as Record<string, string>);
+  }
+
+  private resetProjectState(includeSelection = false): void {
+    this.projects = [];
+    this.selectedProjectIds = [];
+    this.allTasks = [];
+    this.tasks = [];
+    this.allMilestones = [];
+    this.themeColorByProjectId = {};
+    if (includeSelection) {
+      this.projectSelectionService.clearSelection();
+    }
   }
 
   getProjectThemeColor(projectId?: string): string {
