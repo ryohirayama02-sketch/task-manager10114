@@ -1,23 +1,27 @@
 <div class="quick-tasks-container">
   <!-- ヘッダー -->
   <div class="header">
-    <h1>{{ 'quickTasks.title' | translate }}</h1>
+    <h1>{{ "quickTasks.title" | translate }}</h1>
     <div class="filter-controls">
       <mat-form-field appearance="outline" class="days-filter">
-        <mat-label>{{ 'quickTasks.dueDate' | translate }}</mat-label>
+        <mat-label>{{ "quickTasks.dueDate" | translate }}</mat-label>
         <mat-select
           [(value)]="daysFilter"
           (selectionChange)="onDaysFilterChange()"
         >
           <mat-option *ngFor="let days of daysOptions" [value]="days">
-            {{ days }}{{ 'quickTasks.daysSuffix' | translate }}
+            {{ days }}{{ "quickTasks.daysSuffix" | translate }}
           </mat-option>
         </mat-select>
       </mat-form-field>
       <!-- 一時的にデバッグボタンを有効化 -->
       <button mat-button color="accent" (click)="toggleDebugMode()">
         <mat-icon>bug_report</mat-icon>
-        {{ debugMode ? ('quickTasks.debugOff' | translate) : ('quickTasks.debugOn' | translate) }}
+        {{
+          debugMode
+            ? ("quickTasks.debugOff" | translate)
+            : ("quickTasks.debugOn" | translate)
+        }}
       </button>
     </div>
   </div>
@@ -25,7 +29,7 @@
   <!-- ローディング表示 -->
   <div *ngIf="loading" class="loading-container">
     <mat-spinner diameter="50"></mat-spinner>
-    <p>{{ 'quickTasks.loading' | translate }}</p>
+    <p>{{ "quickTasks.loading" | translate }}</p>
   </div>
 
   <!-- 一時的にデバッグ情報を有効化 -->
@@ -35,7 +39,7 @@
       <p><strong>全タスク数:</strong> {{ allTasks.length }}件</p>
       <p>
         <strong>現在のユーザーに関連するタスク数:</strong>
-        {{ filteredTasksByUser.length }}件
+        {{ filteredTasks.length }}件
       </p>
       <p *ngIf="currentUser">
         <strong>現在のユーザー:</strong> {{ currentUser.email }} ({{
@@ -43,11 +47,11 @@
         }})
       </p>
 
-      <div *ngIf="filteredTasksByUser.length > 0" class="debug-tasks">
+      <div *ngIf="filteredTasks.length > 0" class="debug-tasks">
         <h4>現在のユーザーに関連するタスク一覧:</h4>
         <div class="tasks-grid">
           <mat-card
-            *ngFor="let task of filteredTasksByUser; trackBy: trackByTaskId"
+            *ngFor="let task of filteredTasks; trackBy: trackByTaskId"
             class="task-card debug-task-card"
             [ngClass]="getDueStatusClass(task)"
             (click)="onTaskClick(task)"
@@ -121,13 +125,12 @@
                 <p>{{ task.description }}</p>
               </div>
             </mat-card-content>
-
           </mat-card>
         </div>
       </div>
 
       <div
-        *ngIf="filteredTasksByUser.length === 0 && allTasks.length > 0"
+        *ngIf="filteredTasks.length === 0 && allTasks.length > 0"
         class="debug-no-user-tasks"
       >
         <h4>⚠️ 現在のユーザーに関連するタスクが見つかりません</h4>
@@ -148,8 +151,13 @@
     <!-- タスクが見つからない場合 -->
     <div *ngIf="filteredTasks.length === 0" class="no-tasks">
       <mat-icon>task_alt</mat-icon>
-      <h3>{{ 'quickTasks.noTasksFound' | translate }}</h3>
-      <p>{{ daysFilter }}{{ 'quickTasks.daysSuffix' | translate }}以内に期限が来る未完了のタスクはありません。</p>
+      <h3>{{ "quickTasks.noTasksFound" | translate }}</h3>
+      <p>
+        {{ daysFilter
+        }}{{
+          "quickTasks.daysSuffix" | translate
+        }}以内に期限が来る未完了のタスクはありません。
+      </p>
     </div>
 
     <!-- タスクカード一覧 -->
@@ -227,7 +235,6 @@
             <p>{{ task.description }}</p>
           </div>
         </mat-card-content>
-
       </mat-card>
     </div>
   </div>

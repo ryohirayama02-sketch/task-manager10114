@@ -8,17 +8,18 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
+
 import { TaskService } from '../../services/task.service';
 import { AuthService } from '../../services/auth.service';
+import { LanguageService } from '../../services/language.service';
+import { MemberManagementService } from '../../services/member-management.service';
 import { Task } from '../../models/task.model';
 import { DEFAULT_PROJECT_THEME_COLOR } from '../../constants/project-theme-colors';
 import { TranslatePipe } from '../../pipes/translate.pipe';
-import { LanguageService } from '../../services/language.service';
-import { MemberManagementService } from '../../services/member-management.service';
 
 @Component({
   selector: 'app-quick-tasks',
@@ -44,13 +45,12 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
   readonly defaultThemeColor = DEFAULT_PROJECT_THEME_COLOR;
   tasks: Task[] = [];
   filteredTasks: Task[] = [];
+  allTasks: Task[] = [];
   loading = false;
   daysFilter = 7;
   daysOptions = [3, 7, 14, 30];
   debugMode = false;
-  allTasks: any[] = [];
   currentUser: any = null;
-  filteredTasksByUser: any[] = [];
 
   private destroy$ = new Subject<void>();
 
@@ -63,19 +63,12 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    // 認証状態を確認
     this.authService.user$.pipe(takeUntil(this.destroy$)).subscribe((user) => {
       if (user) {
         this.currentUser = user;
-        console.log('🔐 認証されたユーザー:', {
-          uid: user.uid,
-          email: user.email,
-          displayName: user.displayName,
-        });
         void this.loadQuickTasks();
       } else {
         this.currentUser = null;
-        console.log('❌ ユーザーが認証されていません');
       }
     });
   }
@@ -85,17 +78,16 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  /** 🔁 日数フィルター変更時 */
+  onDaysFilterChange() {
+    this.loadQuickTasks();
+  }
+
+  /** 📦 タスク取得 */
   async loadQuickTasks() {
     this.loading = true;
     const userEmail = this.currentUser?.email;
-
-    if (!userEmail) {
-      console.log('❌ ユーザーが認証されていないため、タスクを読み込めません');
-      this.tasks = [];
-      this.filteredTasks = [];
-      this.loading = false;
-      return;
-    }
+    if (!userEmail) return;
 
     let memberName: string | undefined;
     try {
@@ -109,110 +101,56 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
       .getQuickTasks(this.daysFilter, userEmail, memberName)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (tasks) => {
-          // 期日順でソート（近い順）
-          const sortedTasks = tasks.sort((a, b) => {
-            if (a.dueDate < b.dueDate) return -1;
-            if (a.dueDate > b.dueDate) return 1;
-            return 0;
-          });
-
-          this.tasks = sortedTasks;
-          this.filteredTasks = [...sortedTasks];
-          this.loading = false;
-          console.log(
-            `✅ すぐやるタスクを読み込み完了: ${sortedTasks.length}件`
+        next: (tasks: Task[]) => {
+          this.tasks = tasks.sort((a, b) =>
+            a.dueDate < b.dueDate ? -1 : a.dueDate > b.dueDate ? 1 : 0
           );
-          console.log(`👤 ユーザー: ${userEmail}`);
-          console.log(`📅 期日設定: ${this.daysFilter}日以内`);
-          console.log('📅 期日順でソート済み（近い順）');
+          this.filteredTasks = [...this.tasks];
+          this.loading = false;
+          console.log(`✅ すぐやるタスク取得完了: ${tasks.length}件`);
         },
-        error: (error) => {
-          console.error('❌ すぐやるタスクの読み込みエラー:', error);
+        error: (err: any) => {
+          console.error('❌ タスク読み込みエラー:', err);
           this.loading = false;
         },
       });
   }
 
-  onDaysFilterChange() {
-    void this.loadQuickTasks();
-  }
-
-  onTaskClick(task: Task) {
-    if (task.id && task.projectId) {
-      this.router.navigate(['/project', task.projectId, 'task', task.id]);
+  /** 🧩 デバッグモード切替 */
+  toggleDebugMode() {
+    this.debugMode = !this.debugMode;
+    console.log(`🧩 デバッグモード: ${this.debugMode ? 'ON' : 'OFF'}`);
+    if (this.debugMode) {
+      this.loadAllTasksForDebug();
     }
   }
 
-  getPriorityColor(priority: string): string {
-    switch (priority) {
-      case '高':
-        return 'warn';
-      case '中':
-        return 'accent';
-      case '低':
-        return 'primary';
-      default:
-        return 'primary';
+  /** 🔍 全タスク取得（デバッグ用） */
+  loadAllTasksForDebug() {
+    // TaskService に getAllTasksForDebug() が未実装の場合、一時的にコメントアウト可
+    if (!('getAllTasksForDebug' in this.taskService)) {
+      console.warn('⚠️ getAllTasksForDebug() が TaskService に存在しません');
+      return;
     }
+
+    this.loading = true;
+    (this.taskService as any)
+      .getAllTasksForDebug()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (tasks: Task[]) => {
+          this.allTasks = tasks;
+          this.loading = false;
+          console.log(`✅ デバッグ用タスク取得完了: ${tasks.length}件`);
+        },
+        error: (error: any) => {
+          console.error('❌ デバッグ用タスク取得エラー:', error);
+          this.loading = false;
+        },
+      });
   }
 
-  getStatusColor(status: string): string {
-    switch (status) {
-      case '未着手':
-        return 'primary';
-      case '作業中':
-        return 'accent';
-      case '完了':
-        return 'warn';
-      default:
-        return 'primary';
-    }
-  }
-
-  getDaysUntilDue(dueDate: string): number {
-    const today = new Date();
-    const due = new Date(dueDate);
-    const diffTime = due.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
-  }
-
-  isOverdue(dueDate: string): boolean {
-    return this.getDaysUntilDue(dueDate) < 0;
-  }
-
-  isDueSoon(dueDate: string): boolean {
-    const daysUntil = this.getDaysUntilDue(dueDate);
-    return daysUntil >= 2 && daysUntil <= 3;
-  }
-
-  getDueStatusClass(task: Task): string {
-    const daysUntil = this.getDaysUntilDue(task.dueDate);
-    if (daysUntil < 0) {
-      return 'overdue';
-    }
-    if (daysUntil === 0) {
-      return 'due-today';
-    }
-    if (daysUntil === 1) {
-      return 'due-tomorrow';
-    }
-    if (daysUntil >= 2 && daysUntil <= 3) {
-      return 'due-soon';
-    }
-    return '';
-  }
-
-  trackByTaskId(index: number, task: Task): string {
-    return task.id || index.toString();
-  }
-
-  // テンプレート内でMath.abs()を使用するためのヘルパーメソッド
-  getAbsoluteValue(value: number): number {
-    return Math.abs(value);
-  }
-
+  /** 🎨 プロジェクト名の背景色 */
   getProjectNameStyle(task: Task) {
     const color = task.projectThemeColor || this.defaultThemeColor;
     return {
@@ -221,94 +159,51 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
     };
   }
 
-  // デバッグ用：すべてのタスクを取得
-  loadAllTasksForDebug() {
-    console.log('🔍 デバッグモード：すべてのタスクを取得中...');
-    this.loading = true;
-    this.taskService
-      .getAllTasksForDebug()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (tasks) => {
-          this.allTasks = tasks;
-          this.filterTasksByUser();
-          this.loading = false;
-          console.log(`✅ デバッグ用タスク取得完了: ${tasks.length}件`);
-        },
-        error: (error) => {
-          console.error('❌ デバッグ用タスク取得エラー:', error);
-          this.loading = false;
-        },
-      });
+  /** 📂 タスククリック時の遷移 */
+  onTaskClick(task: Task) {
+    if (task.id && task.projectId) {
+      this.router.navigate(['/project', task.projectId, 'task', task.id]);
+    }
   }
 
-  // 現在のユーザーに関連するタスクをフィルタリング
-  filterTasksByUser() {
-    if (!this.currentUser) {
-      console.log(
-        '❌ ユーザーが認証されていないため、フィルタリングをスキップ'
-      );
-      this.filteredTasksByUser = [];
-      return;
-    }
-
-    console.log('🔍 ユーザーフィルタリング開始');
-    console.log('🔐 現在のユーザー:', {
-      uid: this.currentUser.uid,
-      email: this.currentUser.email,
-      displayName: this.currentUser.displayName,
-    });
-
-    const filteredTasks = this.allTasks.filter((task) => {
-      // タスクの担当者情報を確認
-      const assigneeEmail = task.assigneeEmail || task.assignee;
-      const assigneeName = task.assignee;
-
-      console.log(`📋 タスク「${task.taskName}」の担当者情報:`, {
-        assigneeEmail,
-        assigneeName,
-        userEmail: this.currentUser.email,
-        userDisplayName: this.currentUser.displayName,
-      });
-
-      // メールアドレスまたは表示名でマッチング
-      const isAssignedToUser =
-        assigneeEmail === this.currentUser.email ||
-        assigneeName === this.currentUser.email ||
-        assigneeName === this.currentUser.displayName ||
-        assigneeEmail === this.currentUser.displayName;
-
-      if (isAssignedToUser) {
-        console.log(
-          `✅ タスク「${task.taskName}」は現在のユーザーに割り当てられています`
-        );
-      } else {
-        console.log(
-          `❌ タスク「${task.taskName}」は現在のユーザーに割り当てられていません`
-        );
-      }
-
-      return isAssignedToUser;
-    });
-
-    // 期日順でソート（近い順）
-    this.filteredTasksByUser = filteredTasks.sort((a, b) => {
-      if (a.dueDate < b.dueDate) return -1;
-      if (a.dueDate > b.dueDate) return 1;
-      return 0;
-    });
-
-    console.log(
-      `📊 ユーザーフィルタリング結果: ${this.filteredTasksByUser.length}件`
-    );
-    console.log('📅 期日順でソート済み（近い順）');
+  /** 🔢 トラッキング用ID */
+  trackByTaskId(index: number, task: Task): string {
+    return task.id ?? ''; // undefined 対策
   }
 
-  // デバッグモードの切り替え
-  toggleDebugMode() {
-    this.debugMode = !this.debugMode;
-    if (this.debugMode) {
-      this.loadAllTasksForDebug();
-    }
+  /** 🧮 期日までの日数 */
+  getDaysUntilDue(dueDate: string): number {
+    if (!dueDate) return 0;
+    const today = new Date();
+    const due = new Date(dueDate);
+    const diff = due.getTime() - today.getTime();
+    return Math.floor(diff / (1000 * 60 * 60 * 24));
+  }
+
+  /** ⚠️ 期限切れチェック */
+  isOverdue(dueDate: string): boolean {
+    return this.getDaysUntilDue(dueDate) < 0;
+  }
+
+  /** ⏰ 近日中（2〜3日以内） */
+  isDueSoon(dueDate: string): boolean {
+    const days = this.getDaysUntilDue(dueDate);
+    return days >= 2 && days <= 3;
+  }
+
+  /** ➕ 日数絶対値 */
+  getAbsoluteValue(value: number): number {
+    return Math.abs(value);
+  }
+
+  /** 🧩 CSSクラス判定 */
+  getDueStatusClass(task: Task): any {
+    const days = this.getDaysUntilDue(task.dueDate);
+    return {
+      overdue: days < 0,
+      'due-today': days === 0,
+      'due-tomorrow': days === 1,
+      'due-soon': days >= 2 && days <= 3,
+    };
   }
 }
