@@ -88,7 +88,7 @@
           </div>
           <div class="task-meta">
             <span *ngIf="task.dueDate">{{ 'kanban.dueDate' | translate }}: {{ task.dueDate }}</span>
-            <span *ngIf="task.assignee">{{ 'kanban.assignee' | translate }}: {{ task.assignee }}</span>
+            <span>{{ 'kanban.assignee' | translate }}: {{ task.assignee || '-' }}</span>
           </div>
           <div class="priority" [ngClass]="'priority-' + task.priority">
             {{ task.priority }}
