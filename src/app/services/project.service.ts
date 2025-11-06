@@ -8,6 +8,9 @@ import {
   docData,
   updateDoc,
   deleteDoc,
+  query,
+  where,
+  QueryConstraint,
 } from '@angular/fire/firestore';
 import { Observable, combineLatest, map } from 'rxjs';
 import { IProject } from '../models/project.model'; // 上の方に追加
@@ -27,6 +30,70 @@ export class ProjectService {
     return collectionData(projectsRef, { idField: 'id' }) as Observable<
       IProject[]
     >;
+  }
+
+  /** 🔹 ログイン中のユーザーに関連するプロジェクトのみを取得 */
+  getUserProjects(userEmail: string): Observable<IProject[]> {
+    const projectsRef = collection(this.firestore, 'projects');
+    
+    // すべてのプロジェクトを取得してから、フロント側でフィルタリング
+    return (collectionData(projectsRef, { idField: 'id' }) as Observable<IProject[]>).pipe(
+      map((allProjects) => {
+        console.log('📦 全プロジェクト取得数:', allProjects.length);
+        console.log('🔍 フィルタリング対象ユーザーメール:', userEmail);
+        
+        const filtered = allProjects.filter((project) => {
+          // 1. 単数の責任者メールで判定
+          if (project.responsibleEmail === userEmail) {
+            console.log(`✅ [責任者(単数)] プロジェクト: ${project.projectName}`);
+            return true;
+          }
+          
+          // 2. 複数責任者配列で判定
+          if (Array.isArray(project.responsibles)) {
+            const isResponsible = project.responsibles.some((r: any) => 
+              r.memberEmail === userEmail
+            );
+            if (isResponsible) {
+              console.log(`✅ [責任者(複数)] プロジェクト: ${project.projectName}`);
+              return true;
+            }
+          }
+          
+          // 3. メンバーフィールドで判定
+          if (project.members) {
+            // members が配列の場合
+            if (Array.isArray(project.members)) {
+              const isMember = project.members.some((member: any) => {
+                if (typeof member === 'string') {
+                  return member === userEmail;
+                } else if (member && typeof member === 'object' && member.memberEmail) {
+                  return member.memberEmail === userEmail;
+                }
+                return false;
+              });
+              if (isMember) {
+                console.log(`✅ [メンバー(配列)] プロジェクト: ${project.projectName}`);
+                return true;
+              }
+            }
+            // members が文字列（カンマ区切り）の場合
+            else if (typeof project.members === 'string') {
+              const isMember = project.members.split(',').map((m: string) => m.trim()).includes(userEmail);
+              if (isMember) {
+                console.log(`✅ [メンバー(文字列)] プロジェクト: ${project.projectName}`);
+                return true;
+              }
+            }
+          }
+          
+          return false;
+        });
+        
+        console.log(`📊 フィルタリング後のプロジェクト数: ${filtered.length}`);
+        return filtered;
+      })
+    );
   }
 
   /** 🔹 特定のプロジェクト内のタスクを取得 */

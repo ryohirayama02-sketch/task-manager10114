@@ -15,6 +15,7 @@ import { ProjectService } from '../../services/project.service';
 import { ProjectSelectionService } from '../../services/project-selection.service';
 import { TaskFormComponent } from '../task-form/task-form.component';
 import { TaskService } from '../../services/task.service';
+import { AuthService } from '../../services/auth.service';
 import { Task } from '../../models/task.model';
 import { IProject } from '../../models/project.model';
 import { TranslatePipe } from '../../pipes/translate.pipe';
@@ -53,36 +54,50 @@ export class KanbanComponent implements OnInit {
     private projectSelectionService: ProjectSelectionService,
     private dialog: MatDialog,
     private router: Router,
-    private languageService: LanguageService
+    private languageService: LanguageService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
-    // プロジェクト一覧を取得
-    this.projectService.getProjects().subscribe((projects) => {
-      this.projects = projects;
-      console.log('プロジェクト一覧:', projects);
+    // ログイン中のユーザーのメールアドレスを監視
+    this.authService.currentUserEmail$.subscribe((userEmail) => {
+      console.log('🔑 現在のユーザーメール:', userEmail);
+      if (userEmail) {
+        // ユーザーが関連するプロジェクト一覧を取得
+        this.projectService.getUserProjects(userEmail).subscribe((projects) => {
+          this.projects = projects;
+          console.log('🎯 ユーザー関連のプロジェクト一覧:', projects);
+          console.log('📈 取得されたプロジェクト数:', projects.length);
 
-      // 全プロジェクトのタスクを読み込み
-      this.loadAllTasks();
+          // 全プロジェクトのタスクを読み込み
+          this.loadAllTasks();
 
-      // 保存されているプロジェクト選択状態を復元
-      this.selectedProjectIds =
-        this.projectSelectionService.getSelectedProjectIdsSync();
+          // 保存されているプロジェクト選択状態を復元
+          this.selectedProjectIds =
+            this.projectSelectionService.getSelectedProjectIdsSync();
 
-      // 保存された選択がない場合は、最初のプロジェクトを選択
-      if (this.selectedProjectIds.length === 0) {
-        const appProject = projects.find(
-          (p) => p.projectName === 'アプリ A改善プロジェクト'
-        );
-        if (appProject) {
-          this.selectedProjectIds = [appProject.id];
-          this.projectSelectionService.setSelectedProjectIds(
-            this.selectedProjectIds
-          );
-        }
+          // 保存された選択がない場合は、最初のプロジェクトを選択
+          if (this.selectedProjectIds.length === 0) {
+            const appProject = projects.find(
+              (p) => p.projectName === 'アプリ A改善プロジェクト'
+            );
+            if (appProject) {
+              this.selectedProjectIds = [appProject.id];
+              this.projectSelectionService.setSelectedProjectIds(
+                this.selectedProjectIds
+              );
+            }
+          }
+
+          this.filterTasksBySelectedProjects();
+        });
+      } else {
+        // ログアウト時はプロジェクトをクリア
+        this.projects = [];
+        this.selectedProjectIds = [];
+        this.allTasks = [];
+        this.tasks = [];
       }
-
-      this.filterTasksBySelectedProjects();
     });
 
     // プロジェクト選択状態の変更を監視

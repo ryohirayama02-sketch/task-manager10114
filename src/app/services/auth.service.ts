@@ -25,6 +25,9 @@ export class AuthService {
   private currentMemberNameSubject = new BehaviorSubject<string | null>(null);
   public currentMemberName$ = this.currentMemberNameSubject.asObservable();
 
+  private currentUserEmailSubject = new BehaviorSubject<string | null>(null);
+  public currentUserEmail$ = this.currentUserEmailSubject.asObservable();
+
   constructor(private auth: Auth, private router: Router, private firestore: Firestore) {
     setPersistence(this.auth, browserLocalPersistence)
       .then(() => console.log('🧭 Persistence設定完了'))
@@ -33,10 +36,12 @@ export class AuthService {
     onAuthStateChanged(this.auth, (user) => {
       console.log('🔐 onAuthStateChanged:', user?.email || 'ユーザーなし');
       this.userSubject.next(user);
-      // ユーザー状態変更時にメンバー名を更新
+      // ユーザー状態変更時にメンバー名とメールアドレスを更新
       if (user?.email) {
+        this.currentUserEmailSubject.next(user.email);
         this.resolveAndUpdateMemberName(user.email);
       } else {
+        this.currentUserEmailSubject.next(null);
         this.currentMemberNameSubject.next(null);
       }
     });
@@ -55,8 +60,9 @@ export class AuthService {
         const result = await signInWithPopup(this.auth, provider);
         console.log('✅ Popup認証成功:', result.user.email);
         this.userSubject.next(result.user);
-        // メンバー名を更新
+        // メンバー名とメールアドレスを更新
         if (result.user.email) {
+          this.currentUserEmailSubject.next(result.user.email);
           await this.resolveAndUpdateMemberName(result.user.email);
         }
       } else {
@@ -75,8 +81,9 @@ export class AuthService {
       if (result?.user) {
         console.log('✅ Redirect認証成功:', result.user.email);
         this.userSubject.next(result.user);
-        // メンバー名を更新
+        // メンバー名とメールアドレスを更新
         if (result.user.email) {
+          this.currentUserEmailSubject.next(result.user.email);
           await this.resolveAndUpdateMemberName(result.user.email);
         }
         await this.router.navigate(['/']);
@@ -91,7 +98,8 @@ export class AuthService {
     const result = await signInWithEmailAndPassword(this.auth, email, password);
     console.log('✅ メールログイン成功:', result.user.email);
     this.userSubject.next(result.user);
-    // メンバー名を更新
+    // メンバー名とメールアドレスを更新
+    this.currentUserEmailSubject.next(result.user.email!);
     await this.resolveAndUpdateMemberName(result.user.email!);
     return result.user;
   }
@@ -105,7 +113,8 @@ export class AuthService {
     );
     console.log('✅ サインアップ成功:', result.user.email);
     this.userSubject.next(result.user);
-    // メンバー名を更新
+    // メンバー名とメールアドレスを更新
+    this.currentUserEmailSubject.next(result.user.email!);
     await this.resolveAndUpdateMemberName(result.user.email!);
     return result.user;
   }
@@ -119,7 +128,8 @@ export class AuthService {
   async signOut(): Promise<void> {
     await signOut(this.auth);
     this.userSubject.next(null);
-    // ログアウト時はメンバー名もクリア
+    // ログアウト時はメンバー名とメールアドレスもクリア
+    this.currentUserEmailSubject.next(null);
     this.currentMemberNameSubject.next(null);
     await this.router.navigate(['/login']);
   }
