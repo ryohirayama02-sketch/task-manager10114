@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -17,6 +17,9 @@ import {
 } from '../../../constants/project-theme-colors';
 import { TranslatePipe } from '../../../pipes/translate.pipe';
 import { LanguageService } from '../../../services/language.service';
+import { AuthService } from '../../../services/auth.service';
+import { combineLatest, of, Subject } from 'rxjs';
+import { switchMap, takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-projects-overview',
@@ -33,7 +36,7 @@ import { LanguageService } from '../../../services/language.service';
   templateUrl: './projects-overview.component.html',
   styleUrls: ['./projects-overview.component.css'],
 })
-export class ProjectsOverviewComponent implements OnInit {
+export class ProjectsOverviewComponent implements OnInit, OnDestroy {
   private readonly sortStorageKey = 'projectsOverview.sortOption';
   sortOptions: Array<{ value: 'endDateAsc' | 'endDateDesc' | 'progressDesc' | 'progressAsc'; label: string }> = [];
   private readonly projectNameMaxLength = 39;
@@ -41,12 +44,16 @@ export class ProjectsOverviewComponent implements OnInit {
   projects: IProject[] = [];
   projectProgress: { [key: string]: ProjectProgress } = {};
   readonly defaultThemeColor = DEFAULT_PROJECT_THEME_COLOR;
+  private destroy$ = new Subject<void>();
+  private currentUserEmail: string | null = null;
+  private progressRequestId = 0;
 
   constructor(
     private router: Router,
     private projectService: ProjectService,
     private progressService: ProgressService,
-    private languageService: LanguageService
+    private languageService: LanguageService,
+    private authService: AuthService
   ) {
     this.initializeSortOptions();
   }
@@ -66,32 +73,12 @@ export class ProjectsOverviewComponent implements OnInit {
       this.sortOption = storedOption;
     }
 
-    this.projectService.getProjects().subscribe(async (data) => {
-      console.log('Firestoreから取得:', data);
-      this.projects = data;
+    this.observeUserProjects();
+  }
 
-      // 各プロジェクトの進捗率を取得
-      if (data.length > 0) {
-        const projectIds = data.map((p) => p.id).filter((id) => id) as string[];
-        console.log('プロジェクト一覧:', data);
-        console.log('プロジェクトID一覧:', projectIds);
-        const progressData = await this.progressService.getAllProjectsProgress(
-          projectIds
-        );
-
-        // 進捗データをマップに変換
-        this.projectProgress = {};
-        progressData.forEach((progress) => {
-          console.log('プロジェクト進捗データ:', progress);
-          this.projectProgress[progress.projectId] = progress;
-        });
-        console.log('全プロジェクト進捗マップ:', this.projectProgress);
-
-        // プロジェクトを進捗率でソート（100%完了は下に）
-        this.applySort();
-      }
-      this.applySort();
-    });
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   /** カードクリック時に個別進捗画面へ遷移 */
@@ -164,6 +151,110 @@ export class ProjectsOverviewComponent implements OnInit {
       this.sortOptions.find((option) => option.value === optionValue)?.label ||
       ''
     );
+  }
+
+  private observeUserProjects(): void {
+    combineLatest([
+      this.authService.currentUserEmail$,
+      this.authService.currentMemberName$,
+    ])
+      .pipe(
+        switchMap(([userEmail, userName]) => {
+          console.log('🔑 現在のユーザー情報(進捗一覧):', {
+            userEmail,
+            userName,
+          });
+
+          this.currentUserEmail = userEmail;
+
+          if (!userEmail) {
+            this.resetProjectState();
+            return of([]);
+          }
+
+          return this.projectService.getUserProjects(
+            userEmail,
+            userName || null
+          );
+        }),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((projects) => {
+        console.log('🎯 進捗表示対象プロジェクト:', projects);
+
+        if (!this.currentUserEmail) {
+          return;
+        }
+
+        if (!projects || projects.length === 0) {
+          this.resetProjectState();
+          return;
+        }
+
+        this.updateProjectsWithProgress(projects).catch((error) =>
+          console.error('全プロジェクト進捗の取得に失敗しました:', error)
+        );
+      });
+  }
+
+  private async updateProjectsWithProgress(projects: IProject[]): Promise<void> {
+    this.projects = projects;
+    this.projectProgress = {};
+
+    const requestId = ++this.progressRequestId;
+
+    console.log('Firestoreから取得(フィルタ済み):', projects);
+
+    if (projects.length === 0) {
+      if (requestId === this.progressRequestId) {
+        this.applySort();
+      }
+      return;
+    }
+
+    const projectIds = projects
+      .map((p) => p.id)
+      .filter((id): id is string => !!id);
+
+    console.log('プロジェクトID一覧:', projectIds);
+
+    if (projectIds.length > 0) {
+      try {
+        const progressData = await this.progressService.getAllProjectsProgress(
+          projectIds
+        );
+
+        if (requestId !== this.progressRequestId) {
+          return;
+        }
+
+        const progressMap: { [key: string]: ProjectProgress } = {};
+        progressData.forEach((progress) => {
+          console.log('プロジェクト進捗データ:', progress);
+          progressMap[progress.projectId] = progress;
+        });
+
+        this.projectProgress = progressMap;
+        console.log('全プロジェクト進捗マップ:', this.projectProgress);
+      } catch (error) {
+        if (requestId !== this.progressRequestId) {
+          return;
+        }
+        console.error('進捗データ取得エラー:', error);
+        this.projectProgress = {};
+      }
+    }
+
+    if (requestId === this.progressRequestId) {
+      this.applySort();
+    }
+  }
+
+  private resetProjectState(): void {
+    this.progressRequestId++;
+    this.projects = [];
+    this.projectProgress = {};
+    this.applySort();
   }
 
   private applySort(): void {
