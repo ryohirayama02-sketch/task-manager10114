@@ -106,6 +106,9 @@ export class ProjectChatComponent implements OnInit, OnDestroy {
       .getProjectById(this.projectId)
       .pipe(takeUntil(this.destroy$))
       .subscribe((project) => {
+        if (!project) {
+          return;
+        }
         if (project && Array.isArray(project.members)) {
           // members がオブジェクト配列の場合
           if (

@@ -139,6 +139,13 @@ export class ProjectDetailComponent implements OnInit {
       this.projectService
         .getProjectById(this.projectId)
         .subscribe(async (data) => {
+          if (!data) {
+            this.snackBar.open('プロジェクトが見つかりませんでした', '閉じる', {
+              duration: 3000,
+            });
+            this.router.navigate(['/projects']);
+            return;
+          }
           this.project = data;
           this.projectThemeColor = resolveProjectThemeColor(data);
           console.log('Firestoreから取得したプロジェクト:', data);
@@ -806,6 +813,10 @@ export class ProjectDetailComponent implements OnInit {
           this.projectService
             .getProjectById(this.projectId)
             .subscribe((data) => {
+              if (!data) {
+                this.router.navigate(['/projects']);
+                return;
+              }
               this.project = data;
               this.projectThemeColor = resolveProjectThemeColor(data);
               console.log('更新されたプロジェクト:', data);

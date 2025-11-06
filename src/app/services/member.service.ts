@@ -15,18 +15,32 @@ import {
   collectionData,
   doc,
   docData,
+  query,
+  where,
 } from '@angular/fire/firestore';
-import { Observable } from 'rxjs';
+import { Observable, of, switchMap } from 'rxjs';
+import { AuthService } from './auth.service';
 
 @Injectable({ providedIn: 'root' })
 export class MemberService {
-  constructor(private firestore: Firestore) {}
+  constructor(
+    private firestore: Firestore,
+    private authService: AuthService
+  ) {}
 
   getMembers(): Observable<Member[]> {
-    const membersRef = collection(this.firestore, 'members');
-    return collectionData(membersRef, { idField: 'id' }) as Observable<
-      Member[]
-    >;
+    return this.authService.currentRoomId$.pipe(
+      switchMap((roomId) => {
+        if (!roomId) {
+          return of([]);
+        }
+        const membersRef = collection(this.firestore, 'members');
+        const roomQuery = query(membersRef, where('roomId', '==', roomId));
+        return collectionData(roomQuery, { idField: 'id' }) as Observable<
+          Member[]
+        >;
+      })
+    );
   }
 
   getMemberById(memberId: string): Observable<Member> {

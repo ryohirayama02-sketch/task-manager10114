@@ -175,6 +175,13 @@ export class TaskDetailComponent implements OnInit {
     // プロジェクト情報とタスク情報を並行して取得
     this.projectService.getProjectById(projectId).subscribe((project) => {
       console.log('プロジェクト情報:', project);
+      if (!project) {
+        this.snackBar.open('プロジェクトが見つかりませんでした', '閉じる', {
+          duration: 3000,
+        });
+        this.router.navigate(['/projects']);
+        return;
+      }
       this.project = project;
       this.projectThemeColor = resolveProjectThemeColor(project);
       this.updateNotificationRecipientOptions();
@@ -191,7 +198,10 @@ export class TaskDetailComponent implements OnInit {
           ...task,
           projectId: projectId,
         }));
-        this.task = tasksWithProjectId.find((t) => t.id === taskId);
+        this.task =
+          tasksWithProjectId.find(
+            (t): t is Task => t.id === taskId
+          ) || null;
         console.log('見つかったタスク:', this.task);
 
         if (this.task) {
@@ -238,6 +248,10 @@ export class TaskDetailComponent implements OnInit {
           this.filteredChildTasks = [];
           this.parentTaskName = null;
           this.editableAttachments = [];
+          this.snackBar.open('タスクが見つかりませんでした', '閉じる', {
+            duration: 3000,
+          });
+          this.router.navigate(['/projects']);
         }
         this.isLoading = false;
       },
@@ -988,12 +1002,37 @@ export class TaskDetailComponent implements OnInit {
       options.add(this.project.responsible);
     }
 
-    if (this.project?.members) {
-      this.project.members
-        .split(',')
-        .map((name: string) => name.trim())
-        .filter((name: string) => !!name)
-        .forEach((name: string) => options.add(name));
+    const projectMembers: any = this.project?.members;
+    if (projectMembers) {
+      if (typeof projectMembers === 'string') {
+        projectMembers
+          .split(',')
+          .map((name: string) => name.trim())
+          .filter((name: string) => !!name)
+          .forEach((name: string) => options.add(name));
+      } else if (Array.isArray(projectMembers)) {
+        projectMembers.forEach((entry: any) => {
+          if (!entry) {
+            return;
+          }
+          if (typeof entry === 'string') {
+            const name = entry.trim();
+            if (name) {
+              options.add(name);
+            }
+          } else if (typeof entry === 'object') {
+            const name =
+              entry.name ||
+              entry.memberName ||
+              entry.displayName ||
+              entry.email ||
+              '';
+            if (typeof name === 'string' && name.trim()) {
+              options.add(name.trim());
+            }
+          }
+        });
+      }
     }
 
     (this.detailSettings.notifications.recipients || []).forEach(

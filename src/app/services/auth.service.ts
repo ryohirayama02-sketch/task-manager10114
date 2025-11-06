@@ -28,6 +28,11 @@ export class AuthService {
   private currentUserEmailSubject = new BehaviorSubject<string | null>(null);
   public currentUserEmail$ = this.currentUserEmailSubject.asObservable();
 
+  private currentRoomId = new BehaviorSubject<string | null>(
+    localStorage.getItem('roomId')
+  );
+  public currentRoomId$ = this.currentRoomId.asObservable();
+
   constructor(private auth: Auth, private router: Router, private firestore: Firestore) {
     setPersistence(this.auth, browserLocalPersistence)
       .then(() => console.log('🧭 Persistence設定完了'))
@@ -131,6 +136,7 @@ export class AuthService {
     // ログアウト時はメンバー名とメールアドレスもクリア
     this.currentUserEmailSubject.next(null);
     this.currentMemberNameSubject.next(null);
+    this.clearRoomId();
     await this.router.navigate(['/login']);
   }
 
@@ -169,5 +175,19 @@ export class AuthService {
       const fallbackName = currentUser?.displayName || currentUser?.email || 'ユーザー';
       this.currentMemberNameSubject.next(fallbackName);
     }
+  }
+
+  setRoomId(id: string) {
+    this.currentRoomId.next(id);
+    localStorage.setItem('roomId', id);
+  }
+
+  clearRoomId() {
+    this.currentRoomId.next(null);
+    localStorage.removeItem('roomId');
+  }
+
+  getCurrentRoomId(): string | null {
+    return this.currentRoomId.value;
   }
 }

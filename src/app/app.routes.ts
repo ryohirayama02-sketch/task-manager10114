@@ -18,75 +18,83 @@ import { MemberFormPageComponent } from './components/member-management/member-f
 
 // ✅ ここを修正（auth → login）
 import { LoginComponent } from './components/login/login.component';
+import { RoomLoginComponent } from './components/room-login/room-login.component';
 
 import { ProjectFormComponent } from './components/project-form/project-form.component';
 import { OfflineTestComponent } from './components/offline-test/offline-test.component';
 import { TaskCreatePageComponent } from './components/task-create/task-create.component';
 import { AuthGuard } from './guards/auth.guard';
+import { RoomGuard } from './guards/room.guard';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
+  { path: 'room-login', component: RoomLoginComponent, canActivate: [AuthGuard] },
   { path: '', redirectTo: 'kanban', pathMatch: 'full' },
-  { path: 'kanban', component: KanbanComponent, canActivate: [AuthGuard] },
-  { path: 'gantt', component: GanttComponent, canActivate: [AuthGuard] },
-  { path: 'calendar', component: CalendarComponent, canActivate: [AuthGuard] },
+  { path: 'kanban', component: KanbanComponent, canActivate: [AuthGuard, RoomGuard] },
+  { path: 'gantt', component: GanttComponent, canActivate: [AuthGuard, RoomGuard] },
+  { path: 'calendar', component: CalendarComponent, canActivate: [AuthGuard, RoomGuard] },
+  {
+    path: 'projects',
+    component: ProjectsOverviewComponent,
+    canActivate: [AuthGuard, RoomGuard],
+  },
   {
     path: 'progress/projects',
     component: ProjectsOverviewComponent,
-    canActivate: [AuthGuard],
+    canActivate: [AuthGuard, RoomGuard],
   },
   {
     path: 'progress/projects/:projectId',
     component: ProjectProgressComponent,
-    canActivate: [AuthGuard],
+    canActivate: [AuthGuard, RoomGuard],
   },
   {
     path: 'progress/members',
     component: MemberProgressComponent,
-    canActivate: [AuthGuard],
+    canActivate: [AuthGuard, RoomGuard],
   },
   {
     path: 'progress/members/:memberName',
     component: MemberDetailComponent,
-    canActivate: [AuthGuard],
+    canActivate: [AuthGuard, RoomGuard],
   },
   {
     path: 'project/:projectId',
     component: ProjectDetailComponent,
-    canActivate: [AuthGuard],
+    canActivate: [AuthGuard, RoomGuard],
   },
   {
     path: 'project/:projectId/task/:taskId',
     component: TaskDetailComponent,
-    canActivate: [AuthGuard],
+    canActivate: [AuthGuard, RoomGuard],
   },
   {
     path: 'task-create',
     component: TaskCreatePageComponent,
-    canActivate: [AuthGuard],
+    canActivate: [AuthGuard, RoomGuard],
   },
-  { path: 'quick', component: QuickTasksComponent, canActivate: [AuthGuard] },
-  { path: 'search', component: TaskSearchComponent, canActivate: [AuthGuard] },
-  { path: 'settings', component: SettingsComponent, canActivate: [AuthGuard] },
-  { path: 'logs', component: LogsComponent, canActivate: [AuthGuard] },
+  { path: 'quick', component: QuickTasksComponent, canActivate: [AuthGuard, RoomGuard] },
+  { path: 'search', component: TaskSearchComponent, canActivate: [AuthGuard, RoomGuard] },
+  { path: 'settings', component: SettingsComponent, canActivate: [AuthGuard, RoomGuard] },
+  { path: 'logs', component: LogsComponent, canActivate: [AuthGuard, RoomGuard] },
   {
     path: 'members/add',
     component: MemberFormPageComponent,
-    canActivate: [AuthGuard],
+    canActivate: [AuthGuard, RoomGuard],
   },
   {
     path: 'members',
     component: MemberManagementComponent,
-    canActivate: [AuthGuard],
+    canActivate: [AuthGuard, RoomGuard],
   },
   {
     path: 'project-form',
     component: ProjectFormComponent,
-    canActivate: [AuthGuard],
+    canActivate: [AuthGuard, RoomGuard],
   },
   {
     path: 'offline-test',
     component: OfflineTestComponent,
-    canActivate: [AuthGuard],
+    canActivate: [AuthGuard, RoomGuard],
   },
 ];

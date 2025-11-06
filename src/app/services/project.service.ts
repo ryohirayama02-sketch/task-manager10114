@@ -10,26 +10,39 @@ import {
   deleteDoc,
   query,
   where,
-  QueryConstraint,
 } from '@angular/fire/firestore';
-import { Observable, combineLatest, map } from 'rxjs';
+import { Observable, combineLatest, map, of, switchMap } from 'rxjs';
 import { IProject } from '../models/project.model'; // 上の方に追加
+import { Task } from '../models/task.model';
 import { EditLogService } from './edit-log.service';
 import { resolveProjectThemeColor } from '../constants/project-theme-colors';
+import { AuthService } from './auth.service';
+
+type ProjectWithRoom = IProject & { roomId?: string };
+type TaskWithRoom = Task & { roomId?: string };
 
 @Injectable({ providedIn: 'root' })
 export class ProjectService {
   constructor(
     private firestore: Firestore,
-    private editLogService: EditLogService
+    private editLogService: EditLogService,
+    private authService: AuthService
   ) {}
 
   /** 🔹 全プロジェクト一覧を取得 */
   getProjects(): Observable<IProject[]> {
-    const projectsRef = collection(this.firestore, 'projects');
-    return collectionData(projectsRef, { idField: 'id' }) as Observable<
-      IProject[]
-    >;
+    return this.authService.currentRoomId$.pipe(
+      switchMap((roomId) => {
+        if (!roomId) {
+          return of([]);
+        }
+        const projectsRef = collection(this.firestore, 'projects');
+        const roomQuery = query(projectsRef, where('roomId', '==', roomId));
+        return collectionData(roomQuery, { idField: 'id' }) as Observable<
+          IProject[]
+        >;
+      })
+    );
   }
 
   /** 🔹 ログイン中のユーザーに関連するプロジェクトのみを取得 */
@@ -37,12 +50,7 @@ export class ProjectService {
     userEmail: string,
     userName: string | null = null
   ): Observable<IProject[]> {
-    const projectsRef = collection(this.firestore, 'projects');
-
-    // すべてのプロジェクトを取得してから、フロント側でフィルタリング
-    return (
-      collectionData(projectsRef, { idField: 'id' }) as Observable<IProject[]>
-    ).pipe(
+    return this.getProjects().pipe(
       map((allProjects) => {
         const normalizedEmail = (userEmail || '').trim().toLowerCase();
         const normalizedName =
@@ -203,33 +211,59 @@ export class ProjectService {
     return docData(taskRef, { idField: 'id' }) as Observable<any>;
   }
 
-  getProjectById(projectId: string): Observable<IProject> {
-    const projectRef = doc(this.firestore, `projects/${projectId}`);
-    return docData(projectRef, { idField: 'id' }) as Observable<IProject>;
+  getProjectById(projectId: string): Observable<IProject | null> {
+    return this.authService.currentRoomId$.pipe(
+      switchMap((roomId) => {
+        if (!roomId) {
+          return of(null);
+        }
+        const projectRef = doc(this.firestore, `projects/${projectId}`);
+        const projectDoc$ = docData(projectRef, {
+          idField: 'id',
+        }) as Observable<ProjectWithRoom | undefined>;
+
+        return projectDoc$.pipe(
+          map((project) => (!project || project.roomId !== roomId ? null : (project as IProject)))
+        );
+      })
+    );
   }
 
   /** 🔹 プロジェクトIDを指定してタスクを取得 */
-  getTasksByProjectId(projectId: string): Observable<any[]> {
-    const projectRef = doc(this.firestore, `projects/${projectId}`);
-    const tasksRef = collection(projectRef, 'tasks');
-    const project$ = docData(projectRef, {
-      idField: 'id',
-    }) as Observable<IProject>;
-    const tasks$ = collectionData(tasksRef, {
-      idField: 'id',
-    }) as Observable<any[]>;
+  getTasksByProjectId(projectId: string): Observable<Task[]> {
+    return this.getProjectById(projectId).pipe(
+      switchMap((project) => {
+        if (!project) {
+          return of([]);
+        }
+        const tasksRef = collection(
+          this.firestore,
+          `projects/${projectId}/tasks`
+        );
+        const tasks$ = collectionData(tasksRef, {
+          idField: 'id',
+        }) as Observable<TaskWithRoom[]>;
 
-    return combineLatest([project$, tasks$]).pipe(
-      map(([project, tasks]) => {
+        const projectWithRoom = project as ProjectWithRoom;
         const themeColor = resolveProjectThemeColor(project);
-        const projectName = project?.projectName || 'プロジェクト';
+        const projectName = project.projectName || 'プロジェクト';
+        const roomId = projectWithRoom.roomId;
 
-        return tasks.map((task) => ({
-          ...task,
-          projectId,
-          projectName: task.projectName || projectName,
-          projectThemeColor: task.projectThemeColor || themeColor,
-        }));
+        return tasks$.pipe(
+          map(
+            (tasks) =>
+              tasks
+                .filter((task) =>
+                  roomId ? !task.roomId || task.roomId === roomId : true
+                )
+                .map((task) => ({
+                  ...task,
+                  projectId,
+                  projectName: task.projectName || projectName,
+                  projectThemeColor: task.projectThemeColor || themeColor,
+                })) as Task[]
+          )
+        );
       })
     );
   }
@@ -239,8 +273,14 @@ export class ProjectService {
     console.log('🔍 ProjectService.addProject が呼び出されました');
     console.log('プロジェクトデータ:', project);
 
+    const roomId = this.authService.getCurrentRoomId();
+    if (!roomId) {
+      throw new Error('ルームIDが設定されていません');
+    }
+
     const projectsRef = collection(this.firestore, 'projects');
-    const result = await addDoc(projectsRef, project);
+    const projectPayload = { ...project, roomId };
+    const result = await addDoc(projectsRef, projectPayload);
 
     console.log('✅ プロジェクトを作成しました:', result.id);
 
@@ -329,8 +369,13 @@ export class ProjectService {
 
   /** ✅ 特定プロジェクトにタスクを追加 */
   async addTaskToProject(projectId: string, taskData: any) {
+    const roomId = this.authService.getCurrentRoomId();
+    if (!roomId) {
+      throw new Error('ルームIDが設定されていません');
+    }
+
     const tasksRef = collection(this.firestore, `projects/${projectId}/tasks`);
-    const result = await addDoc(tasksRef, taskData);
+    const result = await addDoc(tasksRef, { ...taskData, roomId });
 
     // 編集ログを記録
     await this.editLogService.logEdit(

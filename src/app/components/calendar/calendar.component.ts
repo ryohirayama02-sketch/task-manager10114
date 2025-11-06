@@ -12,7 +12,7 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Subject, combineLatest, of, takeUntil } from 'rxjs';
+import { Subject, combineLatest, of, takeUntil, switchMap } from 'rxjs';
 import { ProjectService } from '../../services/project.service';
 import { ProjectSelectionService } from '../../services/project-selection.service';
 import { OfflineService } from '../../services/offline.service';
@@ -20,7 +20,6 @@ import { Task } from '../../models/task.model';
 import { IProject } from '../../models/project.model';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { AuthService } from '../../services/auth.service';
-import { switchMap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-calendar',
@@ -237,7 +236,7 @@ export class CalendarComponent implements OnInit, OnDestroy {
       if (project.id) {
         this.projectService
           .getTasksByProjectId(project.id)
-          .subscribe((tasks) => {
+          .subscribe((tasks: Task[]) => {
             const tasksWithProject = tasks.map((task) => ({
               ...task,
               projectId: task.projectId || project.id!,

@@ -10,6 +10,7 @@ import {
   addDoc,
   serverTimestamp,
   FieldValue,
+  where,
 } from '@angular/fire/firestore';
 import { Firestore } from '@angular/fire/firestore';
 import { AuthService } from './auth.service';
@@ -45,10 +46,15 @@ export class EditLogService {
       });
 
       const currentUser = this.authService.getCurrentUser();
+      const roomId = this.authService.getCurrentRoomId();
       console.log('現在のユーザー:', currentUser);
 
       if (!currentUser) {
         console.warn('⚠️ ユーザーがログインしていません');
+        return;
+      }
+      if (!roomId) {
+        console.warn('⚠️ ルームIDが設定されていません');
         return;
       }
 
@@ -61,6 +67,7 @@ export class EditLogService {
         action,
         changeDescription,
         createdAt: serverTimestamp(),
+        roomId,
       };
 
       // undefinedでない場合のみフィールドを追加
@@ -98,8 +105,13 @@ export class EditLogService {
       console.log('🔍 EditLogService.getRecentEditLogs が呼び出されました');
 
       const logsRef = collection(this.firestore, this.EDIT_LOGS_COLLECTION);
+      const roomId = this.authService.getCurrentRoomId();
+      if (!roomId) {
+        return { logs: [], lastDocument: null };
+      }
       const q = query(
         logsRef,
+        where('roomId', '==', roomId),
         orderBy('createdAt', 'desc'),
         limit(this.LOGS_PER_PAGE)
       );
@@ -152,8 +164,13 @@ export class EditLogService {
   }> {
     try {
       const logsRef = collection(this.firestore, this.EDIT_LOGS_COLLECTION);
+      const roomId = this.authService.getCurrentRoomId();
+      if (!roomId) {
+        return { logs: [], lastDocument: null };
+      }
       const q = query(
         logsRef,
+        where('roomId', '==', roomId),
         orderBy('createdAt', 'desc'),
         startAfter(lastDoc),
         limit(this.LOGS_PER_PAGE)

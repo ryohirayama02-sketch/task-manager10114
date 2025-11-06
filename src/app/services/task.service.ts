@@ -12,7 +12,7 @@ import {
   getDocs,
   orderBy,
 } from '@angular/fire/firestore';
-import { Observable } from 'rxjs';
+import { Observable, of, switchMap } from 'rxjs';
 import { EditLogService } from './edit-log.service';
 import { AuthService } from './auth.service';
 import { Task } from '../models/task.model';
@@ -28,81 +28,107 @@ export class TaskService {
 
   /** Firestoreからタスク一覧を取得 */
   getTasks(): Observable<any[]> {
-    const tasksRef = collection(this.firestore, 'tasks');
-    return collectionData(tasksRef, { idField: 'id' }) as Observable<any[]>;
+    return this.authService.currentRoomId$.pipe(
+      switchMap((roomId) => {
+        if (!roomId) {
+          return of([]);
+        }
+        const tasksRef = collection(this.firestore, 'tasks');
+        const roomQuery = query(tasksRef, where('roomId', '==', roomId));
+        return collectionData(roomQuery, { idField: 'id' }) as Observable<
+          any[]
+        >;
+      })
+    );
   }
 
   /** デバッグ用：すべてのタスクを取得 */
   getAllTasksForDebug(): Observable<any[]> {
     console.log('🔍 デバッグ用：すべてのタスクを取得中...');
-    const projectsRef = collection(this.firestore, 'projects');
-    const projectsQuery = query(projectsRef);
+    return this.authService.currentRoomId$.pipe(
+      switchMap((roomId) => {
+        if (!roomId) {
+          return of([]);
+        }
+        const projectsRef = collection(this.firestore, 'projects');
+        const projectsQuery = query(projectsRef, where('roomId', '==', roomId));
 
-    return new Observable((observer) => {
-      getDocs(projectsQuery)
-        .then((projectsSnapshot) => {
-          console.log(`📁 全プロジェクト数: ${projectsSnapshot.docs.length}`);
-          const allTasks: any[] = [];
-          const taskPromises: Promise<void>[] = [];
-
-          projectsSnapshot.docs.forEach((projectDoc) => {
-            const projectId = projectDoc.id;
-            const projectData = projectDoc.data();
-            console.log(
-              `📁 プロジェクト: ${projectData['projectName']} (${projectId})`
-            );
-
-            const tasksRef = collection(
-              this.firestore,
-              `projects/${projectId}/tasks`
-            );
-            const tasksQuery = query(tasksRef);
-
-            const taskPromise = getDocs(tasksQuery).then((tasksSnapshot) => {
+        return new Observable<any[]>((observer) => {
+          getDocs(projectsQuery)
+            .then((projectsSnapshot) => {
               console.log(
-                `  📋 プロジェクト ${projectData['projectName']} の全タスク数: ${tasksSnapshot.docs.length}`
+                `📁 全プロジェクト数: ${projectsSnapshot.docs.length}`
               );
-              tasksSnapshot.docs.forEach((taskDoc) => {
-                const taskData = taskDoc.data();
+              const allTasks: any[] = [];
+              const taskPromises: Promise<void>[] = [];
+
+              projectsSnapshot.docs.forEach((projectDoc) => {
+                const projectId = projectDoc.id;
+                const projectData = projectDoc.data();
                 console.log(
-                  `    📋 タスク: ${taskData['taskName']}, 期日: ${taskData['dueDate']}, ステータス: ${taskData['status']}, 担当者: ${taskData['assignee']}`
+                  `📁 プロジェクト: ${projectData['projectName']} (${projectId})`
                 );
-                const projectThemeColor = resolveProjectThemeColor(
-                  projectData as any
+
+                const tasksRef = collection(
+                  this.firestore,
+                  `projects/${projectId}/tasks`
                 );
-                allTasks.push({
-                  id: taskDoc.id,
-                  projectId: projectId,
-                  projectName: projectData['projectName'] || 'プロジェクト',
-                  ...taskData,
-                  projectThemeColor,
-                });
+                const tasksQuery = query(tasksRef);
+
+                const taskPromise = getDocs(tasksQuery).then(
+                  (tasksSnapshot) => {
+                    console.log(
+                      `  📋 プロジェクト ${projectData['projectName']} の全タスク数: ${tasksSnapshot.docs.length}`
+                    );
+                    tasksSnapshot.docs.forEach((taskDoc) => {
+                      const taskData = taskDoc.data();
+                      console.log(
+                        `    📋 タスク: ${taskData['taskName']}, 期日: ${taskData['dueDate']}, ステータス: ${taskData['status']}, 担当者: ${taskData['assignee']}`
+                      );
+                      const projectThemeColor = resolveProjectThemeColor(
+                        projectData as any
+                      );
+                      allTasks.push({
+                        id: taskDoc.id,
+                        projectId: projectId,
+                        projectName:
+                          projectData['projectName'] || 'プロジェクト',
+                        ...taskData,
+                        projectThemeColor,
+                      });
+                    });
+                  }
+                );
+
+                taskPromises.push(taskPromise);
               });
-            });
 
-            taskPromises.push(taskPromise);
-          });
-
-          Promise.all(taskPromises)
-            .then(() => {
-              console.log(`📊 全タスク数: ${allTasks.length}`);
-              observer.next(allTasks);
-              observer.complete();
+              Promise.all(taskPromises)
+                .then(() => {
+                  console.log(`📊 全タスク数: ${allTasks.length}`);
+                  observer.next(allTasks);
+                  observer.complete();
+                })
+                .catch((error) => {
+                  console.error('❌ 全タスク取得エラー:', error);
+                  observer.error(error);
+                });
             })
             .catch((error) => {
-              console.error('❌ 全タスク取得エラー:', error);
+              console.error('❌ プロジェクト取得エラー:', error);
               observer.error(error);
             });
-        })
-        .catch((error) => {
-          console.error('❌ プロジェクト取得エラー:', error);
-          observer.error(error);
         });
-    });
+      })
+    );
   }
 
   /** 指定した日数以内の未完了タスクを取得 */
-  getQuickTasks(days: number = 7, userEmail?: string): Observable<Task[]> {
+  getQuickTasks(
+    days: number = 7,
+    userEmail?: string,
+    userName?: string
+  ): Observable<Task[]> {
     const today = new Date();
     const targetDate = new Date(today.getTime() + days * 24 * 60 * 60 * 1000);
     const todayStr = today.toISOString().split('T')[0];
@@ -115,151 +141,216 @@ export class TaskService {
     if (userEmail) {
       console.log(`👤 ユーザーフィルタ: ${userEmail}`);
     }
+    if (userName) {
+      console.log(`👤 ユーザー名フィルタ: ${userName}`);
+    }
 
-    // 全プロジェクトを取得
-    const projectsRef = collection(this.firestore, 'projects');
-    const projectsQuery = query(projectsRef);
+    const normalizedEmail = userEmail?.trim().toLowerCase() || null;
+    const normalizedName = userName?.trim() || null;
 
-    return new Observable((observer) => {
-      getDocs(projectsQuery)
-        .then((projectsSnapshot) => {
-          console.log(`📁 プロジェクト数: ${projectsSnapshot.docs.length}`);
-          const allTasks: Task[] = [];
-          const taskPromises: Promise<void>[] = [];
+    return this.authService.currentRoomId$.pipe(
+      switchMap((roomId) => {
+        if (!roomId) {
+          return of([]);
+        }
+        const projectsRef = collection(this.firestore, 'projects');
+        const projectsQuery = query(
+          projectsRef,
+          where('roomId', '==', roomId)
+        );
 
-          projectsSnapshot.docs.forEach((projectDoc) => {
-            const projectId = projectDoc.id;
-            const projectData = projectDoc.data();
-            console.log(
-              `📁 プロジェクト: ${projectData['projectName']} (${projectId})`
-            );
+        return new Observable<Task[]>((observer) => {
+          getDocs(projectsQuery)
+            .then((projectsSnapshot) => {
+              console.log(`📁 プロジェクト数: ${projectsSnapshot.docs.length}`);
+              const allTasks: Task[] = [];
+              const taskPromises: Promise<void>[] = [];
 
-            // 各プロジェクトのタスクを取得
-            const tasksRef = collection(
-              this.firestore,
-              `projects/${projectId}/tasks`
-            );
-            // インデックスエラーを回避するため、フィルタリングなしで全取得
-            const tasksQuery = query(tasksRef);
-
-            const taskPromise = getDocs(tasksQuery).then((tasksSnapshot) => {
-              console.log(
-                `  📋 プロジェクト ${projectData['projectName']} のタスク数: ${tasksSnapshot.docs.length}`
-              );
-              tasksSnapshot.docs.forEach((taskDoc) => {
-                const taskData = taskDoc.data();
+              projectsSnapshot.docs.forEach((projectDoc) => {
+                const projectId = projectDoc.id;
+                const projectData = projectDoc.data();
                 console.log(
-                  `    📋 タスク: ${taskData['taskName']}, 期日: ${taskData['dueDate']}, ステータス: ${taskData['status']}, 担当者: ${taskData['assignee']}`
+                  `📁 プロジェクト: ${projectData['projectName']} (${projectId})`
                 );
-                const projectThemeColor = resolveProjectThemeColor(
-                  projectData as any
+
+                const tasksRef = collection(
+                  this.firestore,
+                  `projects/${projectId}/tasks`
                 );
-                allTasks.push({
-                  id: taskDoc.id,
-                  projectId: projectId,
-                  projectName: projectData['projectName'] || 'プロジェクト',
-                  ...taskData,
-                  projectThemeColor,
-                } as Task);
-              });
-            });
+                const tasksQuery = query(tasksRef);
 
-            taskPromises.push(taskPromise);
-          });
+                const taskPromise = getDocs(tasksQuery).then(
+                  (tasksSnapshot) => {
+                    console.log(
+                      `  📋 プロジェクト ${projectData['projectName']} のタスク数: ${tasksSnapshot.docs.length}`
+                    );
+                    tasksSnapshot.docs.forEach((taskDoc) => {
+                      const taskData = taskDoc.data();
+                      console.log(
+                        `    📋 タスク: ${taskData['taskName']}, 期日: ${taskData['dueDate']}, ステータス: ${taskData['status']}, 担当者: ${taskData['assignee']}`
+                      );
+                      const projectThemeColor = resolveProjectThemeColor(
+                        projectData as any
+                      );
+                      allTasks.push({
+                        id: taskDoc.id,
+                        projectId: projectId,
+                        projectName:
+                          projectData['projectName'] || 'プロジェクト',
+                        ...taskData,
+                        projectThemeColor,
+                      } as Task);
+                    });
+                  }
+                );
 
-          Promise.all(taskPromises)
-            .then(() => {
-              console.log(
-                `📊 全タスク数（フィルタリング前）: ${allTasks.length}`
-              );
-
-              // 期日順→優先度順でソート
-              const sortedTasks = allTasks.sort((a, b) => {
-                // 期日順
-                if (a.dueDate < b.dueDate) return -1;
-                if (a.dueDate > b.dueDate) return 1;
-
-                // 優先度順（高 > 中 > 低）
-                const priorityOrder = { 高: 3, 中: 2, 低: 1 };
-                const aPriority = priorityOrder[a.priority] || 0;
-                const bPriority = priorityOrder[b.priority] || 0;
-
-                return bPriority - aPriority;
+                taskPromises.push(taskPromise);
               });
 
-              // クライアント側でフィルタリング
-              let filteredTasks = sortedTasks.filter((task) => {
-                // 期日フィルタリング
-                const taskDueDate = task.dueDate;
-                const isWithinDateRange =
-                  taskDueDate >= todayStr && taskDueDate <= targetDateStr;
-
-                // ステータスフィルタリング
-                const isIncomplete =
-                  task.status === '未着手' || task.status === '作業中';
-
-                // ユーザーフィルタリング
-                let isAssignedToUser = true;
-                if (userEmail) {
-                  const assigneeEmail = task.assigneeEmail || task.assignee;
-                  isAssignedToUser =
-                    assigneeEmail === userEmail || task.assignee === userEmail;
-                }
-
-                const shouldInclude =
-                  isWithinDateRange && isIncomplete && isAssignedToUser;
-
-                if (shouldInclude) {
-                  console.log(`✅ タスク「${task.taskName}」が条件に合致`);
-                } else {
+              Promise.all(taskPromises)
+                .then(() => {
                   console.log(
-                    `❌ タスク「${task.taskName}」が条件に合致しない:`,
-                    {
-                      isWithinDateRange,
-                      isIncomplete,
-                      isAssignedToUser,
-                      dueDate: taskDueDate,
-                      status: task.status,
-                      assignee: task.assignee,
+                    `📊 全タスク数（フィルタリング前）: ${allTasks.length}`
+                  );
+
+                  const sortedTasks = allTasks.sort((a, b) => {
+                    if (a.dueDate < b.dueDate) return -1;
+                    if (a.dueDate > b.dueDate) return 1;
+
+                    const priorityOrder = { 高: 3, 中: 2, 低: 1 };
+                    const aPriority = priorityOrder[a.priority] || 0;
+                    const bPriority = priorityOrder[b.priority] || 0;
+
+                    return bPriority - aPriority;
+                  });
+
+                  const filteredTasks = sortedTasks.filter((task) => {
+                    const taskDueDate = task.dueDate;
+                    const isWithinDateRange =
+                      taskDueDate >= todayStr && taskDueDate <= targetDateStr;
+
+                    const isIncomplete =
+                      task.status === '未着手' || task.status === '作業中';
+
+                    let isAssignedToUser = true;
+                    if (normalizedEmail || normalizedName) {
+                      const assigneeName =
+                        typeof task.assignee === 'string'
+                          ? task.assignee.trim()
+                          : '';
+                      const assigneeEmail =
+                        typeof task.assigneeEmail === 'string'
+                          ? task.assigneeEmail.trim().toLowerCase()
+                          : '';
+                      const assigneeNameLower =
+                        typeof task.assignee === 'string'
+                          ? task.assignee.trim().toLowerCase()
+                          : '';
+
+                      const emailMatches = normalizedEmail
+                        ? assigneeEmail === normalizedEmail ||
+                          assigneeNameLower === normalizedEmail
+                        : false;
+
+                      const nameMatches = normalizedName
+                        ? assigneeName === normalizedName
+                        : false;
+
+                      let assignedMemberMatch = false;
+                      const assignedMembers = Array.isArray(
+                        (task as any).assignedMembers
+                      )
+                        ? ((task as any).assignedMembers as any[])
+                        : [];
+
+                      assignedMemberMatch = assignedMembers.some((member) => {
+                        if (!member) {
+                          return false;
+                        }
+                        if (typeof member === 'string') {
+                          const value = member.trim();
+                          return (
+                            (normalizedName && value === normalizedName) ||
+                            (normalizedEmail &&
+                              value.toLowerCase() === normalizedEmail)
+                          );
+                        }
+                        if (typeof member === 'object') {
+                          const memberName =
+                            typeof member.memberName === 'string'
+                              ? member.memberName.trim()
+                              : typeof member.name === 'string'
+                              ? member.name.trim()
+                              : '';
+                          const memberEmail =
+                            typeof member.memberEmail === 'string'
+                              ? member.memberEmail.trim().toLowerCase()
+                              : typeof member.email === 'string'
+                              ? member.email.trim().toLowerCase()
+                              : '';
+                          const matchByName =
+                            normalizedName && memberName === normalizedName;
+                          const matchByEmail =
+                            normalizedEmail &&
+                            memberEmail &&
+                            memberEmail === normalizedEmail;
+                          return Boolean(matchByName || matchByEmail);
+                        }
+                        return false;
+                      });
+
+                      isAssignedToUser = Boolean(
+                        emailMatches || nameMatches || assignedMemberMatch
+                      );
                     }
-                  );
-                }
 
-                return shouldInclude;
-              });
+                    const shouldInclude =
+                      isWithinDateRange && isIncomplete && isAssignedToUser;
 
-              console.log(`📊 フィルタリング後: ${filteredTasks.length}件`);
+                    if (!shouldInclude) {
+                      console.log(
+                        `❌ タスク「${task.taskName}」が条件に合致しない:`,
+                        {
+                          isWithinDateRange,
+                          isIncomplete,
+                          isAssignedToUser,
+                          dueDate: taskDueDate,
+                          status: task.status,
+                          assignee: task.assignee,
+                        }
+                      );
+                    }
 
-              console.log(
-                `✅ すぐやるタスクを取得完了: ${filteredTasks.length}件`
-              );
-              if (filteredTasks.length > 0) {
-                console.log('📋 取得されたタスク一覧:');
-                filteredTasks.forEach((task, index) => {
-                  console.log(
-                    `  ${index + 1}. ${task.taskName} (${
-                      task.projectName
-                    }) - 期日: ${task.dueDate}, ステータス: ${
-                      task.status
-                    }, 担当者: ${task.assignee}`
-                  );
+                    return shouldInclude;
+                  });
+
+                  console.log(`📊 フィルタリング後: ${filteredTasks.length}件`);
+
+                  if (filteredTasks.length > 0) {
+                    console.log('📋 取得されたタスク一覧:');
+                    filteredTasks.forEach((task, index) => {
+                      console.log(
+                        `  ${index + 1}. ${task.taskName} (${task.projectName}) - 期日: ${task.dueDate}, ステータス: ${task.status}, 担当者: ${task.assignee}`
+                      );
+                    });
+                  } else {
+                    console.log('⚠️ 該当するタスクが見つかりませんでした');
+                  }
+                  observer.next(filteredTasks);
+                  observer.complete();
+                })
+                .catch((error) => {
+                  console.error('❌ すぐやるタスク取得エラー:', error);
+                  observer.error(error);
                 });
-              } else {
-                console.log('⚠️ 該当するタスクが見つかりませんでした');
-              }
-              observer.next(filteredTasks);
-              observer.complete();
             })
             .catch((error) => {
-              console.error('❌ すぐやるタスク取得エラー:', error);
+              console.error('❌ プロジェクト取得エラー:', error);
               observer.error(error);
             });
-        })
-        .catch((error) => {
-          console.error('❌ プロジェクト取得エラー:', error);
-          observer.error(error);
         });
-    });
+      })
+    );
   }
 
   /** Firestoreに新しいタスクを追加 */
@@ -267,8 +358,13 @@ export class TaskService {
     console.log('🔍 TaskService.addTask が呼び出されました');
     console.log('タスクデータ:', task);
 
+    const roomId = this.authService.getCurrentRoomId();
+    if (!roomId) {
+      throw new Error('ルームIDが設定されていません');
+    }
+
     const tasksRef = collection(this.firestore, 'tasks');
-    const result = await addDoc(tasksRef, task);
+    const result = await addDoc(tasksRef, { ...task, roomId });
 
     console.log('✅ タスクを作成しました:', result.id);
 

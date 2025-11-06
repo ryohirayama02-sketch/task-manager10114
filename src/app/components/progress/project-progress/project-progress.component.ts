@@ -43,6 +43,10 @@ export class ProjectProgressComponent implements OnInit {
       // プロジェクト本体の情報を取得
       this.projectService.getProjectById(this.projectId).subscribe((data) => {
         console.log('選択されたプロジェクト:', data);
+        if (!data) {
+          this.router.navigate(['/projects']);
+          return;
+        }
         this.project = data;
         this.projectThemeColor = resolveProjectThemeColor(data);
         this.tasks = this.tasks.map((task) => this.withTaskTheme(task));

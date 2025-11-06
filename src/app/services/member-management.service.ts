@@ -9,9 +9,12 @@ import {
   deleteDoc,
   docData,
   serverTimestamp,
+  query,
+  where,
 } from '@angular/fire/firestore';
-import { Observable } from 'rxjs';
+import { Observable, of, switchMap, firstValueFrom } from 'rxjs';
 import { Member } from '../models/member.model';
+import { AuthService } from './auth.service';
 
 @Injectable({
   providedIn: 'root',
@@ -19,16 +22,27 @@ import { Member } from '../models/member.model';
 export class MemberManagementService {
   private readonly MEMBERS_COLLECTION = 'members';
 
-  constructor(private firestore: Firestore) {}
+  constructor(
+    private firestore: Firestore,
+    private authService: AuthService
+  ) {}
 
   /**
    * 全メンバーを取得
    */
   getMembers(): Observable<Member[]> {
-    const membersRef = collection(this.firestore, this.MEMBERS_COLLECTION);
-    return collectionData(membersRef, { idField: 'id' }) as Observable<
-      Member[]
-    >;
+    return this.authService.currentRoomId$.pipe(
+      switchMap((roomId) => {
+        if (!roomId) {
+          return of([]);
+        }
+        const membersRef = collection(this.firestore, this.MEMBERS_COLLECTION);
+        const roomQuery = query(membersRef, where('roomId', '==', roomId));
+        return collectionData(roomQuery, { idField: 'id' }) as Observable<
+          Member[]
+        >;
+      })
+    );
   }
 
   /**
@@ -53,9 +67,15 @@ export class MemberManagementService {
     console.log('🔍 MemberManagementService.addMember が呼び出されました');
     console.log('メンバーデータ:', member);
 
+    const roomId = this.authService.getCurrentRoomId();
+    if (!roomId) {
+      throw new Error('ルームIDが設定されていません');
+    }
+
     const membersRef = collection(this.firestore, this.MEMBERS_COLLECTION);
     const memberData = {
       ...member,
+      roomId,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     };
@@ -107,9 +127,7 @@ export class MemberManagementService {
    * メールアドレスでメンバーを検索
    */
   async getMemberByEmail(email: string): Promise<Member | null> {
-    // 注意: この実装は効率的ではありませんが、メンバー数が少ない場合は問題ありません
-    // 本格運用では、Firestoreのクエリインデックスを使用することを推奨
-    const members = await this.getMembers().pipe().toPromise();
+    const members = await firstValueFrom(this.getMembers());
     return members?.find((member) => member.email === email) || null;
   }
 }
