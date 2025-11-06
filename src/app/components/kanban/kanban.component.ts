@@ -20,8 +20,8 @@ import { Task } from '../../models/task.model';
 import { IProject } from '../../models/project.model';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { LanguageService } from '../../services/language.service';
-import { combineLatest, of } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { Observable, forkJoin, of, firstValueFrom } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-kanban',
@@ -49,6 +49,7 @@ export class KanbanComponent implements OnInit {
   selectedProjectIds: string[] = [];
   allTasks: Task[] = []; // 全プロジェクトのタスクを保持
   statuses = ['未着手', '作業中', '完了'];
+  private tasksByProject: Map<string, Task[]> = new Map<string, Task[]>();
 
   constructor(
     private taskService: TaskService,
@@ -61,61 +62,26 @@ export class KanbanComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    combineLatest([
-      this.authService.currentUserEmail$,
-      this.authService.currentMemberName$,
-    ])
+    this.authService.currentUserEmail$
       .pipe(
-        switchMap(([userEmail, userName]) => {
-          console.log('🔑 現在のユーザー情報:', { userEmail, userName });
+        switchMap((userEmail) => {
+          console.log('🔑 現在のユーザー情報:', { userEmail });
           if (!userEmail) {
             this.resetProjectState(true);
             return of([]);
           }
-          return this.projectService.getUserProjects(userEmail, userName || null);
+          return this.projectService.getProjects();
         })
       )
       .subscribe((projects) => {
-        console.log('🎯 フィルタ済みプロジェクト一覧:', projects);
-        this.projects = projects;
-
+        console.log('🎯 カンバン用ルーム内全プロジェクト一覧:', projects);
         if (projects.length === 0) {
           this.resetProjectState();
           this.projectSelectionService.clearSelection();
           return;
         }
 
-        const storedSelection =
-          this.projectSelectionService.getSelectedProjectIdsSync();
-        const availableIds = new Set(
-          projects
-            .map((project) => project.id)
-            .filter((id): id is string => !!id)
-        );
-
-        let nextSelection = storedSelection.filter((id) =>
-          availableIds.has(id)
-        );
-
-        if (nextSelection.length === 0) {
-          const preferredProject = projects.find(
-            (p) => p.projectName === 'アプリ A改善プロジェクト'
-          );
-          const fallbackProject = preferredProject ?? projects[0];
-          if (fallbackProject?.id) {
-            nextSelection = [fallbackProject.id];
-          }
-        }
-
-        if (nextSelection.length > 0) {
-          this.projectSelectionService.setSelectedProjectIds(nextSelection);
-        } else {
-          this.projectSelectionService.clearSelection();
-        }
-        this.selectedProjectIds = nextSelection;
-
-        this.loadAllTasks();
-        this.filterTasksBySelectedProjects();
+        this.applyProjectList(projects);
       });
 
     // プロジェクト選択状態の変更を監視
@@ -127,32 +93,74 @@ export class KanbanComponent implements OnInit {
       });
   }
 
+  private applyProjectList(projects: IProject[]): void {
+    this.projects = projects;
+
+    const storedSelection =
+      this.projectSelectionService.getSelectedProjectIdsSync();
+    const availableIds = new Set(
+      projects
+        .map((project) => project.id)
+        .filter((id): id is string => !!id)
+    );
+
+    let nextSelection = storedSelection.filter((id) =>
+      availableIds.has(id)
+    );
+
+    if (nextSelection.length === 0) {
+      const preferredProject = projects.find(
+        (p) => p.projectName === 'アプリ A改善プロジェクト'
+      );
+      const fallbackProject = preferredProject ?? projects[0];
+      if (fallbackProject?.id) {
+        nextSelection = [fallbackProject.id];
+      }
+    }
+
+    if (nextSelection.length > 0) {
+      this.projectSelectionService.setSelectedProjectIds(nextSelection);
+    } else {
+      this.projectSelectionService.clearSelection();
+    }
+    this.selectedProjectIds = nextSelection;
+
+    this.loadAllTasks();
+    this.filterTasksBySelectedProjects();
+  }
+
   /** 全プロジェクトのタスクを読み込み */
-  loadAllTasks() {
+  private loadAllTasks(): void {
     this.allTasks = [];
+    this.tasksByProject.clear();
     this.projects.forEach((project) => {
       if (project.id) {
         this.projectService
           .getTasksByProjectId(project.id)
           .subscribe((tasks) => {
-            // プロジェクト情報をタスクに追加
-            const tasksWithProject = tasks.map((task) => ({
-              ...task,
-              projectId: task.projectId || project.id!,
-              projectName: task.projectName || project.projectName,
-            }));
-
-            // 既存のタスクを更新または追加
-            this.allTasks = this.allTasks.filter(
-              (t) => t.projectId !== project.id
-            );
-            this.allTasks = [...this.allTasks, ...tasksWithProject];
-
-            // 選択されたプロジェクトのタスクをフィルタリング
-            this.filterTasksBySelectedProjects();
+            this.tasksByProject.set(project.id!, tasks);
+            this.rebuildAllTasks();
           });
       }
     });
+  }
+
+  private rebuildAllTasks(): void {
+    const aggregated: Task[] = [];
+    this.projects.forEach((project) => {
+      if (!project.id) {
+        return;
+      }
+      const tasks = this.tasksByProject.get(project.id) || [];
+      const tasksWithProject = tasks.map((task) => ({
+        ...task,
+        projectId: task.projectId || project.id!,
+        projectName: task.projectName || project.projectName,
+      }));
+      aggregated.push(...tasksWithProject);
+    });
+    this.allTasks = aggregated;
+    this.filterTasksBySelectedProjects();
   }
 
   private resetProjectState(includeSelection = false): void {
@@ -160,6 +168,7 @@ export class KanbanComponent implements OnInit {
     this.selectedProjectIds = [];
     this.allTasks = [];
     this.tasks = [];
+    this.tasksByProject.clear();
     if (includeSelection) {
       this.projectSelectionService.clearSelection();
     }
@@ -200,6 +209,28 @@ export class KanbanComponent implements OnInit {
   clearProjectSelection() {
     this.selectedProjectIds = [];
     this.projectSelectionService.clearSelection();
+  }
+
+
+  private async refreshProjectTasks(projectId: string): Promise<void> {
+    try {
+      const userEmail = await firstValueFrom(this.authService.currentUserEmail$);
+
+      if (!userEmail) {
+        return;
+      }
+
+      const tasks = await firstValueFrom(
+        this.projectService.getTasksByProjectId(projectId)
+      );
+
+      this.tasksByProject.set(projectId, tasks);
+
+      this.rebuildAllTasks();
+      this.filterTasksBySelectedProjects();
+    } catch (error) {
+      console.error('プロジェクトタスク再取得エラー:', error);
+    }
   }
 
   /** プロジェクト選択をトグル */
@@ -352,7 +383,7 @@ export class KanbanComponent implements OnInit {
           .then(() => {
             console.log('新しいタスクが追加されました');
             // タスク一覧を再読み込み
-            this.loadAllTasks();
+            void this.refreshProjectTasks(this.selectedProjectIds[0]);
           })
           .catch((error) => {
             console.error('タスク追加エラー:', error);

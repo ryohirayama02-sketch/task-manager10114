@@ -162,26 +162,20 @@ export class CalendarComponent implements OnInit, OnDestroy {
   }
 
   private observeUserProjects(): void {
-    combineLatest([
-      this.authService.currentUserEmail$,
-      this.authService.currentMemberName$,
-    ])
+    this.authService.currentUserEmail$
       .pipe(
-        switchMap(([userEmail, userName]) => {
-          console.log('🔑 現在のユーザー情報(カレンダー):', {
-            userEmail,
-            userName,
-          });
+        switchMap((userEmail) => {
+          console.log('🔑 現在のユーザー情報(カレンダー):', { userEmail });
           if (!userEmail) {
             this.resetProjectState(true);
             return of([]);
           }
-          return this.projectService.getUserProjects(userEmail, userName || null);
+          return this.projectService.getProjects();
         }),
         takeUntil(this.destroy$)
       )
       .subscribe((projects) => {
-        console.log('🎯 カレンダー用フィルタ済みプロジェクト一覧:', projects);
+        console.log('🎯 カレンダー用ルーム内全プロジェクト一覧:', projects);
         if (projects.length === 0) {
           this.resetProjectState();
           this.projectSelectionService.clearSelection();

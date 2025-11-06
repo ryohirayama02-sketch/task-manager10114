@@ -16,7 +16,10 @@ import { Observable, of, switchMap } from 'rxjs';
 import { EditLogService } from './edit-log.service';
 import { AuthService } from './auth.service';
 import { Task } from '../models/task.model';
-import { resolveProjectThemeColor } from '../constants/project-theme-colors';
+import {
+  DEFAULT_PROJECT_THEME_COLOR,
+  resolveProjectThemeColor,
+} from '../constants/project-theme-colors';
 
 @Injectable({ providedIn: 'root' })
 export class TaskService {
@@ -158,6 +161,11 @@ export class TaskService {
           projectsRef,
           where('roomId', '==', roomId)
         );
+        const standaloneTasksRef = collection(this.firestore, 'tasks');
+        const standaloneTasksQuery = query(
+          standaloneTasksRef,
+          where('roomId', '==', roomId)
+        );
 
         return new Observable<Task[]>((observer) => {
           getDocs(projectsQuery)
@@ -206,6 +214,29 @@ export class TaskService {
 
                 taskPromises.push(taskPromise);
               });
+
+              const standaloneTaskPromise = getDocs(standaloneTasksQuery).then(
+                (tasksSnapshot) => {
+                  console.log(
+                    `📋 ルーム直下タスク数: ${tasksSnapshot.docs.length}`
+                  );
+                  tasksSnapshot.docs.forEach((taskDoc) => {
+                    const taskData = taskDoc.data();
+                    const standaloneColor =
+                      typeof taskData['projectThemeColor'] === 'string'
+                        ? taskData['projectThemeColor']
+                        : DEFAULT_PROJECT_THEME_COLOR;
+                    allTasks.push({
+                      id: taskDoc.id,
+                      projectId: taskData['projectId'] || '',
+                      projectName: taskData['projectName'] || 'タスク',
+                      ...taskData,
+                      projectThemeColor: standaloneColor,
+                    } as Task);
+                  });
+                }
+              );
+              taskPromises.push(standaloneTaskPromise);
 
               Promise.all(taskPromises)
                 .then(() => {

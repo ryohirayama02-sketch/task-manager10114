@@ -202,25 +202,19 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private observeUserProjects(): void {
-    combineLatest([
-      this.authService.currentUserEmail$,
-      this.authService.currentMemberName$,
-    ])
+    this.authService.currentUserEmail$
       .pipe(
-        switchMap(([userEmail, userName]) => {
-          console.log('🔑 現在のユーザー情報(ガント):', {
-            userEmail,
-            userName,
-          });
+        switchMap((userEmail) => {
+          console.log('🔑 現在のユーザー情報(ガント):', { userEmail });
           if (!userEmail) {
             this.resetProjectState(true);
             return of([]);
           }
-          return this.projectService.getUserProjects(userEmail, userName || null);
+          return this.projectService.getProjects();
         })
       )
       .subscribe((projects) => {
-        console.log('🎯 ガント用フィルタ済みプロジェクト一覧:', projects);
+        console.log('🎯 ガント用ルーム内全プロジェクト一覧:', projects);
         if (projects.length === 0) {
           this.resetProjectState();
           this.projectSelectionService.clearSelection();
