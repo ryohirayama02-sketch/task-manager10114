@@ -179,3 +179,4 @@ service firebase.storage {
 **作成日時**: 2025-11-05
 **最終確認**: Firebase Storage ルールのデプロイ後、アプリでテストしてください
 
+

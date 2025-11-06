@@ -20,6 +20,8 @@ import { Task } from '../../models/task.model';
 import { IProject } from '../../models/project.model';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { LanguageService } from '../../services/language.service';
+import { combineLatest, of } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-kanban',
@@ -59,46 +61,62 @@ export class KanbanComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // ログイン中のユーザーのメールアドレスを監視
-    this.authService.currentUserEmail$.subscribe((userEmail) => {
-      console.log('🔑 現在のユーザーメール:', userEmail);
-      if (userEmail) {
-        // ユーザーが関連するプロジェクト一覧を取得
-        this.projectService.getUserProjects(userEmail).subscribe((projects) => {
-          this.projects = projects;
-          console.log('🎯 ユーザー関連のプロジェクト一覧:', projects);
-          console.log('📈 取得されたプロジェクト数:', projects.length);
-
-          // 全プロジェクトのタスクを読み込み
-          this.loadAllTasks();
-
-          // 保存されているプロジェクト選択状態を復元
-          this.selectedProjectIds =
-            this.projectSelectionService.getSelectedProjectIdsSync();
-
-          // 保存された選択がない場合は、最初のプロジェクトを選択
-          if (this.selectedProjectIds.length === 0) {
-            const appProject = projects.find(
-              (p) => p.projectName === 'アプリ A改善プロジェクト'
-            );
-            if (appProject) {
-              this.selectedProjectIds = [appProject.id];
-              this.projectSelectionService.setSelectedProjectIds(
-                this.selectedProjectIds
-              );
-            }
+    combineLatest([
+      this.authService.currentUserEmail$,
+      this.authService.currentMemberName$,
+    ])
+      .pipe(
+        switchMap(([userEmail, userName]) => {
+          console.log('🔑 現在のユーザー情報:', { userEmail, userName });
+          if (!userEmail) {
+            this.resetProjectState(true);
+            return of([]);
           }
+          return this.projectService.getUserProjects(userEmail, userName || null);
+        })
+      )
+      .subscribe((projects) => {
+        console.log('🎯 フィルタ済みプロジェクト一覧:', projects);
+        this.projects = projects;
 
-          this.filterTasksBySelectedProjects();
-        });
-      } else {
-        // ログアウト時はプロジェクトをクリア
-        this.projects = [];
-        this.selectedProjectIds = [];
-        this.allTasks = [];
-        this.tasks = [];
-      }
-    });
+        if (projects.length === 0) {
+          this.resetProjectState();
+          this.projectSelectionService.clearSelection();
+          return;
+        }
+
+        const storedSelection =
+          this.projectSelectionService.getSelectedProjectIdsSync();
+        const availableIds = new Set(
+          projects
+            .map((project) => project.id)
+            .filter((id): id is string => !!id)
+        );
+
+        let nextSelection = storedSelection.filter((id) =>
+          availableIds.has(id)
+        );
+
+        if (nextSelection.length === 0) {
+          const preferredProject = projects.find(
+            (p) => p.projectName === 'アプリ A改善プロジェクト'
+          );
+          const fallbackProject = preferredProject ?? projects[0];
+          if (fallbackProject?.id) {
+            nextSelection = [fallbackProject.id];
+          }
+        }
+
+        if (nextSelection.length > 0) {
+          this.projectSelectionService.setSelectedProjectIds(nextSelection);
+        } else {
+          this.projectSelectionService.clearSelection();
+        }
+        this.selectedProjectIds = nextSelection;
+
+        this.loadAllTasks();
+        this.filterTasksBySelectedProjects();
+      });
 
     // プロジェクト選択状態の変更を監視
     this.projectSelectionService
@@ -135,6 +153,16 @@ export class KanbanComponent implements OnInit {
           });
       }
     });
+  }
+
+  private resetProjectState(includeSelection = false): void {
+    this.projects = [];
+    this.selectedProjectIds = [];
+    this.allTasks = [];
+    this.tasks = [];
+    if (includeSelection) {
+      this.projectSelectionService.clearSelection();
+    }
   }
 
   /** 選択されたプロジェクトのタスクをフィルタリング */

@@ -33,63 +33,158 @@ export class ProjectService {
   }
 
   /** 🔹 ログイン中のユーザーに関連するプロジェクトのみを取得 */
-  getUserProjects(userEmail: string): Observable<IProject[]> {
+  getUserProjects(
+    userEmail: string,
+    userName: string | null = null
+  ): Observable<IProject[]> {
     const projectsRef = collection(this.firestore, 'projects');
-    
+
     // すべてのプロジェクトを取得してから、フロント側でフィルタリング
-    return (collectionData(projectsRef, { idField: 'id' }) as Observable<IProject[]>).pipe(
+    return (
+      collectionData(projectsRef, { idField: 'id' }) as Observable<IProject[]>
+    ).pipe(
       map((allProjects) => {
+        const normalizedEmail = (userEmail || '').trim().toLowerCase();
+        const normalizedName =
+          userName && userName.trim().length > 0 ? userName.trim() : null;
+
         console.log('📦 全プロジェクト取得数:', allProjects.length);
-        console.log('🔍 フィルタリング対象ユーザーメール:', userEmail);
-        
+        console.log('🔍 フィルタリング対象ユーザー:', {
+          email: normalizedEmail,
+          name: normalizedName,
+        });
+
         const filtered = allProjects.filter((project) => {
-          // 1. 単数の責任者メールで判定
-          if (project.responsibleEmail === userEmail) {
-            console.log(`✅ [責任者(単数)] プロジェクト: ${project.projectName}`);
+          const responsibleEmail =
+            typeof project.responsibleEmail === 'string'
+              ? project.responsibleEmail.trim().toLowerCase()
+              : '';
+          if (normalizedEmail && responsibleEmail === normalizedEmail) {
+            console.log(
+              `✅ [責任者(単数メール)] プロジェクト: ${project.projectName}`
+            );
             return true;
           }
-          
-          // 2. 複数責任者配列で判定
+
           if (Array.isArray(project.responsibles)) {
-            const isResponsible = project.responsibles.some((r: any) => 
-              r.memberEmail === userEmail
-            );
-            if (isResponsible) {
-              console.log(`✅ [責任者(複数)] プロジェクト: ${project.projectName}`);
+            const hasMatch = project.responsibles.some((entry: any) => {
+              if (!entry) {
+                return false;
+              }
+              const entryEmail =
+                typeof entry.memberEmail === 'string'
+                  ? entry.memberEmail.trim().toLowerCase()
+                  : '';
+              const entryName =
+                typeof entry.memberName === 'string'
+                  ? entry.memberName.trim()
+                  : '';
+              const emailMatch =
+                !!normalizedEmail && entryEmail === normalizedEmail;
+              const nameMatch =
+                !!normalizedName && entryName === normalizedName;
+              return emailMatch || nameMatch;
+            });
+            if (hasMatch) {
+              console.log(
+                `✅ [責任者(複数)] プロジェクト: ${project.projectName}`
+              );
               return true;
             }
           }
-          
-          // 3. メンバーフィールドで判定
+
+          if (
+            normalizedName &&
+            typeof project.responsible === 'string' &&
+            project.responsible.length > 0
+          ) {
+            const matchesName = project.responsible
+              .split(',')
+              .map((name) => name.trim())
+              .filter((name) => !!name)
+              .some((name) => name === normalizedName);
+            if (matchesName) {
+              console.log(
+                `✅ [責任者(文字列)] プロジェクト: ${project.projectName}`
+              );
+              return true;
+            }
+          }
+
           if (project.members) {
-            // members が配列の場合
             if (Array.isArray(project.members)) {
-              const isMember = project.members.some((member: any) => {
-                if (typeof member === 'string') {
-                  return member === userEmail;
-                } else if (member && typeof member === 'object' && member.memberEmail) {
-                  return member.memberEmail === userEmail;
+              const hasMember = project.members.some((member: any) => {
+                if (!member) {
+                  return false;
                 }
+
+                if (typeof member === 'string') {
+                  const memberValue = member.trim();
+                  return (
+                    (normalizedEmail &&
+                      memberValue.toLowerCase() === normalizedEmail) ||
+                    (normalizedName && memberValue === normalizedName)
+                  );
+                }
+
+                if (typeof member === 'object') {
+                  const memberEmail =
+                    typeof member.memberEmail === 'string'
+                      ? member.memberEmail.trim().toLowerCase()
+                      : typeof member.email === 'string'
+                      ? member.email.trim().toLowerCase()
+                      : '';
+                  const memberName =
+                    typeof member.memberName === 'string'
+                      ? member.memberName.trim()
+                      : typeof member.name === 'string'
+                      ? member.name.trim()
+                      : '';
+
+                  const emailMatch =
+                    !!normalizedEmail && memberEmail === normalizedEmail;
+                  const nameMatch =
+                    !!normalizedName && memberName === normalizedName;
+
+                  return emailMatch || nameMatch;
+                }
+
                 return false;
               });
-              if (isMember) {
-                console.log(`✅ [メンバー(配列)] プロジェクト: ${project.projectName}`);
+
+              if (hasMember) {
+                console.log(
+                  `✅ [メンバー(配列)] プロジェクト: ${project.projectName}`
+                );
                 return true;
               }
-            }
-            // members が文字列（カンマ区切り）の場合
-            else if (typeof project.members === 'string') {
-              const isMember = project.members.split(',').map((m: string) => m.trim()).includes(userEmail);
-              if (isMember) {
-                console.log(`✅ [メンバー(文字列)] プロジェクト: ${project.projectName}`);
+            } else if (typeof project.members === 'string') {
+              const tokens = project.members
+                .split(',')
+                .map((token) => token.trim())
+                .filter((token) => !!token);
+
+              const emailMatch =
+                !!normalizedEmail &&
+                tokens
+                  .map((token) => token.toLowerCase())
+                  .some((token) => token === normalizedEmail);
+              const nameMatch =
+                !!normalizedName &&
+                tokens.some((token) => token === normalizedName);
+
+              if (emailMatch || nameMatch) {
+                console.log(
+                  `✅ [メンバー(文字列)] プロジェクト: ${project.projectName}`
+                );
                 return true;
               }
             }
           }
-          
+
           return false;
         });
-        
+
         console.log(`📊 フィルタリング後のプロジェクト数: ${filtered.length}`);
         return filtered;
       })
