@@ -154,16 +154,10 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
   }
 
   private observeUserProjects(): void {
-    combineLatest([
-      this.authService.currentUserEmail$,
-      this.authService.currentMemberName$,
-    ])
+    this.authService.currentUserEmail$
       .pipe(
-        switchMap(([userEmail, userName]) => {
-          console.log('🔑 現在のユーザー情報(進捗一覧):', {
-            userEmail,
-            userName,
-          });
+        switchMap((userEmail) => {
+          console.log('🔑 現在のユーザー情報(進捗一覧):', { userEmail });
 
           this.currentUserEmail = userEmail;
 
@@ -172,15 +166,12 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
             return of([]);
           }
 
-          return this.projectService.getUserProjects(
-            userEmail,
-            userName || null
-          );
+          return this.projectService.getProjects();
         }),
         takeUntil(this.destroy$)
       )
       .subscribe((projects) => {
-        console.log('🎯 進捗表示対象プロジェクト:', projects);
+        console.log('🎯 進捗表示対象ルーム内全プロジェクト:', projects);
 
         if (!this.currentUserEmail) {
           return;
