@@ -81,8 +81,12 @@ export class ProjectChatComponent implements OnInit, OnDestroy {
     this.authService.user$.pipe(takeUntil(this.destroy$)).subscribe((user) => {
       if (user) {
         this.currentUserId = user.uid;
-        this.currentUserName = user.displayName || user.email || 'Anonymous';
       }
+    });
+
+    // メンバー管理画面の名前を取得
+    this.authService.currentMemberName$.pipe(takeUntil(this.destroy$)).subscribe((name) => {
+      this.currentUserName = name || 'Anonymous';
     });
 
     if (this.projectId) {
