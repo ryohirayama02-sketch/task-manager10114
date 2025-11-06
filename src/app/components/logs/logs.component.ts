@@ -29,6 +29,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
 export class LogsComponent implements OnInit {
   private readonly dialog = inject(MatDialog);
   private readonly projectService = inject(ProjectService);
+  private readonly editLogService = inject(EditLogService);
 
   editLogs: EditLog[] = [];
   private allLogs: EditLog[] = [];
@@ -44,8 +45,6 @@ export class LogsComponent implements OnInit {
   periodStartDate: Date | null = null;
   periodEndDate: Date | null = null;
   private projectNameMap = new Map<string, string>();
-
-  constructor(private editLogService: EditLogService) {}
 
   ngOnInit() {
     this.loadProjectNames();

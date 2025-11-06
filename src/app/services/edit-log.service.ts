@@ -38,23 +38,27 @@ export class EditLogService {
   ): Promise<void> {
     try {
       console.log('🔍 EditLogService.logEdit が呼び出されました');
-      console.log('パラメータ:', {
+      
+      const currentUser = this.authService.getCurrentUser();
+      const roomId = this.authService.getCurrentRoomId();
+      
+      console.log('📋 ログデータ確認:', {
         projectId,
         projectName,
         action,
         changeDescription,
+        taskId,
+        currentUserUid: currentUser?.uid,
+        currentUserEmail: currentUser?.email,
+        roomId,
       });
-
-      const currentUser = this.authService.getCurrentUser();
-      const roomId = this.authService.getCurrentRoomId();
-      console.log('現在のユーザー:', currentUser);
 
       if (!currentUser) {
         console.warn('⚠️ ユーザーがログインしていません');
         return;
       }
       if (!roomId) {
-        console.warn('⚠️ ルームIDが設定されていません');
+        console.warn('⚠️ ルームIDが設定されていません - localStorage:', localStorage.getItem('roomId'));
         return;
       }
 
@@ -84,15 +88,16 @@ export class EditLogService {
         logData.newValue = newValue;
       }
 
-      console.log('📝 記録するログデータ:', logData);
+      console.log('📝 Firestoreに記録中...', logData);
 
       const logsRef = collection(this.firestore, this.EDIT_LOGS_COLLECTION);
       const result = await addDoc(logsRef, logData);
 
       console.log('✅ 編集ログを記録しました:', result.id);
-      console.log('記録されたデータ:', logData);
+      console.log('📊 記録確認 - roomId:', roomId, 'userId:', currentUser.uid);
     } catch (error) {
       console.error('❌ 編集ログの記録エラー:', error);
+      console.error('エラー詳細:', { projectId, action, roomId: this.authService.getCurrentRoomId() });
     }
   }
 
@@ -104,19 +109,23 @@ export class EditLogService {
     try {
       console.log('🔍 EditLogService.getRecentEditLogs が呼び出されました');
 
-      const logsRef = collection(this.firestore, this.EDIT_LOGS_COLLECTION);
       const roomId = this.authService.getCurrentRoomId();
+      console.log('📊 クエリ準備 - roomId:', roomId);
+      
       if (!roomId) {
+        console.warn('⚠️ ルームIDが設定されていません');
         return { logs: [], lastDocument: null };
       }
+
+      const logsRef = collection(this.firestore, this.EDIT_LOGS_COLLECTION);
+      // ⚠️ 注: roomId のみでフィルタリング（orderBy が複合インデックスを必要とするため）
+      // Firebase Console で「roomId」「createdAt」の複合インデックスを作成後は orderBy を追加可能
       const q = query(
         logsRef,
-        where('roomId', '==', roomId),
-        orderBy('createdAt', 'desc'),
-        limit(this.LOGS_PER_PAGE)
+        where('roomId', '==', roomId)
       );
 
-      console.log('📊 Firestoreクエリを実行中...');
+      console.log('📊 Firestoreクエリを実行中... (roomId:', roomId, ')');
       const querySnapshot = await getDocs(q);
       console.log(
         '📊 クエリ結果:',
@@ -128,7 +137,6 @@ export class EditLogService {
 
       querySnapshot.forEach((doc) => {
         const data = doc.data();
-        console.log('📄 ドキュメントデータ:', doc.id, data);
         logs.push({
           id: doc.id,
           userId: data['userId'],
@@ -145,14 +153,23 @@ export class EditLogService {
         } as EditLog);
       });
 
+      // クライアント側でソート（降順）して最新の N 件を取得
+      logs.sort((a, b) => {
+        const timeA = a.createdAt instanceof Date ? a.createdAt.getTime() : 0;
+        const timeB = b.createdAt instanceof Date ? b.createdAt.getTime() : 0;
+        return timeB - timeA;
+      });
+
+      const paginatedLogs = logs.slice(0, this.LOGS_PER_PAGE);
       const lastDocument =
         querySnapshot.docs[querySnapshot.docs.length - 1] || null;
 
-      console.log('✅ 編集ログを取得しました:', logs.length, '件');
-      console.log('取得したログ:', logs);
-      return { logs, lastDocument };
+      console.log('✅ 編集ログを取得しました:', paginatedLogs.length, '件');
+      return { logs: paginatedLogs, lastDocument };
     } catch (error) {
       console.error('❌ 編集ログの取得エラー:', error);
+      const roomId = this.authService.getCurrentRoomId();
+      console.error('📊 エラー時の状態 - roomId:', roomId);
       return { logs: [], lastDocument: null };
     }
   }
@@ -168,12 +185,10 @@ export class EditLogService {
       if (!roomId) {
         return { logs: [], lastDocument: null };
       }
+      // ⚠️ 注: 複合インデックスなしで実行可能なクエリに変更
       const q = query(
         logsRef,
-        where('roomId', '==', roomId),
-        orderBy('createdAt', 'desc'),
-        startAfter(lastDoc),
-        limit(this.LOGS_PER_PAGE)
+        where('roomId', '==', roomId)
       );
 
       const querySnapshot = await getDocs(q);
@@ -197,10 +212,25 @@ export class EditLogService {
         } as EditLog);
       });
 
-      const lastDocument =
-        querySnapshot.docs[querySnapshot.docs.length - 1] || null;
+      // クライアント側でソート・ページネーション
+      logs.sort((a, b) => {
+        const timeA = a.createdAt instanceof Date ? a.createdAt.getTime() : 0;
+        const timeB = b.createdAt instanceof Date ? b.createdAt.getTime() : 0;
+        return timeB - timeA;
+      });
 
-      return { logs, lastDocument };
+      const lastDocIndex = logs.findIndex(
+        (log) => log.id === lastDoc.id
+      );
+      const startIndex = lastDocIndex >= 0 ? lastDocIndex + 1 : 0;
+      const paginatedLogs = logs.slice(startIndex, startIndex + this.LOGS_PER_PAGE);
+
+      const lastDocument =
+        paginatedLogs.length > 0
+          ? querySnapshot.docs.find((doc) => doc.id === paginatedLogs[paginatedLogs.length - 1].id) || null
+          : null;
+
+      return { logs: paginatedLogs, lastDocument };
     } catch (error) {
       console.error('編集ログの追加取得エラー:', error);
       return { logs: [], lastDocument: null };
