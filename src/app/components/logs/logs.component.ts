@@ -5,7 +5,7 @@ import { EditLog } from '../../models/task.model';
 import { DocumentSnapshot } from '@angular/fire/firestore';
 import { FormsModule } from '@angular/forms';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { PeriodFilterDialogComponent } from '../progress/member-detail/member-detail.component';
+import { PeriodFilterDialogComponent } from '../progress/period-filter-dialog/period-filter-dialog.component';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { ProjectService } from '../../services/project.service';
@@ -81,7 +81,10 @@ export class LogsComponent implements OnInit {
       const result = await this.editLogService.getMoreEditLogs(
         this.lastDocument
       );
-      this.allLogs = [...this.allLogs, ...result.logs.map((log) => ({ ...log }))];
+      this.allLogs = [
+        ...this.allLogs,
+        ...result.logs.map((log) => ({ ...log })),
+      ];
       this.lastDocument = result.lastDocument;
       this.hasMoreLogs = result.logs.length === 30 && !!this.lastDocument;
       this.applyProjectNameFallback();
@@ -268,7 +271,9 @@ export class LogsComponent implements OnInit {
     const afterStart = this.periodStartDate
       ? targetDate >= this.periodStartDate
       : true;
-    const beforeEnd = this.periodEndDate ? targetDate <= this.periodEndDate : true;
+    const beforeEnd = this.periodEndDate
+      ? targetDate <= this.periodEndDate
+      : true;
     return afterStart && beforeEnd;
   }
 
@@ -295,7 +300,10 @@ export class LogsComponent implements OnInit {
     }
     this.allLogs.forEach((log) => {
       const resolved = this.projectNameMap.get(log.projectId);
-      if (resolved && (!log.projectName || log.projectName === 'プロジェクト')) {
+      if (
+        resolved &&
+        (!log.projectName || log.projectName === 'プロジェクト')
+      ) {
         log.projectName = resolved;
       }
     });

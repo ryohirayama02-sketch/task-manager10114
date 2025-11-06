@@ -8,7 +8,7 @@ import { Router } from '@angular/router';
 import { ProjectService } from '../../../services/project.service';
 import { Task } from '../../../models/task.model';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { PeriodFilterDialogComponent } from '../member-detail/member-detail.component';
+import { PeriodFilterDialogComponent } from '../period-filter-dialog/period-filter-dialog.component';
 import { TranslatePipe } from '../../../pipes/translate.pipe';
 import { LanguageService } from '../../../services/language.service';
 
