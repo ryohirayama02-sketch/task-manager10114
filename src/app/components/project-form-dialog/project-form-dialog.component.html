@@ -1,6 +1,6 @@
 <div class="dialog-container">
   <div class="dialog-header">
-    <h2>{{ isEditMode ? "プロジェクト編集" : "新規プロジェクト作成" }}</h2>
+    <h2>{{ (isEditMode ? 'projectForm.editTitle' : 'projectForm.title') | translate }}</h2>
   </div>
 
   <div class="dialog-content">
@@ -12,12 +12,12 @@
     >
       <!-- プロジェクト名 -->
       <mat-form-field appearance="outline" class="full-width">
-        <mat-label>プロジェクト名 *</mat-label>
+        <mat-label>{{ 'projectForm.projectName' | translate }} *</mat-label>
         <input
           matInput
           [(ngModel)]="project.projectName"
           name="projectName"
-          placeholder="例: 新商品開発プロジェクト"
+          [placeholder]="'projectForm.projectNamePlaceholder' | translate"
           required
         />
         <mat-icon matSuffix>folder</mat-icon>
@@ -25,12 +25,12 @@
 
       <!-- 概要 -->
       <mat-form-field appearance="outline" class="full-width">
-        <mat-label>概要</mat-label>
+        <mat-label>{{ 'projectForm.overview' | translate }}</mat-label>
         <textarea
           matInput
           [(ngModel)]="project.overview"
           name="overview"
-          placeholder="プロジェクトの詳細説明を入力してください"
+          [placeholder]="'projectForm.overviewPlaceholder' | translate"
           rows="3"
         ></textarea>
         <mat-icon matSuffix>description</mat-icon>
@@ -39,14 +39,14 @@
       <div class="date-field-group">
         <!-- 開始日 -->
         <div class="date-field">
-          <label for="startDate">開始日</label>
+          <label for="startDate">{{ 'projectForm.startDate' | translate }}</label>
           <div class="date-input-wrapper">
             <input
               id="startDate"
               type="date"
               [(ngModel)]="project.startDate"
               name="startDate"
-              placeholder="開始日を選択"
+              [placeholder]="'projectForm.startDateLabel' | translate"
               class="date-input"
             />
             <mat-icon class="date-icon">event</mat-icon>
@@ -55,14 +55,14 @@
 
         <!-- 終了日 -->
         <div class="date-field">
-          <label for="endDate">終了日</label>
+          <label for="endDate">{{ 'projectForm.endDate' | translate }}</label>
           <div class="date-input-wrapper">
             <input
               id="endDate"
               type="date"
               [(ngModel)]="project.endDate"
               name="endDate"
-              placeholder="終了日を選択"
+              [placeholder]="'projectForm.endDateLabel' | translate"
               class="date-input"
             />
             <mat-icon class="date-icon">event</mat-icon>
@@ -73,10 +73,8 @@
       <!-- テーマ色 -->
       <div class="theme-color-section">
         <div class="theme-color-header">
-          <h3>テーマ色</h3>
-          <span class="helper-text"
-            >プロジェクトのカードやタスクに反映されます</span
-          >
+          <h3>{{ 'projectForm.themeColor' | translate }}</h3>
+          <span class="helper-text">{{ 'projectForm.themeColorHelper' | translate }}</span>
         </div>
         <div class="theme-color-grid">
           <button
@@ -84,11 +82,11 @@
             class="theme-color-option no-color-option"
             (click)="clearThemeColor()"
             [class.selected]="isThemeColorSelected(null)"
-            matTooltip="色を選択しない"
+            [matTooltip]="'projectForm.noColor' | translate"
             [attr.aria-pressed]="isThemeColorSelected(null)"
-            aria-label="テーマ色 なし"
+            [attr.aria-label]="('projectForm.themeColor' | translate) + ' ' + ('projectForm.noColor' | translate)"
           >
-            <span>なし</span>
+            <span>{{ 'projectForm.noColor' | translate }}</span>
           </button>
           <button
             type="button"
@@ -114,25 +112,25 @@
       <!-- 責任者 -->
       <div class="member-selection responsible-selection">
         <div class="member-selection-header">
-          <h3>責任者</h3>
+          <h3>{{ 'projectForm.responsible' | translate }}</h3>
         </div>
 
         <!-- ローディング表示 -->
         <div *ngIf="membersLoading" class="loading-members">
           <mat-spinner diameter="24"></mat-spinner>
-          <span>メンバーを読み込み中...</span>
+          <span>{{ 'projectForm.loadingMembers' | translate }}</span>
         </div>
 
         <div *ngIf="!membersLoading && members.length > 0">
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>責任者を選択</mat-label>
+            <mat-label>{{ 'projectForm.selectResponsible' | translate }}</mat-label>
             <mat-select
               [(ngModel)]="selectedResponsibleId"
               name="responsible"
               (selectionChange)="onResponsibleSelectionChange($event.value)"
-              placeholder="責任者を選択してください"
+              [placeholder]="'projectForm.selectResponsible' | translate"
             >
-              <mat-option value="">選択しない</mat-option>
+              <mat-option value="">{{ 'common.noSelection' | translate }}</mat-option>
               <mat-option *ngFor="let member of members" [value]="member.id">
                 {{ member.name }}
               </mat-option>
@@ -164,8 +162,8 @@
         <!-- メンバーがいない場合 -->
         <div *ngIf="!membersLoading && members.length === 0" class="no-members">
           <mat-icon class="no-members-icon">people_outline</mat-icon>
-          <p>メンバーが登録されていません</p>
-          <p>先にメンバー管理画面でメンバーを登録してください。</p>
+          <p>{{ 'projectForm.noMembers' | translate }}</p>
+          <p>{{ 'memberManagement.addFirstMember' | translate }}</p>
         </div>
       </div>
 
@@ -173,9 +171,9 @@
       <div class="member-selection">
         <div class="member-selection-header">
           <h3>
-            担当メンバー
+            {{ 'projectForm.projectMembers' | translate }}
             <span class="member-count" *ngIf="selectedMembers.length > 0">
-              ({{ selectedMembers.length }}人選択中)
+              ({{ selectedMembers.length }})
             </span>
           </h3>
         </div>
@@ -183,19 +181,19 @@
         <!-- ローディング表示 -->
         <div *ngIf="membersLoading" class="loading-members">
           <mat-spinner diameter="24"></mat-spinner>
-          <span>メンバーを読み込み中...</span>
+          <span>{{ 'projectForm.loadingMembers' | translate }}</span>
         </div>
 
         <!-- メンバー選択 -->
         <div *ngIf="!membersLoading && members.length > 0">
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>メンバーを選択</mat-label>
+            <mat-label>{{ 'projectForm.selectMembers' | translate }}</mat-label>
             <mat-select
               [(ngModel)]="selectedMemberIds"
               name="members"
               multiple
               (selectionChange)="onMemberSelectionChange($event.value)"
-              placeholder="メンバーを選択してください（複数選択可）"
+              [placeholder]="'projectForm.selectMembers' | translate"
             >
               <mat-option *ngFor="let member of members" [value]="member.id">
                 {{ member.name }}
@@ -236,16 +234,16 @@
         <!-- メンバーがいない場合 -->
         <div *ngIf="!membersLoading && members.length === 0" class="no-members">
           <mat-icon class="no-members-icon">people_outline</mat-icon>
-          <p>メンバーが登録されていません</p>
-          <p>先にメンバー管理画面でメンバーを登録してください。</p>
+          <p>{{ 'projectForm.noMembers' | translate }}</p>
+          <p>{{ 'memberManagement.addFirstMember' | translate }}</p>
         </div>
       </div>
 
       <!-- 資料添付 -->
       <div class="attachments-section">
         <div class="member-selection-header">
-          <h3>資料</h3>
-          <span class="helper-text">1ファイル 5MB 未満・複数添付可</span>
+          <h3>{{ 'projectForm.attachments' | translate }}</h3>
+          <span class="helper-text">{{ 'projectForm.attachmentHelper' | translate }}</span>
         </div>
 
         <div class="attachment-actions">
@@ -256,7 +254,7 @@
             (click)="fileInput.click()"
           >
             <mat-icon>attach_file</mat-icon>
-            ファイルを選択
+            {{ 'projectForm.selectFile' | translate }}
           </button>
           <input
             #fileInput
@@ -266,11 +264,11 @@
             (change)="onFilesSelected($event)"
             hidden
           />
-          <span class="attachment-hint">PDF / 画像 / Office ファイルなど</span>
+          <span class="attachment-hint">{{ 'projectForm.attachmentHint' | translate }}</span>
         </div>
 
         <div class="pending-files" *ngIf="pendingFiles.length > 0">
-          <h4>アップロード予定</h4>
+          <h4>{{ 'projectForm.uploading' | translate }}</h4>
           <div
             class="attachment-chip"
             *ngFor="let pending of pendingFiles; trackBy: trackPendingFile"
@@ -283,7 +281,7 @@
               mat-icon-button
               type="button"
               (click)="removePendingFile(pending.id)"
-              matTooltip="削除"
+              [matTooltip]="'common.delete' | translate"
             >
               <mat-icon>close</mat-icon>
             </button>
@@ -292,17 +290,17 @@
 
         <div class="link-attachments">
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>資料名（任意）</mat-label>
+            <mat-label>{{ 'projectForm.attachmentName' | translate }}</mat-label>
             <input
               matInput
               [(ngModel)]="linkTitle"
               name="dialogAttachmentTitle"
-              placeholder="設計資料 など"
+              placeholder="e.g. Design Document"
             />
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>資料URL</mat-label>
+            <mat-label>{{ 'projectForm.attachmentUrl' | translate }}</mat-label>
             <input
               matInput
               [(ngModel)]="linkUrl"
@@ -317,12 +315,12 @@
             type="button"
             (click)="addLinkAttachment()"
           >
-            URLを追加
+            {{ 'projectForm.addUrl' | translate }}
           </button>
         </div>
 
         <div class="attachment-list" *ngIf="attachments.length > 0">
-          <h4>登録済み資料</h4>
+          <h4>{{ 'projectForm.registeredAttachments' | translate }}</h4>
           <div
             class="attachment-chip"
             *ngFor="let attachment of attachments; trackBy: trackAttachment"
@@ -342,7 +340,7 @@
               mat-icon-button
               type="button"
               (click)="removeAttachment(attachment)"
-              matTooltip="削除"
+              [matTooltip]="'common.delete' | translate"
             >
               <mat-icon>close</mat-icon>
             </button>
@@ -351,32 +349,32 @@
 
         <div class="uploading-indicator" *ngIf="isUploading">
           <mat-spinner diameter="24"></mat-spinner>
-          <span>添付ファイルをアップロード中...</span>
+          <span>{{ 'projectForm.uploadingAttachments' | translate }}</span>
         </div>
       </div>
 
       <!-- タグ -->
       <mat-form-field appearance="outline" class="full-width">
-        <mat-label>タグ</mat-label>
+        <mat-label>{{ 'projectForm.tags' | translate }}</mat-label>
         <input
           matInput
           [(ngModel)]="project.tags"
           name="tags"
-          placeholder="#UI, #開発"
+          placeholder="#UI, #Development"
         />
         <mat-icon matSuffix>tag</mat-icon>
       </mat-form-field>
 
       <!-- マイルストーン設定 -->
       <div class="milestones-section">
-        <h3>マイルストーン</h3>
+        <h3>{{ 'projectForm.milestones' | translate }}</h3>
         <div class="milestones-container">
           <div
             *ngFor="let milestone of project.milestones; let i = index"
             class="milestone-item"
           >
             <mat-form-field appearance="outline" class="milestone-date">
-              <mat-label>日付</mat-label>
+              <mat-label>{{ 'projectForm.date' | translate }}</mat-label>
               <input
                 matInput
                 type="date"
@@ -389,19 +387,19 @@
                 matSuffix
                 type="button"
                 (click)="openDatePicker(milestoneDateInput)"
-                matTooltip="カレンダーを開く"
+                matTooltip="Open Calendar"
               >
                 <mat-icon>event</mat-icon>
               </button>
             </mat-form-field>
             <mat-form-field appearance="outline" class="milestone-name">
-              <mat-label>マイルストーン名</mat-label>
+              <mat-label>{{ 'projectForm.milestoneName' | translate }}</mat-label>
               <input
                 matInput
                 type="text"
                 [(ngModel)]="milestone.name"
                 name="milestoneName{{ i }}"
-                placeholder="マイルストーン名"
+                [placeholder]="'projectForm.milestoneName' | translate"
               />
             </mat-form-field>
             <button
@@ -422,7 +420,7 @@
             color="primary"
           >
             <mat-icon>add</mat-icon>
-            マイルストーンを追加
+            {{ 'projectForm.addMilestone' | translate }}
           </button>
         </div>
       </div>
@@ -439,7 +437,7 @@
             (click)="confirmDeleteProject()"
           >
             <mat-icon>delete</mat-icon>
-            プロジェクト削除
+            {{ 'common.delete' | translate }}
           </button>
         </div>
 
@@ -450,7 +448,7 @@
             class="cancel-button"
             (click)="onCancel()"
           >
-            キャンセル
+            {{ 'taskForm.cancel' | translate }}
           </button>
 
           <button
@@ -462,11 +460,11 @@
           >
             <ng-container *ngIf="!isSubmitting; else submitting">
               <mat-icon>{{ isEditMode ? "edit" : "add" }}</mat-icon>
-              {{ isEditMode ? "更新" : "登録" }}
+              {{ (isEditMode ? 'common.update' : 'common.save') | translate }}
             </ng-container>
             <ng-template #submitting>
               <mat-spinner diameter="20"></mat-spinner>
-              <span>{{ isEditMode ? "更新中..." : "登録中..." }}</span>
+              <span>{{ (isEditMode ? 'common.updating' : 'common.saving') | translate }}</span>
             </ng-template>
           </button>
         </div>

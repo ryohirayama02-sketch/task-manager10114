@@ -51,6 +51,17 @@
             <mat-icon>translate</mat-icon>
             {{ 'settings.menu.language' | translate }}
           </button>
+
+          <button
+            mat-raised-button
+            class="menu-button"
+            color="primary"
+            [class.active]="selectedSettingsTab === 'roomInfo'"
+            (click)="selectedSettingsTab = 'roomInfo'"
+          >
+            <mat-icon>info</mat-icon>
+            {{ 'settings.menu.roomInfo' | translate }}
+          </button>
         </div>
       </mat-card-content>
     </mat-card>
@@ -503,6 +514,43 @@
           {{ (isSavingLanguage ? 'settings.language.saving' : 'settings.language.save') | translate }}
         </button>
       </mat-card-actions>
+    </mat-card>
+  </div>
+
+  <!-- ルーム情報 -->
+  <div
+    *ngIf="!isLoading && selectedSettingsTab === 'roomInfo' && roomInfo"
+    class="settings-content"
+  >
+    <mat-card class="settings-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>info</mat-icon>
+          {{ 'settings.roomInfo.title' | translate }}
+        </mat-card-title>
+        <mat-card-subtitle>
+          {{ 'settings.roomInfo.subtitle' | translate }}
+        </mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="room-info-content">
+          <div class="room-info-item">
+            <label>{{ 'settings.roomInfo.roomName' | translate }}:</label>
+            <span class="room-value">{{ roomInfo.name }}</span>
+          </div>
+
+          <div class="room-info-item">
+            <label>{{ 'settings.roomInfo.roomId' | translate }}:</label>
+            <span class="room-value">{{ roomInfo.roomId }}</span>
+          </div>
+
+          <div class="room-info-item">
+            <label>{{ 'settings.roomInfo.password' | translate }}:</label>
+            <span class="room-value">{{ roomInfo.password }}</span>
+          </div>
+        </div>
+      </mat-card-content>
     </mat-card>
   </div>
 </div>

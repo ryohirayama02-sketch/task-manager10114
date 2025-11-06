@@ -16,6 +16,7 @@ import { NotificationService } from '../../services/notification.service';
 import { AuthService } from '../../services/auth.service';
 import { TaskReminderService } from '../../services/task-reminder.service';
 import { HomeScreenSettingsService } from '../../services/home-screen-settings.service';
+import { RoomService } from '../../services/room.service';
 import { NotificationSettings } from '../../models/notification.model';
 import {
   HomeScreenSettings,
@@ -51,7 +52,10 @@ export class SettingsComponent implements OnInit {
   notificationSettings!: NotificationSettings; // 非null assertion
   isLoading = false;
   isSaving = false;
-  selectedSettingsTab: 'notifications' | 'home' | 'language' = 'notifications';
+  selectedSettingsTab: 'notifications' | 'home' | 'language' | 'roomInfo' = 'notifications';
+
+  // ルーム情報
+  roomInfo: { name: string; roomId: string; password: string } | null = null;
 
   // ホーム画面設定
   homeScreenSettings: HomeScreenSettings | null = null;
@@ -85,6 +89,7 @@ export class SettingsComponent implements OnInit {
     private authService: AuthService,
     private taskReminderService: TaskReminderService,
     private homeScreenSettingsService: HomeScreenSettingsService,
+    private roomService: RoomService,
     private snackBar: MatSnackBar
   ) {
     // 時間オプションを生成（00:00 - 23:30）
@@ -105,6 +110,7 @@ export class SettingsComponent implements OnInit {
     this.selectedLanguage = this.languageService.getCurrentLanguage();
     await this.loadNotificationSettings();
     await this.loadHomeScreenSettings();
+    await this.loadRoomInfo();
   }
 
   /** 通知設定を読み込み */
@@ -441,5 +447,19 @@ export class SettingsComponent implements OnInit {
 
   getHomeScreenLabel(value: HomeScreenType): string {
     return this.languageService.translate(`homeScreen.${value}`);
+  }
+
+  /** ルーム情報を読み込み */
+  async loadRoomInfo() {
+    try {
+      const roomId = this.authService.getCurrentRoomId();
+      if (!roomId) {
+        console.warn('ルームIDが設定されていません');
+        return;
+      }
+      this.roomInfo = await this.roomService.getRoomInfo(roomId);
+    } catch (error) {
+      console.error('ルーム情報の読み込みエラー:', error);
+    }
   }
 }

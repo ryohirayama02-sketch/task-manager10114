@@ -7,6 +7,8 @@ import {
   limit,
   query,
   where,
+  doc,
+  getDoc,
 } from '@angular/fire/firestore';
 
 @Injectable({ providedIn: 'root' })
@@ -37,5 +39,24 @@ export class RoomService {
       return null;
     }
     return snapshot.docs[0];
+  }
+
+  async getRoomInfo(roomId: string) {
+    const roomsRef = collection(this.firestore, 'rooms');
+    const roomQuery = query(
+      roomsRef,
+      where('roomId', '==', roomId),
+      limit(1)
+    );
+    const snapshot = await getDocs(roomQuery);
+    if (snapshot.empty) {
+      return null;
+    }
+    const data = snapshot.docs[0].data();
+    return {
+      name: data['name'],
+      roomId: data['roomId'],
+      password: data['password'],
+    };
   }
 }
