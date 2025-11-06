@@ -18,7 +18,12 @@ import {
   DEFAULT_PROJECT_THEME_COLOR,
   resolveProjectThemeColor,
 } from '../../../constants/project-theme-colors';
-import { MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
+import {
+  MatDialog,
+  MatDialogRef,
+  MAT_DIALOG_DATA,
+  MatDialogModule,
+} from '@angular/material/dialog';
 import { Inject } from '@angular/core';
 import { TranslatePipe } from '../../../pipes/translate.pipe';
 import { LanguageService } from '../../../services/language.service';
@@ -84,7 +89,7 @@ export class MemberDetailComponent implements OnInit {
   filterPriority: string[] = [];
   filterDueDateSort: string = ''; // 'near' (近い順) or 'far' (遠い順)
   filteredTasks: Task[] = [];
-  
+
   // プロジェクト情報
   private projectMap: Record<string, any> = {};
   private projectNameToId: Record<string, string> = {};
@@ -112,13 +117,10 @@ export class MemberDetailComponent implements OnInit {
       }
 
       // プロジェクトマップを構築
-      this.projectMap = projects.reduce(
-        (acc, project) => {
-          acc[project.id] = project;
-          return acc;
-        },
-        {} as Record<string, any>
-      );
+      this.projectMap = projects.reduce((acc, project) => {
+        acc[project.id] = project;
+        return acc;
+      }, {} as Record<string, any>);
 
       const allTasks: Task[] = [];
       let completedRequests = 0;
@@ -457,7 +459,13 @@ export class MemberDetailComponent implements OnInit {
 @Component({
   selector: 'app-period-filter-dialog',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatFormFieldModule, FormsModule, MatDialogModule],
+  imports: [
+    CommonModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    FormsModule,
+    MatDialogModule,
+  ],
   template: `
     <h2 mat-dialog-title>期間を選択</h2>
     <mat-dialog-content>
@@ -494,36 +502,38 @@ export class MemberDetailComponent implements OnInit {
       </button>
     </mat-dialog-actions>
   `,
-  styles: [`
-    .period-dialog-content {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      padding: 16px 0;
-    }
-    .date-field {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    label {
-      font-weight: 500;
-      font-size: 14px;
-      color: #495057;
-    }
-    .date-input {
-      padding: 8px 12px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 14px;
-    }
-    mat-dialog-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-      padding-top: 16px;
-    }
-  `],
+  styles: [
+    `
+      .period-dialog-content {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        padding: 16px 0;
+      }
+      .date-field {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      label {
+        font-weight: 500;
+        font-size: 14px;
+        color: #495057;
+      }
+      .date-input {
+        padding: 8px 12px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 14px;
+      }
+      mat-dialog-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        padding-top: 16px;
+      }
+    `,
+  ],
 })
 export class PeriodFilterDialogComponent {
   startDate: string | null = null;
@@ -534,8 +544,12 @@ export class PeriodFilterDialogComponent {
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
     if (data) {
-      this.startDate = data.startDate ? this.formatDateToString(data.startDate) : null;
-      this.endDate = data.endDate ? this.formatDateToString(data.endDate) : null;
+      this.startDate = data.startDate
+        ? this.formatDateToString(data.startDate)
+        : null;
+      this.endDate = data.endDate
+        ? this.formatDateToString(data.endDate)
+        : null;
     }
   }
 

@@ -20,7 +20,6 @@ interface MemberProgress {
   notStartedTasks: number;
   completionRate: number;
   tasks: Task[];
-  // 優先度別の詳細
   completedByPriority: { high: number; medium: number; low: number };
   inProgressByPriority: { high: number; medium: number; low: number };
   notStartedByPriority: { high: number; medium: number; low: number };
@@ -61,7 +60,6 @@ export class MemberProgressComponent implements OnInit {
     this.isLoading = true;
     console.log('メンバー進捗を読み込み中...');
 
-    // 全プロジェクトのタスクを取得
     this.projectService.getProjects().subscribe((projects) => {
       if (projects.length === 0) {
         this.isLoading = false;
@@ -71,7 +69,6 @@ export class MemberProgressComponent implements OnInit {
       const allTasks: Task[] = [];
       let completedRequests = 0;
 
-      // 各プロジェクトのタスクを取得
       projects.forEach((project) => {
         if (project.id) {
           this.projectService
@@ -80,7 +77,6 @@ export class MemberProgressComponent implements OnInit {
               allTasks.push(...tasks);
               completedRequests++;
 
-              // すべてのプロジェクトのタスクを取得したら処理を実行
               if (completedRequests === projects.length) {
                 this.processMemberProgress(allTasks);
               }
@@ -103,21 +99,37 @@ export class MemberProgressComponent implements OnInit {
   }
 
   private buildMemberProgress(tasks: Task[]): MemberProgress[] {
-    // 担当者ごとにタスクをグループ化
     const memberTaskMap = new Map<string, Task[]>();
 
     tasks.forEach((task) => {
+      // ✅ 修正ポイント：assignee がカンマ区切りの場合も分割して処理
       if (task.assignee) {
-        if (!memberTaskMap.has(task.assignee)) {
-          memberTaskMap.set(task.assignee, []);
-        }
-        memberTaskMap.get(task.assignee)!.push(task);
+        const assignees = task.assignee
+          .split(',')
+          .map((name) => name.trim())
+          .filter((name) => name.length > 0);
+
+        assignees.forEach((name) => {
+          if (!memberTaskMap.has(name)) {
+            memberTaskMap.set(name, []);
+          }
+          memberTaskMap.get(name)!.push(task);
+        });
+      }
+
+      // ✅ assignedMembers が存在する場合も各メンバーに追加
+      if (task.assignedMembers && task.assignedMembers.length > 0) {
+        task.assignedMembers.forEach((memberName) => {
+          if (!memberTaskMap.has(memberName)) {
+            memberTaskMap.set(memberName, []);
+          }
+          memberTaskMap.get(memberName)!.push(task);
+        });
       }
     });
 
     console.log('メンバー別タスク:', memberTaskMap);
 
-    // 各メンバーの進捗を計算
     const members = Array.from(memberTaskMap.entries()).map(
       ([memberName, tasks]) => {
         const totalTasks = tasks.length;
@@ -129,7 +141,6 @@ export class MemberProgressComponent implements OnInit {
             ? Math.round((completedTasks.length / totalTasks) * 100)
             : 0;
 
-        // 優先度別の詳細計算
         const completedByPriority =
           this.calculatePriorityBreakdown(completedTasks);
         const inProgressByPriority =
@@ -152,9 +163,7 @@ export class MemberProgressComponent implements OnInit {
       }
     );
 
-    // 完了率でソート（高い順）
     members.sort((a, b) => b.completionRate - a.completionRate);
-
     console.log('メンバー進捗:', members);
     return members;
   }
@@ -173,8 +182,12 @@ export class MemberProgressComponent implements OnInit {
       const dueDate = task.dueDate ? new Date(task.dueDate) : null;
       if (!dueDate) return false;
 
-      const afterStart = this.periodStartDate ? dueDate >= this.periodStartDate : true;
-      const beforeEnd = this.periodEndDate ? dueDate <= this.periodEndDate : true;
+      const afterStart = this.periodStartDate
+        ? dueDate >= this.periodStartDate
+        : true;
+      const beforeEnd = this.periodEndDate
+        ? dueDate <= this.periodEndDate
+        : true;
 
       return afterStart && beforeEnd;
     });
@@ -193,7 +206,6 @@ export class MemberProgressComponent implements OnInit {
     }
   }
 
-  /** 優先度別の内訳を計算 */
   calculatePriorityBreakdown(tasks: Task[]): {
     high: number;
     medium: number;
@@ -206,7 +218,6 @@ export class MemberProgressComponent implements OnInit {
     };
   }
 
-  /** メンバーカードをクリックして個別メンバー進捗画面に遷移 */
   goToMemberDetail(memberName: string) {
     console.log('メンバー詳細画面に遷移:', memberName);
     this.router.navigate(['/progress/members', memberName]);
