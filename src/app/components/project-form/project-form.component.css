@@ -300,14 +300,20 @@ input[type="date"]::-moz-calendar-picker-indicator {
 }
 
 .link-attachments {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 12px;
-  align-items: end;
+  align-items: stretch;
+}
+
+.link-attachments mat-form-field {
+  flex: 1 1 260px;
 }
 
 .link-attachments button {
-  height: 48px;
+  height: 56px;
+  display: flex;
+  align-items: center;
 }
 
 .attachment-list {
