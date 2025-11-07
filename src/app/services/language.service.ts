@@ -295,6 +295,8 @@ export class LanguageService {
     'projectDetail.assignee': { ja: '担当メンバー', en: 'Assigned Members' },
     'projectDetail.selectMember': { ja: 'メンバーを選択', en: 'Select Members' },
     'projectDetail.addFile': { ja: 'ファイルを追加', en: 'Add File' },
+    'projectDetail.enterUrl': { ja: 'URLを入力', en: 'Enter URL' },
+    'projectDetail.add': { ja: '追加', en: 'Add' },
     'projectDetail.materialName': { ja: '資料名', en: 'Material Name' },
     'projectDetail.designMaterial': { ja: '設計資料', en: 'Design Document' },
     'projectDetail.materialUrl': { ja: '資料URL', en: 'Material URL' },

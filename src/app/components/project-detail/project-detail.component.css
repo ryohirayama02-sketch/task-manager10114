@@ -212,19 +212,51 @@
   align-items: flex-end;
 }
 
-.attachment-link-field {
-  min-width: 200px;
+.url-input-field {
   flex: 1 1 200px;
+  min-width: 200px;
 }
 
 .pending-files {
-  font-size: 13px;
-  color: #555;
+  padding: 12px;
+  background-color: #fef3c3;
+  border: 1px solid #fcd34d;
+  border-radius: 6px;
+  color: #b45309;
+  margin-bottom: 12px;
 }
 
-.pending-files ul {
-  margin: 4px 0 0;
-  padding-left: 18px;
+.pending-files p {
+  margin: 0 0 8px 0;
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.pending-files-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pending-file-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px;
+  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: 4px;
+}
+
+.pending-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: #b45309;
+}
+
+.pending-filename {
+  font-size: 13px;
+  color: #b45309;
 }
 
 .attachment-list {

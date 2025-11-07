@@ -189,36 +189,37 @@
                 hidden
               />
 
-              <mat-form-field appearance="outline" class="attachment-link-field">
-                <mat-label>{{ 'projectDetail.materialName' | translate }}</mat-label>
+              <mat-form-field appearance="outline" class="url-input-field">
+                <mat-label>{{ 'projectDetail.enterUrl' | translate }}</mat-label>
                 <input
                   matInput
-                  [(ngModel)]="linkTitle"
-                  name="inlineLinkTitle"
-                  placeholder="{{ 'projectDetail.designMaterial' | translate }}"
+                  [(ngModel)]="newUrlInput"
+                  placeholder="https://example.com"
+                  (keyup.enter)="addUrl(newUrlInput)"
+                  name="newUrl"
                 />
               </mat-form-field>
-
-              <mat-form-field appearance="outline" class="attachment-link-field">
-                <mat-label>{{ 'projectDetail.materialUrl' | translate }}</mat-label>
-                <input
-                  matInput
-                  [(ngModel)]="linkUrl"
-                  name="inlineLinkUrl"
-                  placeholder="https://example.com/docs"
-                />
-              </mat-form-field>
-
-              <button mat-button type="button" (click)="addLinkAttachment()">
-                {{ 'projectDetail.addUrl' | translate }}
+              <button
+                mat-stroked-button
+                type="button"
+                (click)="addUrl(newUrlInput)"
+              >
+                {{ 'projectDetail.add' | translate }}
               </button>
             </div>
 
+            <!-- アップロード中のファイル表示 -->
             <div class="pending-files" *ngIf="pendingFiles.length > 0">
               <p>{{ 'projectDetail.uploadingFiles' | translate }}:</p>
-              <ul>
-                <li *ngFor="let pending of pendingFiles">{{ pending.file.name }}</li>
-              </ul>
+              <div class="pending-files-list">
+                <div
+                  class="pending-file-item"
+                  *ngFor="let pending of pendingFiles"
+                >
+                  <mat-icon class="pending-icon">file_upload</mat-icon>
+                  <span class="pending-filename">{{ pending.file.name }}</span>
+                </div>
+              </div>
             </div>
 
             <div class="attachment-list" *ngIf="editableAttachments.length > 0">
@@ -227,13 +228,14 @@
                 class="attachment-chip"
                 *ngFor="let attachment of editableAttachments; trackBy: trackAttachment"
               >
-                <mat-icon>{{ attachment.type === 'link' ? 'link' : 'attach_file' }}</mat-icon>
+                <span class="material-icon">{{ attachment.type === 'link' ? '🔗' : '📎' }}</span>
                 <a
                   [href]="attachment.url"
                   target="_blank"
                   rel="noopener noreferrer"
+                  class="material-link"
                 >
-                  {{ attachment.name }}
+                  {{ attachment.type === 'link' ? extractUrlLabel(attachment.url) : attachment.name }}
                 </a>
                 <ng-container *ngIf="attachment.type === 'file' && attachment.size">
                   <span class="size-text">({{ formatFileSize(attachment.size) }})</span>

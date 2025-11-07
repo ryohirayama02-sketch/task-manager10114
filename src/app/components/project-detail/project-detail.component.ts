@@ -85,8 +85,7 @@ export class ProjectDetailComponent implements OnInit {
   editableAttachments: ProjectAttachment[] = [];
   pendingFiles: { id: string; file: File }[] = [];
   attachmentsToRemove: ProjectAttachment[] = [];
-  linkTitle = '';
-  linkUrl = '';
+  newUrlInput: string = '';
   isUploading = false;
   members: Member[] = [];
   membersLoading = false;
@@ -214,8 +213,7 @@ export class ProjectDetailComponent implements OnInit {
     );
     this.pendingFiles = [];
     this.attachmentsToRemove = [];
-    this.linkTitle = '';
-    this.linkUrl = '';
+    this.newUrlInput = '';
     this.tagInputValue = '';
     this.syncSelectionsFromProject();
   }
@@ -350,8 +348,7 @@ export class ProjectDetailComponent implements OnInit {
       this.selectedResponsibleIds = [];
       this.selectedResponsibles = [];
       this.tagInputValue = '';
-      this.linkTitle = '';
-      this.linkUrl = '';
+      this.newUrlInput = '';
       event.source.checked = false;
     } catch (error) {
       console.error('インライン編集の保存に失敗しました:', error);
@@ -641,33 +638,53 @@ export class ProjectDetailComponent implements OnInit {
     input.value = '';
   }
 
-  addLinkAttachment(): void {
-    const url = this.linkUrl.trim();
-    const title = this.linkTitle.trim();
+  /** URLを追加 */
+  addUrl(url: string): void {
+    if (url && url.trim()) {
+      const trimmedUrl = url.trim();
+      
+      if (!this.isValidUrl(trimmedUrl)) {
+        this.snackBar.open('URLの形式が正しくありません', '閉じる', {
+          duration: 3000,
+        });
+        return;
+      }
 
-    if (!url) {
-      this.snackBar.open('URLを入力してください', '閉じる', { duration: 3000 });
-      return;
+      // 既に同じURLが存在するかチェック
+      const exists = this.editableAttachments.some(
+        (att) => att.type === 'link' && att.url === trimmedUrl
+      );
+      
+      if (exists) {
+        this.snackBar.open('このURLは既に追加されています', '閉じる', {
+          duration: 3000,
+        });
+        return;
+      }
+
+      const attachment: ProjectAttachment = {
+        id: this.generateId(),
+        name: this.extractUrlLabel(trimmedUrl),
+        url: trimmedUrl,
+        type: 'link',
+        uploadedAt: new Date().toISOString(),
+      };
+
+      this.editableAttachments.push(attachment);
+      this.newUrlInput = '';
     }
+  }
 
-    if (!this.isValidUrl(url)) {
-      this.snackBar.open('URLの形式が正しくありません', '閉じる', {
-        duration: 3000,
-      });
-      return;
+  /** URLラベルを抽出 */
+  extractUrlLabel(url: string): string {
+    try {
+      const urlObj = new URL(url);
+      // ホスト名またはパス名から短いラベルを作成
+      const hostname = urlObj.hostname.replace('www.', '');
+      return hostname || url.substring(0, 30);
+    } catch {
+      return url.substring(0, 30);
     }
-
-    const attachment: ProjectAttachment = {
-      id: this.generateId(),
-      name: title || url,
-      url,
-      type: 'link',
-      uploadedAt: new Date().toISOString(),
-    };
-
-    this.editableAttachments.push(attachment);
-    this.linkTitle = '';
-    this.linkUrl = '';
   }
 
   removeAttachment(attachment: ProjectAttachment): void {
