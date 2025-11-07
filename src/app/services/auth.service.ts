@@ -9,8 +9,6 @@ import {
   signInWithRedirect,
   getRedirectResult,
   onAuthStateChanged,
-  browserLocalPersistence,
-  setPersistence,
   User,
 } from '@angular/fire/auth';
 import { BehaviorSubject } from 'rxjs';
@@ -44,9 +42,8 @@ export class AuthService {
     private firestore: Firestore,
     private projectSelectionService: ProjectSelectionService
   ) {
-    setPersistence(this.auth, browserLocalPersistence)
-      .then(() => console.log('🧭 Persistence設定完了'))
-      .catch((err) => console.error('Persistence設定エラー:', err));
+    // Angular Fire v18では、browserLocalPersistenceがデフォルトで使用されるため、
+    // 明示的な設定は不要です
 
     onAuthStateChanged(this.auth, (user) => {
       console.log('🔐 onAuthStateChanged:', user?.email || 'ユーザーなし');

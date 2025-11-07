@@ -477,7 +477,11 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
   /** 指定された日付にマイルストーンがあるかチェック */
   getMilestonesForDate(date: Date): any[] {
-    const dateStr = date.toISOString().split('T')[0];
+    // ローカルタイムゾーンで日付文字列を生成（YYYY-MM-DD形式）
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
     return this.allMilestones.filter((milestone) => milestone.date === dateStr);
   }
 

@@ -103,16 +103,82 @@ async function getUpcomingTasks(
 }
 
 /**
- * ユーザーごとにタスクをグループ化
+ * ユーザーごとにタスクをグループ化（メールアドレスをメンバーコレクションから取得）
  */
-function groupTasksByUser(tasks: any[]): { [email: string]: any[] } {
+async function groupTasksByUser(
+  tasks: any[],
+  roomId: string
+): Promise<{ [email: string]: any[] }> {
+  const db = admin.firestore();
   const grouped: { [email: string]: any[] } = {};
-  tasks.forEach((task) => {
-    const email = task.assigneeEmail || task.assignee;
-    if (!email) return;
-    if (!grouped[email]) grouped[email] = [];
-    grouped[email].push(task);
+
+  // メンバーコレクションからメールアドレスを取得
+  const membersSnapshot = await db
+    .collection('members')
+    .where('roomId', '==', roomId)
+    .get();
+
+  const memberEmailMap = new Map<string, string>(); // name -> email
+  membersSnapshot.forEach((doc) => {
+    const memberData = doc.data();
+    if (memberData.name && memberData.email) {
+      memberEmailMap.set(memberData.name, memberData.email);
+    }
   });
+
+  tasks.forEach((task) => {
+    const emails: string[] = [];
+
+    // 1. assigneeEmail が直接設定されている場合
+    if (task.assigneeEmail) {
+      emails.push(task.assigneeEmail);
+    }
+    // 2. assignedMembers が配列の場合（UID配列）
+    if (
+      Array.isArray(task.assignedMembers) &&
+      task.assignedMembers.length > 0
+    ) {
+      // UIDからメールアドレスを取得（membersコレクションでIDとemailを照合）
+      const memberIds = task.assignedMembers;
+      membersSnapshot.forEach((doc) => {
+        if (memberIds.includes(doc.id) && doc.data().email) {
+          const email = doc.data().email;
+          if (!emails.includes(email)) {
+            emails.push(email);
+          }
+        }
+      });
+    }
+    // 3. assignee が名前の場合、メンバーコレクションからメールアドレスを取得
+    if (task.assignee && emails.length === 0) {
+      const assigneeNames = task.assignee
+        .split(',')
+        .map((n: string) => n.trim());
+      for (const name of assigneeNames) {
+        const memberEmail = memberEmailMap.get(name);
+        if (memberEmail && !emails.includes(memberEmail)) {
+          emails.push(memberEmail);
+        }
+      }
+    }
+
+    if (emails.length === 0) {
+      console.warn('⚠️ メールアドレスが見つからないタスク:', {
+        taskName: task.taskName,
+        assignee: task.assignee,
+        assigneeEmail: task.assigneeEmail,
+        assignedMembers: task.assignedMembers,
+      });
+      return;
+    }
+
+    // 各メールアドレスにタスクを追加
+    emails.forEach((email) => {
+      if (!grouped[email]) grouped[email] = [];
+      grouped[email].push(task);
+    });
+  });
+
   return grouped;
 }
 
@@ -175,7 +241,7 @@ export const sendTaskRemindersManual = onCall(
         userCount: 0,
       };
 
-    const tasksByUser = groupTasksByUser(upcomingTasks);
+    const tasksByUser = await groupTasksByUser(upcomingTasks, roomId);
     const fromEmail = sendgridFromEmail.value() || 'noreply@taskmanager.com';
 
     const sendPromises = Object.entries(tasksByUser).map(
@@ -274,8 +340,72 @@ export const sendUserTaskNotifications = onSchedule(
 
 export const sendUserTaskNotificationsManual = onCall(
   { secrets: [sendgridApiKey, sendgridFromEmail], cors: true },
-  async () => {
-    console.log('🕙 ユーザー個別通知手動送信');
+  async (request) => {
+    if (!request.auth)
+      throw new HttpsError('unauthenticated', '認証が必要です');
+
+    const roomId = request.data?.roomId;
+    const roomDocId = request.data?.roomDocId;
+    if (!roomId || !roomDocId)
+      throw new HttpsError('invalid-argument', 'roomIdとroomDocIdが必要です');
+
+    const roomContext: RoomContext = { roomId, roomDocId };
+    const apiKey = sendgridApiKey
+      .value()
+      .trim()
+      .replace(/[\r\n\t\s]+/g, '');
+    sgMail.setApiKey(apiKey);
+
+    // 期限が近いタスクを取得（1, 3, 7日前）
+    const upcomingTasks = await getUpcomingTasks(roomContext, [1, 3, 7]);
+
+    if (upcomingTasks.length === 0)
+      return {
+        success: true,
+        message: '期限が近いタスクはありません',
+        taskCount: 0,
+        userCount: 0,
+      };
+
+    // ユーザーごとにタスクをグループ化
+    const tasksByUser = await groupTasksByUser(upcomingTasks, roomId);
+    const fromEmail = sendgridFromEmail.value() || 'noreply@taskmanager.com';
+
+    const sendPromises = Object.entries(tasksByUser).map(
+      async ([email, userTasks]) => {
+        if (!email) {
+          console.warn(
+            '⚠️ 宛先メールアドレスが未設定のタスクがあります:',
+            userTasks
+          );
+          return;
+        }
+
+        try {
+          const msg = {
+            to: email,
+            from: fromEmail,
+            subject: `【期限間近】${userTasks.length}件のタスクが期限間近です`,
+            html: generateTaskReminderHTML(userTasks),
+          };
+          await sgMail.send(msg);
+          console.log(`✅ メール送信成功: ${email}`);
+        } catch (error: any) {
+          console.error(
+            `❌ SendGrid送信エラー(${email}):`,
+            error.response?.body || error
+          );
+        }
+      }
+    );
+
+    await Promise.all(sendPromises);
+    return {
+      success: true,
+      message: 'ユーザー個別のタスク通知を送信しました',
+      taskCount: upcomingTasks.length,
+      userCount: Object.keys(tasksByUser).length,
+    };
   }
 );
 
