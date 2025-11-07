@@ -103,6 +103,33 @@
 
 <!-- カレンダー -->
 <div class="calendar-container">
+  <!-- 凡例 -->
+  <div class="legend">
+    <h4>{{ 'calendar.legend.status' | translate }}</h4>
+    <div class="legend-items">
+      <div class="legend-item">
+        <div
+          class="legend-color"
+          [style.background-color]="statusColors['未着手']"
+        ></div>
+        <span>{{ 'calendar.legend.status.notStarted' | translate }}</span>
+      </div>
+      <div class="legend-item">
+        <div
+          class="legend-color"
+          [style.background-color]="statusColors['作業中']"
+        ></div>
+        <span>{{ 'calendar.legend.status.inProgress' | translate }}</span>
+      </div>
+      <div class="legend-item">
+        <div
+          class="legend-color"
+          [style.background-color]="statusColors['完了']"
+        ></div>
+        <span>{{ 'calendar.legend.status.completed' | translate }}</span>
+      </div>
+    </div>
+  </div>
   <!-- カレンダーヘッダー -->
   <div class="calendar-header">
     <button mat-icon-button (click)="changeDate(-1)">
@@ -173,34 +200,6 @@
           <div class="task-project">{{ task.projectName }}</div>
         </div>
       </div>
-    </div>
-  </div>
-</div>
-
-<!-- 凡例 -->
-<div class="legend">
-  <h4>{{ 'calendar.legend.status' | translate }}</h4>
-  <div class="legend-items">
-    <div class="legend-item">
-      <div
-        class="legend-color"
-        [style.background-color]="statusColors['未着手']"
-      ></div>
-      <span>{{ 'calendar.legend.status.notStarted' | translate }}</span>
-    </div>
-    <div class="legend-item">
-      <div
-        class="legend-color"
-        [style.background-color]="statusColors['作業中']"
-      ></div>
-      <span>{{ 'calendar.legend.status.inProgress' | translate }}</span>
-    </div>
-    <div class="legend-item">
-      <div
-        class="legend-color"
-        [style.background-color]="statusColors['完了']"
-      ></div>
-      <span>{{ 'calendar.legend.status.completed' | translate }}</span>
     </div>
   </div>
 </div>
