@@ -417,43 +417,6 @@
       <mat-card-actions>
         <button
           mat-raised-button
-          color="accent"
-          (click)="sendTestNotification()"
-          [disabled]="isSaving"
-        >
-          <mat-icon>send</mat-icon>
-          {{
-            (isSaving ? "settings.sending" : "settings.sendTest") | translate
-          }}
-        </button>
-
-        <button
-          mat-raised-button
-          color="warn"
-          (click)="sendTaskRemindersTest()"
-          [disabled]="isSaving"
-        >
-          <mat-icon>email</mat-icon>
-          {{
-            (isSaving ? "settings.sending" : "settings.sendDueTest") | translate
-          }}
-        </button>
-
-        <button
-          mat-raised-button
-          color="accent"
-          (click)="sendUserTaskNotificationsTest()"
-          [disabled]="isSaving"
-        >
-          <mat-icon>notifications</mat-icon>
-          {{
-            (isSaving ? "settings.sending" : "settings.sendUserTest")
-              | translate
-          }}
-        </button>
-
-        <button
-          mat-raised-button
           color="primary"
           (click)="sendTaskDeadlineNotificationsTest()"
           [disabled]="isSaving"
