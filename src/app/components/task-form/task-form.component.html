@@ -167,6 +167,7 @@
               id="dueDate"
               type="date"
               [(ngModel)]="dueDateString"
+              [min]="startDateString || ''"
               placeholder="期限を選択"
               class="date-input"
             />

@@ -63,6 +63,7 @@
               [(ngModel)]="project.endDate"
               name="endDate"
               [placeholder]="'projectForm.endDateLabel' | translate"
+              [min]="project.startDate || ''"
               class="date-input"
             />
             <mat-icon class="date-icon">event</mat-icon>

@@ -67,6 +67,7 @@
                 id="endDate"
                 type="date"
                 formControlName="endDate"
+                [min]="projectForm.get('startDate')?.value || ''"
                 placeholder="終了日を選択"
                 class="date-input"
               />

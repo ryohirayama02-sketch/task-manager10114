@@ -170,6 +170,7 @@ import { TaskDeleteConfirmDialogComponent } from './task-delete-confirm-dialog.c
               type="date"
               [(ngModel)]="task.dueDate"
               name="dueDate"
+              [min]="task.startDate || ''"
               placeholder="期日を選択"
               class="date-input"
             />

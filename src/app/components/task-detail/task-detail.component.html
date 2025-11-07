@@ -245,6 +245,7 @@
                   type="date"
                   [(ngModel)]="taskData.dueDate"
                   name="dueDate"
+                  [min]="taskData.startDate || ''"
                 />
               </div>
             </div>

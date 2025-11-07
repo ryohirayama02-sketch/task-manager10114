@@ -70,6 +70,7 @@
                 type="date"
                 [(ngModel)]="taskForm.dueDate"
                 name="dueDate"
+                [min]="taskForm.startDate || ''"
               />
             </div>
           </div>

@@ -104,6 +104,7 @@
                   type="date"
                   [(ngModel)]="editableProject!.endDate"
                   name="inlineEndDate"
+                  [min]="editableProject!.startDate || ''"
                 />
                 <mat-icon class="date-icon">event</mat-icon>
               </div>
