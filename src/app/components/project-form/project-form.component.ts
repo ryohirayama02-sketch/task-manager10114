@@ -310,6 +310,8 @@ export class ProjectFormComponent implements OnInit {
       const linkAttachments = [...this.attachments];
 
       const selectedColor: string | null = formData.themeColor ?? null;
+      // テーマ色が「なし」の場合は白（#ffffff）に設定
+      const finalThemeColor = selectedColor === null ? '#ffffff' : selectedColor;
 
       const responsiblesPayload = this.selectedResponsibles.map((member) => ({
         memberId: member.id || '',
@@ -335,8 +337,8 @@ export class ProjectFormComponent implements OnInit {
         overview: formData.overview || '',
         startDate: formData.startDate || '',
         endDate: formData.endDate || '',
-        themeColor: selectedColor,
-        color: selectedColor,
+        themeColor: finalThemeColor,
+        color: finalThemeColor,
         tags: [],
         responsibles: responsiblesPayload,
         responsible: responsibleNames,

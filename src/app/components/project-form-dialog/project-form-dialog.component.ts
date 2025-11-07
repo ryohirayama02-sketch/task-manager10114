@@ -311,7 +311,8 @@ export class ProjectFormDialogComponent implements OnInit {
     this.isSubmitting = true;
     try {
       const themeColor = this.project.themeColor ?? null;
-      this.project.themeColor = themeColor;
+      // テーマ色が「なし」の場合は白（#ffffff）に設定
+      const finalThemeColor = themeColor === null ? '#ffffff' : themeColor;
 
       if (this.isEditMode && this.originalProject) {
         const projectId = this.originalProject.id;
@@ -329,8 +330,8 @@ export class ProjectFormDialogComponent implements OnInit {
         const updatePayload = {
           ...this.project,
           attachments,
-          themeColor,
-          color: themeColor,
+          themeColor: finalThemeColor,
+          color: finalThemeColor,
           updatedAt: new Date(),
         };
 
@@ -341,8 +342,8 @@ export class ProjectFormDialogComponent implements OnInit {
         const linkAttachments = [...this.attachments];
         const projectPayload = {
           ...this.project,
-          themeColor,
-          color: themeColor,
+          themeColor: finalThemeColor,
+          color: finalThemeColor,
           attachments: linkAttachments,
           createdAt: new Date(),
           updatedAt: new Date(),
