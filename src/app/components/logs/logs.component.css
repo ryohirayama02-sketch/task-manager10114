@@ -177,6 +177,46 @@
   font-size: 14px;
 }
 
+/* 変更詳細のスタイル */
+.change-details {
+  margin-top: 8px;
+  margin-left: 0;
+}
+
+.changes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.change-item {
+  display: block;
+  margin: 4px 0;
+  padding: 6px 0 6px 12px;
+  border-left: 3px solid #007bff;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.change-field {
+  font-weight: 600;
+  color: #333;
+  margin-right: 4px;
+}
+
+.change-value {
+  color: #495057;
+  word-break: break-word;
+}
+
+.legacy-description {
+  white-space: pre-wrap;
+  font-size: 13px;
+  color: #495057;
+  margin-left: 0;
+  margin-top: 4px;
+}
+
 .log-changes {
   margin-top: 10px;
   padding: 10px;

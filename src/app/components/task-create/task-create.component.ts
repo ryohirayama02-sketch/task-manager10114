@@ -15,6 +15,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ProjectService } from '../../services/project.service';
 import { MemberManagementService } from '../../services/member-management.service';
 import { TaskAttachmentService } from '../../services/task-attachment.service';
+import { CalendarService } from '../../services/calendar.service';
 import { Member } from '../../models/member.model';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 
@@ -83,6 +84,7 @@ export class TaskCreatePageComponent implements OnInit {
     private projectService: ProjectService,
     private memberService: MemberManagementService,
     private attachmentService: TaskAttachmentService,
+    private calendarService: CalendarService,
     private snackBar: MatSnackBar
   ) {}
 
@@ -245,12 +247,41 @@ export class TaskCreatePageComponent implements OnInit {
       const taskId = result.id;
       console.log('タスク作成成功:', taskId);
 
-      // Step 2: ペンディングファイルをアップロード
+      // Step 2: カレンダー連携が有効で期日が設定されている場合、Googleカレンダーに追加
+      if (this.taskForm.calendarSyncEnabled && this.taskForm.dueDate) {
+        try {
+          await this.calendarService.addTaskToCalendar(
+            this.taskForm.taskName,
+            this.taskForm.dueDate
+          );
+          console.log('カレンダー連携: Googleカレンダーにタスクを追加しました');
+          
+          // カレンダー連携が成功した場合、タスクの calendarSyncEnabled フラグを確実に保存
+          await this.projectService.updateTask(this.projectId, taskId, {
+            calendarSyncEnabled: true,
+          });
+          console.log('カレンダー連携フラグを保存しました');
+        } catch (error: any) {
+          console.error('カレンダー連携エラー:', error);
+          const errorMsg = error?.message || 'エラーが発生しました';
+          this.snackBar.open(
+            `カレンダー連携に失敗しました: ${errorMsg}`,
+            '閉じる',
+            { duration: 5000 }
+          );
+          // エラーが発生した場合、calendarSyncEnabled を false に設定
+          await this.projectService.updateTask(this.projectId, taskId, {
+            calendarSyncEnabled: false,
+          });
+        }
+      }
+
+      // Step 3: ペンディングファイルをアップロード
       if (this.pendingFiles.length > 0) {
         this.isUploading = true;
         const uploadedAttachments = await this.uploadPendingFiles(taskId);
         
-        // Step 3: アップロードされたファイル情報でタスクを更新
+        // Step 4: アップロードされたファイル情報でタスクを更新
         if (uploadedAttachments.length > 0) {
           await this.projectService.updateTask(this.projectId, taskId, {
             attachments: uploadedAttachments,
@@ -260,7 +291,7 @@ export class TaskCreatePageComponent implements OnInit {
         this.isUploading = false;
       }
 
-      // リスト初期化
+      // Step 5: リスト初期化
       this.pendingFiles = [];
       this.taskForm.urls = [];
 

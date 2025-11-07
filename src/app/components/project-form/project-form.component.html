@@ -2,9 +2,9 @@
   <div class="header">
     <button mat-button (click)="goBack()" class="back-button">
       <mat-icon>arrow_back</mat-icon>
-      {{ 'projectForm.back' | translate }}
+      {{ "projectForm.back" | translate }}
     </button>
-    <h1>{{ 'projectForm.title' | translate }}</h1>
+    <h1>{{ "projectForm.title" | translate }}</h1>
   </div>
 
   <mat-card class="form-card">
@@ -12,7 +12,7 @@
       <form [formGroup]="projectForm" (ngSubmit)="onSubmit()">
         <!-- プロジェクト名 -->
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>{{ 'projectForm.projectName' | translate }}</mat-label>
+          <mat-label>{{ "projectForm.projectName" | translate }}</mat-label>
           <input
             matInput
             formControlName="projectName"
@@ -32,7 +32,7 @@
 
         <!-- プロジェクト概要 -->
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>{{ 'projectForm.overview' | translate }}</mat-label>
+          <mat-label>{{ "projectForm.overview" | translate }}</mat-label>
           <textarea
             matInput
             formControlName="overview"
@@ -45,7 +45,9 @@
         <!-- 開始日・終了日 -->
         <div class="date-fields">
           <div class="date-field half-width">
-            <label for="startDate">{{ 'projectForm.startDate' | translate }}</label>
+            <label for="startDate">{{
+              "projectForm.startDate" | translate
+            }}</label>
             <div class="date-input-wrapper">
               <input
                 id="startDate"
@@ -59,7 +61,7 @@
           </div>
 
           <div class="date-field half-width">
-            <label for="endDate">{{ 'projectForm.endDate' | translate }}</label>
+            <label for="endDate">{{ "projectForm.endDate" | translate }}</label>
             <div class="date-input-wrapper">
               <input
                 id="endDate"
@@ -76,19 +78,21 @@
         <!-- 責任者選択 -->
         <div class="member-selection responsible-selection">
           <div class="member-selection-header">
-            <h3>{{ 'projectForm.responsible' | translate }}</h3>
+            <h3>{{ "projectForm.responsible" | translate }}</h3>
           </div>
 
           <!-- ローディング表示 -->
           <div *ngIf="loading" class="loading-members">
             <mat-spinner diameter="24"></mat-spinner>
-            <span>{{ 'projectForm.loadingMembers' | translate }}</span>
+            <span>{{ "projectForm.loadingMembers" | translate }}</span>
           </div>
 
           <!-- 責任者選択 -->
           <div *ngIf="!loading && members.length > 0">
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>{{ 'projectForm.selectResponsible' | translate }}</mat-label>
+              <mat-label>{{
+                "projectForm.selectResponsible" | translate
+              }}</mat-label>
               <mat-select
                 formControlName="responsible"
                 multiple
@@ -102,7 +106,10 @@
               <mat-icon matSuffix>workspace_premium</mat-icon>
             </mat-form-field>
 
-            <div *ngIf="selectedResponsibles.length > 0" class="selected-members">
+            <div
+              *ngIf="selectedResponsibles.length > 0"
+              class="selected-members"
+            >
               <div class="selected-members-header">
                 <span class="member-count-text"
                   >{{ selectedResponsibles.length }}人選択中</span
@@ -130,10 +137,10 @@
           <!-- メンバーがいない場合 -->
           <div *ngIf="!loading && members.length === 0" class="no-members">
             <mat-icon class="no-members-icon">people_outline</mat-icon>
-            <p>{{ 'projectForm.noMembers' | translate }}</p>
+            <p>{{ "projectForm.noMembers" | translate }}</p>
             <p>
               先に<button mat-button color="primary" routerLink="/members">
-                {{ 'projectForm.manageMembers' | translate }}</button
+                {{ "projectForm.manageMembers" | translate }}</button
               >でメンバーを登録してください。
             </p>
           </div>
@@ -143,7 +150,7 @@
         <div class="member-selection">
           <div class="member-selection-header">
             <h3>
-              {{ 'projectForm.projectMembers' | translate }}
+              {{ "projectForm.projectMembers" | translate }}
               <span class="member-count" *ngIf="selectedMembers.length > 0">
                 ({{ selectedMembers.length }}人選択中)
               </span>
@@ -153,13 +160,15 @@
           <!-- ローディング表示 -->
           <div *ngIf="loading" class="loading-members">
             <mat-spinner diameter="24"></mat-spinner>
-            <span>{{ 'projectForm.loadingMembers' | translate }}</span>
+            <span>{{ "projectForm.loadingMembers" | translate }}</span>
           </div>
 
           <!-- メンバー選択 -->
           <div *ngIf="!loading && members.length > 0">
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>{{ 'projectForm.selectMembers' | translate }}</mat-label>
+              <mat-label>{{
+                "projectForm.selectMembers" | translate
+              }}</mat-label>
               <mat-select
                 formControlName="members"
                 multiple
@@ -202,10 +211,10 @@
           <!-- メンバーがいない場合 -->
           <div *ngIf="!loading && members.length === 0" class="no-members">
             <mat-icon class="no-members-icon">people_outline</mat-icon>
-            <p>{{ 'projectForm.noMembers' | translate }}</p>
+            <p>{{ "projectForm.noMembers" | translate }}</p>
             <p>
               先に<button mat-button color="primary" routerLink="/members">
-                {{ 'projectForm.manageMembers' | translate }}</button
+                {{ "projectForm.manageMembers" | translate }}</button
               >でメンバーを登録してください。
             </p>
           </div>
@@ -213,15 +222,19 @@
 
         <!-- マイルストーン -->
         <div class="milestones-section" formArrayName="milestones">
-          <h3>{{ 'projectForm.milestones' | translate }}</h3>
+          <h3>{{ "projectForm.milestones" | translate }}</h3>
           <div class="milestones-container">
             <div
               class="milestone-item"
-              *ngFor="let milestone of milestones.controls; let i = index; trackBy: trackMilestone"
+              *ngFor="
+                let milestone of milestones.controls;
+                let i = index;
+                trackBy: trackMilestone
+              "
               [formGroupName]="i"
             >
               <mat-form-field appearance="outline" class="milestone-date">
-                <mat-label>{{ 'projectForm.date' | translate }}</mat-label>
+                <mat-label>{{ "projectForm.date" | translate }}</mat-label>
                 <input
                   matInput
                   type="date"
@@ -240,7 +253,9 @@
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="milestone-name">
-                <mat-label>{{ 'projectForm.milestoneName' | translate }}</mat-label>
+                <mat-label>{{
+                  "projectForm.milestoneName" | translate
+                }}</mat-label>
                 <input matInput type="text" formControlName="name" />
               </mat-form-field>
 
@@ -264,7 +279,7 @@
               class="add-milestone"
             >
               <mat-icon>add</mat-icon>
-              {{ 'projectForm.addMilestone' | translate }}
+              {{ "projectForm.addMilestone" | translate }}
             </button>
           </div>
         </div>
@@ -272,8 +287,10 @@
         <!-- 資料添付 -->
         <div class="attachments-section">
           <div class="member-selection-header">
-            <h3>{{ 'projectForm.attachments' | translate }}</h3>
-            <span class="helper-text">{{ 'projectForm.attachmentHelper' | translate }}</span>
+            <h3>{{ "projectForm.attachments" | translate }}</h3>
+            <span class="helper-text">{{
+              "projectForm.attachmentHelper" | translate
+            }}</span>
           </div>
 
           <div class="attachment-actions">
@@ -284,7 +301,7 @@
               (click)="fileInput.click()"
             >
               <mat-icon>attach_file</mat-icon>
-              {{ 'projectForm.selectFile' | translate }}
+              {{ "projectForm.selectFile" | translate }}
             </button>
             <input
               #fileInput
@@ -294,18 +311,22 @@
               (change)="onFilesSelected($event)"
               hidden
             />
-            <span class="attachment-hint">{{ 'projectForm.attachmentHint' | translate }}</span>
+            <span class="attachment-hint">{{
+              "projectForm.attachmentHint" | translate
+            }}</span>
           </div>
 
           <div class="pending-files" *ngIf="pendingFiles.length > 0">
-            <h4>{{ 'projectForm.uploading' | translate }}</h4>
+            <h4>{{ "projectForm.uploading" | translate }}</h4>
             <div
               class="attachment-chip"
               *ngFor="let pending of pendingFiles; trackBy: trackPendingFile"
             >
               <mat-icon>upload</mat-icon>
               <span>
-                {{ pending.file.name }} ({{ formatFileSize(pending.file.size) }})
+                {{ pending.file.name }} ({{
+                  formatFileSize(pending.file.size)
+                }})
               </span>
               <button
                 mat-icon-button
@@ -320,7 +341,9 @@
 
           <div class="link-attachments">
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>{{ 'projectForm.attachmentUrl' | translate }}</mat-label>
+              <mat-label>{{
+                "projectForm.attachmentUrl" | translate
+              }}</mat-label>
               <input
                 matInput
                 [(ngModel)]="linkUrl"
@@ -335,17 +358,19 @@
               type="button"
               (click)="addLinkAttachment()"
             >
-              {{ 'projectForm.addUrl' | translate }}
+              {{ "projectForm.addUrl" | translate }}
             </button>
           </div>
 
           <div class="attachment-list" *ngIf="attachments.length > 0">
-            <h4>{{ 'projectForm.registeredAttachments' | translate }}</h4>
+            <h4>{{ "projectForm.registeredAttachments" | translate }}</h4>
             <div
               class="attachment-chip"
               *ngFor="let attachment of attachments; trackBy: trackAttachment"
             >
-              <mat-icon>{{ attachment.type === 'link' ? 'link' : 'attach_file' }}</mat-icon>
+              <mat-icon>{{
+                attachment.type === "link" ? "link" : "attach_file"
+              }}</mat-icon>
               <a
                 [href]="attachment.url"
                 target="_blank"
@@ -366,17 +391,17 @@
 
           <div class="uploading-indicator" *ngIf="isUploading">
             <mat-spinner diameter="28"></mat-spinner>
-            <span>{{ 'projectForm.uploadingAttachments' | translate }}</span>
+            <span>{{ "projectForm.uploadingAttachments" | translate }}</span>
           </div>
         </div>
 
         <!-- テーマ色 -->
         <div class="theme-color-section">
           <div class="theme-color-header">
-            <h3>{{ 'projectForm.themeColor' | translate }}</h3>
-            <span class="helper-text"
-              >{{ 'projectForm.themeColorHelper' | translate }}</span
-            >
+            <h3>{{ "projectForm.themeColor" | translate }}</h3>
+            <span class="helper-text">{{
+              "projectForm.themeColorHelper" | translate
+            }}</span>
           </div>
           <div class="theme-color-grid">
             <button
@@ -388,7 +413,7 @@
               [attr.aria-pressed]="isThemeColorSelected(null)"
               aria-label="テーマ色 なし"
             >
-              <span>{{ 'projectForm.noColor' | translate }}</span>
+              <span>{{ "projectForm.noColor" | translate }}</span>
             </button>
             <button
               type="button"
@@ -410,7 +435,7 @@
 
     <mat-card-actions align="end">
       <button mat-button (click)="onCancel()" [disabled]="isSubmitting">
-        {{ currentLanguage === 'ja' ? 'キャンセル' : 'Cancel' }}
+        {{ currentLanguage === "ja" ? "キャンセル" : "Cancel" }}
       </button>
       <button
         mat-raised-button

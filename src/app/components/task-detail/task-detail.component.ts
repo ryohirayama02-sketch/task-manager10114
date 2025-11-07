@@ -32,6 +32,7 @@ import {
 } from '../../constants/project-theme-colors';
 
 import { TranslatePipe } from '../../pipes/translate.pipe';
+import { getMemberNamesAsString } from '../../utils/member-utils';
 
 @Component({
   selector: 'app-task-detail',
@@ -218,9 +219,21 @@ export class TaskDetailComponent implements OnInit {
             calendarSyncEnabled: this.task.calendarSyncEnabled ?? false,
             tags: this.task.tags || [],
             relatedFiles: this.task.relatedFiles || [],
-            assignedMembers: this.task.assignedMembers || [],
+            assignedMembers: Array.isArray(this.task.assignedMembers) 
+              ? [...this.task.assignedMembers] 
+              : this.task.assignedMembers 
+                ? [this.task.assignedMembers] 
+                : [],
             urls: this.task.urls || [],
           };
+          
+          console.log('タスクデータ設定:', {
+            taskId: this.task.id,
+            assignee: this.task.assignee,
+            assignedMembers: this.task.assignedMembers,
+            taskDataAssignedMembers: this.taskData.assignedMembers,
+          });
+          
           // 添付ファイルを初期化
           this.editableAttachments = (this.task.attachments || []).map(
             (attachment) => ({ ...attachment })
@@ -327,6 +340,19 @@ export class TaskDetailComponent implements OnInit {
           members.length,
           '件'
         );
+        
+        // 編集モードがONの場合は、担当者を初期化
+        if (this.isEditing) {
+          console.log('編集モードON中なので、担当者を初期化します');
+          this.initializeAssigneeForEdit();
+        } else {
+          // 読み取りモードの場合も、assignedMembers を selectedAssignedMemberIds に反映
+          if (this.task?.assignedMembers && this.task.assignedMembers.length > 0) {
+            this.selectedAssignedMemberIds = [...this.task.assignedMembers];
+          } else if (this.taskData.assignedMembers && this.taskData.assignedMembers.length > 0) {
+            this.selectedAssignedMemberIds = [...this.taskData.assignedMembers];
+          }
+        }
       },
       error: (error) => {
         console.error('プロジェクトメンバーの読み込みエラー:', error);
@@ -340,11 +366,39 @@ export class TaskDetailComponent implements OnInit {
     console.log('割り当てメンバー選択変更:', selectedIds);
     this.selectedAssignedMemberIds = selectedIds || [];
     this.taskData.assignedMembers = selectedIds || [];
+    
+    // 最初のメンバーを assignee に設定（後方互換性のため）
+    if (selectedIds && selectedIds.length > 0) {
+      const firstMember = this.projectMembers.find((m) => m.id === selectedIds[0]);
+      if (firstMember) {
+        this.taskData.assignee = firstMember.name;
+        this.taskData.assigneeEmail = firstMember.email;
+      }
+    } else {
+      this.taskData.assignee = '';
+      this.taskData.assigneeEmail = '';
+    }
   }
 
   getMemberNameById(memberId: string): string {
     const member = this.projectMembers.find((m) => m.id === memberId);
     return member ? member.name : memberId;
+  }
+
+  /** 担当者をカンマ区切りで表示 */
+  getAssignedMembersDisplay(): string {
+    if (!this.taskData.assignedMembers || this.taskData.assignedMembers.length === 0) {
+      return this.taskData.assignee || '—';
+    }
+    
+    const display = getMemberNamesAsString(
+      this.taskData.assignedMembers,
+      this.projectMembers,
+      ', '
+    );
+    
+    // '未設定' の場合は '—' に変換
+    return display === '未設定' ? '—' : display;
   }
 
   /** 編集モードを切り替え */
@@ -355,7 +409,70 @@ export class TaskDetailComponent implements OnInit {
     } else {
       // 読み取りモードから編集中へ
       this.isEditing = true;
+      
+      // 現在の担当者を編集モード用の選択状態に設定
+      this.initializeAssigneeForEdit();
     }
+  }
+
+  /** 編集モード用に担当者を初期化 */
+  private initializeAssigneeForEdit(): void {
+    // projectMembers がまだ読み込まれていて、読み込み中の場合は待つ
+    if (this.projectMembers.length === 0 && this.membersLoading) {
+      console.log('プロジェクトメンバー読み込み中。読み込み完了後に再初期化します。');
+      return;
+    }
+
+    // まず task.assignedMembers を確認（最新のデータ）
+    if (this.task?.assignedMembers && this.task.assignedMembers.length > 0) {
+      console.log('task.assignedMembers から初期化:', this.task.assignedMembers);
+      this.selectedAssignedMemberIds = [...this.task.assignedMembers];
+      this.taskData.assignedMembers = [...this.task.assignedMembers];
+      return;
+    }
+
+    // 次に taskData.assignedMembers を確認
+    if (this.taskData.assignedMembers && this.taskData.assignedMembers.length > 0) {
+      console.log('taskData.assignedMembers から初期化:', this.taskData.assignedMembers);
+      this.selectedAssignedMemberIds = [...this.taskData.assignedMembers];
+      return;
+    }
+
+    // assignedMembers が設定されていない場合、taskData.assignee から変換
+    // ただし、projectMembers が読み込まれている場合のみ
+    if (this.taskData.assignee && this.projectMembers.length > 0) {
+      // assignee がカンマ区切りの場合も処理
+      const assigneeNames = this.taskData.assignee
+        .split(',')
+        .map((name) => name.trim())
+        .filter((name) => name.length > 0);
+
+      const memberIds: string[] = [];
+      assigneeNames.forEach((name) => {
+        const member = this.projectMembers.find((m) => m.name === name);
+        if (member && member.id) {
+          memberIds.push(member.id);
+        }
+      });
+
+      if (memberIds.length > 0) {
+        console.log('taskData.assignee から初期化:', assigneeNames, '→', memberIds);
+        this.selectedAssignedMemberIds = memberIds;
+        this.taskData.assignedMembers = memberIds;
+        return;
+      }
+    }
+
+    // projectMembers が空で、assignedMembers も assignee も設定されていない場合
+    if (this.projectMembers.length === 0) {
+      console.log('プロジェクトメンバーがまだ読み込まれていません。読み込み完了後に再初期化します。');
+      return;
+    }
+
+    // 担当者が設定されていない場合
+    console.log('担当者が設定されていません');
+    this.selectedAssignedMemberIds = [];
+    this.taskData.assignedMembers = [];
   }
 
   /** タスクを保存 */
@@ -384,6 +501,15 @@ export class TaskDetailComponent implements OnInit {
         this.task,
         this.task.projectId
       );
+
+      // 保存後、this.task を更新（次回編集モードON時に正しいデータが使われるように）
+      if (this.task) {
+        this.task = {
+          ...this.task,
+          ...this.taskData,
+          assignedMembers: this.taskData.assignedMembers || [],
+        };
+      }
 
       console.log('タスクが更新されました');
       this.isEditing = false;
@@ -422,7 +548,8 @@ export class TaskDetailComponent implements OnInit {
       this.editableAttachments = (this.task.attachments || []).map(
         (attachment) => ({ ...attachment })
       );
-      this.selectedAssignedMemberIds = [];
+      // assignedMembers を selectedAssignedMemberIds に反映
+      this.selectedAssignedMemberIds = this.task.assignedMembers ? [...this.task.assignedMembers] : [];
       this.pendingFiles = [];
       this.attachmentsToRemove = [];
       console.log('データを元に戻しました');
@@ -512,17 +639,43 @@ export class TaskDetailComponent implements OnInit {
       return;
     }
 
-    const nextValue = !(this.taskData.calendarSyncEnabled ?? false);
+    const currentValue = this.taskData.calendarSyncEnabled ?? false;
+    const taskCalendarSyncEnabled = this.task.calendarSyncEnabled ?? false;
+    const nextValue = !currentValue;
+    
+    console.log('カレンダー連携切り替え:', {
+      currentValue,
+      taskCalendarSyncEnabled,
+      nextValue,
+      taskId: this.task.id,
+    });
+
+    // 既にカレンダー連携が有効な場合は、追加処理をスキップ
+    if (nextValue && (currentValue || taskCalendarSyncEnabled)) {
+      console.log('カレンダー連携は既に有効です。追加処理をスキップします。');
+      // フラグのみ更新（カレンダーには追加しない）
+      this.taskData.calendarSyncEnabled = nextValue;
+      await this.projectService.updateTask(this.task.projectId, this.task.id, {
+        calendarSyncEnabled: nextValue,
+      });
+      this.task.calendarSyncEnabled = nextValue;
+      return;
+    }
+
     this.taskData.calendarSyncEnabled = nextValue;
     this.isCalendarSyncSaving = true;
 
     try {
       // ON の場合のみ Googleカレンダーにタスクを追加
-      if (nextValue) {
+      // ただし、既にカレンダー連携が有効な場合は追加しない（重複防止）
+      if (nextValue && !currentValue && !taskCalendarSyncEnabled) {
+        console.log('カレンダーに追加します');
         await this.calendarService.addTaskToCalendar(
           this.taskData.taskName,
           this.taskData.dueDate
         );
+      } else {
+        console.log('カレンダーに追加をスキップします（既に有効）');
       }
 
       // タスクの calendarSyncEnabled フラグを更新
@@ -899,6 +1052,19 @@ export class TaskDetailComponent implements OnInit {
     this.childFilterAssignee = '';
     this.childFilterDueDate = '';
     this.filteredChildTasks = [...this.childTasks];
+  }
+
+  /** 子タスクの担当者をカンマ区切りで表示 */
+  getChildTaskAssigneeDisplay(child: Task): string {
+    if (child.assignedMembers && child.assignedMembers.length > 0) {
+      const display = getMemberNamesAsString(
+        child.assignedMembers,
+        this.projectMembers,
+        ', '
+      );
+      return display === '未設定' ? '未割当' : display;
+    }
+    return child.assignee || '未割当';
   }
 
   openChildTaskDetail(task: Task): void {

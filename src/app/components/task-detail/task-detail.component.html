@@ -105,7 +105,12 @@
 
         <p>
           <strong>{{ "taskDetail.assignee" | translate }}:</strong>
-          {{ taskData.assignee || "—" }}
+          <span *ngIf="taskData.assignedMembers && taskData.assignedMembers.length > 0">
+            {{ getAssignedMembersDisplay() }}
+          </span>
+          <span *ngIf="!taskData.assignedMembers || taskData.assignedMembers.length === 0">
+            {{ taskData.assignee || "—" }}
+          </span>
         </p>
 
         <p>
@@ -738,7 +743,7 @@
                 <div class="child-task-detail-item child-task-detail-member">
                   <mat-icon>person</mat-icon>
                   <span class="child-task-member-name">{{
-                    child.assignee || "未割当"
+                    getChildTaskAssigneeDisplay(child) || "未割当"
                   }}</span>
                   <div class="child-task-member-due">
                     <mat-icon>schedule</mat-icon>

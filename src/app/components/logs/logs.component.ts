@@ -110,6 +110,12 @@ export class LogsComponent implements OnInit {
 
   /** 変更内容を整形 */
   formatChangeDescription(log: EditLog): string {
+    // 個別の変更詳細がある場合はそれを使用
+    if (log.changes && log.changes.length > 0) {
+      return log.changes.map(change => this.formatChangeDetail(change)).join('');
+    }
+
+    // フォールバック：従来の方法
     const baseLabel = log.changeDescription?.trim() || '';
     const oldValue = log.oldValue?.toString().trim();
     const newValue = log.newValue?.toString().trim();
@@ -135,6 +141,29 @@ export class LogsComponent implements OnInit {
     return baseLabel
       ? `・${baseLabel}：「${oldValue}」が削除`
       : `・「${oldValue}」が削除`;
+  }
+
+  /** 個別の変更詳細を整形 */
+  formatChangeDetail(change: any): string {
+    const field = change.field || '';
+    const oldValue = change.oldValue?.toString().trim();
+    const newValue = change.newValue?.toString().trim();
+    const hasOld = !!oldValue;
+    const hasNew = !!newValue;
+
+    if (!hasOld && !hasNew) {
+      return `・${field}：変更内容なし\n`;
+    }
+
+    if (hasOld && hasNew) {
+      return `・${field}：${oldValue}→${newValue}に変更しました\n`;
+    }
+
+    if (hasNew) {
+      return `・${field}：${newValue}が追加されました\n`;
+    }
+
+    return `・${field}：${oldValue}が削除されました\n`;
   }
 
   /** 日付をフォーマット */

@@ -6,6 +6,7 @@ import {
   addDoc,
   doc,
   docData,
+  getDoc,
   updateDoc,
   deleteDoc,
   query,
@@ -13,7 +14,7 @@ import {
 } from '@angular/fire/firestore';
 import { Observable, combineLatest, map, of, switchMap } from 'rxjs';
 import { IProject } from '../models/project.model'; // 上の方に追加
-import { Task } from '../models/task.model';
+import { Task, ChangeDetail } from '../models/task.model';
 import { EditLogService } from './edit-log.service';
 import { resolveProjectThemeColor } from '../constants/project-theme-colors';
 import { AuthService } from './auth.service';
@@ -411,38 +412,140 @@ export class ProjectService {
     console.log('Firestore document reference:', taskRef.path);
 
     try {
+      // 変更前の値を取得
+      const oldTaskDoc = await getDoc(taskRef);
+      const oldTaskData = oldTaskDoc.exists() ? oldTaskDoc.data() : {};
+
       const result = await updateDoc(taskRef, taskData);
 
-      // 編集ログを記録
-      const changes: string[] = [];
-      if (taskData.status) {
-        changes.push(`ステータス: ${taskData.status}`);
-      }
-      if (taskData.taskName) {
-        changes.push(`タスク名: ${taskData.taskName}`);
-      }
-      if (taskData.priority) {
-        changes.push(`優先度: ${taskData.priority}`);
-      }
-      if (taskData.assignee) {
-        changes.push(`担当者: ${taskData.assignee}`);
-      }
-      if (taskData.dueDate) {
-        changes.push(`期限: ${taskData.dueDate}`);
+      // 編集ログを記録 - ChangeDetail配列を生成
+      const changeDetails: ChangeDetail[] = [];
+      const changeStrings: string[] = [];
+
+      // ステータスの変更
+      if (taskData.status && oldTaskData['status'] !== taskData.status) {
+        changeDetails.push({
+          field: 'ステータス',
+          oldValue: oldTaskData['status'] || '不明',
+          newValue: taskData.status,
+        });
+        changeStrings.push(
+          `ステータス: ${oldTaskData['status'] || '不明'} → ${taskData.status}`
+        );
       }
 
-      await this.editLogService.logEdit(
-        projectId,
-        taskData.projectName || 'プロジェクト',
-        'update',
-        `タスク「${
-          taskData.taskName || 'タスク'
-        }」を更新しました (${changes.join(', ')})`,
-        taskId,
-        taskData.taskName || 'タスク',
-        undefined,
-        changes.join(', ')
-      );
+      // タスク名の変更
+      if (taskData.taskName && oldTaskData['taskName'] !== taskData.taskName) {
+        changeDetails.push({
+          field: 'タスク名',
+          oldValue: oldTaskData['taskName'] || '不明',
+          newValue: taskData.taskName,
+        });
+        changeStrings.push(
+          `タスク名: ${oldTaskData['taskName'] || '不明'} → ${taskData.taskName}`
+        );
+      }
+
+      // 優先度の変更
+      if (taskData.priority && oldTaskData['priority'] !== taskData.priority) {
+        changeDetails.push({
+          field: '優先度',
+          oldValue: oldTaskData['priority'] || '不明',
+          newValue: taskData.priority,
+        });
+        changeStrings.push(
+          `優先度: ${oldTaskData['priority'] || '不明'} → ${taskData.priority}`
+        );
+      }
+
+      // 担当者の変更
+      if (taskData.assignee && oldTaskData['assignee'] !== taskData.assignee) {
+        const oldAssignee = oldTaskData['assignee']?.trim();
+        const isNewAssignee = !oldAssignee || oldAssignee === '' || oldAssignee === '不明';
+
+        if (isNewAssignee) {
+          // 担当者が追加された場合
+          changeDetails.push({
+            field: '担当者',
+            newValue: taskData.assignee,
+          });
+          changeStrings.push(`担当者: ${taskData.assignee}が追加されました`);
+        } else {
+          // 担当者が変更された場合
+          changeDetails.push({
+            field: '担当者',
+            oldValue: oldAssignee,
+            newValue: taskData.assignee,
+          });
+          changeStrings.push(`担当者: ${oldAssignee} → ${taskData.assignee}`);
+        }
+      }
+
+      // 期限の変更
+      if (taskData.dueDate && oldTaskData['dueDate'] !== taskData.dueDate) {
+        changeDetails.push({
+          field: '期限',
+          oldValue: oldTaskData['dueDate'] || '不明',
+          newValue: taskData.dueDate,
+        });
+        changeStrings.push(
+          `期限: ${oldTaskData['dueDate'] || '不明'} → ${taskData.dueDate}`
+        );
+      }
+
+      // 概要（説明）の変更
+      if (taskData.description && oldTaskData['description'] !== taskData.description) {
+        changeDetails.push({
+          field: '概要',
+          oldValue: oldTaskData['description'] || '変更なし',
+          newValue: taskData.description,
+        });
+        changeStrings.push(
+          `概要: ${oldTaskData['description'] || '変更なし'}→${taskData.description}に変更しました`
+        );
+      }
+
+      // タグの変更（追加・削除）
+      if (taskData.tags && JSON.stringify(oldTaskData['tags']) !== JSON.stringify(taskData.tags)) {
+        const oldTags = oldTaskData['tags'] || [];
+        const newTags = taskData.tags || [];
+
+        // 追加されたタグ
+        const addedTags = newTags.filter((tag: string) => !oldTags.includes(tag));
+        addedTags.forEach((tag: string) => {
+          changeDetails.push({
+            field: 'タグ',
+            newValue: tag,
+          });
+          changeStrings.push(`タグ: ${tag}が追加されました`);
+        });
+
+        // 削除されたタグ
+        const removedTags = oldTags.filter((tag: string) => !newTags.includes(tag));
+        removedTags.forEach((tag: string) => {
+          changeDetails.push({
+            field: 'タグ',
+            oldValue: tag,
+          });
+          changeStrings.push(`タグ: ${tag}が削除されました`);
+        });
+      }
+
+      if (changeDetails.length > 0) {
+        await this.editLogService.logEdit(
+          projectId,
+          taskData.projectName || 'プロジェクト',
+          'update',
+          `タスク「${
+            taskData.taskName || 'タスク'
+          }」を更新しました (${changeStrings.join(', ')})`,
+          taskId,
+          taskData.taskName || 'タスク',
+          undefined,
+          undefined,
+          changeDetails
+        );
+      }
 
       return result;
     } catch (error: any) {

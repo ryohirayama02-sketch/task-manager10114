@@ -73,6 +73,12 @@ export interface Milestone {
   description?: string;
 }
 
+export interface ChangeDetail {
+  field: string; // 変更フィールド名（概要、担当者、タグなど）
+  oldValue?: string;
+  newValue?: string;
+}
+
 export interface EditLog {
   id?: string;
   userId: string;
@@ -82,8 +88,9 @@ export interface EditLog {
   taskId?: string;
   taskName?: string;
   action: 'create' | 'update' | 'delete';
-  changeDescription: string;
+  changeDescription: string; // 統合表示用（後方互換性のため保持）
   oldValue?: string;
   newValue?: string;
+  changes?: ChangeDetail[]; // 個別の変更内容配列（新規フィールド）
   createdAt: Date | string;
 }

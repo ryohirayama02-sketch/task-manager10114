@@ -14,7 +14,7 @@ import {
 } from '@angular/fire/firestore';
 import { Firestore } from '@angular/fire/firestore';
 import { AuthService } from './auth.service';
-import { EditLog } from '../models/task.model';
+import { EditLog, ChangeDetail } from '../models/task.model';
 
 @Injectable({
   providedIn: 'root',
@@ -34,7 +34,8 @@ export class EditLogService {
     taskId?: string,
     taskName?: string,
     oldValue?: string,
-    newValue?: string
+    newValue?: string,
+    changes?: ChangeDetail[]
   ): Promise<void> {
     try {
       console.log('🔍 EditLogService.logEdit が呼び出されました');
@@ -86,6 +87,9 @@ export class EditLogService {
       }
       if (newValue !== undefined) {
         logData.newValue = newValue;
+      }
+      if (changes !== undefined && changes.length > 0) {
+        logData.changes = changes;
       }
 
       console.log('📝 Firestoreに記録中...', logData);
@@ -149,6 +153,7 @@ export class EditLogService {
           changeDescription: data['changeDescription'],
           oldValue: data['oldValue'] || undefined,
           newValue: data['newValue'] || undefined,
+          changes: data['changes'] || undefined,
           createdAt: data['createdAt']?.toDate() || new Date(),
         } as EditLog);
       });
@@ -208,6 +213,7 @@ export class EditLogService {
           changeDescription: data['changeDescription'],
           oldValue: data['oldValue'] || undefined,
           newValue: data['newValue'] || undefined,
+          changes: data['changes'] || undefined,
           createdAt: data['createdAt']?.toDate() || new Date(),
         } as EditLog);
       });

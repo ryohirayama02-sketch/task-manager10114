@@ -104,7 +104,30 @@
         </div>
 
         <div class="log-description">
-          <strong>📋 変更内容:</strong> {{ formatChangeDescription(log) }}
+          <strong>📋 変更内容:</strong>
+          <div class="change-details">
+            <!-- 個別の変更詳細を表示 -->
+            <div *ngIf="log.changes && log.changes.length > 0" class="changes-list">
+              <div *ngFor="let change of log.changes" class="change-item">
+                <span class="change-field">{{ change.field }}：</span>
+                <span class="change-value">
+                  <ng-container *ngIf="change.oldValue && change.newValue">
+                    {{ change.oldValue }}→{{ change.newValue }}に変更しました
+                  </ng-container>
+                  <ng-container *ngIf="change.newValue && !change.oldValue">
+                    {{ change.newValue }}が追加されました
+                  </ng-container>
+                  <ng-container *ngIf="change.oldValue && !change.newValue">
+                    {{ change.oldValue }}が削除されました
+                  </ng-container>
+                </span>
+              </div>
+            </div>
+            <!-- フォールバック：従来の表示方法 -->
+            <div *ngIf="!log.changes || log.changes.length === 0" class="legacy-description">
+              {{ formatChangeDescription(log) }}
+            </div>
+          </div>
         </div>
 
       </div>

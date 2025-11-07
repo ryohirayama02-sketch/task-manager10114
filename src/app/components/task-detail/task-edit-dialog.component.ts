@@ -504,12 +504,26 @@ export class TaskEditDialogComponent implements OnInit {
         (await firstValueFrom(this.memberService.getMembers())) || [];
 
       // 既存の担当者を選択状態に設定
+      // まず assigneeEmail で検索
       if (this.task.assigneeEmail) {
         const member = this.members.find(
           (m) => m.email === this.task.assigneeEmail
         );
         if (member) {
           this.selectedMemberId = member.id;
+          return;
+        }
+      }
+      
+      // assigneeEmail が見つからない場合、assignee（名前）で検索
+      if (this.task.assignee) {
+        const member = this.members.find(
+          (m) => m.name === this.task.assignee
+        );
+        if (member) {
+          this.selectedMemberId = member.id;
+          // assigneeEmail も設定
+          this.task.assigneeEmail = member.email;
         }
       }
     } catch (error) {
