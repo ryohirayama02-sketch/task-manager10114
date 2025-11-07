@@ -460,7 +460,7 @@
 
     <mat-card-actions align="end">
       <button mat-button (click)="onCancel()" [disabled]="isSubmitting">
-        {{ 'projectForm.cancel' | translate }}
+        {{ currentLanguage === 'ja' ? 'キャンセル' : 'Cancel' }}
       </button>
       <button
         mat-raised-button

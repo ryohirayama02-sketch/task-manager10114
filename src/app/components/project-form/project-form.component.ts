@@ -67,6 +67,7 @@ export class ProjectFormComponent implements OnInit {
   loading = false;
   isSubmitting = false;
   isUploading = false;
+  currentLanguage: 'ja' | 'en' = 'ja';
   readonly fileAccept =
     '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.bmp,.heic,.webp,.svg,.txt,.csv,.zip';
 
@@ -124,6 +125,7 @@ export class ProjectFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.currentLanguage = this.detectLanguage();
     this.loadMembers();
   }
 
@@ -577,5 +579,23 @@ export class ProjectFormComponent implements OnInit {
 
   trackAttachment(_index: number, item: ProjectAttachment): string {
     return item.id;
+  }
+
+  private detectLanguage(): 'ja' | 'en' {
+    if (typeof window !== 'undefined') {
+      const htmlLang = window.document?.documentElement?.lang ?? '';
+      if (htmlLang.toLowerCase().startsWith('ja')) {
+        return 'ja';
+      }
+      const storedLang =
+        window.localStorage.getItem('preferredLanguage') ||
+        window.localStorage.getItem('language') ||
+        window.localStorage.getItem('appLanguage') ||
+        '';
+      if (storedLang.toLowerCase().startsWith('ja')) {
+        return 'ja';
+      }
+    }
+    return 'en';
   }
 }
