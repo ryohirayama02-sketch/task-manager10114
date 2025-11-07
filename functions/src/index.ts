@@ -42,10 +42,22 @@ async function getUpcomingTasks(
       `🎯 対象ルーム(${room.roomId})のプロジェクト数: ${projectsSnapshot.docs.length}`
     );
 
+    // JST（Asia/Tokyo）で今日の日付を取得
+    const jstToday = new Date(
+      today.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' })
+    );
+    jstToday.setHours(0, 0, 0, 0);
+
     for (const daysBefore of daysBeforeList) {
-      const targetDate = new Date(today);
-      targetDate.setDate(today.getDate() + daysBefore);
-      const targetDateStr = targetDate.toISOString().split('T')[0];
+      // JSTで日付を計算
+      const targetDate = new Date(jstToday);
+      targetDate.setDate(jstToday.getDate() + daysBefore);
+
+      // ローカルタイムゾーンで日付文字列を生成（YYYY-MM-DD形式）
+      const year = targetDate.getFullYear();
+      const month = String(targetDate.getMonth() + 1).padStart(2, '0');
+      const day = String(targetDate.getDate()).padStart(2, '0');
+      const targetDateStr = `${year}-${month}-${day}`;
 
       console.log(
         `🔎 ${daysBefore}日前に期限を迎えるタスクを検索中 (${targetDateStr})`
@@ -353,6 +365,7 @@ export const sendTaskDeadlineNotifications = onSchedule(
       .getMinutes()
       .toString()
       .padStart(2, '0')}`;
+    const currentDay = now.getDay(); // 曜日を取得（0=日曜日, 6=土曜日）
 
     try {
       // 全通知設定を取得
@@ -384,7 +397,6 @@ export const sendTaskDeadlineNotifications = onSchedule(
 
         // 通知オフ期間をチェック
         if (settings.quietHours?.enabled) {
-          const currentDay = now.getDay();
           if (
             settings.quietHours.weekends &&
             (currentDay === 0 || currentDay === 6)
@@ -446,9 +458,12 @@ export const sendTaskDeadlineNotifications = onSchedule(
           ?.daysBeforeDeadline || [1, 3, 7];
         const allTasks = await getUpcomingTasks(roomContext, daysBeforeList);
 
-        // 現在日付を取得（時刻を00:00:00に設定）
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        // JST（Asia/Tokyo）で今日の日付を取得
+        const now = new Date();
+        const jstToday = new Date(
+          now.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' })
+        );
+        jstToday.setHours(0, 0, 0, 0);
 
         // 通知タイミングに一致するタスクだけをフィルタリング
         const tasksMatchingTiming = allTasks.filter((task) => {
@@ -456,12 +471,22 @@ export const sendTaskDeadlineNotifications = onSchedule(
             return false;
           }
 
-          // 期日をDateオブジェクトに変換
-          const dueDate = new Date(task.dueDate);
+          // 期日をローカルタイムゾーンでDateオブジェクトに変換
+          let dueDate: Date;
+          if (typeof task.dueDate === 'string') {
+            // 文字列形式（YYYY-MM-DD）の場合、ローカルタイムゾーンで日付を作成
+            const [year, month, day] = task.dueDate
+              .split('T')[0]
+              .split('-')
+              .map(Number);
+            dueDate = new Date(year, month - 1, day);
+          } else {
+            dueDate = new Date(task.dueDate);
+          }
           dueDate.setHours(0, 0, 0, 0);
 
           // 期日までの日数を計算（ミリ秒→日数）
-          const diffTime = dueDate.getTime() - today.getTime();
+          const diffTime = dueDate.getTime() - jstToday.getTime();
           const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
           // 設定された通知タイミングに含まれるかチェック
@@ -581,6 +606,7 @@ export const sendTaskDeadlineNotificationsManual = onCall(
       .getMinutes()
       .toString()
       .padStart(2, '0')}`;
+    const currentDay = now.getDay(); // 曜日を取得（0=日曜日, 6=土曜日）
 
     console.log(`⏰ 現在時刻: ${currentTime}`);
 
@@ -653,7 +679,6 @@ export const sendTaskDeadlineNotificationsManual = onCall(
 
         // 通知オフ期間をチェック
         if (settings.quietHours?.enabled) {
-          const currentDay = now.getDay();
           if (
             settings.quietHours.weekends &&
             (currentDay === 0 || currentDay === 6)
@@ -756,9 +781,12 @@ export const sendTaskDeadlineNotificationsManual = onCall(
         const allTasks = await getUpcomingTasks(roomContext, daysBeforeList);
         console.log(`📋 取得したタスク数: ${allTasks.length}`);
 
-        // 現在日付を取得（時刻を00:00:00に設定）
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        // JST（Asia/Tokyo）で今日の日付を取得
+        const now = new Date();
+        const jstToday = new Date(
+          now.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' })
+        );
+        jstToday.setHours(0, 0, 0, 0);
 
         // 通知タイミングに一致するタスクだけをフィルタリング
         const tasksMatchingTiming = allTasks.filter((task) => {
@@ -766,12 +794,22 @@ export const sendTaskDeadlineNotificationsManual = onCall(
             return false;
           }
 
-          // 期日をDateオブジェクトに変換
-          const dueDate = new Date(task.dueDate);
+          // 期日をローカルタイムゾーンでDateオブジェクトに変換
+          let dueDate: Date;
+          if (typeof task.dueDate === 'string') {
+            // 文字列形式（YYYY-MM-DD）の場合、ローカルタイムゾーンで日付を作成
+            const [year, month, day] = task.dueDate
+              .split('T')[0]
+              .split('-')
+              .map(Number);
+            dueDate = new Date(year, month - 1, day);
+          } else {
+            dueDate = new Date(task.dueDate);
+          }
           dueDate.setHours(0, 0, 0, 0);
 
           // 期日までの日数を計算（ミリ秒→日数）
-          const diffTime = dueDate.getTime() - today.getTime();
+          const diffTime = dueDate.getTime() - jstToday.getTime();
           const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
           // 設定された通知タイミングに含まれるかチェック
@@ -798,9 +836,19 @@ export const sendTaskDeadlineNotificationsManual = onCall(
         if (tasksMatchingTiming.length > 0) {
           console.log('\n📝 通知タイミングに一致するタスクの詳細:');
           tasksMatchingTiming.slice(0, 5).forEach((task, idx) => {
-            const dueDate = new Date(task.dueDate);
+            // 期日をローカルタイムゾーンでDateオブジェクトに変換
+            let dueDate: Date;
+            if (typeof task.dueDate === 'string') {
+              const [year, month, day] = task.dueDate
+                .split('T')[0]
+                .split('-')
+                .map(Number);
+              dueDate = new Date(year, month - 1, day);
+            } else {
+              dueDate = new Date(task.dueDate);
+            }
             dueDate.setHours(0, 0, 0, 0);
-            const diffTime = dueDate.getTime() - today.getTime();
+            const diffTime = dueDate.getTime() - jstToday.getTime();
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
             console.log(`  タスク ${idx + 1}:`, {
               taskName: task.taskName || task.task,
