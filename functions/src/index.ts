@@ -512,6 +512,30 @@ export const sendTaskDeadlineNotifications = onSchedule(
           }
           // beforeDeadlineがundefinedの場合はデフォルトでONとみなす
 
+          // 通知先（recipients）が設定されている場合、そのユーザーのみに通知
+          const recipients = detailSettings?.notifications?.recipients;
+          if (Array.isArray(recipients) && recipients.length > 0) {
+            // ユーザー名またはメールアドレスでrecipientsに含まれるかチェック
+            const userMember = membersSnapshot.docs.find(
+              (doc) => doc.data().email === userEmail
+            );
+            const userName = userMember?.data()?.name;
+
+            const isInRecipients = recipients.some((recipient: string) => {
+              const recipientTrimmed = recipient.trim();
+              return (
+                recipientTrimmed === userEmail ||
+                recipientTrimmed === userName ||
+                recipientTrimmed === userMember?.id
+              );
+            });
+
+            if (!isInRecipients) {
+              return false;
+            }
+          }
+          // recipientsが空または未設定の場合は、全担当者に通知（既存の動作）
+
           // ユーザーが担当者に含まれるかチェック
           const assigneeEmail = task.assigneeEmail;
           const assignee = task.assignee;
@@ -888,6 +912,41 @@ export const sendTaskDeadlineNotificationsManual = onCall(
             );
             return false;
           }
+
+          // 通知先（recipients）が設定されている場合、そのユーザーのみに通知
+          const recipients = detailSettings?.notifications?.recipients;
+          if (Array.isArray(recipients) && recipients.length > 0) {
+            // ユーザー名またはメールアドレスでrecipientsに含まれるかチェック
+            const userMember = membersSnapshot.docs.find(
+              (doc) => doc.data().email === userEmail
+            );
+            const userName = userMember?.data()?.name;
+
+            const isInRecipients = recipients.some((recipient: string) => {
+              const recipientTrimmed = recipient.trim();
+              return (
+                recipientTrimmed === userEmail ||
+                recipientTrimmed === userName ||
+                recipientTrimmed === userMember?.id
+              );
+            });
+
+            if (!isInRecipients) {
+              console.log(
+                `  ❌ タスク「${
+                  task.taskName || task.task
+                }」: 通知先に含まれていない (通知先: ${recipients.join(', ')})`
+              );
+              return false;
+            }
+
+            console.log(
+              `  ✅ タスク「${
+                task.taskName || task.task
+              }」: 通知先に含まれている`
+            );
+          }
+          // recipientsが空または未設定の場合は、全担当者に通知（既存の動作）
 
           // ユーザーが担当者に含まれるかチェック
           const assigneeEmail = task.assigneeEmail;
