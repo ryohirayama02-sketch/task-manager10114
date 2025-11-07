@@ -1,10 +1,10 @@
 <div class="settings-container">
-  <h1>{{ 'settings.title' | translate }}</h1>
+  <h1>{{ "settings.title" | translate }}</h1>
 
   <!-- ローディング表示 -->
   <div *ngIf="isLoading" class="loading-container">
     <mat-spinner></mat-spinner>
-    <p>{{ 'settings.loading' | translate }}</p>
+    <p>{{ "settings.loading" | translate }}</p>
   </div>
 
   <!-- 設定メニュー -->
@@ -13,7 +13,7 @@
       <mat-card-header>
         <mat-card-title>
           <mat-icon>settings</mat-icon>
-          {{ 'settings.menu.title' | translate }}
+          {{ "settings.menu.title" | translate }}
         </mat-card-title>
       </mat-card-header>
 
@@ -27,7 +27,7 @@
             (click)="selectedSettingsTab = 'notifications'"
           >
             <mat-icon>notifications</mat-icon>
-            {{ 'settings.menu.notifications' | translate }}
+            {{ "settings.menu.notifications" | translate }}
           </button>
 
           <button
@@ -38,7 +38,7 @@
             (click)="selectedSettingsTab = 'home'"
           >
             <mat-icon>home</mat-icon>
-            {{ 'settings.menu.home' | translate }}
+            {{ "settings.menu.home" | translate }}
           </button>
 
           <button
@@ -49,7 +49,7 @@
             (click)="selectedSettingsTab = 'language'"
           >
             <mat-icon>translate</mat-icon>
-            {{ 'settings.menu.language' | translate }}
+            {{ "settings.menu.language" | translate }}
           </button>
 
           <button
@@ -60,7 +60,7 @@
             (click)="selectedSettingsTab = 'roomInfo'"
           >
             <mat-icon>info</mat-icon>
-            {{ 'settings.menu.roomInfo' | translate }}
+            {{ "settings.menu.roomInfo" | translate }}
           </button>
         </div>
       </mat-card-content>
@@ -69,17 +69,21 @@
 
   <!-- 通知設定 -->
   <div
-    *ngIf="!isLoading && selectedSettingsTab === 'notifications' && notificationSettings"
+    *ngIf="
+      !isLoading &&
+      selectedSettingsTab === 'notifications' &&
+      notificationSettings
+    "
     class="settings-content"
   >
     <mat-card class="settings-card">
       <mat-card-header>
         <mat-card-title>
           <mat-icon>notifications</mat-icon>
-          {{ 'settings.notifications.title' | translate }}
+          {{ "settings.notifications.title" | translate }}
         </mat-card-title>
         <mat-card-subtitle>
-          {{ 'settings.notifications.subtitle' | translate }}
+          {{ "settings.notifications.subtitle" | translate }}
         </mat-card-subtitle>
       </mat-card-header>
 
@@ -89,7 +93,7 @@
           <mat-expansion-panel-header>
             <mat-panel-title>
               <mat-icon>send</mat-icon>
-              {{ 'settings.notifications.targets' | translate }}
+              {{ "settings.notifications.targets" | translate }}
             </mat-panel-title>
           </mat-expansion-panel-header>
 
@@ -104,7 +108,7 @@
                   name="emailEnabled"
                 >
                   <mat-icon>email</mat-icon>
-                  {{ 'settings.notifications.email' | translate }}
+                  {{ "settings.notifications.email" | translate }}
                 </mat-slide-toggle>
               </div>
 
@@ -113,7 +117,9 @@
                 class="channel-settings"
               >
                 <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>{{ 'settings.notifications.address' | translate }}</mat-label>
+                  <mat-label>{{
+                    "settings.notifications.address" | translate
+                  }}</mat-label>
                   <input
                     matInput
                     type="email"
@@ -126,7 +132,6 @@
                 </mat-form-field>
               </div>
             </div>
-
           </div>
         </mat-expansion-panel>
 
@@ -135,7 +140,7 @@
           <mat-expansion-panel-header>
             <mat-panel-title>
               <mat-icon>schedule</mat-icon>
-              {{ 'settings.deadline.title' | translate }}
+              {{ "settings.deadline.title" | translate }}
             </mat-panel-title>
           </mat-expansion-panel-header>
 
@@ -147,7 +152,7 @@
                 "
                 name="deadlineEnabled"
               >
-                {{ 'settings.deadline.enable' | translate }}
+                {{ "settings.deadline.enable" | translate }}
               </mat-slide-toggle>
             </div>
 
@@ -156,21 +161,23 @@
               class="deadline-options"
             >
               <div class="setting-row">
-                <label>{{ 'settings.deadline.timing' | translate }}:</label>
+                <label>{{ "settings.deadline.timing" | translate }}:</label>
                 <div class="checkbox-group">
                   <mat-checkbox
                     *ngFor="let day of deadlineNotificationDays"
                     [checked]="isDeadlineDaySelected(day)"
                     (change)="updateDeadlineDays(day, $event.checked)"
                   >
-                    {{ day }}{{ 'settings.deadline.daysSuffix' | translate }}
+                    {{ day }}{{ "settings.deadline.daysSuffix" | translate }}
                   </mat-checkbox>
                 </div>
               </div>
 
               <div class="setting-row">
                 <mat-form-field appearance="outline">
-                  <mat-label>{{ 'settings.common.notifyTime' | translate }}</mat-label>
+                  <mat-label>{{
+                    "settings.common.notifyTime" | translate
+                  }}</mat-label>
                   <mat-select
                     [(ngModel)]="
                       notificationSettings.taskDeadlineNotifications.timeOfDay
@@ -192,7 +199,7 @@
           <mat-expansion-panel-header>
             <mat-panel-title>
               <mat-icon>bedtime</mat-icon>
-              {{ 'settings.quiet.title' | translate }}
+              {{ "settings.quiet.title" | translate }}
             </mat-panel-title>
           </mat-expansion-panel-header>
 
@@ -202,7 +209,7 @@
                 [(ngModel)]="notificationSettings.quietHours.enabled"
                 name="quietHoursEnabled"
               >
-                {{ 'settings.quiet.enable' | translate }}
+                {{ "settings.quiet.enable" | translate }}
               </mat-slide-toggle>
             </div>
 
@@ -212,7 +219,9 @@
             >
               <div class="time-range">
                 <mat-form-field appearance="outline">
-                  <mat-label>{{ 'settings.quiet.start' | translate }}</mat-label>
+                  <mat-label>{{
+                    "settings.quiet.start" | translate
+                  }}</mat-label>
                   <mat-select
                     [(ngModel)]="notificationSettings.quietHours.startTime"
                     name="startTime"
@@ -224,7 +233,7 @@
                 </mat-form-field>
 
                 <mat-form-field appearance="outline">
-                  <mat-label>{{ 'settings.quiet.end' | translate }}</mat-label>
+                  <mat-label>{{ "settings.quiet.end" | translate }}</mat-label>
                   <mat-select
                     [(ngModel)]="notificationSettings.quietHours.endTime"
                     name="endTime"
@@ -241,7 +250,7 @@
                   [(ngModel)]="notificationSettings.quietHours.weekends"
                   name="weekendsOff"
                 >
-                  {{ 'settings.quiet.weekend' | translate }}
+                  {{ "settings.quiet.weekend" | translate }}
                 </mat-checkbox>
               </div>
             </div>
@@ -253,7 +262,7 @@
           <mat-expansion-panel-header>
             <mat-panel-title>
               <mat-icon>timer</mat-icon>
-              {{ 'settings.worktime.title' | translate }}
+              {{ "settings.worktime.title" | translate }}
             </mat-panel-title>
           </mat-expansion-panel-header>
 
@@ -265,7 +274,7 @@
                 "
                 name="workTimeEnabled"
               >
-                {{ 'settings.worktime.enable' | translate }}
+                {{ "settings.worktime.enable" | translate }}
               </mat-slide-toggle>
             </div>
 
@@ -275,7 +284,9 @@
             >
               <div class="setting-row">
                 <mat-form-field appearance="outline">
-                  <mat-label>{{ 'settings.worktime.period' | translate }}</mat-label>
+                  <mat-label>{{
+                    "settings.worktime.period" | translate
+                  }}</mat-label>
                   <mat-select
                     [(ngModel)]="
                       notificationSettings.workTimeOverflowNotifications
@@ -286,14 +297,17 @@
                     <mat-option
                       *ngFor="let days of checkPeriodOptions"
                       [value]="days"
-                  >
-                    {{ days }}{{ 'settings.worktime.periodSuffix' | translate }}
-                  </mat-option>
-                </mat-select>
-              </mat-form-field>
+                    >
+                      {{ days
+                      }}{{ "settings.worktime.periodSuffix" | translate }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
 
-              <mat-form-field appearance="outline">
-                  <mat-label>{{ 'settings.worktime.max' | translate }}</mat-label>
+                <mat-form-field appearance="outline">
+                  <mat-label>{{
+                    "settings.worktime.max" | translate
+                  }}</mat-label>
                   <mat-select
                     [(ngModel)]="
                       notificationSettings.workTimeOverflowNotifications
@@ -304,11 +318,11 @@
                     <mat-option
                       *ngFor="let hours of workTimeOptions"
                       [value]="hours"
-                  >
-                    {{ hours }}{{ 'settings.worktime.maxSuffix' | translate }}
-                  </mat-option>
-                </mat-select>
-              </mat-form-field>
+                    >
+                      {{ hours }}{{ "settings.worktime.maxSuffix" | translate }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
               </div>
 
               <div class="notification-targets">
@@ -319,7 +333,7 @@
                   "
                   name="notifyManager"
                 >
-                  {{ 'settings.worktime.notifyManager' | translate }}
+                  {{ "settings.worktime.notifyManager" | translate }}
                 </mat-checkbox>
 
                 <mat-checkbox
@@ -329,7 +343,7 @@
                   "
                   name="notifyAssignee"
                 >
-                  {{ 'settings.worktime.notifyAssignee' | translate }}
+                  {{ "settings.worktime.notifyAssignee" | translate }}
                 </mat-checkbox>
               </div>
             </div>
@@ -341,7 +355,7 @@
           <mat-expansion-panel-header>
             <mat-panel-title>
               <mat-icon>today</mat-icon>
-              {{ 'settings.daily.title' | translate }}
+              {{ "settings.daily.title" | translate }}
             </mat-panel-title>
           </mat-expansion-panel-header>
 
@@ -351,7 +365,7 @@
                 [(ngModel)]="notificationSettings.dailyDeadlineReminder.enabled"
                 name="dailyReminderEnabled"
               >
-                {{ 'settings.daily.enable' | translate }}
+                {{ "settings.daily.enable" | translate }}
               </mat-slide-toggle>
             </div>
 
@@ -361,7 +375,9 @@
             >
               <div class="setting-row">
                 <mat-form-field appearance="outline">
-                  <mat-label>{{ 'settings.common.notifyTime' | translate }}</mat-label>
+                  <mat-label>{{
+                    "settings.common.notifyTime" | translate
+                  }}</mat-label>
                   <mat-select
                     [(ngModel)]="
                       notificationSettings.dailyDeadlineReminder.timeOfDay
@@ -387,7 +403,9 @@
           [disabled]="isSaving"
         >
           <mat-icon>send</mat-icon>
-          {{ (isSaving ? 'settings.sending' : 'settings.sendTest') | translate }}
+          {{
+            (isSaving ? "settings.sending" : "settings.sendTest") | translate
+          }}
         </button>
 
         <button
@@ -397,7 +415,9 @@
           [disabled]="isSaving"
         >
           <mat-icon>email</mat-icon>
-          {{ (isSaving ? 'settings.sending' : 'settings.sendDueTest') | translate }}
+          {{
+            (isSaving ? "settings.sending" : "settings.sendDueTest") | translate
+          }}
         </button>
 
         <button
@@ -407,7 +427,20 @@
           [disabled]="isSaving"
         >
           <mat-icon>notifications</mat-icon>
-          {{ (isSaving ? 'settings.sending' : 'settings.sendUserTest') | translate }}
+          {{
+            (isSaving ? "settings.sending" : "settings.sendUserTest")
+              | translate
+          }}
+        </button>
+
+        <button
+          mat-raised-button
+          color="primary"
+          (click)="sendTaskDeadlineNotificationsTest()"
+          [disabled]="isSaving"
+        >
+          <mat-icon>schedule</mat-icon>
+          タスク期限通知テスト
         </button>
 
         <button
@@ -417,7 +450,7 @@
           [disabled]="isSaving"
         >
           <mat-icon>save</mat-icon>
-          {{ (isSaving ? 'settings.saving' : 'settings.save') | translate }}
+          {{ (isSaving ? "settings.saving" : "settings.save") | translate }}
         </button>
       </mat-card-actions>
     </mat-card>
@@ -432,17 +465,17 @@
       <mat-card-header>
         <mat-card-title>
           <mat-icon>home</mat-icon>
-          {{ 'settings.home.title' | translate }}
+          {{ "settings.home.title" | translate }}
         </mat-card-title>
         <mat-card-subtitle>
-          {{ 'settings.home.subtitle' | translate }}
+          {{ "settings.home.subtitle" | translate }}
         </mat-card-subtitle>
       </mat-card-header>
 
       <mat-card-content>
         <div class="home-screen-selection">
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>{{ 'settings.home.field' | translate }}</mat-label>
+            <mat-label>{{ "settings.home.field" | translate }}</mat-label>
             <mat-select
               [(ngModel)]="selectedHomeScreen"
               (selectionChange)="onHomeScreenChange()"
@@ -458,7 +491,6 @@
               </mat-option>
             </mat-select>
           </mat-form-field>
-
         </div>
       </mat-card-content>
     </mat-card>
@@ -473,17 +505,17 @@
       <mat-card-header>
         <mat-card-title>
           <mat-icon>translate</mat-icon>
-          {{ 'settings.language.title' | translate }}
+          {{ "settings.language.title" | translate }}
         </mat-card-title>
         <mat-card-subtitle>
-          {{ 'settings.language.subtitle' | translate }}
+          {{ "settings.language.subtitle" | translate }}
         </mat-card-subtitle>
       </mat-card-header>
 
       <mat-card-content>
         <div class="language-settings">
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>{{ 'settings.language.field' | translate }}</mat-label>
+            <mat-label>{{ "settings.language.field" | translate }}</mat-label>
             <mat-select
               [(ngModel)]="selectedLanguage"
               name="uiLanguage"
@@ -498,7 +530,7 @@
             </mat-select>
           </mat-form-field>
           <p class="language-description">
-            {{ 'settings.language.description' | translate }}
+            {{ "settings.language.description" | translate }}
           </p>
         </div>
       </mat-card-content>
@@ -511,7 +543,12 @@
           [disabled]="isSavingLanguage"
         >
           <mat-icon>save</mat-icon>
-          {{ (isSavingLanguage ? 'settings.language.saving' : 'settings.language.save') | translate }}
+          {{
+            (isSavingLanguage
+              ? "settings.language.saving"
+              : "settings.language.save"
+            ) | translate
+          }}
         </button>
       </mat-card-actions>
     </mat-card>
@@ -526,27 +563,27 @@
       <mat-card-header>
         <mat-card-title>
           <mat-icon>info</mat-icon>
-          {{ 'settings.roomInfo.title' | translate }}
+          {{ "settings.roomInfo.title" | translate }}
         </mat-card-title>
         <mat-card-subtitle>
-          {{ 'settings.roomInfo.subtitle' | translate }}
+          {{ "settings.roomInfo.subtitle" | translate }}
         </mat-card-subtitle>
       </mat-card-header>
 
       <mat-card-content>
         <div class="room-info-content">
           <div class="room-info-item">
-            <label>{{ 'settings.roomInfo.roomName' | translate }}:</label>
+            <label>{{ "settings.roomInfo.roomName" | translate }}:</label>
             <span class="room-value">{{ roomInfo.name }}</span>
           </div>
 
           <div class="room-info-item">
-            <label>{{ 'settings.roomInfo.roomId' | translate }}:</label>
+            <label>{{ "settings.roomInfo.roomId" | translate }}:</label>
             <span class="room-value">{{ roomInfo.roomId }}</span>
           </div>
 
           <div class="room-info-item">
-            <label>{{ 'settings.roomInfo.password' | translate }}:</label>
+            <label>{{ "settings.roomInfo.password" | translate }}:</label>
             <span class="room-value">{{ roomInfo.password }}</span>
           </div>
         </div>

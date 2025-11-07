@@ -326,6 +326,220 @@ export const sendDailyTaskReminders = onSchedule(
   }
 );
 
+/**
+ * 🔹 タスク期限通知をスケジュール実行（毎分チェック）
+ */
+export const sendTaskDeadlineNotifications = onSchedule(
+  {
+    schedule: '* * * * *', // 毎分実行
+    timeZone: 'Asia/Tokyo',
+    memory: '512MiB',
+    timeoutSeconds: 540, // 9分（複数ユーザー処理のため）
+    secrets: [sendgridApiKey, sendgridFromEmail],
+  },
+  async () => {
+    console.log('🕙 タスク期限通知スケジュール実行開始');
+    const db = admin.firestore();
+    const apiKey = sendgridApiKey
+      .value()
+      .trim()
+      .replace(/[\r\n\t\s]+/g, '');
+    sgMail.setApiKey(apiKey);
+    const fromEmail = sendgridFromEmail.value() || 'noreply@taskmanager.com';
+
+    // 現在時刻を取得
+    const now = new Date();
+    const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now
+      .getMinutes()
+      .toString()
+      .padStart(2, '0')}`;
+
+    try {
+      // 全通知設定を取得
+      const settingsSnapshot = await db
+        .collection('notificationSettings')
+        .where('taskDeadlineNotifications.enabled', '==', true)
+        .get();
+
+      console.log(
+        `📋 通知設定が有効なユーザー数: ${settingsSnapshot.docs.length}`
+      );
+
+      for (const settingsDoc of settingsSnapshot.docs) {
+        const settings = settingsDoc.data();
+        const userId = settings.userId;
+        const roomId = settings.roomId;
+        const roomDocId = settings.roomDocId;
+
+        if (!roomId || !roomDocId) {
+          console.warn(`⚠️ ルーム情報が未設定: userId=${userId}`);
+          continue;
+        }
+
+        // 通知時間が現在時刻と一致するかチェック
+        const notificationTime = settings.taskDeadlineNotifications?.timeOfDay;
+        if (notificationTime !== currentTime) {
+          continue;
+        }
+
+        // 通知オフ期間をチェック
+        if (settings.quietHours?.enabled) {
+          const currentDay = now.getDay();
+          if (
+            settings.quietHours.weekends &&
+            (currentDay === 0 || currentDay === 6)
+          ) {
+            continue;
+          }
+
+          const startTime = settings.quietHours.startTime;
+          const endTime = settings.quietHours.endTime;
+          if (startTime && endTime) {
+            if (startTime <= endTime) {
+              if (currentTime >= startTime && currentTime <= endTime) {
+                continue;
+              }
+            } else {
+              if (currentTime >= startTime || currentTime <= endTime) {
+                continue;
+              }
+            }
+          }
+        }
+
+        // メール通知が有効かチェック
+        if (!settings.notificationChannels?.email?.enabled) {
+          continue;
+        }
+
+        const emailAddress = settings.notificationChannels.email.address;
+        if (!emailAddress) {
+          console.warn(`⚠️ メールアドレスが未設定: userId=${userId}`);
+          continue;
+        }
+
+        // ユーザーのメールアドレスを取得
+        const userEmail = settings.notificationChannels.email.address;
+
+        // ルーム内のメンバー情報を取得（ユーザー名とメールアドレスのマッピング用）
+        const membersSnapshot = await db
+          .collection('members')
+          .where('roomId', '==', roomId)
+          .get();
+
+        const memberEmailMap = new Map<string, string>(); // name -> email
+        const memberIdMap = new Map<string, string>(); // email -> memberId
+        membersSnapshot.forEach((doc) => {
+          const memberData = doc.data();
+          if (memberData.name && memberData.email) {
+            memberEmailMap.set(memberData.name, memberData.email);
+            memberIdMap.set(memberData.email, doc.id);
+          }
+        });
+
+        // ユーザーのメンバーIDを取得（assignedMembersで使用）
+        const userMemberId = memberIdMap.get(userEmail);
+
+        // ルーム内のタスクを取得
+        const roomContext: RoomContext = { roomId, roomDocId };
+        const daysBeforeList = settings.taskDeadlineNotifications
+          ?.daysBeforeDeadline || [1, 3, 7];
+        const allTasks = await getUpcomingTasks(roomContext, daysBeforeList);
+
+        // 現在日付を取得（時刻を00:00:00に設定）
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // 通知タイミングに一致するタスクだけをフィルタリング
+        const tasksMatchingTiming = allTasks.filter((task) => {
+          if (!task.dueDate) {
+            return false;
+          }
+
+          // 期日をDateオブジェクトに変換
+          const dueDate = new Date(task.dueDate);
+          dueDate.setHours(0, 0, 0, 0);
+
+          // 期日までの日数を計算（ミリ秒→日数）
+          const diffTime = dueDate.getTime() - today.getTime();
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+          // 設定された通知タイミングに含まれるかチェック
+          return daysBeforeList.includes(diffDays);
+        });
+
+        // ユーザーが担当者に含まれるタスクを抽出
+        const userTasks = tasksMatchingTiming.filter((task) => {
+          // 詳細設定のタスク期限ボタンがONになっているかチェック
+          const detailSettings = task.detailSettings;
+          if (detailSettings?.notifications?.beforeDeadline === false) {
+            return false;
+          }
+          // beforeDeadlineがundefinedの場合はデフォルトでONとみなす
+
+          // ユーザーが担当者に含まれるかチェック
+          const assigneeEmail = task.assigneeEmail;
+          const assignee = task.assignee;
+          const assignedMembers = task.assignedMembers || [];
+
+          // メールアドレスで一致
+          if (assigneeEmail === userEmail) {
+            return true;
+          }
+
+          // assignedMembersにuserMemberIdが含まれる
+          if (userMemberId && assignedMembers.includes(userMemberId)) {
+            return true;
+          }
+
+          // assigneeが名前の場合、メールアドレスで確認
+          if (assignee) {
+            const assigneeNames = assignee
+              .split(',')
+              .map((n: string) => n.trim());
+            for (const name of assigneeNames) {
+              const memberEmail = memberEmailMap.get(name);
+              if (memberEmail === userEmail) {
+                return true;
+              }
+            }
+          }
+
+          return false;
+        });
+
+        if (userTasks.length === 0) {
+          console.log(`📭 通知対象タスクなし: userId=${userId}`);
+          continue;
+        }
+
+        // メール送信
+        try {
+          const msg = {
+            to: emailAddress,
+            from: fromEmail,
+            subject: `【タスク期限通知】${userTasks.length}件のタスクが期限間近です`,
+            html: generateTaskReminderHTML(userTasks),
+          };
+          await sgMail.send(msg);
+          console.log(
+            `✅ タスク期限通知メール送信成功: ${emailAddress} (${userTasks.length}件)`
+          );
+        } catch (error: any) {
+          console.error(
+            `❌ SendGrid送信エラー(${emailAddress}):`,
+            error.response?.body || error
+          );
+        }
+      }
+
+      console.log('✅ タスク期限通知スケジュール実行完了');
+    } catch (error) {
+      console.error('❌ タスク期限通知スケジュール実行エラー:', error);
+    }
+  }
+);
+
 export const sendUserTaskNotifications = onSchedule(
   {
     schedule: '* * * * *',
@@ -335,6 +549,392 @@ export const sendUserTaskNotifications = onSchedule(
   },
   async () => {
     console.log('🕙 ユーザー個別通知実行');
+  }
+);
+
+/**
+ * 🔹 タスク期限通知を手動実行（デバッグ用）
+ */
+export const sendTaskDeadlineNotificationsManual = onCall(
+  { secrets: [sendgridApiKey, sendgridFromEmail], cors: true },
+  async (request) => {
+    if (!request.auth)
+      throw new HttpsError('unauthenticated', '認証が必要です');
+
+    const userId = request.data?.userId;
+    const roomId = request.data?.roomId;
+    const roomDocId = request.data?.roomDocId;
+
+    console.log('🔍 手動実行開始:', { userId, roomId, roomDocId });
+
+    const db = admin.firestore();
+    const apiKey = sendgridApiKey
+      .value()
+      .trim()
+      .replace(/[\r\n\t\s]+/g, '');
+    sgMail.setApiKey(apiKey);
+    const fromEmail = sendgridFromEmail.value() || 'noreply@taskmanager.com';
+
+    // 現在時刻を取得
+    const now = new Date();
+    const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now
+      .getMinutes()
+      .toString()
+      .padStart(2, '0')}`;
+
+    console.log(`⏰ 現在時刻: ${currentTime}`);
+
+    try {
+      // 通知設定を取得
+      let settingsQuery: admin.firestore.Query = db.collection(
+        'notificationSettings'
+      );
+
+      if (userId) {
+        settingsQuery = settingsQuery.where('userId', '==', userId);
+      } else {
+        settingsQuery = settingsQuery.where(
+          'taskDeadlineNotifications.enabled',
+          '==',
+          true
+        );
+      }
+
+      const settingsSnapshot = await settingsQuery.get();
+      console.log(`📋 通知設定数: ${settingsSnapshot.docs.length}`);
+
+      const results: any[] = [];
+
+      for (const settingsDoc of settingsSnapshot.docs) {
+        const settings = settingsDoc.data();
+        const settingUserId = settings.userId;
+        const settingRoomId = settings.roomId;
+        const settingRoomDocId = settings.roomDocId;
+
+        console.log(`\n👤 ユーザーID: ${settingUserId}`);
+        console.log(
+          `📦 ルームID: ${settingRoomId}, ルームDocID: ${settingRoomDocId}`
+        );
+
+        if (!settingRoomId || !settingRoomDocId) {
+          console.warn(`⚠️ ルーム情報が未設定: userId=${settingUserId}`);
+          results.push({ userId: settingUserId, error: 'ルーム情報が未設定' });
+          continue;
+        }
+
+        // ルームIDでフィルタリング（指定されている場合）
+        if (roomId && settingRoomId !== roomId) {
+          console.log(`⏭️ ルームID不一致のためスキップ`);
+          continue;
+        }
+        if (roomDocId && settingRoomDocId !== roomDocId) {
+          console.log(`⏭️ ルームDocID不一致のためスキップ`);
+          continue;
+        }
+
+        // 通知時間チェック（手動実行時はスキップ可能）
+        const notificationTime = settings.taskDeadlineNotifications?.timeOfDay;
+        console.log(`⏰ 設定された通知時間: ${notificationTime}`);
+        if (
+          notificationTime &&
+          notificationTime !== currentTime &&
+          !request.data?.force
+        ) {
+          console.log(
+            `⏭️ 通知時間不一致のためスキップ（force=trueで強制実行可能）`
+          );
+          results.push({
+            userId: settingUserId,
+            skipped: true,
+            reason: `通知時間不一致: ${notificationTime} !== ${currentTime}`,
+          });
+          continue;
+        }
+
+        // 通知オフ期間をチェック
+        if (settings.quietHours?.enabled) {
+          const currentDay = now.getDay();
+          if (
+            settings.quietHours.weekends &&
+            (currentDay === 0 || currentDay === 6)
+          ) {
+            console.log(`⏭️ 週末のためスキップ`);
+            results.push({
+              userId: settingUserId,
+              skipped: true,
+              reason: '週末',
+            });
+            continue;
+          }
+
+          const startTime = settings.quietHours.startTime;
+          const endTime = settings.quietHours.endTime;
+          if (startTime && endTime) {
+            if (startTime <= endTime) {
+              if (currentTime >= startTime && currentTime <= endTime) {
+                console.log(`⏭️ 通知オフ期間中のためスキップ`);
+                results.push({
+                  userId: settingUserId,
+                  skipped: true,
+                  reason: '通知オフ期間中',
+                });
+                continue;
+              }
+            } else {
+              if (currentTime >= startTime || currentTime <= endTime) {
+                console.log(`⏭️ 通知オフ期間中のためスキップ`);
+                results.push({
+                  userId: settingUserId,
+                  skipped: true,
+                  reason: '通知オフ期間中',
+                });
+                continue;
+              }
+            }
+          }
+        }
+
+        // メール通知が有効かチェック
+        if (!settings.notificationChannels?.email?.enabled) {
+          console.log(`⏭️ メール通知が無効のためスキップ`);
+          results.push({
+            userId: settingUserId,
+            skipped: true,
+            reason: 'メール通知が無効',
+          });
+          continue;
+        }
+
+        const emailAddress = settings.notificationChannels.email.address;
+        if (!emailAddress) {
+          console.warn(`⚠️ メールアドレスが未設定: userId=${settingUserId}`);
+          results.push({
+            userId: settingUserId,
+            error: 'メールアドレスが未設定',
+          });
+          continue;
+        }
+
+        console.log(`📧 メールアドレス: ${emailAddress}`);
+
+        // ユーザーのメールアドレスを取得
+        const userEmail = settings.notificationChannels.email.address;
+
+        // ルーム内のメンバー情報を取得
+        const membersSnapshot = await db
+          .collection('members')
+          .where('roomId', '==', settingRoomId)
+          .get();
+
+        console.log(`👥 メンバー数: ${membersSnapshot.docs.length}`);
+
+        const memberEmailMap = new Map<string, string>(); // name -> email
+        const memberIdMap = new Map<string, string>(); // email -> memberId
+        membersSnapshot.forEach((doc) => {
+          const memberData = doc.data();
+          if (memberData.name && memberData.email) {
+            memberEmailMap.set(memberData.name, memberData.email);
+            memberIdMap.set(memberData.email, doc.id);
+          }
+        });
+
+        // ユーザーのメンバーIDを取得
+        const userMemberId = memberIdMap.get(userEmail);
+        console.log(
+          `🆔 ユーザーメンバーID: ${userMemberId || '見つかりません'}`
+        );
+
+        // ルーム内のタスクを取得
+        const roomContext: RoomContext = {
+          roomId: settingRoomId,
+          roomDocId: settingRoomDocId,
+        };
+        const daysBeforeList = settings.taskDeadlineNotifications
+          ?.daysBeforeDeadline || [1, 3, 7];
+        console.log(`📅 通知タイミング: ${daysBeforeList.join(', ')}日前`);
+
+        const allTasks = await getUpcomingTasks(roomContext, daysBeforeList);
+        console.log(`📋 取得したタスク数: ${allTasks.length}`);
+
+        // 現在日付を取得（時刻を00:00:00に設定）
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // 通知タイミングに一致するタスクだけをフィルタリング
+        const tasksMatchingTiming = allTasks.filter((task) => {
+          if (!task.dueDate) {
+            return false;
+          }
+
+          // 期日をDateオブジェクトに変換
+          const dueDate = new Date(task.dueDate);
+          dueDate.setHours(0, 0, 0, 0);
+
+          // 期日までの日数を計算（ミリ秒→日数）
+          const diffTime = dueDate.getTime() - today.getTime();
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+          // 設定された通知タイミングに含まれるかチェック
+          const matches = daysBeforeList.includes(diffDays);
+
+          if (!matches) {
+            console.log(
+              `  ⏭️ タスク「${
+                task.taskName || task.task
+              }」: 通知タイミング不一致 (期日まで${diffDays}日、設定: ${daysBeforeList.join(
+                ', '
+              )}日前)`
+            );
+          }
+
+          return matches;
+        });
+
+        console.log(
+          `📅 通知タイミングに一致するタスク数: ${tasksMatchingTiming.length}`
+        );
+
+        // デバッグ用：各タスクの情報をログ出力
+        if (tasksMatchingTiming.length > 0) {
+          console.log('\n📝 通知タイミングに一致するタスクの詳細:');
+          tasksMatchingTiming.slice(0, 5).forEach((task, idx) => {
+            const dueDate = new Date(task.dueDate);
+            dueDate.setHours(0, 0, 0, 0);
+            const diffTime = dueDate.getTime() - today.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            console.log(`  タスク ${idx + 1}:`, {
+              taskName: task.taskName || task.task,
+              dueDate: task.dueDate,
+              daysUntilDeadline: diffDays,
+              assigneeEmail: task.assigneeEmail,
+              assignee: task.assignee,
+              assignedMembers: task.assignedMembers,
+              detailSettings: task.detailSettings,
+            });
+          });
+          if (tasksMatchingTiming.length > 5) {
+            console.log(`  ... 他 ${tasksMatchingTiming.length - 5}件`);
+          }
+        }
+
+        // ユーザーが担当者に含まれるタスクを抽出
+        const userTasks = tasksMatchingTiming.filter((task) => {
+          // 詳細設定のタスク期限ボタンがONになっているかチェック
+          const detailSettings = task.detailSettings;
+          if (detailSettings?.notifications?.beforeDeadline === false) {
+            console.log(
+              `  ❌ タスク「${task.taskName || task.task}」: 詳細設定で通知OFF`
+            );
+            return false;
+          }
+
+          // ユーザーが担当者に含まれるかチェック
+          const assigneeEmail = task.assigneeEmail;
+          const assignee = task.assignee;
+          const assignedMembers = task.assignedMembers || [];
+
+          // メールアドレスで一致
+          if (assigneeEmail === userEmail) {
+            console.log(
+              `  ✅ タスク「${task.taskName || task.task}」: assigneeEmail一致`
+            );
+            return true;
+          }
+
+          // assignedMembersにuserMemberIdが含まれる
+          if (userMemberId && assignedMembers.includes(userMemberId)) {
+            console.log(
+              `  ✅ タスク「${
+                task.taskName || task.task
+              }」: assignedMembers一致`
+            );
+            return true;
+          }
+
+          // assigneeが名前の場合、メールアドレスで確認
+          if (assignee) {
+            const assigneeNames = assignee
+              .split(',')
+              .map((n: string) => n.trim());
+            for (const name of assigneeNames) {
+              const memberEmail = memberEmailMap.get(name);
+              if (memberEmail === userEmail) {
+                console.log(
+                  `  ✅ タスク「${
+                    task.taskName || task.task
+                  }」: assignee名一致 (${name})`
+                );
+                return true;
+              }
+            }
+          }
+
+          console.log(
+            `  ❌ タスク「${task.taskName || task.task}」: 担当者不一致`,
+            {
+              assigneeEmail,
+              assignee,
+              assignedMembers,
+              userEmail,
+              userMemberId,
+            }
+          );
+          return false;
+        });
+
+        console.log(`✅ ユーザーが担当者のタスク数: ${userTasks.length}`);
+
+        if (userTasks.length === 0) {
+          console.log(`📭 通知対象タスクなし: userId=${settingUserId}`);
+          results.push({
+            userId: settingUserId,
+            taskCount: 0,
+            message: '通知対象タスクなし',
+          });
+          continue;
+        }
+
+        // メール送信
+        try {
+          const msg = {
+            to: emailAddress,
+            from: fromEmail,
+            subject: `【タスク期限通知】${userTasks.length}件のタスクが期限間近です`,
+            html: generateTaskReminderHTML(userTasks),
+          };
+          await sgMail.send(msg);
+          console.log(
+            `✅ タスク期限通知メール送信成功: ${emailAddress} (${userTasks.length}件)`
+          );
+          results.push({
+            userId: settingUserId,
+            success: true,
+            taskCount: userTasks.length,
+            email: emailAddress,
+          });
+        } catch (error: any) {
+          console.error(
+            `❌ SendGrid送信エラー(${emailAddress}):`,
+            error.response?.body || error
+          );
+          results.push({
+            userId: settingUserId,
+            error: 'メール送信エラー',
+            details: error.response?.body || error.message,
+          });
+        }
+      }
+
+      return {
+        success: true,
+        message: 'タスク期限通知の手動実行が完了しました',
+        currentTime,
+        results,
+      };
+    } catch (error: any) {
+      console.error('❌ タスク期限通知手動実行エラー:', error);
+      throw new HttpsError('internal', `エラー: ${error.message}`);
+    }
   }
 );
 

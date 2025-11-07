@@ -174,8 +174,25 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
   /** 🧮 期日までの日数 */
   getDaysUntilDue(dueDate: string): number {
     if (!dueDate) return 0;
+    
+    // 今日の日付をローカルタイムゾーンで取得（時刻を00:00:00に設定）
     const today = new Date();
-    const due = new Date(dueDate);
+    today.setHours(0, 0, 0, 0);
+    
+    // 期日をローカルタイムゾーンで取得
+    let due: Date;
+    if (typeof dueDate === 'string') {
+      // 文字列形式（YYYY-MM-DD）の場合、ローカルタイムゾーンで日付を作成
+      const [year, month, day] = dueDate.split('T')[0].split('-').map(Number);
+      due = new Date(year, month - 1, day);
+      due.setHours(0, 0, 0, 0);
+    } else {
+      // Dateオブジェクトの場合
+      due = new Date(dueDate);
+      due.setHours(0, 0, 0, 0);
+    }
+    
+    // 日数の差分を計算（ミリ秒→日数）
     const diff = due.getTime() - today.getTime();
     return Math.floor(diff / (1000 * 60 * 60 * 24));
   }

@@ -306,6 +306,19 @@ export class NotificationService {
       const settings = await this.getNotificationSettings(currentUser.uid);
       if (!settings?.taskDeadlineNotifications.enabled) return [];
 
+      // メンバー一覧を取得（assignedMembersの確認用）
+      const membersRef = collection(this.firestore, 'members');
+      const membersSnapshot = await getDocs(
+        query(membersRef, where('roomId', '==', roomId))
+      );
+      const memberEmailMap = new Map<string, string>(); // memberId -> email
+      membersSnapshot.forEach((doc) => {
+        const memberData = doc.data();
+        if (memberData['email']) {
+          memberEmailMap.set(doc.id, memberData['email']);
+        }
+      });
+
       const today = new Date();
       const upcomingTasks: TaskNotificationData[] = [];
 
@@ -341,10 +354,49 @@ export class NotificationService {
 
           querySnapshot.forEach((doc) => {
             const taskData = doc.data();
-            const isAssignedToUser =
-              taskData['assigneeEmail'] === currentUser.email ||
-              taskData['assignee'] === currentUser.displayName ||
-              taskData['assignee'] === currentUser.email;
+
+            // 詳細設定のタスク期限ボタンがONになっているかチェック
+            const detailSettings = taskData['detailSettings'];
+            if (detailSettings?.notifications?.beforeDeadline === false) {
+              return; // タスク期限通知がOFFの場合はスキップ
+            }
+            // beforeDeadlineがundefinedの場合はデフォルトでONとみなす
+
+            // ユーザーが担当者に含まれるかチェック
+            const assigneeEmail = taskData['assigneeEmail'];
+            const assignee = taskData['assignee'];
+            const assignedMembers = taskData['assignedMembers'] || [];
+
+            let isAssignedToUser = false;
+
+            // メールアドレスで一致
+            if (assigneeEmail === currentUser.email) {
+              isAssignedToUser = true;
+            }
+
+            // assignedMembersにユーザーが含まれるかチェック（assignedMembersはメンバーIDの配列）
+            if (!isAssignedToUser && assignedMembers.length > 0) {
+              for (const memberId of assignedMembers) {
+                const memberEmail = memberEmailMap.get(memberId);
+                if (memberEmail === currentUser.email) {
+                  isAssignedToUser = true;
+                  break;
+                }
+              }
+            }
+
+            // assigneeが名前の場合
+            if (!isAssignedToUser && assignee) {
+              const assigneeNames = assignee
+                .split(',')
+                .map((n: string) => n.trim());
+              if (
+                assigneeNames.includes(currentUser.displayName || '') ||
+                assigneeNames.includes(currentUser.email || '')
+              ) {
+                isAssignedToUser = true;
+              }
+            }
 
             if (isAssignedToUser) {
               upcomingTasks.push({

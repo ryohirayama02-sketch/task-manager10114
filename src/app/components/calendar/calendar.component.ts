@@ -326,18 +326,41 @@ export class CalendarComponent implements OnInit, OnDestroy {
   getTasksForDate(date: Date): Task[] {
     return this.tasks.filter((task) => {
       // 期限日でフィルタリング
-      const dueDate = task.dueDate ? new Date(task.dueDate) : null;
-      if (!dueDate) return false;
+      if (!task.dueDate) return false;
 
-      // 日付が一致するかチェック
-      return dueDate.toDateString() === date.toDateString();
+      // ローカルタイムゾーンで日付文字列を生成（YYYY-MM-DD形式）
+      const dateYear = date.getFullYear();
+      const dateMonth = String(date.getMonth() + 1).padStart(2, '0');
+      const dateDay = String(date.getDate()).padStart(2, '0');
+      const dateStr = `${dateYear}-${dateMonth}-${dateDay}`;
+
+      // dueDateが文字列形式（YYYY-MM-DD）の場合
+      if (typeof task.dueDate === 'string') {
+        // 時刻部分を除去
+        const dueDateStr = task.dueDate.split('T')[0];
+        return dueDateStr === dateStr;
+      }
+
+      // dueDateがDateオブジェクトの場合
+      const dueDate = new Date(task.dueDate);
+      const dueYear = dueDate.getFullYear();
+      const dueMonth = String(dueDate.getMonth() + 1).padStart(2, '0');
+      const dueDay = String(dueDate.getDate()).padStart(2, '0');
+      const dueDateStr = `${dueYear}-${dueMonth}-${dueDay}`;
+
+      return dueDateStr === dateStr;
     });
   }
 
   /** 日付が今日かチェック */
   isToday(date: Date): boolean {
     const today = new Date();
-    return date.toDateString() === today.toDateString();
+    // ローカルタイムゾーンで日付を比較
+    return (
+      date.getFullYear() === today.getFullYear() &&
+      date.getMonth() === today.getMonth() &&
+      date.getDate() === today.getDate()
+    );
   }
 
   /** 日付が現在の月かチェック */
