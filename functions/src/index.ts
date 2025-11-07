@@ -359,13 +359,18 @@ export const sendTaskDeadlineNotifications = onSchedule(
     sgMail.setApiKey(apiKey);
     const fromEmail = sendgridFromEmail.value() || 'noreply@taskmanager.com';
 
-    // 現在時刻を取得
+    // JST（Asia/Tokyo）で現在時刻を取得
     const now = new Date();
-    const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now
-      .getMinutes()
+    const jstNow = new Date(
+      now.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' })
+    );
+    const currentTime = `${jstNow
+      .getHours()
       .toString()
-      .padStart(2, '0')}`;
-    const currentDay = now.getDay(); // 曜日を取得（0=日曜日, 6=土曜日）
+      .padStart(2, '0')}:${jstNow.getMinutes().toString().padStart(2, '0')}`;
+    const currentDay = jstNow.getDay(); // 曜日を取得（0=日曜日, 6=土曜日）
+
+    console.log(`⏰ JST現在時刻: ${currentTime} (UTC: ${now.toISOString()})`);
 
     try {
       // 全通知設定を取得
@@ -391,9 +396,14 @@ export const sendTaskDeadlineNotifications = onSchedule(
 
         // 通知時間が現在時刻と一致するかチェック
         const notificationTime = settings.taskDeadlineNotifications?.timeOfDay;
+        console.log(
+          `🔍 ユーザー ${userId}: 設定時刻=${notificationTime}, 現在時刻=${currentTime}`
+        );
         if (notificationTime !== currentTime) {
           continue;
         }
+
+        console.log(`✅ 通知時刻一致！ユーザー ${userId} の通知を処理開始`);
 
         // 通知オフ期間をチェック
         if (settings.quietHours?.enabled) {
@@ -600,15 +610,18 @@ export const sendTaskDeadlineNotificationsManual = onCall(
     sgMail.setApiKey(apiKey);
     const fromEmail = sendgridFromEmail.value() || 'noreply@taskmanager.com';
 
-    // 現在時刻を取得
+    // JST（Asia/Tokyo）で現在時刻を取得
     const now = new Date();
-    const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now
-      .getMinutes()
+    const jstNow = new Date(
+      now.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' })
+    );
+    const currentTime = `${jstNow
+      .getHours()
       .toString()
-      .padStart(2, '0')}`;
-    const currentDay = now.getDay(); // 曜日を取得（0=日曜日, 6=土曜日）
+      .padStart(2, '0')}:${jstNow.getMinutes().toString().padStart(2, '0')}`;
+    const currentDay = jstNow.getDay(); // 曜日を取得（0=日曜日, 6=土曜日）
 
-    console.log(`⏰ 現在時刻: ${currentTime}`);
+    console.log(`⏰ JST現在時刻: ${currentTime} (UTC: ${now.toISOString()})`);
 
     try {
       // 通知設定を取得
