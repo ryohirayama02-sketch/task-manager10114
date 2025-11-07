@@ -532,19 +532,19 @@ export class ProjectService {
       }
 
       if (changeDetails.length > 0) {
-        await this.editLogService.logEdit(
-          projectId,
-          taskData.projectName || 'プロジェクト',
-          'update',
-          `タスク「${
-            taskData.taskName || 'タスク'
+      await this.editLogService.logEdit(
+        projectId,
+        taskData.projectName || 'プロジェクト',
+        'update',
+        `タスク「${
+          taskData.taskName || 'タスク'
           }」を更新しました (${changeStrings.join(', ')})`,
-          taskId,
-          taskData.taskName || 'タスク',
-          undefined,
+        taskId,
+        taskData.taskName || 'タスク',
+        undefined,
           undefined,
           changeDetails
-        );
+      );
       }
 
       return result;

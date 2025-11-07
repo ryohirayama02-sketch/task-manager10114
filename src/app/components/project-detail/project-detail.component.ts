@@ -642,13 +642,13 @@ export class ProjectDetailComponent implements OnInit {
   addUrl(url: string): void {
     if (url && url.trim()) {
       const trimmedUrl = url.trim();
-      
+
       if (!this.isValidUrl(trimmedUrl)) {
         this.snackBar.open('URLの形式が正しくありません', '閉じる', {
           duration: 3000,
         });
-        return;
-      }
+      return;
+    }
 
       // 既に同じURLが存在するかチェック
       const exists = this.editableAttachments.some(
@@ -657,20 +657,20 @@ export class ProjectDetailComponent implements OnInit {
       
       if (exists) {
         this.snackBar.open('このURLは既に追加されています', '閉じる', {
-          duration: 3000,
-        });
-        return;
-      }
+        duration: 3000,
+      });
+      return;
+    }
 
-      const attachment: ProjectAttachment = {
-        id: this.generateId(),
+    const attachment: ProjectAttachment = {
+      id: this.generateId(),
         name: this.extractUrlLabel(trimmedUrl),
         url: trimmedUrl,
-        type: 'link',
-        uploadedAt: new Date().toISOString(),
-      };
+      type: 'link',
+      uploadedAt: new Date().toISOString(),
+    };
 
-      this.editableAttachments.push(attachment);
+    this.editableAttachments.push(attachment);
       this.newUrlInput = '';
     }
   }
