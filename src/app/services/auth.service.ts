@@ -16,6 +16,7 @@ import {
 import { BehaviorSubject } from 'rxjs';
 import { Router } from '@angular/router';
 import { Firestore, collection, query, where, getDocs } from '@angular/fire/firestore';
+import { ProjectSelectionService } from './project-selection.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -37,7 +38,12 @@ export class AuthService {
   public currentRoomId$ = this.currentRoomId.asObservable();
   public currentRoomDocId$ = this.currentRoomDocId.asObservable();
 
-  constructor(private auth: Auth, private router: Router, private firestore: Firestore) {
+  constructor(
+    private auth: Auth,
+    private router: Router,
+    private firestore: Firestore,
+    private projectSelectionService: ProjectSelectionService
+  ) {
     setPersistence(this.auth, browserLocalPersistence)
       .then(() => console.log('🧭 Persistence設定完了'))
       .catch((err) => console.error('Persistence設定エラー:', err));
@@ -141,6 +147,8 @@ export class AuthService {
     this.currentUserEmailSubject.next(null);
     this.currentMemberNameSubject.next(null);
     this.clearRoomId();
+    // プロジェクト選択状態もクリア
+    this.projectSelectionService.clearSelection();
     await this.router.navigate(['/login']);
   }
 

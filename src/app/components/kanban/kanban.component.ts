@@ -82,9 +82,6 @@ export class KanbanComponent implements OnInit {
         }
 
         this.applyProjectList(projects);
-        // ルーム内全プロジェクトをデフォルト選択
-        const projectIds = projects.map(p => p.id).filter((id): id is string => !!id);
-        this.projectSelectionService.setSelectedProjectIds(projectIds);
       });
 
     // プロジェクト選択状態の変更を監視
@@ -112,13 +109,9 @@ export class KanbanComponent implements OnInit {
     );
 
     if (nextSelection.length === 0) {
-      const preferredProject = projects.find(
-        (p) => p.projectName === 'アプリ A改善プロジェクト'
-      );
-      const fallbackProject = preferredProject ?? projects[0];
-      if (fallbackProject?.id) {
-        nextSelection = [fallbackProject.id];
-      }
+      // 保存された選択がない場合は、すべてのプロジェクトを選択
+      const allIds = Array.from(availableIds);
+      nextSelection = allIds;
     }
 
     if (nextSelection.length > 0) {
