@@ -326,15 +326,368 @@ export const sendTestEmail = onCall(
 /**
  * 自動スケジュール関数（既存維持）
  */
+/**
+ * 🔹 すぐやるタスクを取得（ユーザーが担当者のタスク）
+ */
+async function getQuickTasksForUser(
+  roomId: string,
+  roomDocId: string,
+  userEmail: string,
+  userName?: string,
+  days: number = 7
+): Promise<any[]> {
+  const db = admin.firestore();
+  const now = new Date();
+  const jstNow = new Date(
+    now.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' })
+  );
+  const jstToday = new Date(jstNow);
+  jstToday.setHours(0, 0, 0, 0);
+
+  const targetDate = new Date(jstToday);
+  targetDate.setDate(targetDate.getDate() + days);
+  targetDate.setHours(23, 59, 59, 999);
+
+  const todayStr = `${jstToday.getFullYear()}-${String(
+    jstToday.getMonth() + 1
+  ).padStart(2, '0')}-${String(jstToday.getDate()).padStart(2, '0')}`;
+  const targetDateStr = `${targetDate.getFullYear()}-${String(
+    targetDate.getMonth() + 1
+  ).padStart(2, '0')}-${String(targetDate.getDate()).padStart(2, '0')}`;
+
+  console.log(
+    `📅 すぐやるタスク取得期間: ${todayStr} ～ ${targetDateStr} (${days}日間)`
+  );
+
+  // メンバー情報を取得
+  const membersSnapshot = await db
+    .collection('members')
+    .where('roomId', '==', roomId)
+    .get();
+
+  const memberEmailMap = new Map<string, string>(); // memberId -> email
+  const memberNameMap = new Map<string, string>(); // name -> email
+  const memberIdMap = new Map<string, string>(); // email -> memberId
+  const memberIdToNameMap = new Map<string, string>(); // memberId -> name
+  membersSnapshot.forEach((doc) => {
+    const memberData = doc.data();
+    if (memberData.email) {
+      if (doc.id) {
+        memberEmailMap.set(doc.id, memberData.email);
+        memberIdMap.set(memberData.email, doc.id);
+        if (memberData.name) {
+          memberIdToNameMap.set(doc.id, memberData.name);
+        }
+      }
+      if (memberData.name) {
+        memberNameMap.set(memberData.name, memberData.email);
+      }
+    }
+  });
+
+  // ユーザーのメンバーIDを取得
+  const userMemberId = memberIdMap.get(userEmail);
+  const normalizedUserName = userName?.trim().toLowerCase();
+
+  // ユーザー名の配列を作成（フロントエンド側と同じロジック）
+  const members = normalizedUserName ? [normalizedUserName] : [];
+
+  // プロジェクトを取得
+  const projectsRef = db.collection('projects');
+  let projectsSnapshot = await projectsRef
+    .where('roomDocId', '==', roomDocId)
+    .get();
+
+  if (projectsSnapshot.empty) {
+    projectsSnapshot = await projectsRef.where('roomId', '==', roomId).get();
+  }
+
+  const allTasks: any[] = [];
+
+  // 各プロジェクトのタスクを取得
+  for (const projectDoc of projectsSnapshot.docs) {
+    const projectId = projectDoc.id;
+    const projectData = projectDoc.data();
+    const tasksRef = db.collection(`projects/${projectId}/tasks`);
+
+    const tasksSnapshot = await tasksRef.get();
+
+    tasksSnapshot.forEach((taskDoc) => {
+      const taskData = taskDoc.data();
+      const due = taskData.dueDate;
+
+      // 期間内で、ステータスが「未着手」または「作業中」のタスク
+      const isWithin =
+        due >= todayStr &&
+        due <= targetDateStr &&
+        (taskData.status === '未着手' || taskData.status === '作業中');
+
+      if (!isWithin) {
+        return;
+      }
+
+      // 担当者をチェック
+      let assignees: string[] = [];
+
+      // ① assignee（カンマ区切り）
+      if (taskData.assignee) {
+        assignees.push(
+          ...taskData.assignee
+            .split(',')
+            .map((n: string) => n.trim().toLowerCase())
+            .filter((n: string) => n.length > 0)
+        );
+      }
+
+      // ② assignedMembers
+      if (Array.isArray(taskData.assignedMembers)) {
+        taskData.assignedMembers.forEach((member: any) => {
+          if (typeof member === 'string') {
+            // 文字列の場合、メンバーIDまたはメンバー名の可能性がある
+            // フロントエンド側と同じロジック：そのまま追加
+            assignees.push(member.trim().toLowerCase());
+          } else if (typeof member === 'object' && member) {
+            if (member.memberName)
+              assignees.push(member.memberName.trim().toLowerCase());
+            if (member.name) assignees.push(member.name.trim().toLowerCase());
+            if (member.memberEmail)
+              assignees.push(member.memberEmail.trim().toLowerCase());
+            if (member.email) assignees.push(member.email.trim().toLowerCase());
+          }
+        });
+      }
+
+      // ③ assigneeEmail
+      if (taskData.assigneeEmail) {
+        assignees.push(taskData.assigneeEmail.trim().toLowerCase());
+      }
+
+      assignees = [...new Set(assignees)];
+
+      const normalizedUserEmail = userEmail.trim().toLowerCase();
+
+      // フロントエンド側と同じロジック
+      // members.length > 0 の場合、assignees.some((a) => members.includes(a))
+      // そうでない場合、assignees.includes(userEmail)
+      const match =
+        members.length > 0
+          ? assignees.some((a) => members.includes(a))
+          : assignees.includes(normalizedUserEmail);
+
+      if (match) {
+        allTasks.push({
+          id: taskDoc.id,
+          projectId,
+          projectName: projectData.projectName || 'プロジェクト',
+          taskName: taskData.taskName || taskData.task,
+          dueDate: taskData.dueDate,
+          status: taskData.status,
+          priority: taskData.priority,
+        });
+      }
+    });
+  }
+
+  // 期日でソート（早い順）
+  allTasks.sort((a, b) => {
+    if (a.dueDate < b.dueDate) return -1;
+    if (a.dueDate > b.dueDate) return 1;
+    return 0;
+  });
+
+  // 上位5つに制限
+  return allTasks.slice(0, 5);
+}
+
+/**
+ * 🔹 日次リマインダーをスケジュール実行（毎分チェック）
+ */
 export const sendDailyTaskReminders = onSchedule(
   {
-    schedule: '0 10 * * *',
+    schedule: '* * * * *', // 毎分実行
     timeZone: 'Asia/Tokyo',
     memory: '512MiB',
-    timeoutSeconds: 300,
+    timeoutSeconds: 540,
+    secrets: [sendgridApiKey, sendgridFromEmail],
   },
   async () => {
-    console.log('🕙 自動タスク通知実行開始');
+    console.log('🕙 日次リマインダースケジュール実行開始');
+    const db = admin.firestore();
+    const apiKey = sendgridApiKey
+      .value()
+      .trim()
+      .replace(/[\r\n\t\s]+/g, '');
+    sgMail.setApiKey(apiKey);
+    const fromEmail = sendgridFromEmail.value() || 'noreply@taskmanager.com';
+
+    // JST（Asia/Tokyo）で現在時刻を取得
+    const now = new Date();
+    const jstNow = new Date(
+      now.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' })
+    );
+    const currentTime = `${jstNow
+      .getHours()
+      .toString()
+      .padStart(2, '0')}:${jstNow.getMinutes().toString().padStart(2, '0')}`;
+    const currentDay = jstNow.getDay();
+
+    console.log(`⏰ JST現在時刻: ${currentTime} (UTC: ${now.toISOString()})`);
+
+    try {
+      // 全通知設定を取得
+      const settingsSnapshot = await db
+        .collection('notificationSettings')
+        .where('dailyDeadlineReminder.enabled', '==', true)
+        .get();
+
+      console.log(
+        `📋 日次リマインダー有効な設定数: ${settingsSnapshot.docs.length}`
+      );
+
+      for (const settingsDoc of settingsSnapshot.docs) {
+        const settings = settingsDoc.data();
+        const settingUserId = settings.userId;
+        const roomId = settings.roomId;
+        const roomDocId = settings.roomDocId;
+
+        if (!roomId || !roomDocId) {
+          console.warn(`⚠️ ルーム情報が未設定: userId=${settingUserId}`);
+          continue;
+        }
+
+        const notificationTime =
+          settings.dailyDeadlineReminder?.timeOfDay || '09:00';
+        console.log(
+          `🔍 ユーザー ${settingUserId}: 設定時刻=${notificationTime}, 現在時刻=${currentTime}`
+        );
+
+        if (notificationTime !== currentTime) {
+          continue;
+        }
+
+        console.log(
+          `✅ 通知時刻一致！ユーザー ${settingUserId} の通知を処理開始`
+        );
+
+        // 通知オフ期間をチェック
+        if (settings.quietHours?.enabled) {
+          if (
+            settings.quietHours.weekends &&
+            (currentDay === 0 || currentDay === 6)
+          ) {
+            continue;
+          }
+
+          const startTime = settings.quietHours.startTime;
+          const endTime = settings.quietHours.endTime;
+          if (startTime && endTime) {
+            if (startTime <= endTime) {
+              if (currentTime >= startTime && currentTime <= endTime) {
+                continue;
+              }
+            } else {
+              if (currentTime >= startTime || currentTime <= endTime) {
+                continue;
+              }
+            }
+          }
+        }
+
+        // メール通知が有効かチェック
+        if (!settings.notificationChannels?.email?.enabled) {
+          continue;
+        }
+
+        const emailAddress = settings.notificationChannels.email.address;
+        if (!emailAddress) {
+          console.warn(`⚠️ メールアドレスが未設定: userId=${settingUserId}`);
+          continue;
+        }
+
+        // ユーザーのメールアドレスを取得
+        const userEmail = emailAddress;
+
+        // メンバー情報を取得（ユーザー名を取得するため）
+        const membersSnapshot = await db
+          .collection('members')
+          .where('roomId', '==', roomId)
+          .get();
+
+        let userName: string | undefined;
+        membersSnapshot.forEach((doc) => {
+          const memberData = doc.data();
+          if (memberData.email === userEmail && memberData.name) {
+            userName = memberData.name;
+          }
+        });
+
+        // すぐやるタスクを取得（上位5つ）
+        const quickTasks = await getQuickTasksForUser(
+          roomId,
+          roomDocId,
+          userEmail,
+          userName,
+          7 // 7日間
+        );
+
+        if (quickTasks.length === 0) {
+          console.log(`📭 すぐやるタスクなし: userId=${settingUserId}`);
+          continue;
+        }
+
+        console.log(
+          `📋 すぐやるタスク数: ${quickTasks.length}件 (userId=${settingUserId})`
+        );
+
+        // メール送信
+        try {
+          const taskList = quickTasks
+            .map(
+              (task, index) => `
+            <div style="background-color:#f8f9fa;padding:15px;margin:10px 0;border-radius:8px;border-left:4px solid #1976d2;">
+              <h3 style="margin:0 0 10px;">${index + 1}. ${task.taskName}</h3>
+              <p style="margin:5px 0;"><strong>期日:</strong> ${
+                task.dueDate
+              }</p>
+              <p style="margin:5px 0;"><strong>プロジェクト:</strong> ${
+                task.projectName
+              }</p>
+              <p style="margin:5px 0;"><strong>ステータス:</strong> ${
+                task.status
+              }</p>
+            </div>`
+            )
+            .join('');
+
+          const msg = {
+            to: emailAddress,
+            from: fromEmail,
+            subject: `【日次リマインダー】期限が近いタスクが${quickTasks.length}件あります`,
+            html: `
+              <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+                <h2 style="color:#1976d2;">📋 日次リマインダー</h2>
+                <p>期限が近いタスクが${quickTasks.length}件あります。以下をご確認ください。</p>
+                ${taskList}
+                <p style="color:#999;font-size:12px;margin-top:20px;">
+                  このメールはタスク管理アプリから自動送信されました。
+                </p>
+              </div>
+            `,
+          };
+          await sgMail.send(msg);
+          console.log(
+            `✅ 日次リマインダーメール送信成功: ${emailAddress} (${quickTasks.length}件)`
+          );
+        } catch (error: any) {
+          console.error(
+            `❌ SendGrid送信エラー(${emailAddress}):`,
+            error.response?.body || error
+          );
+        }
+      }
+    } catch (error: any) {
+      console.error('❌ 日次リマインダースケジュール実行エラー:', error);
+    }
   }
 );
 
@@ -1924,6 +2277,278 @@ export const sendWorkTimeOverflowNotificationsManual = onCall(
       };
     } catch (error: any) {
       console.error('❌ 作業時間オーバー通知手動実行エラー:', error);
+      throw new HttpsError('internal', `エラー: ${error.message}`);
+    }
+  }
+);
+
+/**
+ * 🔹 日次リマインダーを手動実行（デバッグ用）
+ */
+export const sendDailyTaskRemindersManual = onCall(
+  { secrets: [sendgridApiKey, sendgridFromEmail], cors: true },
+  async (request) => {
+    if (!request.auth)
+      throw new HttpsError('unauthenticated', '認証が必要です');
+
+    const userId = request.data?.userId;
+    const roomId = request.data?.roomId;
+    const roomDocId = request.data?.roomDocId;
+    const force = request.data?.force || false;
+
+    const db = admin.firestore();
+    const apiKey = sendgridApiKey
+      .value()
+      .trim()
+      .replace(/[\r\n\t\s]+/g, '');
+    sgMail.setApiKey(apiKey);
+    const fromEmail = sendgridFromEmail.value() || 'noreply@taskmanager.com';
+
+    // JST（Asia/Tokyo）で現在時刻を取得
+    const now = new Date();
+    const jstNow = new Date(
+      now.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' })
+    );
+    const currentTime = `${jstNow
+      .getHours()
+      .toString()
+      .padStart(2, '0')}:${jstNow.getMinutes().toString().padStart(2, '0')}`;
+    const currentDay = jstNow.getDay();
+
+    console.log(`⏰ JST現在時刻: ${currentTime} (UTC: ${now.toISOString()})`);
+
+    try {
+      // 通知設定を取得
+      let settingsQuery: admin.firestore.Query = db.collection(
+        'notificationSettings'
+      );
+
+      if (userId) {
+        settingsQuery = settingsQuery.where('userId', '==', userId);
+      } else {
+        settingsQuery = settingsQuery.where(
+          'dailyDeadlineReminder.enabled',
+          '==',
+          true
+        );
+      }
+
+      const settingsSnapshot = await settingsQuery.get();
+      console.log(`📋 通知設定数: ${settingsSnapshot.docs.length}`);
+
+      const results: any[] = [];
+
+      for (const settingsDoc of settingsSnapshot.docs) {
+        const settings = settingsDoc.data();
+        const settingUserId = settings.userId;
+        const settingRoomId = settings.roomId;
+        const settingRoomDocId = settings.roomDocId;
+
+        console.log(`\n👤 ユーザーID: ${settingUserId}`);
+        console.log(
+          `📦 ルームID: ${settingRoomId}, ルームDocID: ${settingRoomDocId}`
+        );
+
+        if (!settingRoomId || !settingRoomDocId) {
+          console.warn(`⚠️ ルーム情報が未設定: userId=${settingUserId}`);
+          results.push({ userId: settingUserId, error: 'ルーム情報が未設定' });
+          continue;
+        }
+
+        // ルームIDでフィルタリング（指定されている場合）
+        if (roomId && settingRoomId !== roomId) {
+          console.log(`⏭️ ルームID不一致のためスキップ`);
+          continue;
+        }
+        if (roomDocId && settingRoomDocId !== roomDocId) {
+          console.log(`⏭️ ルームDocID不一致のためスキップ`);
+          continue;
+        }
+
+        // 通知時間チェック（手動実行時はスキップ可能）
+        const notificationTime =
+          settings.dailyDeadlineReminder?.timeOfDay || '09:00';
+        console.log(`⏰ 設定された通知時間: ${notificationTime}`);
+        if (notificationTime && notificationTime !== currentTime && !force) {
+          console.log(
+            `⏭️ 通知時間不一致のためスキップ（force=trueで強制実行可能）`
+          );
+          results.push({
+            userId: settingUserId,
+            skipped: true,
+            reason: `通知時間不一致: ${notificationTime} !== ${currentTime}`,
+          });
+          continue;
+        }
+
+        // 通知オフ期間をチェック
+        if (settings.quietHours?.enabled) {
+          if (
+            settings.quietHours.weekends &&
+            (currentDay === 0 || currentDay === 6)
+          ) {
+            console.log(`⏭️ 週末のためスキップ`);
+            results.push({
+              userId: settingUserId,
+              skipped: true,
+              reason: '週末',
+            });
+            continue;
+          }
+
+          const startTime = settings.quietHours.startTime;
+          const endTime = settings.quietHours.endTime;
+          if (startTime && endTime) {
+            if (startTime <= endTime) {
+              if (currentTime >= startTime && currentTime <= endTime) {
+                console.log(`⏭️ 通知オフ期間中のためスキップ`);
+                results.push({
+                  userId: settingUserId,
+                  skipped: true,
+                  reason: '通知オフ期間中',
+                });
+                continue;
+              }
+            } else {
+              if (currentTime >= startTime || currentTime <= endTime) {
+                console.log(`⏭️ 通知オフ期間中のためスキップ`);
+                results.push({
+                  userId: settingUserId,
+                  skipped: true,
+                  reason: '通知オフ期間中',
+                });
+                continue;
+              }
+            }
+          }
+        }
+
+        // メール通知が有効かチェック
+        if (!settings.notificationChannels?.email?.enabled) {
+          console.log(`⏭️ メール通知が無効のためスキップ`);
+          results.push({
+            userId: settingUserId,
+            skipped: true,
+            reason: 'メール通知が無効',
+          });
+          continue;
+        }
+
+        const emailAddress = settings.notificationChannels.email.address;
+        if (!emailAddress) {
+          console.warn(`⚠️ メールアドレスが未設定: userId=${settingUserId}`);
+          results.push({
+            userId: settingUserId,
+            error: 'メールアドレスが未設定',
+          });
+          continue;
+        }
+
+        // ユーザーのメールアドレスを取得
+        const userEmail = emailAddress;
+
+        // メンバー情報を取得（ユーザー名を取得するため）
+        const membersSnapshot = await db
+          .collection('members')
+          .where('roomId', '==', settingRoomId)
+          .get();
+
+        let userName: string | undefined;
+        membersSnapshot.forEach((doc) => {
+          const memberData = doc.data();
+          if (memberData.email === userEmail && memberData.name) {
+            userName = memberData.name;
+          }
+        });
+
+        // すぐやるタスクを取得（上位5つ）
+        const quickTasks = await getQuickTasksForUser(
+          settingRoomId,
+          settingRoomDocId,
+          userEmail,
+          userName,
+          7 // 7日間
+        );
+
+        if (quickTasks.length === 0) {
+          console.log(`📭 すぐやるタスクなし`);
+          results.push({
+            userId: settingUserId,
+            success: true,
+            taskCount: 0,
+            message: 'すぐやるタスクなし',
+          });
+          continue;
+        }
+
+        console.log(`📋 すぐやるタスク数: ${quickTasks.length}件`);
+
+        // メール送信
+        try {
+          const taskList = quickTasks
+            .map(
+              (task, index) => `
+            <div style="background-color:#f8f9fa;padding:15px;margin:10px 0;border-radius:8px;border-left:4px solid #1976d2;">
+              <h3 style="margin:0 0 10px;">${index + 1}. ${task.taskName}</h3>
+              <p style="margin:5px 0;"><strong>期日:</strong> ${
+                task.dueDate
+              }</p>
+              <p style="margin:5px 0;"><strong>プロジェクト:</strong> ${
+                task.projectName
+              }</p>
+              <p style="margin:5px 0;"><strong>ステータス:</strong> ${
+                task.status
+              }</p>
+            </div>`
+            )
+            .join('');
+
+          const msg = {
+            to: emailAddress,
+            from: fromEmail,
+            subject: `【日次リマインダー】期限が近いタスクが${quickTasks.length}件あります`,
+            html: `
+              <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+                <h2 style="color:#1976d2;">📋 日次リマインダー</h2>
+                <p>期限が近いタスクが${quickTasks.length}件あります。以下をご確認ください。</p>
+                ${taskList}
+                <p style="color:#999;font-size:12px;margin-top:20px;">
+                  このメールはタスク管理アプリから自動送信されました。
+                </p>
+              </div>
+            `,
+          };
+          await sgMail.send(msg);
+          console.log(
+            `✅ 日次リマインダーメール送信成功: ${emailAddress} (${quickTasks.length}件)`
+          );
+          results.push({
+            userId: settingUserId,
+            success: true,
+            taskCount: quickTasks.length,
+            email: emailAddress,
+          });
+        } catch (error: any) {
+          console.error(
+            `❌ SendGrid送信エラー(${emailAddress}):`,
+            error.response?.body || error
+          );
+          results.push({
+            userId: settingUserId,
+            error: 'メール送信エラー',
+            details: error.response?.body || error.message,
+          });
+        }
+      }
+
+      return {
+        success: true,
+        message: '日次リマインダーの手動実行が完了しました',
+        currentTime,
+        results,
+      };
+    } catch (error: any) {
+      console.error('❌ 日次リマインダー手動実行エラー:', error);
       throw new HttpsError('internal', `エラー: ${error.message}`);
     }
   }

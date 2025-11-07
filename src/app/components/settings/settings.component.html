@@ -438,6 +438,16 @@
         <button
           mat-raised-button
           color="primary"
+          (click)="sendDailyTaskRemindersTest()"
+          [disabled]="isSaving"
+        >
+          <mat-icon>today</mat-icon>
+          日次リマインダーテスト
+        </button>
+
+        <button
+          mat-raised-button
+          color="primary"
           (click)="saveNotificationSettings()"
           [disabled]="isSaving"
         >
