@@ -73,7 +73,6 @@ export class TaskCreatePageComponent implements OnInit {
     '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.bmp,.heic,.webp,.svg,.txt,.csv,.zip';
 
   selectedMemberIds: string[] = [];
-  newTag: string = '';
   statusOptions = ['未着手', '作業中', '完了'];
   priorityOptions = ['高', '中', '低'];
 
@@ -138,10 +137,17 @@ export class TaskCreatePageComponent implements OnInit {
       .join(', ');
   }
 
-  addTag() {
-    if (this.newTag && !this.taskForm.tags.includes(this.newTag)) {
-      this.taskForm.tags.push(this.newTag);
-      this.newTag = '';
+  onTagInputEnter(event: any, tagInput: HTMLInputElement) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.addTag(tagInput.value);
+    tagInput.value = '';
+  }
+
+  addTag(tag: string) {
+    const trimmedTag = tag?.trim();
+    if (trimmedTag && !this.taskForm.tags.includes(trimmedTag)) {
+      this.taskForm.tags.push(trimmedTag);
     }
   }
 

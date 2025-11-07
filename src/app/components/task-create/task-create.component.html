@@ -222,27 +222,7 @@
         <!-- タグ -->
         <div class="tag-section">
           <label>{{ 'taskCreate.tags' | translate }}</label>
-          <div class="tag-input-row">
-            <mat-form-field appearance="outline" class="tag-input-field">
-              <mat-label>{{ 'taskCreate.addTag' | translate }}</mat-label>
-              <input
-                matInput
-                [(ngModel)]="newTag"
-                name="newTag"
-                placeholder="{{ 'taskCreate.enterTag' | translate }}"
-                (keyup.enter)="addTag()"
-              />
-            </mat-form-field>
-            <button
-              mat-icon-button
-              type="button"
-              (click)="addTag()"
-              [disabled]="!newTag"
-            >
-              <mat-icon>add</mat-icon>
-            </button>
-          </div>
-          <mat-chip-set *ngIf="taskForm.tags.length > 0">
+          <mat-chip-set>
             <mat-chip
               *ngFor="let tag of taskForm.tags"
               removable
@@ -252,6 +232,15 @@
               <mat-icon matChipRemove>close</mat-icon>
             </mat-chip>
           </mat-chip-set>
+          <mat-form-field appearance="outline" class="tag-input-field">
+            <mat-label>{{ 'taskCreate.addTag' | translate }}</mat-label>
+            <input
+              matInput
+              #tagInput
+              placeholder="{{ 'taskCreate.enterTag' | translate }}"
+              (keydown.enter)="onTagInputEnter($event, tagInput)"
+            />
+          </mat-form-field>
         </div>
 
         <!-- カレンダー連携 -->
