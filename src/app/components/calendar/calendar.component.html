@@ -24,11 +24,20 @@
       </mat-checkbox>
     </div>
     <div class="project-selection-actions">
-      <button mat-stroked-button (click)="selectAllProjects()">
-        {{ 'calendar.projectSelector.selectAll' | translate }}
-      </button>
-      <button mat-stroked-button (click)="clearProjectSelection()">
-        {{ 'calendar.projectSelector.clearAll' | translate }}
+      <div class="project-action-row">
+        <button mat-stroked-button (click)="selectAllProjects()">
+          {{ 'calendar.projectSelector.selectAll' | translate }}
+        </button>
+        <button mat-stroked-button (click)="clearProjectSelection()">
+          {{ 'calendar.projectSelector.clearAll' | translate }}
+        </button>
+      </div>
+      <button
+        mat-stroked-button
+        class="create-project-button"
+        (click)="openProjectDialog()"
+      >
+        ＋{{ 'calendar.actionButtons.addProject' | translate }}
       </button>
     </div>
   </div>
@@ -73,7 +82,7 @@
       </mat-select>
     </mat-form-field>
 
-    <button mat-button (click)="resetFilters()">{{ 'calendar.filter.reset' | translate }}</button>
+    <button mat-stroked-button (click)="resetFilters()">{{ 'calendar.filter.reset' | translate }}</button>
   </div>
 </div>
 
@@ -90,9 +99,6 @@
       <mat-button-toggle value="month">月</mat-button-toggle>
     </mat-button-toggle-group>
   </div>
-  <button mat-raised-button color="primary" (click)="openProjectDialog()">
-    + {{ 'calendar.actionButtons.addProject' | translate }}
-  </button>
 </div>
 
 <!-- カレンダー -->

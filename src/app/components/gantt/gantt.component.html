@@ -15,15 +15,16 @@
       </mat-checkbox>
     </div>
     <div class="project-selection-actions">
-      <button mat-stroked-button (click)="selectAllProjects()">
-        {{ 'gantt.projectSelector.selectAll' | translate }}
-      </button>
-      <button mat-stroked-button (click)="clearProjectSelection()">
-        {{ 'gantt.projectSelector.clearAll' | translate }}
-      </button>
+      <div class="project-action-row">
+        <button mat-stroked-button (click)="selectAllProjects()">
+          {{ 'gantt.projectSelector.selectAll' | translate }}
+        </button>
+        <button mat-stroked-button (click)="clearProjectSelection()">
+          {{ 'gantt.projectSelector.clearAll' | translate }}
+        </button>
+      </div>
       <button
-        mat-raised-button
-        color="primary"
+        mat-stroked-button
         class="create-project-button"
         (click)="openProjectDialog()"
       >

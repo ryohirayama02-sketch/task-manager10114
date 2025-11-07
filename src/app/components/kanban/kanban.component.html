@@ -14,11 +14,20 @@
       </mat-checkbox>
   </div>
   <div class="project-selection-actions">
-    <button mat-stroked-button (click)="selectAllProjects()">
-      {{ 'kanban.projectSelector.selectAll' | translate }}
-    </button>
-    <button mat-stroked-button (click)="clearProjectSelection()">
-      {{ 'kanban.projectSelector.clearAll' | translate }}
+    <div class="project-action-row">
+      <button mat-stroked-button (click)="selectAllProjects()">
+        {{ 'kanban.projectSelector.selectAll' | translate }}
+      </button>
+      <button mat-stroked-button (click)="clearProjectSelection()">
+        {{ 'kanban.projectSelector.clearAll' | translate }}
+      </button>
+    </div>
+    <button
+      mat-stroked-button
+      class="create-project-button"
+      (click)="openProjectDialog()"
+    >
+      {{ 'kanban.createProject' | translate }}
     </button>
   </div>
 </div>
@@ -31,9 +40,6 @@
     gap: 8px;
   "
 >
-  <button mat-raised-button color="primary" (click)="openProjectDialog()">
-    {{ 'kanban.createProject' | translate }}
-  </button>
   <button
     mat-raised-button
     color="accent"

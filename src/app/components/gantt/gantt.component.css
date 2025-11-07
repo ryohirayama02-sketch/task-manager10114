@@ -26,11 +26,17 @@
 
 .project-selection-actions {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  flex-direction: column;
+  gap: 12px;
   margin: 12px 0;
-  align-items: center;
+  align-items: flex-start;
   width: 100%;
+}
+
+.project-action-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
 }
 
 .project-selection-actions button {
@@ -43,7 +49,7 @@
 }
 
 .create-project-button {
-  margin-left: auto;
+  align-self: flex-start;
 }
 
 .filter-section {
