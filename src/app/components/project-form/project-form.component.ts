@@ -60,10 +60,7 @@ export class ProjectFormComponent implements OnInit {
   selectedResponsibleIds: string[] = [];
   attachments: ProjectAttachment[] = [];
   pendingFiles: { id: string; file: File }[] = [];
-  linkTitle: string = '';
   linkUrl: string = '';
-  tagInputValue: string = '';
-  projectTags: string[] = [];
   loading = false;
   isSubmitting = false;
   isUploading = false;
@@ -104,7 +101,6 @@ export class ProjectFormComponent implements OnInit {
       responsible: [[]],
       members: [[]],
       milestones: this.fb.array([]),
-      tags: [[]],
       themeColor: [null],
     });
 
@@ -263,8 +259,6 @@ export class ProjectFormComponent implements OnInit {
    */
   addLinkAttachment(): void {
     const url = this.linkUrl.trim();
-    const title = this.linkTitle.trim();
-
     if (!url) {
       this.snackBar.open('URLを入力してください', '閉じる', { duration: 3000 });
       return;
@@ -277,13 +271,12 @@ export class ProjectFormComponent implements OnInit {
 
     this.attachments.push({
       id: this.generateId(),
-      name: title || url,
+      name: url,
       url,
       type: 'link',
       uploadedAt: new Date().toISOString(),
     });
 
-    this.linkTitle = '';
     this.linkUrl = '';
   }
 
@@ -344,7 +337,7 @@ export class ProjectFormComponent implements OnInit {
         endDate: formData.endDate || '',
         themeColor: selectedColor,
         color: selectedColor,
-        tags: this.projectTags,
+        tags: [],
         responsibles: responsiblesPayload,
         responsible: responsibleNames,
         responsibleId: primaryResponsibleId,
@@ -489,22 +482,6 @@ export class ProjectFormComponent implements OnInit {
    */
   private generateId(): string {
     return Date.now().toString(36) + Math.random().toString(36).substring(2);
-  }
-
-  onProjectTagInputEnter(event: Event): void {
-    event.preventDefault();
-    const value = this.tagInputValue.trim();
-    if (!value) {
-      return;
-    }
-    if (!this.projectTags.includes(value)) {
-      this.projectTags.push(value);
-    }
-    this.tagInputValue = '';
-  }
-
-  removeProjectTag(tag: string): void {
-    this.projectTags = this.projectTags.filter((existing) => existing !== tag);
   }
 
   /**

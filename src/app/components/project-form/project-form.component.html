@@ -211,46 +211,6 @@
           </div>
         </div>
 
-        <!-- タグ -->
-        <div class="tags-section">
-          <div class="tags-header">
-            <h3>{{ 'projectForm.tags' | translate }}</h3>
-            <span class="helper-text">{{ 'projectForm.tagHelper' | translate }}</span>
-          </div>
-
-          <div class="tag-input-row">
-            <mat-form-field appearance="outline" class="tag-input-field">
-              <mat-label>{{ 'projectForm.tags' | translate }}</mat-label>
-              <span matPrefix>#&nbsp;</span>
-              <input
-                matInput
-                [(ngModel)]="tagInputValue"
-                name="tagInput"
-                [ngModelOptions]="{ standalone: true }"
-                placeholder="タグ名を入力してEnter"
-                (keydown.enter)="onProjectTagInputEnter($event)"
-              />
-            </mat-form-field>
-          </div>
-
-          <div class="tag-list" *ngIf="projectTags.length > 0">
-            <div *ngFor="let tag of projectTags" class="tag-chip">
-              <span class="tag-chip-label">#{{ tag }}</span>
-              <button
-                type="button"
-                class="tag-remove-button"
-                (click)="removeProjectTag(tag)"
-                [attr.aria-label]="tag + ' を削除'"
-              >
-                <mat-icon>close</mat-icon>
-              </button>
-            </div>
-          </div>
-
-          <div class="no-tags" *ngIf="projectTags.length === 0">
-            {{ 'projectForm.noTags' | translate }}
-          </div>
-        </div>
         <!-- マイルストーン -->
         <div class="milestones-section" formArrayName="milestones">
           <h3>{{ 'projectForm.milestones' | translate }}</h3>
@@ -359,16 +319,6 @@
           </div>
 
           <div class="link-attachments">
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>{{ 'projectForm.attachmentName' | translate }}</mat-label>
-              <input
-                matInput
-                [(ngModel)]="linkTitle"
-                name="attachmentTitle"
-                placeholder="設計資料 など"
-              />
-            </mat-form-field>
-
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>{{ 'projectForm.attachmentUrl' | translate }}</mat-label>
               <input
