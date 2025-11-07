@@ -1,6 +1,9 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { google } from 'googleapis';
 
+/**
+ * Googleカレンダーにタスクを追加するCloud Function
+ */
 export const addTaskToCalendar = onCall(
   {
     timeoutSeconds: 60,
@@ -16,7 +19,7 @@ export const addTaskToCalendar = onCall(
         hasUserAccessToken: !!userAccessToken,
       });
 
-      // バリデーション: 必須パラメータの確認
+      // 🔸 必須パラメータのバリデーション
       if (!taskName || !dueDate || !userAccessToken) {
         console.error('❌ 必須パラメータが不足しています:', {
           taskName: !taskName ? '不足' : '✓',
@@ -31,18 +34,17 @@ export const addTaskToCalendar = onCall(
 
       console.log('✅ バリデーション成功');
 
-      // OAuth2 クライアントを初期化
+      // 🔸 OAuth2 クライアントを初期化
       const oauth2Client = new google.auth.OAuth2();
 
-      // ユーザーのアクセストークンを設定
+      // アクセストークンを設定
       oauth2Client.setCredentials({ access_token: userAccessToken });
-
       console.log('🔑 OAuth2クライアントにアクセストークンを設定しました');
 
       // Google Calendar API クライアントを作成
       const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
 
-      // 期日を Date オブジェクトに変換
+      // 🔸 日時をISO形式に変換
       const dueDateObj = new Date(dueDate);
       const startDate = dueDateObj.toISOString();
       const endDate = new Date(
@@ -55,7 +57,7 @@ export const addTaskToCalendar = onCall(
         endDate,
       });
 
-      // イベントリソースを構築
+      // 🔸 イベント情報を構築
       const event = {
         summary: `${taskName}（期日：${dueDate}）`,
         description: `タスク: ${taskName}\n期日: ${dueDate}`,
@@ -71,10 +73,10 @@ export const addTaskToCalendar = onCall(
 
       console.log('📝 イベントリソース:', JSON.stringify(event, null, 2));
 
-      // Google Calendar にイベントを追加
+      // 🔹 Google Calendar にイベントを追加
       const response = await calendar.events.insert({
         calendarId: 'primary',
-        resource: event,
+        requestBody: event, // ✅ resource → requestBody に変更
       });
 
       console.log('✅ Google Calendar API レスポンス:', {
@@ -98,30 +100,34 @@ export const addTaskToCalendar = onCall(
         errors: error?.errors,
       });
 
-      // エラーの詳細ログを出力
+      // 🔸 詳細エラー出力
       if (error?.errors && Array.isArray(error.errors)) {
         console.error('❌ Google API エラー詳細:', error.errors);
       }
 
-      // Google Calendar API の認証エラー
+      // 認証エラー
       if (error?.statusCode === 401 || error?.code === 'UNAUTHENTICATED') {
-        console.error('🔐 認証エラー: アクセストークンが無効または期限切れです');
+        console.error(
+          '🔐 認証エラー: アクセストークンが無効または期限切れです'
+        );
         throw new HttpsError(
           'unauthenticated',
           'Google認証が無効です。アクセストークンが期限切れの可能性があります。'
         );
       }
 
-      // Google Calendar API の権限エラー
+      // 権限エラー
       if (error?.statusCode === 403 || error?.code === 'PERMISSION_DENIED') {
-        console.error('🚫 権限エラー: Google Calendar へのアクセス権限がありません');
+        console.error(
+          '🚫 権限エラー: Google Calendar へのアクセス権限がありません'
+        );
         throw new HttpsError(
           'permission-denied',
           'Google Calendarへのアクセス権限がありません。'
         );
       }
 
-      // Google Calendar API のリクエストエラー
+      // 不正リクエスト
       if (error?.statusCode === 400 || error?.code === 'INVALID_ARGUMENT') {
         console.error('📋 リクエストエラー:', error.message);
         throw new HttpsError(
@@ -130,25 +136,18 @@ export const addTaskToCalendar = onCall(
         );
       }
 
-      // その他の Google Calendar API エラー
-      if (error instanceof HttpsError) {
-        throw error;
-      }
-
       // 予期しないエラー
+      if (error instanceof HttpsError) throw error;
+
       console.error('⚠️ 予期しないエラーが発生しました:', {
         errorType: error?.constructor?.name,
         stack: error?.stack,
       });
 
-      throw new HttpsError(
-        'unknown',
-        'カレンダー登録に失敗しました。',
-        {
-          originalMessage: error?.message,
-          originalCode: error?.code,
-        }
-      );
+      throw new HttpsError('unknown', 'カレンダー登録に失敗しました。', {
+        originalMessage: error?.message,
+        originalCode: error?.code,
+      });
     }
   }
 );

@@ -31,7 +31,11 @@ export class AuthService {
   private currentRoomId = new BehaviorSubject<string | null>(
     localStorage.getItem('roomId')
   );
+  private currentRoomDocId = new BehaviorSubject<string | null>(
+    localStorage.getItem('roomDocId')
+  );
   public currentRoomId$ = this.currentRoomId.asObservable();
+  public currentRoomDocId$ = this.currentRoomDocId.asObservable();
 
   constructor(private auth: Auth, private router: Router, private firestore: Firestore) {
     setPersistence(this.auth, browserLocalPersistence)
@@ -177,17 +181,27 @@ export class AuthService {
     }
   }
 
-  setRoomId(id: string) {
+  setRoomId(id: string, docId?: string) {
     this.currentRoomId.next(id);
     localStorage.setItem('roomId', id);
+    if (docId) {
+      this.currentRoomDocId.next(docId);
+      localStorage.setItem('roomDocId', docId);
+    }
   }
 
   clearRoomId() {
     this.currentRoomId.next(null);
+    this.currentRoomDocId.next(null);
     localStorage.removeItem('roomId');
+    localStorage.removeItem('roomDocId');
   }
 
   getCurrentRoomId(): string | null {
     return this.currentRoomId.value;
+  }
+
+  getCurrentRoomDocId(): string | null {
+    return this.currentRoomDocId.value;
   }
 }

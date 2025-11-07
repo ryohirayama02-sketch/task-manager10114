@@ -1,0 +1,52 @@
+/* ダイアログ全体の文字サイズを大きく */
+::ng-deep .mat-dialog-container {
+  font-size: 16px;
+}
+
+/* タイトルの文字サイズを大きく */
+h2[mat-dialog-title] {
+  font-size: 20px;
+  font-weight: 500;
+}
+
+/* ダイアログコンテンツの文字サイズを大きく */
+mat-dialog-content {
+  font-size: 16px;
+}
+
+/* 日付フィールドの間隔を広げる */
+.period-dialog-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 16px 0;
+}
+
+/* 日付フィールドのスタイル */
+.date-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.date-field label {
+  font-size: 16px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.date-field input[type="date"] {
+  font-size: 16px;
+  padding: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* ボタンの文字サイズを大きく */
+mat-dialog-actions button {
+  font-size: 16px;
+  padding: 8px 16px;
+}
+

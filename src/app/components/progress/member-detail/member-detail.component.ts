@@ -376,7 +376,7 @@ export class MemberDetailComponent implements OnInit {
   // ⬇️ この下に追加
   openPeriodDialog() {
     const dialogRef = this.dialog.open(PeriodFilterDialogComponent, {
-      width: '300px',
+      width: '500px',
       data: {
         startDate: this.periodStartDate,
         endDate: this.periodEndDate,

@@ -92,9 +92,9 @@ export class SettingsComponent implements OnInit {
     private roomService: RoomService,
     private snackBar: MatSnackBar
   ) {
-    // 時間オプションを生成（00:00 - 23:50 を10分刻み）
+    // 時間オプションを生成（00:00 - 23:59 を1分刻み）
     for (let hour = 0; hour < 24; hour++) {
-      for (let minute = 0; minute < 60; minute += 10) {
+      for (let minute = 0; minute < 60; minute++) {
         const timeStr = `${hour.toString().padStart(2, '0')}:${minute
           .toString()
           .padStart(2, '0')}`;
@@ -104,6 +104,14 @@ export class SettingsComponent implements OnInit {
   }
 
   async ngOnInit() {
+    const roomId = this.authService.getCurrentRoomId();
+    const roomDocId = this.authService.getCurrentRoomDocId();
+    if (!roomId || !roomDocId) {
+      this.snackBar.open('ルームに入室してください', this.getCloseLabel(), {
+        duration: 3000,
+      });
+      return;
+    }
     // デフォルト設定を初期化
     this.notificationSettings =
       this.notificationService.createDefaultNotificationSettings();
@@ -315,6 +323,15 @@ export class SettingsComponent implements OnInit {
    * 期限が近いタスクのメール通知を手動送信（テスト用）
    */
   async sendTaskRemindersTest(): Promise<void> {
+    const roomId = this.authService.getCurrentRoomId();
+    const roomDocId = this.authService.getCurrentRoomDocId();
+    if (!roomId || !roomDocId) {
+      this.snackBar.open('ルームに入室してください', this.getCloseLabel(), {
+        duration: 3000,
+      });
+      return;
+    }
+
     this.isSaving = true;
 
     try {
@@ -347,6 +364,15 @@ export class SettingsComponent implements OnInit {
    * ユーザー個別のタスク通知を手動送信（テスト用）
    */
   async sendUserTaskNotificationsTest(): Promise<void> {
+    const roomId = this.authService.getCurrentRoomId();
+    const roomDocId = this.authService.getCurrentRoomDocId();
+    if (!roomId || !roomDocId) {
+      this.snackBar.open('ルームに入室してください', this.getCloseLabel(), {
+        duration: 3000,
+      });
+      return;
+    }
+
     this.isSaving = true;
 
     try {
@@ -362,7 +388,7 @@ export class SettingsComponent implements OnInit {
         functions,
         'sendUserTaskNotificationsManual'
       );
-      const result = (await callable({})) as any;
+      const result = (await callable({ roomId, roomDocId })) as any;
 
       if (result.data?.success) {
         this.snackBar.open(

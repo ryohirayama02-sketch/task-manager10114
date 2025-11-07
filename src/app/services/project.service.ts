@@ -274,12 +274,13 @@ export class ProjectService {
     console.log('プロジェクトデータ:', project);
 
     const roomId = this.authService.getCurrentRoomId();
-    if (!roomId) {
-      throw new Error('ルームIDが設定されていません');
+    const roomDocId = this.authService.getCurrentRoomDocId();
+    if (!roomId || !roomDocId) {
+      throw new Error('ルーム情報が設定されていません');
     }
 
     const projectsRef = collection(this.firestore, 'projects');
-    const projectPayload = { ...project, roomId };
+    const projectPayload = { ...project, roomId, roomDocId };
     const result = await addDoc(projectsRef, projectPayload);
 
     console.log('✅ プロジェクトを作成しました:', result.id);
@@ -370,12 +371,13 @@ export class ProjectService {
   /** ✅ 特定プロジェクトにタスクを追加 */
   async addTaskToProject(projectId: string, taskData: any) {
     const roomId = this.authService.getCurrentRoomId();
-    if (!roomId) {
-      throw new Error('ルームIDが設定されていません');
+    const roomDocId = this.authService.getCurrentRoomDocId();
+    if (!roomId || !roomDocId) {
+      throw new Error('ルーム情報が設定されていません');
     }
 
     const tasksRef = collection(this.firestore, `projects/${projectId}/tasks`);
-    const result = await addDoc(tasksRef, { ...taskData, roomId });
+    const result = await addDoc(tasksRef, { ...taskData, roomId, roomDocId });
 
     // 編集ログを記録
     await this.editLogService.logEdit(

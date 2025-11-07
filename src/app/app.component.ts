@@ -30,9 +30,21 @@ export class AppComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
+    // 🔍 現在のルーム情報をコンソールに出力（確認用）
+    console.log('✅ 現在のルーム情報を確認します...');
+    console.log('roomId:', this.authService.getCurrentRoomId());
+    console.log('roomDocId:', this.authService.getCurrentRoomDocId());
+
     // 認証状態の変更を監視して通知スケジューラーを制御
     this.authService.user$.subscribe((user) => {
       if (user) {
+        console.log('👤 ログインユーザー:', user.email);
+        console.log('📦 現在のroomId:', this.authService.getCurrentRoomId());
+        console.log(
+          '📦 現在のroomDocId:',
+          this.authService.getCurrentRoomDocId()
+        );
+
         // ログイン時は通知スケジューラーを開始
         this.notificationScheduler.startScheduler();
         // ホーム画面設定に基づいてリダイレクト
@@ -42,7 +54,9 @@ export class AppComponent implements OnInit, OnDestroy {
         this.notificationScheduler.stopScheduler();
         // ログイン画面にいない場合のみログイン画面へナビゲート
         if (!this.router.url.includes('/login')) {
-          console.log('🚪 ユーザーがログアウトしたため、ログイン画面へ遷移します');
+          console.log(
+            '🚪 ユーザーがログアウトしたため、ログイン画面へ遷移します'
+          );
           this.router.navigate(['/login']);
         }
       }

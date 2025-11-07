@@ -1,6 +1,8 @@
 export interface NotificationSettings {
   id?: string;
   userId: string;
+  roomId?: string;
+  roomDocId?: string;
 
   // 通知先設定
   notificationChannels: {

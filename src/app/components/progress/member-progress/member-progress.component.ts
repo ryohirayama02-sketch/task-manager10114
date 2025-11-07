@@ -225,7 +225,7 @@ export class MemberProgressComponent implements OnInit {
 
   openPeriodDialog() {
     const dialogRef = this.dialog.open(PeriodFilterDialogComponent, {
-      width: '300px',
+      width: '500px',
       data: {
         startDate: this.periodStartDate,
         endDate: this.periodEndDate,

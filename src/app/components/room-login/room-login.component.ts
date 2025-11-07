@@ -146,7 +146,7 @@ export class RoomLoginComponent {
         this.error = 'ルーム情報が正しくありません。';
         return;
       }
-      this.authService.setRoomId(this.roomId);
+      this.authService.setRoomId(this.roomId, roomDoc.id);
       await this.router.navigate(['/projects']);
     } catch (err) {
       console.error('Failed to join room', err);
@@ -165,13 +165,13 @@ export class RoomLoginComponent {
     try {
       const createdBy =
         this.authService.getCurrentUser()?.email || 'unknown';
-      await this.roomService.createRoom(
+      const docRef = await this.roomService.createRoom(
         this.newRoomName,
         this.newRoomPassword,
         createdBy,
         this.newRoomId
       );
-      this.authService.setRoomId(this.newRoomId);
+      this.authService.setRoomId(this.newRoomId, docRef.id);
       await this.router.navigate(['/projects']);
     } catch (err) {
       console.error('Failed to create room', err);

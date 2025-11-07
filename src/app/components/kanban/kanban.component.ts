@@ -189,11 +189,6 @@ export class KanbanComponent implements OnInit {
     console.log('フィルタリング後のタスク:', this.tasks);
   }
 
-  /** プロジェクト選択が変更された時の処理 */
-  onProjectSelectionChange() {
-    this.projectSelectionService.setSelectedProjectIds(this.selectedProjectIds);
-  }
-
   /** プロジェクトが選択されているかチェック */
   isProjectSelected(projectId: string): boolean {
     return this.selectedProjectIds.includes(projectId);

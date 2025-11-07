@@ -19,6 +19,7 @@ import { FormsModule } from '@angular/forms';
     FormsModule,
     MatDialogModule,
   ],
+  styleUrls: ['./period-filter-dialog.component.css'],
   template: `
     <h2 mat-dialog-title>期間を選択</h2>
     <mat-dialog-content>

@@ -14,6 +14,7 @@ export interface ProjectAttachment {
 
 export interface IProject {
   id: string;
+  roomDocId?: string;
   projectName: string;
   overview: string; // 概要
   startDate: string; // 開始日

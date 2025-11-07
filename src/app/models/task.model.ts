@@ -1,6 +1,7 @@
 export interface Task {
   id?: string;
   projectId: string;
+  roomDocId?: string;
   projectName: string;
   taskName: string;
   description?: string;
@@ -50,6 +51,7 @@ export interface ChatMessage {
 
 export interface Project {
   id?: string;
+  roomDocId?: string;
   projectName: string;
   description?: string;
   startDate?: string;
