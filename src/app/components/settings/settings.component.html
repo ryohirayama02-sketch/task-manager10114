@@ -325,6 +325,25 @@
                 </mat-form-field>
               </div>
 
+              <div class="setting-row">
+                <mat-form-field appearance="outline">
+                  <mat-label>{{
+                    "settings.common.notifyTime" | translate
+                  }}</mat-label>
+                  <mat-select
+                    [(ngModel)]="
+                      notificationSettings.workTimeOverflowNotifications
+                        .timeOfDay
+                    "
+                    name="workTimeNotifyTime"
+                  >
+                    <mat-option *ngFor="let time of timeOptions" [value]="time">
+                      {{ time }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+
               <div class="notification-targets">
                 <mat-checkbox
                   [(ngModel)]="
@@ -441,6 +460,16 @@
         >
           <mat-icon>schedule</mat-icon>
           タスク期限通知テスト
+        </button>
+
+        <button
+          mat-raised-button
+          color="primary"
+          (click)="sendWorkTimeOverflowNotificationsTest()"
+          [disabled]="isSaving"
+        >
+          <mat-icon>timer</mat-icon>
+          作業時間オーバー通知テスト
         </button>
 
         <button

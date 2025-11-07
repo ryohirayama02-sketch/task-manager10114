@@ -161,6 +161,7 @@ export class NotificationService {
         enabled: false,
         checkPeriodDays: 7,
         maxWorkHours: 40,
+        timeOfDay: '09:00',
         notifyManager: true,
         notifyAssignee: true,
       },

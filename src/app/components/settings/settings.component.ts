@@ -492,6 +492,113 @@ export class SettingsComponent implements OnInit {
   }
 
   /**
+   * 作業時間オーバー通知を手動送信（テスト用・デバッグ用）
+   */
+  async sendWorkTimeOverflowNotificationsTest(): Promise<void> {
+    const currentUser = this.authService.getCurrentUser();
+    if (!currentUser) {
+      this.snackBar.open('ログインしてください', this.getCloseLabel(), {
+        duration: 3000,
+      });
+      return;
+    }
+
+    const roomId = this.authService.getCurrentRoomId();
+    const roomDocId = this.authService.getCurrentRoomDocId();
+    if (!roomId || !roomDocId) {
+      this.snackBar.open('ルームに入室してください', this.getCloseLabel(), {
+        duration: 3000,
+      });
+      return;
+    }
+
+    this.isSaving = true;
+
+    try {
+      console.log('🔔 作業時間オーバー通知をテスト送信');
+
+      const { getFunctions, httpsCallable } = await import(
+        'firebase/functions'
+      );
+      const { getApp } = await import('firebase/app');
+      const functions = getFunctions(getApp(), 'us-central1');
+
+      const callable = httpsCallable(
+        functions,
+        'sendWorkTimeOverflowNotificationsManual'
+      );
+      const result = (await callable({
+        userId: currentUser.uid,
+        roomId,
+        roomDocId,
+        force: true, // 通知時間チェックをスキップ
+      })) as any;
+
+      console.log('📊 実行結果:', result.data);
+
+      if (result.data?.success) {
+        const results = result.data.results || [];
+
+        // 詳細ログを出力
+        console.log('📋 詳細結果:', results);
+        results.forEach((r: any, index: number) => {
+          console.log(`\n結果 ${index + 1}:`, {
+            userId: r.userId,
+            success: r.success,
+            skipped: r.skipped,
+            reason: r.reason,
+            overflowUserCount: r.overflowUserCount,
+            notificationCount: r.notificationCount,
+            message: r.message,
+            error: r.error,
+          });
+        });
+
+        const successCount = results.filter((r: any) => r.success).length;
+        const skippedCount = results.filter((r: any) => r.skipped).length;
+        const errorCount = results.filter((r: any) => r.error).length;
+        const overflowUserCount = results.reduce(
+          (sum: number, r: any) => sum + (r.overflowUserCount || 0),
+          0
+        );
+        const notificationCount = results.reduce(
+          (sum: number, r: any) => sum + (r.notificationCount || 0),
+          0
+        );
+
+        let message = `作業時間オーバー通知のテスト実行が完了しました\n`;
+        message += `成功: ${successCount}件、スキップ: ${skippedCount}件、エラー: ${errorCount}件\n`;
+        message += `作業時間オーバーユーザー: ${overflowUserCount}人\n`;
+        message += `送信通知数: ${notificationCount}件\n`;
+        message += `詳細はコンソールを確認してください`;
+
+        this.snackBar.open(message, this.getCloseLabel(), {
+          duration: 10000,
+        });
+      } else {
+        this.snackBar.open(
+          '作業時間オーバー通知のテスト実行に失敗しました',
+          this.getCloseLabel(),
+          {
+            duration: 3000,
+          }
+        );
+      }
+    } catch (error: any) {
+      console.error('作業時間オーバー通知テストエラー:', error);
+      this.snackBar.open(
+        `エラー: ${error.message || '不明なエラー'}`,
+        this.getCloseLabel(),
+        {
+          duration: 5000,
+        }
+      );
+    } finally {
+      this.isSaving = false;
+    }
+  }
+
+  /**
    * ユーザー個別のタスク通知を手動送信（テスト用）
    */
   async sendUserTaskNotificationsTest(): Promise<void> {

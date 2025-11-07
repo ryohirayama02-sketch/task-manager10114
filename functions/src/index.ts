@@ -1129,4 +1129,804 @@ export const sendUserTaskNotificationsManual = onCall(
   }
 );
 
+/**
+ * 🔹 未来N日間のタスクを取得し、ユーザーごとに予定時間を集計
+ */
+async function getUserWorkTimeSummary(
+  roomId: string,
+  roomDocId: string,
+  checkPeriodDays: number
+): Promise<{ [userEmail: string]: number }> {
+  const db = admin.firestore();
+  const now = new Date();
+  const jstNow = new Date(
+    now.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' })
+  );
+  const jstToday = new Date(jstNow);
+  jstToday.setHours(0, 0, 0, 0);
+
+  // 未来N日間の終了日を計算
+  const endDate = new Date(jstToday);
+  endDate.setDate(endDate.getDate() + checkPeriodDays);
+  endDate.setHours(23, 59, 59, 999);
+
+  const todayStr = `${jstToday.getFullYear()}-${String(
+    jstToday.getMonth() + 1
+  ).padStart(2, '0')}-${String(jstToday.getDate()).padStart(2, '0')}`;
+  const endDateStr = `${endDate.getFullYear()}-${String(
+    endDate.getMonth() + 1
+  ).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}`;
+
+  console.log(
+    `📅 作業時間集計期間: 今日 ～ ${endDateStr} (未来${checkPeriodDays}日間)`
+  );
+
+  // プロジェクトを取得
+  const projectsRef = db.collection('projects');
+  let projectsSnapshot = await projectsRef
+    .where('roomDocId', '==', roomDocId)
+    .get();
+
+  if (projectsSnapshot.empty) {
+    projectsSnapshot = await projectsRef.where('roomId', '==', roomId).get();
+  }
+
+  // メンバー情報を取得（メールアドレスマッピング用）
+  const membersSnapshot = await db
+    .collection('members')
+    .where('roomId', '==', roomId)
+    .get();
+
+  const memberEmailMap = new Map<string, string>(); // memberId -> email
+  const memberNameMap = new Map<string, string>(); // name -> email
+  membersSnapshot.forEach((doc) => {
+    const memberData = doc.data();
+    if (memberData.email) {
+      if (doc.id) {
+        memberEmailMap.set(doc.id, memberData.email);
+      }
+      if (memberData.name) {
+        memberNameMap.set(memberData.name, memberData.email);
+      }
+    }
+  });
+
+  const userWorkTimeMap: { [userEmail: string]: number } = {};
+
+  // 各プロジェクトのタスクを取得
+  for (const projectDoc of projectsSnapshot.docs) {
+    const projectId = projectDoc.id;
+    const tasksRef = db.collection(`projects/${projectId}/tasks`);
+
+    // 「未着手」「作業中」のタスクを取得
+    const tasksSnapshot = await tasksRef
+      .where('status', 'in', ['未着手', '作業中'])
+      .get();
+
+    tasksSnapshot.forEach((taskDoc) => {
+      const taskData = taskDoc.data();
+      const detailSettings = taskData.detailSettings;
+
+      // 予定時間を取得
+      const estimatedHoursStr = detailSettings?.workTime?.estimatedHours;
+      if (!estimatedHoursStr || typeof estimatedHoursStr !== 'string') {
+        return; // 予定時間が未設定の場合はスキップ
+      }
+
+      // "HH:MM"形式を時間数に変換
+      const [hours, minutes] = estimatedHoursStr.split(':').map(Number);
+      const totalHours = hours + minutes / 60;
+
+      if (totalHours <= 0) {
+        return; // 0時間以下の場合はスキップ
+      }
+
+      // タスクの期間を取得
+      const taskStartDate = taskData.startDate;
+      const taskDueDate = taskData.dueDate || taskStartDate;
+
+      if (!taskStartDate || !taskDueDate) {
+        return; // 開始日または期日が未設定の場合はスキップ
+      }
+
+      // タスクの期間をDateオブジェクトに変換
+      let taskStart: Date;
+      let taskEnd: Date;
+
+      if (typeof taskStartDate === 'string') {
+        const [year, month, day] = taskStartDate
+          .split('T')[0]
+          .split('-')
+          .map(Number);
+        taskStart = new Date(year, month - 1, day);
+      } else {
+        taskStart = new Date(taskStartDate);
+      }
+
+      if (typeof taskDueDate === 'string') {
+        const [year, month, day] = taskDueDate
+          .split('T')[0]
+          .split('-')
+          .map(Number);
+        taskEnd = new Date(year, month - 1, day);
+      } else {
+        taskEnd = new Date(taskDueDate);
+      }
+
+      taskStart.setHours(0, 0, 0, 0);
+      taskEnd.setHours(23, 59, 59, 999);
+
+      // タスクの期間がチェック期間と重なっているかチェック
+      // タスクの開始日が終了日より前、またはタスクの終了日が開始日より後なら重なっている
+      if (taskEnd < jstToday || taskStart > endDate) {
+        return; // 期間が重なっていない場合はスキップ
+      }
+
+      // 担当者を特定
+      const assigneeEmail = taskData.assigneeEmail;
+      const assignee = taskData.assignee;
+      const assignedMembers = taskData.assignedMembers || [];
+
+      const userEmails = new Set<string>();
+
+      // メールアドレスで一致
+      if (assigneeEmail) {
+        userEmails.add(assigneeEmail);
+      }
+
+      // assignedMembersに含まれるユーザー
+      assignedMembers.forEach((memberId: string) => {
+        const email = memberEmailMap.get(memberId);
+        if (email) {
+          userEmails.add(email);
+        }
+      });
+
+      // assigneeが名前の場合
+      if (assignee) {
+        const assigneeNames = assignee
+          .split(',')
+          .map((n: string) => n.trim())
+          .filter((n: string) => !!n);
+        assigneeNames.forEach((name: string) => {
+          const email = memberNameMap.get(name);
+          if (email) {
+            userEmails.add(email);
+          }
+        });
+      }
+
+      // ユーザーごとに予定時間を集計
+      userEmails.forEach((email) => {
+        if (!userWorkTimeMap[email]) {
+          userWorkTimeMap[email] = 0;
+        }
+        userWorkTimeMap[email] += totalHours;
+      });
+    });
+  }
+
+  console.log(`📊 ユーザーごとの予定時間集計結果:`, userWorkTimeMap);
+  return userWorkTimeMap;
+}
+
+/**
+ * 🔹 ユーザーがメンバーに登録されている全プロジェクトの責任者を取得
+ */
+async function getProjectManagersForUser(
+  roomId: string,
+  roomDocId: string,
+  userEmail: string,
+  userName?: string
+): Promise<string[]> {
+  const db = admin.firestore();
+
+  // メンバー情報を取得
+  const membersSnapshot = await db
+    .collection('members')
+    .where('roomId', '==', roomId)
+    .get();
+
+  const memberEmailMap = new Map<string, string>(); // memberId -> email
+  const memberNameMap = new Map<string, string>(); // name -> email
+  const memberIdMap = new Map<string, string>(); // email -> memberId
+  membersSnapshot.forEach((doc) => {
+    const memberData = doc.data();
+    if (memberData.email) {
+      if (doc.id) {
+        memberEmailMap.set(doc.id, memberData.email);
+        memberIdMap.set(memberData.email, doc.id);
+      }
+      if (memberData.name) {
+        memberNameMap.set(memberData.name, memberData.email);
+      }
+    }
+  });
+
+  // ユーザーのメンバーIDを取得
+  const userMemberId = memberIdMap.get(userEmail);
+
+  // プロジェクトを取得
+  const projectsRef = db.collection('projects');
+  let projectsSnapshot = await projectsRef
+    .where('roomDocId', '==', roomDocId)
+    .get();
+
+  if (projectsSnapshot.empty) {
+    projectsSnapshot = await projectsRef.where('roomId', '==', roomId).get();
+  }
+
+  const managerEmails = new Set<string>();
+
+  projectsSnapshot.forEach((projectDoc) => {
+    const projectData = projectDoc.data();
+    const members = projectData.members;
+
+    // ユーザーがメンバーに含まれているかチェック
+    let isMember = false;
+
+    if (typeof members === 'string') {
+      const memberNames = members.split(',').map((n: string) => n.trim());
+      if (userName && memberNames.includes(userName)) {
+        isMember = true;
+      }
+      if (
+        memberNames.some((name: string) => {
+          const email = memberNameMap.get(name);
+          return email === userEmail;
+        })
+      ) {
+        isMember = true;
+      }
+    } else if (Array.isArray(members)) {
+      members.forEach((member: any) => {
+        if (typeof member === 'string') {
+          if (userMemberId === member || userName === member) {
+            isMember = true;
+          }
+        } else if (member && member.id) {
+          if (userMemberId === member.id) {
+            isMember = true;
+          }
+        }
+      });
+    }
+
+    if (!isMember) {
+      return; // メンバーに含まれていない場合はスキップ
+    }
+
+    // 責任者を取得
+    const responsibleEmail = projectData.responsibleEmail;
+    if (responsibleEmail) {
+      managerEmails.add(responsibleEmail);
+    }
+
+    const responsibleId = projectData.responsibleId;
+    if (responsibleId) {
+      const email = memberEmailMap.get(responsibleId);
+      if (email) {
+        managerEmails.add(email);
+      }
+    }
+
+    const responsibles = projectData.responsibles;
+    if (Array.isArray(responsibles)) {
+      responsibles.forEach((responsible: any) => {
+        if (responsible?.memberEmail) {
+          managerEmails.add(responsible.memberEmail);
+        } else if (responsible?.memberId) {
+          const email = memberEmailMap.get(responsible.memberId);
+          if (email) {
+            managerEmails.add(email);
+          }
+        }
+      });
+    }
+
+    const responsible = projectData.responsible;
+    if (typeof responsible === 'string') {
+      const responsibleNames = responsible
+        .split(',')
+        .map((n: string) => n.trim());
+      responsibleNames.forEach((name: string) => {
+        const email = memberNameMap.get(name);
+        if (email) {
+          managerEmails.add(email);
+        }
+      });
+    }
+  });
+
+  return Array.from(managerEmails);
+}
+
+/**
+ * 🔹 作業時間オーバー通知をスケジュール実行（毎分チェック）
+ */
+export const sendWorkTimeOverflowNotifications = onSchedule(
+  {
+    schedule: '* * * * *', // 毎分実行
+    timeZone: 'Asia/Tokyo',
+    memory: '512MiB',
+    timeoutSeconds: 540,
+    secrets: [sendgridApiKey, sendgridFromEmail],
+  },
+  async () => {
+    console.log('🕙 作業時間オーバー通知スケジュール実行開始');
+    const db = admin.firestore();
+    const apiKey = sendgridApiKey
+      .value()
+      .trim()
+      .replace(/[\r\n\t\s]+/g, '');
+    sgMail.setApiKey(apiKey);
+    const fromEmail = sendgridFromEmail.value() || 'noreply@taskmanager.com';
+
+    // JST（Asia/Tokyo）で現在時刻を取得
+    const now = new Date();
+    const jstNow = new Date(
+      now.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' })
+    );
+    const currentTime = `${jstNow
+      .getHours()
+      .toString()
+      .padStart(2, '0')}:${jstNow.getMinutes().toString().padStart(2, '0')}`;
+    const currentDay = jstNow.getDay();
+
+    console.log(`⏰ JST現在時刻: ${currentTime} (UTC: ${now.toISOString()})`);
+
+    try {
+      // 全通知設定を取得
+      const settingsSnapshot = await db
+        .collection('notificationSettings')
+        .where('workTimeOverflowNotifications.enabled', '==', true)
+        .get();
+
+      console.log(
+        `📋 作業時間オーバー通知有効な設定数: ${settingsSnapshot.docs.length}`
+      );
+
+      for (const settingsDoc of settingsSnapshot.docs) {
+        const settings = settingsDoc.data();
+        const settingUserId = settings.userId;
+        const roomId = settings.roomId;
+        const roomDocId = settings.roomDocId;
+
+        if (!roomId || !roomDocId) {
+          console.warn(`⚠️ ルーム情報が未設定: userId=${settingUserId}`);
+          continue;
+        }
+
+        const notificationTime =
+          settings.workTimeOverflowNotifications?.timeOfDay || '09:00';
+        console.log(
+          `🔍 ユーザー ${settingUserId}: 設定時刻=${notificationTime}, 現在時刻=${currentTime}`
+        );
+
+        if (notificationTime !== currentTime) {
+          continue;
+        }
+
+        console.log(
+          `✅ 通知時刻一致！ユーザー ${settingUserId} の通知を処理開始`
+        );
+
+        // 通知オフ期間をチェック
+        if (settings.quietHours?.enabled) {
+          if (
+            settings.quietHours.weekends &&
+            (currentDay === 0 || currentDay === 6)
+          ) {
+            continue;
+          }
+
+          const startTime = settings.quietHours.startTime;
+          const endTime = settings.quietHours.endTime;
+          if (startTime && endTime) {
+            if (startTime <= endTime) {
+              if (currentTime >= startTime && currentTime <= endTime) {
+                continue;
+              }
+            } else {
+              if (currentTime >= startTime || currentTime <= endTime) {
+                continue;
+              }
+            }
+          }
+        }
+
+        // メール通知が有効かチェック
+        if (!settings.notificationChannels?.email?.enabled) {
+          continue;
+        }
+
+        const checkPeriodDays =
+          settings.workTimeOverflowNotifications?.checkPeriodDays || 7;
+        const maxWorkHours =
+          settings.workTimeOverflowNotifications?.maxWorkHours || 40;
+
+        console.log(
+          `📊 チェック期間: 未来${checkPeriodDays}日間, 最大予定時間: ${maxWorkHours}時間`
+        );
+
+        // ユーザーごとの予定時間を集計
+        const userWorkTimeMap = await getUserWorkTimeSummary(
+          roomId,
+          roomDocId,
+          checkPeriodDays
+        );
+
+        // 予定時間オーバーのユーザーを特定
+        const overflowUsers: Array<{
+          email: string;
+          workHours: number;
+        }> = [];
+
+        for (const [userEmail, workHours] of Object.entries(userWorkTimeMap)) {
+          if (workHours > maxWorkHours) {
+            overflowUsers.push({ email: userEmail, workHours });
+            console.log(
+              `⚠️ 予定時間オーバー: ${userEmail} (${workHours.toFixed(
+                2
+              )}時間 / ${maxWorkHours}時間)`
+            );
+          }
+        }
+
+        if (overflowUsers.length === 0) {
+          console.log(`📭 予定時間オーバーのユーザーなし`);
+          continue;
+        }
+
+        // 各オーバーユーザーについて、責任者に通知
+        for (const overflowUser of overflowUsers) {
+          const managerEmails = await getProjectManagersForUser(
+            roomId,
+            roomDocId,
+            overflowUser.email
+          );
+
+          if (managerEmails.length === 0) {
+            console.log(`⚠️ 責任者が見つかりません: ${overflowUser.email}`);
+            continue;
+          }
+
+          console.log(
+            `📧 通知先責任者: ${managerEmails.join(', ')} (ユーザー: ${
+              overflowUser.email
+            })`
+          );
+
+          // 責任者にメール送信
+          for (const managerEmail of managerEmails) {
+            try {
+              const msg = {
+                to: managerEmail,
+                from: fromEmail,
+                subject: `【予定時間オーバー通知】${overflowUser.email}の予定時間が上限を超えています`,
+                html: `
+                  <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+                    <h2 style="color:#d32f2f;">⏰ 予定時間オーバー通知</h2>
+                    <p>以下のユーザーの予定時間が設定された上限を超えています。</p>
+                    <div style="background-color:#fff3cd;padding:15px;margin:10px 0;border-radius:8px;border-left:4px solid #ff9800;">
+                      <h3 style="margin:0 0 10px;">ユーザー: ${
+                        overflowUser.email
+                      }</h3>
+                      <p><strong>予定時間合計:</strong> ${overflowUser.workHours.toFixed(
+                        2
+                      )}時間</p>
+                      <p><strong>設定上限:</strong> ${maxWorkHours}時間</p>
+                      <p><strong>超過時間:</strong> ${(
+                        overflowUser.workHours - maxWorkHours
+                      ).toFixed(2)}時間</p>
+                      <p><strong>集計期間:</strong> 未来${checkPeriodDays}日間</p>
+                      <p><strong>対象タスク:</strong> ステータス「未着手」「作業中」で、期間が重なるタスク</p>
+                    </div>
+                    <p style="color:#999;font-size:12px;">
+                      このメールはタスク管理アプリから自動送信されました。
+                    </p>
+                  </div>
+                `,
+              };
+              await sgMail.send(msg);
+              console.log(
+                `✅ 作業時間オーバー通知メール送信成功: ${managerEmail}`
+              );
+            } catch (error: any) {
+              console.error(
+                `❌ SendGrid送信エラー(${managerEmail}):`,
+                error.response?.body || error
+              );
+            }
+          }
+        }
+      }
+    } catch (error: any) {
+      console.error('❌ 作業時間オーバー通知スケジュール実行エラー:', error);
+    }
+  }
+);
+
+/**
+ * 🔹 作業時間オーバー通知を手動実行（デバッグ用）
+ */
+export const sendWorkTimeOverflowNotificationsManual = onCall(
+  { secrets: [sendgridApiKey, sendgridFromEmail], cors: true },
+  async (request) => {
+    if (!request.auth)
+      throw new HttpsError('unauthenticated', '認証が必要です');
+
+    const userId = request.data?.userId;
+    const roomId = request.data?.roomId;
+    const roomDocId = request.data?.roomDocId;
+    const force = request.data?.force || false;
+
+    const db = admin.firestore();
+    const apiKey = sendgridApiKey
+      .value()
+      .trim()
+      .replace(/[\r\n\t\s]+/g, '');
+    sgMail.setApiKey(apiKey);
+    const fromEmail = sendgridFromEmail.value() || 'noreply@taskmanager.com';
+
+    // JST（Asia/Tokyo）で現在時刻を取得
+    const now = new Date();
+    const jstNow = new Date(
+      now.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' })
+    );
+    const currentTime = `${jstNow
+      .getHours()
+      .toString()
+      .padStart(2, '0')}:${jstNow.getMinutes().toString().padStart(2, '0')}`;
+    const currentDay = jstNow.getDay();
+
+    console.log(`⏰ JST現在時刻: ${currentTime} (UTC: ${now.toISOString()})`);
+
+    try {
+      // 通知設定を取得
+      let settingsQuery: admin.firestore.Query = db.collection(
+        'notificationSettings'
+      );
+
+      if (userId) {
+        settingsQuery = settingsQuery.where('userId', '==', userId);
+      } else {
+        settingsQuery = settingsQuery.where(
+          'workTimeOverflowNotifications.enabled',
+          '==',
+          true
+        );
+      }
+
+      const settingsSnapshot = await settingsQuery.get();
+      console.log(`📋 通知設定数: ${settingsSnapshot.docs.length}`);
+
+      const results: any[] = [];
+
+      for (const settingsDoc of settingsSnapshot.docs) {
+        const settings = settingsDoc.data();
+        const settingUserId = settings.userId;
+        const settingRoomId = settings.roomId;
+        const settingRoomDocId = settings.roomDocId;
+
+        console.log(`\n👤 ユーザーID: ${settingUserId}`);
+        console.log(
+          `📦 ルームID: ${settingRoomId}, ルームDocID: ${settingRoomDocId}`
+        );
+
+        if (!settingRoomId || !settingRoomDocId) {
+          console.warn(`⚠️ ルーム情報が未設定: userId=${settingUserId}`);
+          results.push({ userId: settingUserId, error: 'ルーム情報が未設定' });
+          continue;
+        }
+
+        // ルームIDでフィルタリング（指定されている場合）
+        if (roomId && settingRoomId !== roomId) {
+          console.log(`⏭️ ルームID不一致のためスキップ`);
+          continue;
+        }
+        if (roomDocId && settingRoomDocId !== roomDocId) {
+          console.log(`⏭️ ルームDocID不一致のためスキップ`);
+          continue;
+        }
+
+        // 通知時間チェック（手動実行時はスキップ可能）
+        const notificationTime =
+          settings.workTimeOverflowNotifications?.timeOfDay || '09:00';
+        console.log(`⏰ 設定された通知時間: ${notificationTime}`);
+        if (notificationTime && notificationTime !== currentTime && !force) {
+          console.log(
+            `⏭️ 通知時間不一致のためスキップ（force=trueで強制実行可能）`
+          );
+          results.push({
+            userId: settingUserId,
+            skipped: true,
+            reason: `通知時間不一致: ${notificationTime} !== ${currentTime}`,
+          });
+          continue;
+        }
+
+        // 通知オフ期間をチェック
+        if (settings.quietHours?.enabled) {
+          if (
+            settings.quietHours.weekends &&
+            (currentDay === 0 || currentDay === 6)
+          ) {
+            console.log(`⏭️ 週末のためスキップ`);
+            results.push({
+              userId: settingUserId,
+              skipped: true,
+              reason: '週末',
+            });
+            continue;
+          }
+
+          const startTime = settings.quietHours.startTime;
+          const endTime = settings.quietHours.endTime;
+          if (startTime && endTime) {
+            if (startTime <= endTime) {
+              if (currentTime >= startTime && currentTime <= endTime) {
+                console.log(`⏭️ 通知オフ期間中のためスキップ`);
+                results.push({
+                  userId: settingUserId,
+                  skipped: true,
+                  reason: '通知オフ期間中',
+                });
+                continue;
+              }
+            } else {
+              if (currentTime >= startTime || currentTime <= endTime) {
+                console.log(`⏭️ 通知オフ期間中のためスキップ`);
+                results.push({
+                  userId: settingUserId,
+                  skipped: true,
+                  reason: '通知オフ期間中',
+                });
+                continue;
+              }
+            }
+          }
+        }
+
+        // メール通知が有効かチェック
+        if (!settings.notificationChannels?.email?.enabled) {
+          console.log(`⏭️ メール通知が無効のためスキップ`);
+          results.push({
+            userId: settingUserId,
+            skipped: true,
+            reason: 'メール通知が無効',
+          });
+          continue;
+        }
+
+        const checkPeriodDays =
+          settings.workTimeOverflowNotifications?.checkPeriodDays || 7;
+        const maxWorkHours =
+          settings.workTimeOverflowNotifications?.maxWorkHours || 40;
+
+        console.log(
+          `📊 チェック期間: 未来${checkPeriodDays}日間, 最大予定時間: ${maxWorkHours}時間`
+        );
+
+        // ユーザーごとの予定時間を集計
+        const userWorkTimeMap = await getUserWorkTimeSummary(
+          settingRoomId,
+          settingRoomDocId,
+          checkPeriodDays
+        );
+
+        // 予定時間オーバーのユーザーを特定
+        const overflowUsers: Array<{
+          email: string;
+          workHours: number;
+        }> = [];
+
+        for (const [userEmail, workHours] of Object.entries(userWorkTimeMap)) {
+          if (workHours > maxWorkHours) {
+            overflowUsers.push({ email: userEmail, workHours });
+            console.log(
+              `⚠️ 予定時間オーバー: ${userEmail} (${workHours.toFixed(
+                2
+              )}時間 / ${maxWorkHours}時間)`
+            );
+          }
+        }
+
+        if (overflowUsers.length === 0) {
+          console.log(`📭 予定時間オーバーのユーザーなし`);
+          results.push({
+            userId: settingUserId,
+            success: true,
+            overflowUserCount: 0,
+            message: '予定時間オーバーのユーザーなし',
+          });
+          continue;
+        }
+
+        // 各オーバーユーザーについて、責任者に通知
+        let notificationCount = 0;
+        for (const overflowUser of overflowUsers) {
+          const managerEmails = await getProjectManagersForUser(
+            settingRoomId,
+            settingRoomDocId,
+            overflowUser.email
+          );
+
+          if (managerEmails.length === 0) {
+            console.log(`⚠️ 責任者が見つかりません: ${overflowUser.email}`);
+            continue;
+          }
+
+          console.log(
+            `📧 通知先責任者: ${managerEmails.join(', ')} (ユーザー: ${
+              overflowUser.email
+            })`
+          );
+
+          // 責任者にメール送信
+          for (const managerEmail of managerEmails) {
+            try {
+              const msg = {
+                to: managerEmail,
+                from: fromEmail,
+                subject: `【予定時間オーバー通知】${overflowUser.email}の予定時間が上限を超えています`,
+                html: `
+                  <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+                    <h2 style="color:#d32f2f;">⏰ 予定時間オーバー通知</h2>
+                    <p>以下のユーザーの予定時間が設定された上限を超えています。</p>
+                    <div style="background-color:#fff3cd;padding:15px;margin:10px 0;border-radius:8px;border-left:4px solid #ff9800;">
+                      <h3 style="margin:0 0 10px;">ユーザー: ${
+                        overflowUser.email
+                      }</h3>
+                      <p><strong>予定時間合計:</strong> ${overflowUser.workHours.toFixed(
+                        2
+                      )}時間</p>
+                      <p><strong>設定上限:</strong> ${maxWorkHours}時間</p>
+                      <p><strong>超過時間:</strong> ${(
+                        overflowUser.workHours - maxWorkHours
+                      ).toFixed(2)}時間</p>
+                      <p><strong>集計期間:</strong> 未来${checkPeriodDays}日間</p>
+                      <p><strong>対象タスク:</strong> ステータス「未着手」「作業中」で、期間が重なるタスク</p>
+                    </div>
+                    <p style="color:#999;font-size:12px;">
+                      このメールはタスク管理アプリから自動送信されました。
+                    </p>
+                  </div>
+                `,
+              };
+              await sgMail.send(msg);
+              console.log(
+                `✅ 作業時間オーバー通知メール送信成功: ${managerEmail}`
+              );
+              notificationCount++;
+            } catch (error: any) {
+              console.error(
+                `❌ SendGrid送信エラー(${managerEmail}):`,
+                error.response?.body || error
+              );
+            }
+          }
+        }
+
+        results.push({
+          userId: settingUserId,
+          success: true,
+          overflowUserCount: overflowUsers.length,
+          notificationCount,
+        });
+      }
+
+      return {
+        success: true,
+        message: '作業時間オーバー通知の手動実行が完了しました',
+        currentTime,
+        results,
+      };
+    } catch (error: any) {
+      console.error('❌ 作業時間オーバー通知手動実行エラー:', error);
+      throw new HttpsError('internal', `エラー: ${error.message}`);
+    }
+  }
+);
+
 export { addTaskToCalendar } from './calendarSync';

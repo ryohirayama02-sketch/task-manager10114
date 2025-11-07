@@ -32,6 +32,7 @@ export interface NotificationSettings {
     enabled: boolean;
     checkPeriodDays: number; // 何日間の作業時間をチェックするか
     maxWorkHours: number; // 最大作業時間（時間）
+    timeOfDay: string; // "09:00" 形式
     notifyManager: boolean;
     notifyAssignee: boolean;
   };
