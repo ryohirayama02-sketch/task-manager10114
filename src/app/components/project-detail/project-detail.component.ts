@@ -855,11 +855,28 @@ export class ProjectDetailComponent implements OnInit {
         });
         this.taskNameById = nameMap;
         this.tasks = this.sortTasks(tasks);
-        this.assigneeOptions = [
-          ...new Set(
-            tasks.map((task) => task.assignee).filter((assignee) => !!assignee)
-          ),
-        ];
+        
+        // ✅ 修正：カンマ区切りメンバー対応
+        const assigneeSet = new Set<string>();
+        tasks.forEach((task) => {
+          if (task.assignee) {
+            const assignees = task.assignee
+              .split(',')
+              .map((name) => name.trim())
+              .filter((name) => name.length > 0);
+            assignees.forEach((assignee) => assigneeSet.add(assignee));
+          }
+          // assignedMembers も処理
+          if (Array.isArray((task as any).assignedMembers)) {
+            (task as any).assignedMembers.forEach((member: string) => {
+              if (typeof member === 'string') {
+                assigneeSet.add(member.trim());
+              }
+            });
+          }
+        });
+        this.assigneeOptions = Array.from(assigneeSet).sort();
+        
         this.filteredTasks = [...this.tasks];
         console.log('プロジェクトのタスク一覧:', tasks);
       });
@@ -872,9 +889,31 @@ export class ProjectDetailComponent implements OnInit {
         !this.filterStatus || task.status === this.filterStatus;
       const priorityMatch =
         !this.filterPriority || task.priority === this.filterPriority;
-      const assigneeMatch =
-        !this.filterAssignee ||
-        task.assignee.toLowerCase().includes(this.filterAssignee.toLowerCase());
+      
+      // ✅ 修正：カンマ区切りメンバー対応
+      let assigneeMatch = false;
+      if (!this.filterAssignee) {
+        assigneeMatch = true;
+      } else {
+        // assignee をカンマで分割
+        const assignees = (task.assignee || '')
+          .split(',')
+          .map((name) => name.trim().toLowerCase())
+          .filter((name) => name.length > 0);
+        
+        // assignedMembers も含める
+        if (Array.isArray((task as any).assignedMembers)) {
+          assignees.push(
+            ...(task as any).assignedMembers.map((m: string) => m.toLowerCase())
+          );
+        }
+        
+        // フィルター値とマッチするか確認
+        assigneeMatch = assignees.some(
+          (a) => a === this.filterAssignee.toLowerCase()
+        );
+      }
+      
       const dueDateMatch =
         !this.filterDueDate || task.dueDate === this.filterDueDate;
 
