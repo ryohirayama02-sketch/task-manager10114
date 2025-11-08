@@ -277,10 +277,30 @@ export class CalendarComponent implements OnInit, OnDestroy {
         (task) => this.filterPriority.includes(task.priority)
       );
     }
+    // 担当者フィルター（カンマ区切り対応）
     if (this.filterAssignee.length > 0) {
-      filteredTasks = filteredTasks.filter(
-        (task) => this.filterAssignee.includes(task.assignee)
-      );
+      filteredTasks = filteredTasks.filter((task) => {
+        if (!task.assignee) {
+          return false;
+        }
+        // assignee をカンマで分割
+        const assignees = task.assignee
+          .split(',')
+          .map((name) => name.trim())
+          .filter((name) => name.length > 0);
+        
+        // assignedMembers も含める
+        if (Array.isArray((task as any).assignedMembers)) {
+          assignees.push(
+            ...(task as any).assignedMembers.map((m: string) => String(m).trim())
+          );
+        }
+        
+        // フィルター値とマッチするか確認
+        return assignees.some((assignee) =>
+          this.filterAssignee.includes(assignee)
+        );
+      });
     }
     if (this.filterStatus.length > 0) {
       filteredTasks = filteredTasks.filter(
@@ -472,16 +492,31 @@ export class CalendarComponent implements OnInit, OnDestroy {
     this.filterTasksBySelectedProjects();
   }
 
-  /** ユニークな担当者一覧を取得 */
+  /** ユニークな担当者一覧を取得（カンマ区切り対応） */
   getUniqueAssignees(): string[] {
-    const assignees = [
-      ...new Set(
-        this.allTasks
-          .map((task) => task.assignee)
-          .filter((assignee) => assignee)
-      ),
-    ];
-    return assignees;
+    const assigneeSet = new Set<string>();
+    
+    this.allTasks.forEach((task) => {
+      if (task.assignee) {
+        // assignee をカンマで分割
+        const assignees = task.assignee
+          .split(',')
+          .map((name) => name.trim())
+          .filter((name) => name.length > 0);
+        assignees.forEach((assignee) => assigneeSet.add(assignee));
+      }
+      
+      // assignedMembers も含める
+      if (Array.isArray((task as any).assignedMembers)) {
+        (task as any).assignedMembers.forEach((member: string) => {
+          if (typeof member === 'string') {
+            assigneeSet.add(member.trim());
+          }
+        });
+      }
+    });
+    
+    return Array.from(assigneeSet).sort();
   }
 
   /** タスク詳細画面に遷移 */
