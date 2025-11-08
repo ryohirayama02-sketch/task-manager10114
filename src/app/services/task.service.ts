@@ -11,9 +11,10 @@ import {
   where,
   getDocs,
 } from '@angular/fire/firestore';
-import { Observable, of, switchMap } from 'rxjs';
+import { Observable, of, switchMap, firstValueFrom } from 'rxjs';
 import { EditLogService } from './edit-log.service';
 import { AuthService } from './auth.service';
+import { MemberManagementService } from './member-management.service';
 import { Task, ChangeDetail } from '../models/task.model';
 import {
   DEFAULT_PROJECT_THEME_COLOR,
@@ -25,7 +26,8 @@ export class TaskService {
   constructor(
     private firestore: Firestore,
     private editLogService: EditLogService,
-    private authService: AuthService
+    private authService: AuthService,
+    private memberManagementService: MemberManagementService
   ) {}
 
   /** 🔹 Firestoreからタスク一覧を取得 */
@@ -66,142 +68,160 @@ export class TaskService {
         );
 
         return new Observable<Task[]>((observer) => {
-          getDocs(projectsQuery)
-            .then((projectsSnapshot) => {
-              const allTasks: Task[] = [];
-              const promises: Promise<void>[] = [];
+          // メンバー一覧を取得
+          firstValueFrom(this.memberManagementService.getMembers())
+            .then((allMembers) => {
+              getDocs(projectsQuery)
+                .then((projectsSnapshot) => {
+                  const allTasks: Task[] = [];
+                  const promises: Promise<void>[] = [];
 
-              projectsSnapshot.docs.forEach((projectDoc) => {
-                const projectId = projectDoc.id;
-                const projectData = projectDoc.data();
-                const tasksRef = collection(
-                  this.firestore,
-                  `projects/${projectId}/tasks`
-                );
-                const taskPromise = getDocs(tasksRef).then((tasksSnapshot) => {
-                  tasksSnapshot.docs.forEach((taskDoc) => {
-                    const taskData = taskDoc.data();
-                    const projectThemeColor = resolveProjectThemeColor(
-                      projectData as any
+                  projectsSnapshot.docs.forEach((projectDoc) => {
+                    const projectId = projectDoc.id;
+                    const projectData = projectDoc.data();
+                    const tasksRef = collection(
+                      this.firestore,
+                      `projects/${projectId}/tasks`
                     );
-                    allTasks.push({
-                      id: taskDoc.id,
-                      projectId,
-                      projectName: projectData['projectName'] || 'プロジェクト',
-                      ...taskData,
-                      projectThemeColor,
-                    } as Task);
+                    const taskPromise = getDocs(tasksRef).then((tasksSnapshot) => {
+                      tasksSnapshot.docs.forEach((taskDoc) => {
+                        const taskData = taskDoc.data();
+                        const projectThemeColor = resolveProjectThemeColor(
+                          projectData as any
+                        );
+                        allTasks.push({
+                          id: taskDoc.id,
+                          projectId,
+                          projectName: projectData['projectName'] || 'プロジェクト',
+                          ...taskData,
+                          projectThemeColor,
+                        } as Task);
+                      });
+                    });
+                    promises.push(taskPromise);
                   });
-                });
-                promises.push(taskPromise);
-              });
 
-              const standalonePromise = getDocs(standaloneTasksQuery).then(
-                (tasksSnapshot) => {
-                  tasksSnapshot.docs.forEach((taskDoc) => {
-                    const taskData = taskDoc.data();
-                    allTasks.push({
-                      id: taskDoc.id,
-                      projectId: taskData['projectId'] || '',
-                      projectName: taskData['projectName'] || 'タスク',
-                      ...taskData,
-                      projectThemeColor: DEFAULT_PROJECT_THEME_COLOR,
-                    } as Task);
-                  });
-                }
-              );
-              promises.push(standalonePromise);
-
-              Promise.all(promises)
-                .then(() => {
-                  const members = Array.isArray(memberNames)
-                    ? memberNames.map((m) => m.trim().toLowerCase())
-                    : memberNames
-                    ? [memberNames.trim().toLowerCase()]
-                    : [];
-
-                  // 🔍 デバッグ情報
-                  console.log('🔍 デバッグ情報:');
-                  console.log('  userEmail:', userEmail);
-                  console.log('  memberNames:', memberNames);
-                  console.log('  members (小文字化):', members);
-                  console.log('  全タスク数:', allTasks.length);
-
-                  const filtered = allTasks.filter((task) => {
-                    const due = task.dueDate;
-                    const isWithin =
-                      due >= todayStr &&
-                      due <= targetDateStr &&
-                      (task.status === '未着手' || task.status === '作業中');
-
-                    let assignees: string[] = [];
-
-                    // ① assignee（カンマ区切り）
-                    if (task.assignee) {
-                      assignees.push(
-                        ...task.assignee
-                          .split(',')
-                          .map((n) => n.trim().toLowerCase())
-                          .filter((n) => n.length > 0)
-                      );
+                  const standalonePromise = getDocs(standaloneTasksQuery).then(
+                    (tasksSnapshot) => {
+                      tasksSnapshot.docs.forEach((taskDoc) => {
+                        const taskData = taskDoc.data();
+                        allTasks.push({
+                          id: taskDoc.id,
+                          projectId: taskData['projectId'] || '',
+                          projectName: taskData['projectName'] || 'タスク',
+                          ...taskData,
+                          projectThemeColor: DEFAULT_PROJECT_THEME_COLOR,
+                        } as Task);
+                      });
                     }
+                  );
+                  promises.push(standalonePromise);
 
-                    // ② assignedMembers
-                    if (Array.isArray((task as any).assignedMembers)) {
-                      (task as any).assignedMembers.forEach((member: any) => {
-                        if (typeof member === 'string') {
-                          assignees.push(member.trim().toLowerCase());
-                        } else if (typeof member === 'object') {
-                          if (member.memberName)
-                            assignees.push(
-                              member.memberName.trim().toLowerCase()
-                            );
-                          if (member.name)
-                            assignees.push(member.name.trim().toLowerCase());
-                          if (member.memberEmail)
-                            assignees.push(
-                              member.memberEmail.trim().toLowerCase()
-                            );
-                          if (member.email)
-                            assignees.push(member.email.trim().toLowerCase());
+                  Promise.all(promises)
+                    .then(() => {
+                      const members = Array.isArray(memberNames)
+                        ? memberNames.map((m) => m.trim().toLowerCase())
+                        : memberNames
+                        ? [memberNames.trim().toLowerCase()]
+                        : [];
+
+                      // 🔍 デバッグ情報
+                      console.log('🔍 デバッグ情報:');
+                      console.log('  userEmail:', userEmail);
+                      console.log('  memberNames:', memberNames);
+                      console.log('  members (小文字化):', members);
+                      console.log('  全タスク数:', allTasks.length);
+
+                      const filtered = allTasks.filter((task) => {
+                        const due = task.dueDate;
+                        const isWithin =
+                          due >= todayStr &&
+                          due <= targetDateStr &&
+                          (task.status === '未着手' || task.status === '作業中');
+
+                        let assignees: string[] = [];
+
+                        // ① assignee（カンマ区切り）
+                        if (task.assignee) {
+                          assignees.push(
+                            ...task.assignee
+                              .split(',')
+                              .map((n) => n.trim().toLowerCase())
+                              .filter((n) => n.length > 0)
+                          );
                         }
+
+                        // ② assignedMembers（メンバーIDからメンバー名に変換）
+                        if (Array.isArray((task as any).assignedMembers)) {
+                          (task as any).assignedMembers.forEach((memberId: any) => {
+                            if (typeof memberId === 'string') {
+                              // メンバーIDからメンバー名を取得
+                              const member = allMembers.find((m) => m.id === memberId);
+                              const memberName = member ? member.name : memberId;
+                              
+                              // メンバー名がカンマ区切りの場合も分割
+                              const names = memberName
+                                .split(',')
+                                .map((n) => n.trim().toLowerCase())
+                                .filter((n) => n.length > 0);
+                              
+                              assignees.push(...names);
+                            } else if (typeof memberId === 'object') {
+                              if (memberId.memberName)
+                                assignees.push(
+                                  memberId.memberName.trim().toLowerCase()
+                                );
+                              if (memberId.name)
+                                assignees.push(memberId.name.trim().toLowerCase());
+                              if (memberId.memberEmail)
+                                assignees.push(
+                                  memberId.memberEmail.trim().toLowerCase()
+                                );
+                              if (memberId.email)
+                                assignees.push(memberId.email.trim().toLowerCase());
+                            }
+                          });
+                        }
+
+                        // ③ assigneeEmail
+                        if (task.assigneeEmail) {
+                          assignees.push(task.assigneeEmail.trim().toLowerCase());
+                        }
+
+                        assignees = [...new Set(assignees)];
+
+                        const match =
+                          members.length > 0
+                            ? assignees.some((a) => members.includes(a))
+                            : assignees.includes(userEmail?.toLowerCase() || '');
+
+                        // ✅ デバッグ: マッチしたタスクをログ出力
+                        if (match && isWithin) {
+                          console.log('✅ マッチしたタスク:', {
+                            taskName: task.taskName,
+                            assignee: task.assignee,
+                            assignedMembers: (task as any).assignedMembers,
+                            計算されたassignees: assignees,
+                            期日: task.dueDate,
+                          });
+                        }
+
+                        return isWithin && match;
                       });
-                    }
 
-                    // ③ assigneeEmail
-                    if (task.assigneeEmail) {
-                      assignees.push(task.assigneeEmail.trim().toLowerCase());
-                    }
+                      console.log('フィルター後のタスク数:', filtered.length);
 
-                    assignees = [...new Set(assignees)];
-
-                    const match =
-                      members.length > 0
-                        ? assignees.some((a) => members.includes(a))
-                        : assignees.includes(userEmail?.toLowerCase() || '');
-
-                    // ✅ デバッグ: マッチしたタスクをログ出力
-                    if (match && isWithin) {
-                      console.log('✅ マッチしたタスク:', {
-                        taskName: task.taskName,
-                        assignee: task.assignee,
-                        assignedMembers: (task as any).assignedMembers,
-                        計算されたassignees: assignees,
-                        期日: task.dueDate,
-                      });
-                    }
-
-                    return isWithin && match;
-                  });
-
-                  console.log('フィルター後のタスク数:', filtered.length);
-
-                  observer.next(filtered);
-                  observer.complete();
+                      observer.next(filtered);
+                      observer.complete();
+                    })
+                    .catch((error) => observer.error(error));
                 })
                 .catch((error) => observer.error(error));
             })
-            .catch((error) => observer.error(error));
+            .catch((error) => {
+              console.error('メンバー一覧の取得エラー:', error);
+              observer.error(error);
+            });
         });
       })
     );
