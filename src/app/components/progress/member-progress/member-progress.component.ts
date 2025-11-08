@@ -11,6 +11,8 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { PeriodFilterDialogComponent } from '../period-filter-dialog/period-filter-dialog.component';
 import { TranslatePipe } from '../../../pipes/translate.pipe';
 import { LanguageService } from '../../../services/language.service';
+import { MemberManagementService } from '../../../services/member-management.service';
+import { Member } from '../../../models/member.model';
 
 interface MemberProgress {
   name: string;
@@ -45,15 +47,28 @@ export class MemberProgressComponent implements OnInit {
   private router = inject(Router);
   private dialog = inject(MatDialog);
   private languageService = inject(LanguageService);
+  private memberManagementService = inject(MemberManagementService);
 
   members: MemberProgress[] = [];
   isLoading = true;
   private allTasks: Task[] = [];
+  private allMembers: Member[] = []; // メンバー一覧
   periodStartDate: Date | null = null;
   periodEndDate: Date | null = null;
 
   ngOnInit() {
-    this.loadMemberProgress();
+    // メンバー一覧を読み込み
+    this.memberManagementService.getMembers().subscribe({
+      next: (members) => {
+        this.allMembers = members;
+        console.log('メンバー一覧を読み込みました:', members.length, '件');
+        this.loadMemberProgress();
+      },
+      error: (error) => {
+        console.error('メンバー一覧の読み込みエラー:', error);
+        this.loadMemberProgress();
+      },
+    });
   }
 
   loadMemberProgress() {
@@ -117,13 +132,25 @@ export class MemberProgressComponent implements OnInit {
         });
       }
 
-      // ✅ assignedMembers が存在する場合も各メンバーに追加
+      // ✅ assignedMembers が存在する場合も各メンバーに追加（メンバーIDから名前を取得）
       if (task.assignedMembers && task.assignedMembers.length > 0) {
-        task.assignedMembers.forEach((memberName) => {
-          if (!memberTaskMap.has(memberName)) {
-            memberTaskMap.set(memberName, []);
-          }
-          memberTaskMap.get(memberName)!.push(task);
+        task.assignedMembers.forEach((memberId) => {
+          // メンバーIDからメンバー名を取得
+          const member = this.allMembers.find((m) => m.id === memberId);
+          const memberName = member ? member.name : memberId;
+          
+          // メンバー名がカンマ区切りの場合も分割
+          const names = memberName
+            .split(',')
+            .map((name) => name.trim())
+            .filter((name) => name.length > 0);
+          
+          names.forEach((name) => {
+            if (!memberTaskMap.has(name)) {
+              memberTaskMap.set(name, []);
+            }
+            memberTaskMap.get(name)!.push(task);
+          });
         });
       }
     });
