@@ -14,8 +14,7 @@
         <!-- 担当者 -->
         <mat-form-field appearance="outline" class="filter-field">
           <mat-label>担当者</mat-label>
-          <mat-select [(ngModel)]="filters.assignee">
-            <mat-option value="">すべて</mat-option>
+          <mat-select [(ngModel)]="filters.assignee" multiple>
             <mat-option *ngFor="let assignee of assignees" [value]="assignee">
               {{ assignee }}
             </mat-option>
@@ -25,8 +24,7 @@
         <!-- 優先度 -->
         <mat-form-field appearance="outline" class="filter-field">
           <mat-label>優先度</mat-label>
-          <mat-select [(ngModel)]="filters.priority">
-            <mat-option value="">すべて</mat-option>
+          <mat-select [(ngModel)]="filters.priority" multiple>
             <mat-option *ngFor="let priority of priorities" [value]="priority">
               {{ priority }}
             </mat-option>
@@ -36,8 +34,7 @@
         <!-- ステータス -->
         <mat-form-field appearance="outline" class="filter-field">
           <mat-label>ステータス</mat-label>
-          <mat-select [(ngModel)]="filters.status">
-            <mat-option value="">すべて</mat-option>
+          <mat-select [(ngModel)]="filters.status" multiple>
             <mat-option *ngFor="let status of statuses" [value]="status">
               {{ status }}
             </mat-option>

@@ -12,6 +12,8 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { ProjectService } from '../../services/project.service';
+import { MemberManagementService } from '../../services/member-management.service';
+import { Member } from '../../models/member.model';
 import { Task } from '../../models/task.model';
 import { IProject } from '../../models/project.model';
 import {
@@ -20,9 +22,9 @@ import {
 } from '../../constants/project-theme-colors';
 
 interface SearchFilters {
-  assignee: string;
-  priority: string;
-  status: string;
+  assignee: string[];
+  priority: string[];
+  status: string[];
   tags: string[];
   freeWord: string;
 }
@@ -49,12 +51,13 @@ interface SearchFilters {
 export class TaskSearchComponent implements OnInit {
   private projectService = inject(ProjectService);
   private router = inject(Router);
+  private memberManagementService = inject(MemberManagementService);
 
   // 検索フィルター
   filters: SearchFilters = {
-    assignee: '',
-    priority: '',
-    status: '',
+    assignee: [],
+    priority: [],
+    status: [],
     tags: [],
     freeWord: '',
   };
@@ -64,6 +67,7 @@ export class TaskSearchComponent implements OnInit {
   priorities: string[] = ['高', '中', '低'];
   statuses: string[] = ['未着手', '作業中', '完了'];
   allTags: string[] = [];
+  private allMembers: Member[] = []; // メンバー一覧
 
   // 検索結果
   searchResults: Task[] = [];
@@ -73,7 +77,18 @@ export class TaskSearchComponent implements OnInit {
   readonly defaultThemeColor = DEFAULT_PROJECT_THEME_COLOR;
 
   ngOnInit() {
-    this.loadFilterOptions();
+    // メンバー一覧を読み込み
+    this.memberManagementService.getMembers().subscribe({
+      next: (members) => {
+        this.allMembers = members;
+        console.log('メンバー一覧を読み込みました:', members.length, '件');
+        this.loadFilterOptions();
+      },
+      error: (error) => {
+        console.error('メンバー一覧の読み込みエラー:', error);
+        this.loadFilterOptions();
+      },
+    });
   }
 
   loadFilterOptions() {
@@ -126,12 +141,47 @@ export class TaskSearchComponent implements OnInit {
   generateFilterOptions(allTasks: Task[]) {
     console.log('フィルター選択肢を生成中...', allTasks);
 
-    // 担当者一覧を生成
-    this.assignees = [
-      ...new Set(
-        allTasks.map((task) => task.assignee).filter((assignee) => assignee)
-      ),
-    ];
+    // 担当者一覧を生成（カンマ区切り対応）
+    const assigneeSet = new Set<string>();
+    
+    // タスクのassigneeから取得（カンマ区切りを分割）
+    allTasks.forEach((task) => {
+      if (task.assignee) {
+        const assignees = task.assignee
+          .split(',')
+          .map((name) => name.trim())
+          .filter((name) => name.length > 0);
+        assignees.forEach((assignee) => assigneeSet.add(assignee));
+      }
+      
+      // assignedMembers からも取得（メンバーIDからメンバー名に変換）
+      if (Array.isArray((task as any).assignedMembers)) {
+        (task as any).assignedMembers.forEach((memberId: string) => {
+          const member = this.allMembers.find((m) => m.id === memberId);
+          if (member && member.name) {
+            // メンバー名がカンマ区切りの場合も分割
+            const names = member.name
+              .split(',')
+              .map((n) => n.trim())
+              .filter((n) => n.length > 0);
+            names.forEach((name) => assigneeSet.add(name));
+          }
+        });
+      }
+    });
+    
+    // メンバー管理画面のメンバー一覧からも取得
+    this.allMembers.forEach((member) => {
+      if (member.name) {
+        const names = member.name
+          .split(',')
+          .map((n) => n.trim())
+          .filter((n) => n.length > 0);
+        names.forEach((name) => assigneeSet.add(name));
+      }
+    });
+    
+    this.assignees = Array.from(assigneeSet).sort();
 
     // タグ一覧を生成
     const allTags = allTasks.flatMap((task) => task.tags || []);
@@ -205,43 +255,59 @@ export class TaskSearchComponent implements OnInit {
 
     let filteredTasks = [...allTasks];
 
-    // 担当者でフィルタリング（カンマ区切り対応）
-    if (this.filters.assignee) {
+    // 担当者でフィルタリング（カンマ区切り対応、複数選択対応）
+    if (this.filters.assignee.length > 0) {
       filteredTasks = filteredTasks.filter((task) => {
-        if (!task.assignee) {
-          return false;
-        }
+        const assignees: string[] = [];
+        
         // assignee をカンマで分割
-        const assignees = task.assignee
-          .split(',')
-          .map((name) => name.trim())
-          .filter((name) => name.length > 0);
-        
-        // assignedMembers も含める
-        if (Array.isArray((task as any).assignedMembers)) {
-          assignees.push(
-            ...(task as any).assignedMembers.map((m: string) => String(m).trim())
-          );
+        if (task.assignee) {
+          const names = task.assignee
+            .split(',')
+            .map((name) => name.trim())
+            .filter((name) => name.length > 0);
+          assignees.push(...names);
         }
         
-        // フィルター値とマッチするか確認
-        return assignees.some(
-          (assignee) => assignee.toLowerCase() === this.filters.assignee.toLowerCase()
+        // assignedMembers も含める（メンバーIDからメンバー名に変換）
+        if (Array.isArray((task as any).assignedMembers)) {
+          (task as any).assignedMembers.forEach((memberId: string) => {
+            const member = this.allMembers.find((m) => m.id === memberId);
+            if (member && member.name) {
+              // メンバー名がカンマ区切りの場合も分割
+              const names = member.name
+                .split(',')
+                .map((n) => n.trim())
+                .filter((n) => n.length > 0);
+              assignees.push(...names);
+            } else if (typeof memberId === 'string') {
+              // メンバーが見つからない場合はIDをそのまま使用
+              assignees.push(memberId.trim());
+            }
+          });
+        }
+        
+        // フィルター値とマッチするか確認（複数選択対応）
+        return assignees.some((assignee) =>
+          this.filters.assignee.some(
+            (filterAssignee) =>
+              assignee.toLowerCase() === filterAssignee.toLowerCase()
+          )
         );
       });
     }
 
-    // 優先度でフィルタリング
-    if (this.filters.priority) {
-      filteredTasks = filteredTasks.filter(
-        (task) => task.priority === this.filters.priority
+    // 優先度でフィルタリング（複数選択対応）
+    if (this.filters.priority.length > 0) {
+      filteredTasks = filteredTasks.filter((task) =>
+        this.filters.priority.includes(task.priority)
       );
     }
 
-    // ステータスでフィルタリング
-    if (this.filters.status) {
-      filteredTasks = filteredTasks.filter(
-        (task) => task.status === this.filters.status
+    // ステータスでフィルタリング（複数選択対応）
+    if (this.filters.status.length > 0) {
+      filteredTasks = filteredTasks.filter((task) =>
+        this.filters.status.includes(task.status)
       );
     }
 
@@ -282,9 +348,9 @@ export class TaskSearchComponent implements OnInit {
 
   clearFilters() {
     this.filters = {
-      assignee: '',
-      priority: '',
-      status: '',
+      assignee: [],
+      priority: [],
+      status: [],
       tags: [],
       freeWord: '',
     };
