@@ -377,13 +377,15 @@ async function getTodayTasksForUser(
     jstToday.getMonth() + 1
   ).padStart(2, '0')}-${String(jstToday.getDate()).padStart(2, '0')}`;
 
-  console.log(`📅 今日のタスク取得: ${todayStr}`);
+  console.log(`📅 今日のタスク取得: ${todayStr}, roomId=${roomId}, roomDocId=${roomDocId}, userEmail=${userEmail}`);
 
   // メンバー情報を取得
   const membersSnapshot = await db
     .collection('members')
     .where('roomId', '==', roomId)
     .get();
+
+  console.log(`👥 メンバー数: ${membersSnapshot.size}`);
 
   const memberEmailMap = new Map<string, string>(); // memberId -> email
   const memberNameMap = new Map<string, string>(); // name -> email
@@ -445,6 +447,8 @@ async function getTodayTasksForUser(
         return;
       }
 
+      console.log(`🔍 タスク確認: ${taskData.taskName || taskData.task}, dueDate=${due}, status=${taskData.status}, assignee=${taskData.assignee}, assignedMembers=${JSON.stringify(taskData.assignedMembers)}`);
+
       // 担当者をチェック
       let assignees: string[] = [];
 
@@ -458,10 +462,25 @@ async function getTodayTasksForUser(
         );
       }
 
-      // ② assignedMembers
+      // ② assignedMembers（メンバーIDからメールアドレスや名前を取得）
       if (Array.isArray(taskData.assignedMembers)) {
         taskData.assignedMembers.forEach((member: any) => {
           if (typeof member === 'string') {
+            // メンバーIDの場合、メンバー情報からメールアドレスや名前を取得
+            const memberEmail = memberEmailMap.get(member);
+            const memberName = memberIdToNameMap.get(member);
+            if (memberEmail) {
+              assignees.push(memberEmail.trim().toLowerCase());
+            }
+            if (memberName) {
+              // メンバー名がカンマ区切りの場合も分割
+              const names = memberName
+                .split(',')
+                .map((n: string) => n.trim().toLowerCase())
+                .filter((n: string) => n.length > 0);
+              assignees.push(...names);
+            }
+            // メンバーIDそのものも追加（フォールバック）
             assignees.push(member.trim().toLowerCase());
           } else if (typeof member === 'object' && member) {
             if (member.memberName)
@@ -484,12 +503,28 @@ async function getTodayTasksForUser(
       const normalizedUserEmail = userEmail.trim().toLowerCase();
 
       // フロントエンド側と同じロジック
-      const match =
-        members.length > 0
-          ? assignees.some((a) => members.includes(a))
-          : assignees.includes(normalizedUserEmail);
+      // 1. メールアドレスで一致
+      let match = assignees.includes(normalizedUserEmail);
+
+      // 2. ユーザー名で一致（members配列がある場合）
+      if (!match && members.length > 0) {
+        match = assignees.some((a) => members.includes(a));
+      }
+
+      // 3. メンバーIDで一致（assignedMembersにuserMemberIdが含まれている場合）
+      if (!match && userMemberId) {
+        // assignedMembersにuserMemberIdが含まれているかチェック
+        if (Array.isArray(taskData.assignedMembers)) {
+          match = taskData.assignedMembers.some(
+            (member: any) =>
+              (typeof member === 'string' && member === userMemberId) ||
+              (typeof member === 'object' && member?.id === userMemberId)
+          );
+        }
+      }
 
       if (match) {
+        console.log(`✅ マッチしたタスク: ${taskData.taskName || taskData.task}`);
         allTasks.push({
           id: taskDoc.id,
           projectId,
@@ -499,9 +534,13 @@ async function getTodayTasksForUser(
           status: taskData.status,
           priority: taskData.priority,
         });
+      } else {
+        console.log(`❌ マッチしなかったタスク: ${taskData.taskName || taskData.task}, assignees=${JSON.stringify(assignees)}, userEmail=${userEmail}, userName=${userName}, userMemberId=${userMemberId}`);
       }
     });
   }
+
+  console.log(`📋 取得したタスク総数: ${allTasks.length}件`);
 
   // 期日でソート（早い順）
   allTasks.sort((a, b) => {
@@ -2520,8 +2559,23 @@ export const sendDailyTaskRemindersManual = onCall(
         );
       }
 
-      const settingsSnapshot = await settingsQuery.get();
+      let settingsSnapshot = await settingsQuery.get();
       console.log(`📋 通知設定数: ${settingsSnapshot.docs.length}`);
+
+      // userIdが指定されている場合、dailyDeadlineReminder.enabledもチェック
+      if (userId) {
+        const filteredDocs = settingsSnapshot.docs.filter((doc) => {
+          const data = doc.data();
+          return data.dailyDeadlineReminder?.enabled === true;
+        });
+        console.log(`📋 有効な通知設定数: ${filteredDocs.length} (userId指定時)`);
+        // フィルタリングされたドキュメントを使用
+        settingsSnapshot = {
+          docs: filteredDocs,
+          empty: filteredDocs.length === 0,
+          size: filteredDocs.length,
+        } as admin.firestore.QuerySnapshot;
+      }
 
       const results: any[] = [];
 
@@ -2536,19 +2590,34 @@ export const sendDailyTaskRemindersManual = onCall(
           `📦 ルームID: ${settingRoomId}, ルームDocID: ${settingRoomDocId}`
         );
 
+        // ルーム情報が未設定の場合はスキップ（エラーとして記録しない）
         if (!settingRoomId || !settingRoomDocId) {
-          console.warn(`⚠️ ルーム情報が未設定: userId=${settingUserId}`);
-          results.push({ userId: settingUserId, error: 'ルーム情報が未設定' });
+          console.warn(`⚠️ ルーム情報が未設定のためスキップ: userId=${settingUserId}`);
+          results.push({
+            userId: settingUserId,
+            skipped: true,
+            reason: 'ルーム情報が未設定',
+          });
           continue;
         }
 
         // ルームIDでフィルタリング（指定されている場合）
         if (roomId && settingRoomId !== roomId) {
           console.log(`⏭️ ルームID不一致のためスキップ`);
+          results.push({
+            userId: settingUserId,
+            skipped: true,
+            reason: 'ルームID不一致',
+          });
           continue;
         }
         if (roomDocId && settingRoomDocId !== roomDocId) {
           console.log(`⏭️ ルームDocID不一致のためスキップ`);
+          results.push({
+            userId: settingUserId,
+            skipped: true,
+            reason: 'ルームDocID不一致',
+          });
           continue;
         }
 
@@ -2649,28 +2718,39 @@ export const sendDailyTaskRemindersManual = onCall(
         });
 
         // 今日のタスクを取得（期日が今日で、ステータスが「作業中」「未着手」のタスク）
-        const todayTasks = await getTodayTasksForUser(
-          settingRoomId,
-          settingRoomDocId,
-          userEmail,
-          userName
-        );
-
-        if (todayTasks.length === 0) {
-          console.log(`📭 今日のタスクなし`);
-          results.push({
-            userId: settingUserId,
-            success: true,
-            taskCount: 0,
-            message: '今日のタスクなし',
-          });
-          continue;
-        }
-
-        console.log(`📋 今日のタスク数: ${todayTasks.length}件`);
-
-        // メール送信
         try {
+          console.log(`🔍 今日のタスクを取得中: userEmail=${userEmail}, userName=${userName}`);
+          const todayTasks = await getTodayTasksForUser(
+            settingRoomId,
+            settingRoomDocId,
+            userEmail,
+            userName
+          );
+
+          console.log(`📋 取得した今日のタスク数: ${todayTasks.length}件`);
+          if (todayTasks.length > 0) {
+            console.log(`📋 タスク一覧:`, todayTasks.map((t: any) => ({
+              taskName: t.taskName,
+              dueDate: t.dueDate,
+              status: t.status,
+              projectName: t.projectName,
+            })));
+          }
+
+          if (todayTasks.length === 0) {
+            console.log(`📭 今日のタスクなし: userId=${settingUserId}`);
+            results.push({
+              userId: settingUserId,
+              success: true,
+              taskCount: 0,
+              message: '今日のタスクなし',
+            });
+            continue;
+          }
+
+          console.log(`📋 今日のタスク数: ${todayTasks.length}件`);
+
+          // メール送信
           const taskList = todayTasks
             .map(
               (task, index) => `
@@ -2716,13 +2796,13 @@ export const sendDailyTaskRemindersManual = onCall(
           });
         } catch (error: any) {
           console.error(
-            `❌ SendGrid送信エラー(${emailAddress}):`,
-            error.response?.body || error
+            `❌ 今日のタスク取得またはメール送信エラー(${emailAddress}):`,
+            error
           );
           results.push({
             userId: settingUserId,
-            error: 'メール送信エラー',
-            details: error.response?.body || error.message,
+            error: 'タスク取得またはメール送信エラー',
+            details: error.message || JSON.stringify(error),
           });
         }
       }
