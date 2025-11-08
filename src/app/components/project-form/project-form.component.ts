@@ -94,7 +94,7 @@ export class ProjectFormComponent implements OnInit {
     private location: Location
   ) {
     this.projectForm = this.fb.group({
-      projectName: ['', [Validators.required, Validators.minLength(1)]],
+      projectName: ['', [Validators.required, Validators.minLength(1), Validators.maxLength(30)]],
       overview: [''],
       startDate: [''],
       endDate: [''],
@@ -418,6 +418,11 @@ export class ProjectFormComponent implements OnInit {
     }
     if (field?.hasError('minlength')) {
       return '1文字以上入力してください';
+    }
+    if (field?.hasError('maxlength')) {
+      if (fieldName === 'projectName') {
+        return 'プロジェクト名は30文字以内で入力してください';
+      }
     }
     return '';
   }

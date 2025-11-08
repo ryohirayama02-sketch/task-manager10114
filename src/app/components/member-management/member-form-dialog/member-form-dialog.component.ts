@@ -56,7 +56,7 @@ export class MemberFormDialogComponent implements OnInit {
     private fb: FormBuilder
   ) {
     this.memberForm = this.fb.group({
-      name: ['', [Validators.required, Validators.minLength(1)]],
+      name: ['', [Validators.required, Validators.minLength(1), Validators.maxLength(20)]],
       email: ['', [Validators.required, Validators.email]],
     });
   }
@@ -125,6 +125,9 @@ export class MemberFormDialogComponent implements OnInit {
     }
     if (field?.hasError('minlength')) {
       return '1文字以上入力してください';
+    }
+    if (field?.hasError('maxlength')) {
+      return '名前は20文字以内で入力してください';
     }
     return '';
   }

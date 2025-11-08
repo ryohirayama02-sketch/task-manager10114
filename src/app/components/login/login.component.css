@@ -130,6 +130,18 @@
   height: 20px;
 }
 
+/* エラーメッセージ */
+.error-message {
+  background-color: #ffebee;
+  color: #c62828;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border-left: 4px solid #c62828;
+  margin-bottom: 16px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
 /* メールボタン */
 .email-btn {
   background: white;

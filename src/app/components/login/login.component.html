@@ -2,8 +2,8 @@
   <div class="login-container">
     <!-- ヘッダー -->
     <div class="login-header">
-      <h1>Task Manager</h1>
-      <p class="subtitle">あなたのタスクを効率的に管理</p>
+      <h1>{{ "login.title" | translate }}</h1>
+      <p class="subtitle">{{ "login.subtitle" | translate }}</p>
     </div>
 
     <!-- ログインフォーム -->
@@ -21,36 +21,53 @@
           <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
           <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
         </svg>
-        <span *ngIf="!isLoading">Google でログイン</span>
-        <span *ngIf="isLoading" class="loading-spinner">ログイン中...</span>
+        <span *ngIf="!isLoading">{{ "login.googleLogin" | translate }}</span>
+        <span *ngIf="isLoading" class="loading-spinner">{{ "login.loggingIn" | translate }}</span>
       </button>
 
       <!-- 区切り線 -->
       <div class="divider">
-        <span>または</span>
+        <span>{{ "login.or" | translate }}</span>
+      </div>
+
+      <!-- エラーメッセージ -->
+      <div *ngIf="errorMessage" class="error-message">
+        {{ errorMessage }}
       </div>
 
       <!-- メールログインフォーム -->
       <form
         #loginForm="ngForm"
-        (ngSubmit)="onEmailLogin(email.value, password.value)"
+        (ngSubmit)="isSignUpMode ? onEmailSignUp(email, password, confirmPassword) : onEmailLogin(email, password)"
         class="email-form"
       >
         <div class="input-group">
           <input
-            #email
             type="email"
             class="email-input"
-            placeholder="メールアドレス"
+            [placeholder]="'login.emailPlaceholder' | translate"
+            [(ngModel)]="email"
+            name="email"
             required
           />
         </div>
         <div class="input-group">
           <input
-            #password
             type="password"
             class="password-input"
-            placeholder="パスワード"
+            [placeholder]="'login.passwordPlaceholder' | translate"
+            [(ngModel)]="password"
+            name="password"
+            required
+          />
+        </div>
+        <div class="input-group" *ngIf="isSignUpMode">
+          <input
+            type="password"
+            class="password-input"
+            [placeholder]="'login.confirmPasswordPlaceholder' | translate"
+            [(ngModel)]="confirmPassword"
+            name="confirmPassword"
             required
           />
         </div>
@@ -60,15 +77,24 @@
           type="submit"
           [disabled]="isLoading"
         >
-          <span *ngIf="!isLoading">メールでログイン</span>
-          <span *ngIf="isLoading" class="loading-spinner">ログイン中...</span>
+          <span *ngIf="!isLoading">
+            {{ isSignUpMode ? ("login.emailSignUp" | translate) : ("login.emailLogin" | translate) }}
+          </span>
+          <span *ngIf="isLoading" class="loading-spinner">{{ "login.loggingIn" | translate }}</span>
         </button>
       </form>
     </div>
 
     <!-- フッター -->
     <div class="login-footer">
-      <p>アカウントをお持ちでないですか？ <a href="#">登録する</a></p>
+      <p *ngIf="!isSignUpMode">
+        {{ "login.noAccount" | translate }}
+        <a href="#" (click)="toggleMode(); $event.preventDefault()">{{ "login.signUp" | translate }}</a>
+      </p>
+      <p *ngIf="isSignUpMode">
+        {{ "login.haveAccount" | translate }}
+        <a href="#" (click)="toggleMode(); $event.preventDefault()">{{ "login.login" | translate }}</a>
+      </p>
     </div>
   </div>
 </div>

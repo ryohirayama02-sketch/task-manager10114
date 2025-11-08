@@ -67,7 +67,7 @@
             ? ("taskDetail.childTaskName" | translate)
             : ("taskDetail.taskName" | translate)
         }}</mat-label>
-        <input matInput [(ngModel)]="taskData.taskName" name="taskName" />
+        <input matInput [(ngModel)]="taskData.taskName" name="taskName" maxlength="50" />
       </mat-form-field>
     </div>
 
