@@ -377,7 +377,12 @@ async function getTodayTasksForUser(
     jstToday.getMonth() + 1
   ).padStart(2, '0')}-${String(jstToday.getDate()).padStart(2, '0')}`;
 
-  console.log(`📅 今日のタスク取得: ${todayStr}, roomId=${roomId}, roomDocId=${roomDocId}, userEmail=${userEmail}`);
+  console.log(`\n📅 [getTodayTasksForUser] 今日のタスク取得開始`);
+  console.log(`   - 今日の日付: ${todayStr}`);
+  console.log(`   - roomId: ${roomId}`);
+  console.log(`   - roomDocId: ${roomDocId}`);
+  console.log(`   - userEmail: ${userEmail}`);
+  console.log(`   - userName: ${userName || '未設定'}`);
 
   // メンバー情報を取得
   const membersSnapshot = await db
@@ -385,7 +390,17 @@ async function getTodayTasksForUser(
     .where('roomId', '==', roomId)
     .get();
 
-  console.log(`👥 メンバー数: ${membersSnapshot.size}`);
+  console.log(`   - メンバー数: ${membersSnapshot.size}`);
+  
+  if (membersSnapshot.size === 0) {
+    console.log(`   ⚠️ メンバーが見つかりませんでした`);
+  } else {
+    console.log(`   - メンバー一覧:`);
+    membersSnapshot.forEach((doc) => {
+      const memberData = doc.data();
+      console.log(`     - ${doc.id}: ${memberData.name || '名前なし'} (${memberData.email || 'メールなし'})`);
+    });
+  }
 
   const memberEmailMap = new Map<string, string>(); // memberId -> email
   const memberNameMap = new Map<string, string>(); // name -> email
@@ -413,46 +428,333 @@ async function getTodayTasksForUser(
 
   // ユーザー名の配列を作成（フロントエンド側と同じロジック）
   const members = normalizedUserName ? [normalizedUserName] : [];
+  console.log(`   - ユーザー名配列: ${JSON.stringify(members)}`);
+  console.log(`   - ユーザーメンバーID: ${userMemberId || '未設定'}`);
 
-  // プロジェクトを取得
+  // プロジェクトを取得（getUpcomingTasksと同じ方法：roomIdで検索）
+  console.log(`\n   🔍 [プロジェクト取得] 開始`);
+  console.log(`      - roomIdで検索: ${roomId}`);
   const projectsRef = db.collection('projects');
   let projectsSnapshot = await projectsRef
-    .where('roomDocId', '==', roomDocId)
+    .where('roomId', '==', roomId)
     .get();
 
+  console.log(`      - roomId検索結果: ${projectsSnapshot.size}件`);
+  
   if (projectsSnapshot.empty) {
-    projectsSnapshot = await projectsRef.where('roomId', '==', roomId).get();
+    console.log(`      - roomId検索結果が空のため、roomDocIdで再検索`);
+    console.log(`      - roomDocIdで検索: ${roomDocId}`);
+    projectsSnapshot = await projectsRef.where('roomDocId', '==', roomDocId).get();
+    console.log(`      - roomDocId検索結果: ${projectsSnapshot.size}件`);
+  }
+
+  console.log(`   - プロジェクト数: ${projectsSnapshot.size}`);
+  
+  if (projectsSnapshot.size === 0) {
+    console.log(`   ⚠️ プロジェクトが見つかりませんでした`);
+  } else {
+    console.log(`   - プロジェクト一覧:`);
+    projectsSnapshot.forEach((doc) => {
+      const projectData = doc.data();
+      console.log(`     - ${doc.id}: ${projectData.projectName || '名前なし'}`);
+    });
   }
 
   const allTasks: any[] = [];
 
-  // 各プロジェクトのタスクを取得
+  // 各プロジェクトのタスクを取得（Firestoreのwhereクエリでフィルタリング）
   for (const projectDoc of projectsSnapshot.docs) {
     const projectId = projectDoc.id;
     const projectData = projectDoc.data();
     const tasksRef = db.collection(`projects/${projectId}/tasks`);
 
-    const tasksSnapshot = await tasksRef.get();
-
-    tasksSnapshot.forEach((taskDoc) => {
-      const taskData = taskDoc.data();
-      const due = taskData.dueDate;
-
-      // 期日が今日で、ステータスが「未着手」または「作業中」のタスク
-      const isToday =
-        due === todayStr &&
-        (taskData.status === '未着手' || taskData.status === '作業中');
-
-      if (!isToday) {
-        return;
+    try {
+      // デバッグ: プロジェクト「b」の全タスクを取得して確認
+      const allTasksSnapshot = await tasksRef.get();
+      console.log(`\n   🔍 プロジェクト「${projectData.projectName || projectId}」の全タスク数: ${allTasksSnapshot.size}件`);
+      console.log(`      - 検索条件: roomId=${roomId}, dueDate=${todayStr}, status=['未着手', '作業中']`);
+      
+      if (allTasksSnapshot.size > 0) {
+        console.log(`      - 全タスクの詳細:`);
+        let taskIndex = 0;
+        allTasksSnapshot.forEach((taskDoc) => {
+          taskIndex++;
+          const taskData = taskDoc.data();
+          const taskName = taskData.taskName || taskData.task || '名前なし';
+          const taskRoomId = taskData.roomId || '未設定';
+          const taskDueDate = taskData.dueDate || '未設定';
+          const taskStatus = taskData.status || '未設定';
+          const taskAssignee = taskData.assignee || '未設定';
+          const taskAssignedMembers = taskData.assignedMembers || '未設定';
+          console.log(`        [${taskIndex}] ${taskName}: roomId=${taskRoomId}, dueDate=${taskDueDate}, status=${taskStatus}, assignee=${taskAssignee}, assignedMembers=${JSON.stringify(taskAssignedMembers)}`);
+        });
+        console.log(`      - 全タスク詳細出力完了 (${taskIndex}件)`);
       }
 
-      console.log(`🔍 タスク確認: ${taskData.taskName || taskData.task}, dueDate=${due}, status=${taskData.status}, assignee=${taskData.assignee}, assignedMembers=${JSON.stringify(taskData.assignedMembers)}`);
+      // Firestoreのwhereクエリで期日とステータスをフィルタリング
+      // roomIdが未設定のタスクも取得できるように、roomIdフィルタを外して手動でチェック
+      let tasksSnapshot;
+      try {
+        tasksSnapshot = await tasksRef
+          .where('dueDate', '==', todayStr)
+          .where('status', 'in', ['未着手', '作業中'])
+          .get();
+      } catch (error: any) {
+        // インデックスエラーの場合、statusフィルタを外して再試行
+        console.error(`❌ プロジェクト「${projectData.projectName || projectId}」のタスク取得エラー:`, error);
+        if (error.code === 9 || error.message?.includes('index')) {
+          console.log(`🔄 statusフィルタを外して再試行`);
+          tasksSnapshot = await tasksRef
+            .where('dueDate', '==', todayStr)
+            .get();
+        } else {
+          throw error;
+        }
+      }
 
-      // 担当者をチェック
+      console.log(`\n   📋 プロジェクト「${projectData.projectName || projectId}」のタスク取得結果（roomIdフィルタなし）:`);
+      console.log(`      - タスク数: ${tasksSnapshot.size}件`);
+
+      tasksSnapshot.forEach((taskDoc) => {
+        const taskData = taskDoc.data();
+        
+        // roomIdを手動でチェック（roomIdが一致するか、またはroomIdが未設定の場合も含める）
+        if (taskData.roomId && taskData.roomId !== roomId) {
+          return; // roomIdが設定されていて、一致しない場合はスキップ
+        }
+        
+        // statusを手動でチェック（エラーハンドリングでstatusフィルタを外した場合に備えて）
+        if (taskData.status !== '未着手' && taskData.status !== '作業中') {
+          return; // statusが「未着手」または「作業中」でない場合はスキップ
+        }
+
+        console.log(`🔍 タスク確認: ${taskData.taskName || taskData.task}, dueDate=${taskData.dueDate}, status=${taskData.status}, assignee=${taskData.assignee}, assignedMembers=${JSON.stringify(taskData.assignedMembers)}`);
+
+        // 担当者をチェック
+        let assignees: string[] = [];
+
+        // ① assignee（カンマ区切り）
+        if (taskData.assignee) {
+          assignees.push(
+            ...taskData.assignee
+              .split(',')
+              .map((n: string) => n.trim().toLowerCase())
+              .filter((n: string) => n.length > 0)
+          );
+        }
+
+        // ② assignedMembers（メンバーIDからメールアドレスや名前を取得）
+        if (Array.isArray(taskData.assignedMembers)) {
+          taskData.assignedMembers.forEach((member: any) => {
+            if (typeof member === 'string') {
+              // メンバーIDの場合、メンバー情報からメールアドレスや名前を取得
+              const memberEmail = memberEmailMap.get(member);
+              const memberName = memberIdToNameMap.get(member);
+              if (memberEmail) {
+                assignees.push(memberEmail.trim().toLowerCase());
+              }
+              if (memberName) {
+                // メンバー名がカンマ区切りの場合も分割
+                const names = memberName
+                  .split(',')
+                  .map((n: string) => n.trim().toLowerCase())
+                  .filter((n: string) => n.length > 0);
+                assignees.push(...names);
+              }
+              // メンバーIDそのものも追加（フォールバック）
+              assignees.push(member.trim().toLowerCase());
+            } else if (typeof member === 'object' && member) {
+              if (member.memberName)
+                assignees.push(member.memberName.trim().toLowerCase());
+              if (member.name) assignees.push(member.name.trim().toLowerCase());
+              if (member.memberEmail)
+                assignees.push(member.memberEmail.trim().toLowerCase());
+              if (member.email) assignees.push(member.email.trim().toLowerCase());
+            }
+          });
+        }
+
+        // ③ assigneeEmail
+        if (taskData.assigneeEmail) {
+          assignees.push(taskData.assigneeEmail.trim().toLowerCase());
+        }
+
+        assignees = [...new Set(assignees)];
+
+        const normalizedUserEmail = userEmail.trim().toLowerCase();
+
+        // フロントエンド側と同じロジック
+        // 1. メールアドレスで一致
+        let match = assignees.includes(normalizedUserEmail);
+
+        // 2. ユーザー名で一致（members配列がある場合）
+        if (!match && members.length > 0) {
+          match = assignees.some((a) => members.includes(a));
+        }
+
+        // 3. メンバーIDで一致（assignedMembersにuserMemberIdが含まれている場合）
+        if (!match && userMemberId) {
+          // assignedMembersにuserMemberIdが含まれているかチェック
+          if (Array.isArray(taskData.assignedMembers)) {
+            match = taskData.assignedMembers.some(
+              (member: any) =>
+                (typeof member === 'string' && member === userMemberId) ||
+                (typeof member === 'object' && member?.id === userMemberId)
+            );
+          }
+        }
+
+        if (match) {
+          console.log(`✅ マッチしたタスク: ${taskData.taskName || taskData.task}`);
+          allTasks.push({
+            id: taskDoc.id,
+            projectId,
+            projectName: projectData.projectName || 'プロジェクト',
+            taskName: taskData.taskName || taskData.task,
+            dueDate: taskData.dueDate,
+            status: taskData.status,
+            priority: taskData.priority,
+          });
+        } else {
+          console.log(`❌ マッチしなかったタスク: ${taskData.taskName || taskData.task}, assignees=${JSON.stringify(assignees)}, userEmail=${userEmail}, userName=${userName}, userMemberId=${userMemberId}`);
+        }
+      });
+    } catch (error: any) {
+      console.error(`❌ プロジェクト「${projectData.projectName || projectId}」のタスク取得エラー:`, error);
+      console.error(`   エラー詳細: code=${error.code}, message=${error.message}`);
+      // インデックスエラーの場合、roomIdフィルタを外して再試行
+      if (error.code === 9 || error.message?.includes('index')) {
+        console.log(`🔄 roomIdフィルタを外して再試行`);
+        try {
+          const tasksSnapshot = await tasksRef
+            .where('dueDate', '==', todayStr)
+            .where('status', 'in', ['未着手', '作業中'])
+            .get();
+          
+          console.log(`📋 プロジェクト「${projectData.projectName || projectId}」の今日のタスク数（roomIdフィルタなし）: ${tasksSnapshot.size}`);
+          
+          tasksSnapshot.forEach((taskDoc) => {
+            const taskData = taskDoc.data();
+            // roomIdを手動でチェック（roomIdが一致するか、またはroomIdが未設定の場合も含める）
+            if (taskData.roomId && taskData.roomId !== roomId) {
+              console.log(`⚠️ roomId不一致でスキップ: ${taskData.taskName || taskData.task}, taskRoomId=${taskData.roomId}, expectedRoomId=${roomId}`);
+              return;
+            }
+            
+            console.log(`🔍 タスク確認: ${taskData.taskName || taskData.task}, dueDate=${taskData.dueDate}, status=${taskData.status}, assignee=${taskData.assignee}, assignedMembers=${JSON.stringify(taskData.assignedMembers)}`);
+            
+            // 担当者をチェック（以下、同じロジック）
+            let assignees: string[] = [];
+            
+            if (taskData.assignee) {
+              assignees.push(
+                ...taskData.assignee
+                  .split(',')
+                  .map((n: string) => n.trim().toLowerCase())
+                  .filter((n: string) => n.length > 0)
+              );
+            }
+            
+            if (Array.isArray(taskData.assignedMembers)) {
+              taskData.assignedMembers.forEach((member: any) => {
+                if (typeof member === 'string') {
+                  const memberEmail = memberEmailMap.get(member);
+                  const memberName = memberIdToNameMap.get(member);
+                  if (memberEmail) {
+                    assignees.push(memberEmail.trim().toLowerCase());
+                  }
+                  if (memberName) {
+                    const names = memberName
+                      .split(',')
+                      .map((n: string) => n.trim().toLowerCase())
+                      .filter((n: string) => n.length > 0);
+                    assignees.push(...names);
+                  }
+                  assignees.push(member.trim().toLowerCase());
+                } else if (typeof member === 'object' && member) {
+                  if (member.memberName)
+                    assignees.push(member.memberName.trim().toLowerCase());
+                  if (member.name) assignees.push(member.name.trim().toLowerCase());
+                  if (member.memberEmail)
+                    assignees.push(member.memberEmail.trim().toLowerCase());
+                  if (member.email) assignees.push(member.email.trim().toLowerCase());
+                }
+              });
+            }
+            
+            if (taskData.assigneeEmail) {
+              assignees.push(taskData.assigneeEmail.trim().toLowerCase());
+            }
+            
+            assignees = [...new Set(assignees)];
+            
+            const normalizedUserEmail = userEmail.trim().toLowerCase();
+            let match = assignees.includes(normalizedUserEmail);
+            
+            if (!match && members.length > 0) {
+              match = assignees.some((a) => members.includes(a));
+            }
+            
+            if (!match && userMemberId) {
+              if (Array.isArray(taskData.assignedMembers)) {
+                match = taskData.assignedMembers.some(
+                  (member: any) =>
+                    (typeof member === 'string' && member === userMemberId) ||
+                    (typeof member === 'object' && member?.id === userMemberId)
+                );
+              }
+            }
+            
+            if (match) {
+              console.log(`✅ マッチしたタスク: ${taskData.taskName || taskData.task}`);
+              allTasks.push({
+                id: taskDoc.id,
+                projectId,
+                projectName: projectData.projectName || 'プロジェクト',
+                taskName: taskData.taskName || taskData.task,
+                dueDate: taskData.dueDate,
+                status: taskData.status,
+                priority: taskData.priority,
+              });
+            } else {
+              console.log(`❌ マッチしなかったタスク: ${taskData.taskName || taskData.task}, assignees=${JSON.stringify(assignees)}, userEmail=${userEmail}, userName=${userName}, userMemberId=${userMemberId}`);
+            }
+          });
+        } catch (retryError: any) {
+          console.error(`❌ 再試行エラー:`, retryError);
+        }
+      }
+    }
+  }
+  
+  // スタンドアロンタスクも取得（roomIdが未設定のタスクも含める）
+  try {
+    const standaloneTasksSnapshot = await db
+      .collection('tasks')
+      .where('dueDate', '==', todayStr)
+      .where('status', 'in', ['未着手', '作業中'])
+      .get();
+    
+    console.log(`📋 スタンドアロンタスク数（roomIdフィルタなし）: ${standaloneTasksSnapshot.size}`);
+    
+    standaloneTasksSnapshot.forEach((taskDoc) => {
+      const taskData = taskDoc.data();
+      
+      // roomIdを手動でチェック（roomIdが一致するか、またはroomIdが未設定の場合も含める）
+      if (taskData.roomId && taskData.roomId !== roomId) {
+        return; // roomIdが設定されていて、一致しない場合はスキップ
+      }
+      
+      // statusを手動でチェック
+      if (taskData.status !== '未着手' && taskData.status !== '作業中') {
+        return; // statusが「未着手」または「作業中」でない場合はスキップ
+      }
+      
+      console.log(`🔍 スタンドアロンタスク確認: ${taskData.taskName || taskData.task}, dueDate=${taskData.dueDate}, status=${taskData.status}, assignee=${taskData.assignee}, assignedMembers=${JSON.stringify(taskData.assignedMembers)}`);
+      
+      // 担当者をチェック（以下、同じロジック）
       let assignees: string[] = [];
-
-      // ① assignee（カンマ区切り）
+      
       if (taskData.assignee) {
         assignees.push(
           ...taskData.assignee
@@ -461,26 +763,22 @@ async function getTodayTasksForUser(
             .filter((n: string) => n.length > 0)
         );
       }
-
-      // ② assignedMembers（メンバーIDからメールアドレスや名前を取得）
+      
       if (Array.isArray(taskData.assignedMembers)) {
         taskData.assignedMembers.forEach((member: any) => {
           if (typeof member === 'string') {
-            // メンバーIDの場合、メンバー情報からメールアドレスや名前を取得
             const memberEmail = memberEmailMap.get(member);
             const memberName = memberIdToNameMap.get(member);
             if (memberEmail) {
               assignees.push(memberEmail.trim().toLowerCase());
             }
             if (memberName) {
-              // メンバー名がカンマ区切りの場合も分割
               const names = memberName
                 .split(',')
                 .map((n: string) => n.trim().toLowerCase())
                 .filter((n: string) => n.length > 0);
               assignees.push(...names);
             }
-            // メンバーIDそのものも追加（フォールバック）
             assignees.push(member.trim().toLowerCase());
           } else if (typeof member === 'object' && member) {
             if (member.memberName)
@@ -492,28 +790,21 @@ async function getTodayTasksForUser(
           }
         });
       }
-
-      // ③ assigneeEmail
+      
       if (taskData.assigneeEmail) {
         assignees.push(taskData.assigneeEmail.trim().toLowerCase());
       }
-
+      
       assignees = [...new Set(assignees)];
-
+      
       const normalizedUserEmail = userEmail.trim().toLowerCase();
-
-      // フロントエンド側と同じロジック
-      // 1. メールアドレスで一致
       let match = assignees.includes(normalizedUserEmail);
-
-      // 2. ユーザー名で一致（members配列がある場合）
+      
       if (!match && members.length > 0) {
         match = assignees.some((a) => members.includes(a));
       }
-
-      // 3. メンバーIDで一致（assignedMembersにuserMemberIdが含まれている場合）
+      
       if (!match && userMemberId) {
-        // assignedMembersにuserMemberIdが含まれているかチェック
         if (Array.isArray(taskData.assignedMembers)) {
           match = taskData.assignedMembers.some(
             (member: any) =>
@@ -522,25 +813,37 @@ async function getTodayTasksForUser(
           );
         }
       }
-
+      
       if (match) {
-        console.log(`✅ マッチしたタスク: ${taskData.taskName || taskData.task}`);
+        console.log(`✅ マッチしたスタンドアロンタスク: ${taskData.taskName || taskData.task}`);
         allTasks.push({
           id: taskDoc.id,
-          projectId,
-          projectName: projectData.projectName || 'プロジェクト',
+          projectId: taskData.projectId || '',
+          projectName: taskData.projectName || 'タスク',
           taskName: taskData.taskName || taskData.task,
           dueDate: taskData.dueDate,
           status: taskData.status,
           priority: taskData.priority,
         });
       } else {
-        console.log(`❌ マッチしなかったタスク: ${taskData.taskName || taskData.task}, assignees=${JSON.stringify(assignees)}, userEmail=${userEmail}, userName=${userName}, userMemberId=${userMemberId}`);
+        console.log(`❌ マッチしなかったスタンドアロンタスク: ${taskData.taskName || taskData.task}, assignees=${JSON.stringify(assignees)}, userEmail=${userEmail}, userName=${userName}, userMemberId=${userMemberId}`);
       }
     });
+  } catch (error: any) {
+    console.error(`❌ スタンドアロンタスク取得エラー:`, error);
   }
 
-  console.log(`📋 取得したタスク総数: ${allTasks.length}件`);
+  console.log(`\n✅ [getTodayTasksForUser] 処理完了`);
+  console.log(`   - 取得したタスク総数: ${allTasks.length}件`);
+  
+  if (allTasks.length > 0) {
+    console.log(`   - 取得したタスク詳細:`);
+    allTasks.forEach((task: any, index: number) => {
+      console.log(`     ${index + 1}. ${task.taskName} (${task.projectName}) - ${task.dueDate} - ${task.status}`);
+    });
+  } else {
+    console.log(`   ⚠️ タスクが1件も取得できませんでした`);
+  }
 
   // 期日でソート（早い順）
   allTasks.sort((a, b) => {
@@ -2719,7 +3022,13 @@ export const sendDailyTaskRemindersManual = onCall(
 
         // 今日のタスクを取得（期日が今日で、ステータスが「作業中」「未着手」のタスク）
         try {
-          console.log(`🔍 今日のタスクを取得中: userEmail=${userEmail}, userName=${userName}`);
+          console.log(`\n🔍 [段階1] 今日のタスクを取得開始`);
+          console.log(`   - userId: ${settingUserId}`);
+          console.log(`   - userEmail: ${userEmail}`);
+          console.log(`   - userName: ${userName}`);
+          console.log(`   - roomId: ${settingRoomId}`);
+          console.log(`   - roomDocId: ${settingRoomDocId}`);
+          
           const todayTasks = await getTodayTasksForUser(
             settingRoomId,
             settingRoomDocId,
@@ -2727,18 +3036,20 @@ export const sendDailyTaskRemindersManual = onCall(
             userName
           );
 
-          console.log(`📋 取得した今日のタスク数: ${todayTasks.length}件`);
+          console.log(`\n✅ [段階1完了] タスク取得完了`);
+          console.log(`   - 取得したタスク数: ${todayTasks.length}件`);
+          
           if (todayTasks.length > 0) {
-            console.log(`📋 タスク一覧:`, todayTasks.map((t: any) => ({
-              taskName: t.taskName,
-              dueDate: t.dueDate,
-              status: t.status,
-              projectName: t.projectName,
-            })));
+            console.log(`   - タスク一覧:`);
+            todayTasks.forEach((t: any, index: number) => {
+              console.log(`     ${index + 1}. ${t.taskName} (${t.projectName}) - ${t.dueDate} - ${t.status}`);
+            });
+          } else {
+            console.log(`   ⚠️ タスクが見つかりませんでした`);
           }
 
           if (todayTasks.length === 0) {
-            console.log(`📭 今日のタスクなし: userId=${settingUserId}`);
+            console.log(`\n📭 [結果] 今日のタスクなしのため処理をスキップ`);
             results.push({
               userId: settingUserId,
               success: true,
@@ -2748,12 +3059,22 @@ export const sendDailyTaskRemindersManual = onCall(
             continue;
           }
 
-          console.log(`📋 今日のタスク数: ${todayTasks.length}件`);
+          console.log(`\n🔍 [段階2] メール送信準備開始`);
+          console.log(`   - 送信先メールアドレス: ${emailAddress}`);
+          console.log(`   - 送信タスク数: ${todayTasks.length}件`);
 
           // メール送信
+          console.log(`   - メール生成用タスク数: ${todayTasks.length}件`);
+          console.log(`   - メール生成用タスク一覧:`);
+          todayTasks.forEach((task: any, index: number) => {
+            console.log(`     ${index + 1}. ${task.taskName} (${task.projectName}) - ${task.dueDate} - ${task.status}`);
+          });
+          
           const taskList = todayTasks
             .map(
-              (task, index) => `
+              (task, index) => {
+                console.log(`   - メールHTML生成中: ${index + 1}/${todayTasks.length} - ${task.taskName}`);
+                return `
             <div style="background-color:#f8f9fa;padding:15px;margin:10px 0;border-radius:8px;border-left:4px solid #1976d2;">
               <h3 style="margin:0 0 10px;">${index + 1}. ${task.taskName}</h3>
               <p style="margin:5px 0;"><strong>期日:</strong> ${
@@ -2765,9 +3086,13 @@ export const sendDailyTaskRemindersManual = onCall(
               <p style="margin:5px 0;"><strong>ステータス:</strong> ${
                 task.status
               }</p>
-            </div>`
+            </div>`;
+              }
             )
             .join('');
+
+          console.log(`   - メールHTML生成完了: タスク数=${todayTasks.length}件`);
+          console.log(`   - 生成されたHTMLの長さ: ${taskList.length}文字`);
 
           const msg = {
             to: emailAddress,
@@ -2784,26 +3109,47 @@ export const sendDailyTaskRemindersManual = onCall(
               </div>
             `,
           };
+          
+          console.log(`   - メール件名: ${msg.subject}`);
+          console.log(`   - 送信元メールアドレス: ${fromEmail}`);
+          console.log(`   - メールHTML内のタスク数: ${todayTasks.length}件（件名と一致しているか確認）`);
+          
+          console.log(`\n🔍 [段階3] SendGridにメール送信開始`);
           await sgMail.send(msg);
-          console.log(
-            `✅ 今日のタスク通知メール送信成功: ${emailAddress} (${todayTasks.length}件)`
-          );
+          
+          console.log(`\n✅ [段階3完了] メール送信成功`);
+          console.log(`   - 送信先: ${emailAddress}`);
+          console.log(`   - タスク数: ${todayTasks.length}件`);
+          
           results.push({
             userId: settingUserId,
             success: true,
             taskCount: todayTasks.length,
             email: emailAddress,
           });
+          
+          console.log(`\n✅ [全段階完了] 今日のタスク通知処理が正常に完了しました\n`);
         } catch (error: any) {
-          console.error(
-            `❌ 今日のタスク取得またはメール送信エラー(${emailAddress}):`,
-            error
-          );
+          console.error(`\n❌ [エラー発生] 今日のタスク通知処理でエラーが発生しました`);
+          console.error(`   - userId: ${settingUserId}`);
+          console.error(`   - userEmail: ${userEmail}`);
+          console.error(`   - emailAddress: ${emailAddress}`);
+          console.error(`   - エラータイプ: ${error.name || 'Unknown'}`);
+          console.error(`   - エラーメッセージ: ${error.message || 'No message'}`);
+          console.error(`   - エラーコード: ${error.code || 'No code'}`);
+          console.error(`   - エラー詳細:`, error);
+          
+          if (error.response) {
+            console.error(`   - SendGridレスポンス:`, error.response.body || error.response);
+          }
+          
           results.push({
             userId: settingUserId,
             error: 'タスク取得またはメール送信エラー',
             details: error.message || JSON.stringify(error),
           });
+          
+          console.error(`\n❌ [エラー処理完了] エラーを記録しました\n`);
         }
       }
 

@@ -416,6 +416,16 @@ export class ProjectService {
       const oldTaskDoc = await getDoc(taskRef);
       const oldTaskData = oldTaskDoc.exists() ? oldTaskDoc.data() : {};
 
+      // roomIdが未設定の場合は自動的に設定
+      const roomId = this.authService.getCurrentRoomId();
+      const roomDocId = this.authService.getCurrentRoomDocId();
+      if (roomId && (!oldTaskData['roomId'] || !taskData.roomId)) {
+        taskData.roomId = roomId;
+      }
+      if (roomDocId && (!oldTaskData['roomDocId'] || !taskData.roomDocId)) {
+        taskData.roomDocId = roomDocId;
+      }
+
       const result = await updateDoc(taskRef, taskData);
 
       // 編集ログを記録 - ChangeDetail配列を生成

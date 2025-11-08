@@ -660,7 +660,10 @@ export class SettingsComponent implements OnInit {
     this.isSaving = true;
 
     try {
-      console.log('🔔 今日のタスク通知をテスト送信');
+      console.log('🔔 [フロントエンド] 今日のタスク通知をテスト送信開始');
+      console.log('   - userId:', currentUser.uid);
+      console.log('   - roomId:', roomId);
+      console.log('   - roomDocId:', roomDocId);
 
       const { getFunctions, httpsCallable } = await import(
         'firebase/functions'
@@ -668,6 +671,16 @@ export class SettingsComponent implements OnInit {
       const { getApp } = await import('firebase/app');
       const functions = getFunctions(getApp(), 'us-central1');
 
+      console.log('🔍 [フロントエンド] Cloud Functions呼び出し準備完了');
+      console.log('   - 関数名: sendDailyTaskRemindersManual');
+      console.log('   - パラメータ:', {
+        userId: currentUser.uid,
+        roomId,
+        roomDocId,
+        force: true,
+      });
+
+      console.log('🔍 [フロントエンド] Cloud Functions呼び出し開始...');
       const callable = httpsCallable(functions, 'sendDailyTaskRemindersManual');
       const result = (await callable({
         userId: currentUser.uid,
@@ -676,7 +689,8 @@ export class SettingsComponent implements OnInit {
         force: true, // 通知時間チェックをスキップ
       })) as any;
 
-      console.log('📊 実行結果:', result.data);
+      console.log('✅ [フロントエンド] Cloud Functions呼び出し完了');
+      console.log('📊 [フロントエンド] 実行結果:', result.data);
 
       if (result.data?.success) {
         const results = result.data.results || [];

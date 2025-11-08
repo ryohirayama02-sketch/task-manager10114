@@ -239,6 +239,13 @@ export class TaskService {
       this.firestore,
       `projects/${projectId}/tasks/${taskId}`
     );
+    
+    // roomIdが未設定の場合は自動的に設定
+    const roomId = this.authService.getCurrentRoomId();
+    if (roomId && (!oldTaskData?.roomId || !taskData.roomId)) {
+      taskData.roomId = roomId;
+    }
+    
     await updateDoc(taskRef, taskData);
 
     const changeDetails: ChangeDetail[] = [];
