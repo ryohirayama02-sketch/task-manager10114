@@ -94,6 +94,43 @@ export class TaskCreatePageComponent implements OnInit {
     this.projectId = navState?.projectId || '';
     this.returnUrl = navState?.returnUrl || '/kanban';
 
+    // 複製データがある場合は、フォームに設定
+    if (navState?.duplicateData) {
+      const duplicateData = navState.duplicateData;
+      this.taskForm = {
+        taskName: duplicateData.taskName || '',
+        status: duplicateData.status || '未着手',
+        priority: duplicateData.priority || '中',
+        assignee: duplicateData.assignee || '',
+        startDate: duplicateData.startDate || '',
+        dueDate: duplicateData.dueDate || '',
+        tags: Array.isArray(duplicateData.tags) 
+          ? [...duplicateData.tags] 
+          : duplicateData.tags 
+            ? [duplicateData.tags] 
+            : [],
+        description: duplicateData.description || '',
+        calendarSyncEnabled: duplicateData.calendarSyncEnabled ?? false,
+        attachments: [], // 複製時は添付ファイルは含めない
+        urls: Array.isArray(duplicateData.urls) 
+          ? [...duplicateData.urls] 
+          : duplicateData.urls 
+            ? [duplicateData.urls] 
+            : [],
+      };
+
+      // assignedMembersがある場合は、selectedMemberIdsに設定
+      if (Array.isArray(duplicateData.assignedMembers) && duplicateData.assignedMembers.length > 0) {
+        this.selectedMemberIds = [...duplicateData.assignedMembers];
+      }
+
+      // 子タスクの複製の場合は、parentTaskIdを設定
+      if (duplicateData.parentTaskId) {
+        this.parentTaskId = duplicateData.parentTaskId;
+        this.isSubtaskCreation = true;
+      }
+    }
+
     // Check for parentTaskId query parameter
     this.activatedRoute.queryParams.subscribe((params) => {
       if (params['parentTaskId']) {
@@ -101,6 +138,22 @@ export class TaskCreatePageComponent implements OnInit {
         this.isSubtaskCreation = true;
         
         // Fetch parent task information
+        if (this.projectId && this.parentTaskId) {
+          this.projectService.getTask(this.projectId, this.parentTaskId).subscribe({
+            next: (task) => {
+              this.parentTaskName = task.taskName || '';
+              // projectName already set from navState, but can be overridden from task if needed
+              if (!this.projectName && task.projectName) {
+                this.projectName = task.projectName;
+              }
+            },
+            error: (error) => {
+              console.error('親タスク情報の取得に失敗しました:', error);
+            }
+          });
+        }
+      } else if (this.parentTaskId && this.isSubtaskCreation) {
+        // duplicateDataからparentTaskIdが設定された場合も、親タスク情報を取得
         if (this.projectId && this.parentTaskId) {
           this.projectService.getTask(this.projectId, this.parentTaskId).subscribe({
             next: (task) => {

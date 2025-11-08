@@ -9,7 +9,6 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -22,7 +21,6 @@ import { TaskService } from '../../services/task.service';
 import { MemberManagementService } from '../../services/member-management.service';
 import { CalendarService } from '../../services/calendar.service';
 import { TaskAttachmentService } from '../../services/task-attachment.service';
-import { TaskFormComponent } from '../task-form/task-form.component';
 import { Task, Project, ChatMessage, TaskAttachment } from '../../models/task.model';
 import { Member } from '../../models/member.model';
 import { ProjectChatComponent } from '../project-chat/project-chat.component';
@@ -47,7 +45,6 @@ import { getMemberNamesAsString } from '../../utils/member-utils';
     MatSelectModule,
     MatChipsModule,
     MatIconModule,
-    MatDialogModule,
     MatTabsModule,
     MatExpansionModule,
     MatCheckboxModule,
@@ -66,7 +63,6 @@ export class TaskDetailComponent implements OnInit {
   private projectService = inject(ProjectService);
   private taskService = inject(TaskService);
   private memberService = inject(MemberManagementService);
-  private dialog = inject(MatDialog);
   private location = inject(Location);
   private auth = inject(Auth);
   private calendarService = inject(CalendarService);
@@ -589,24 +585,30 @@ export class TaskDetailComponent implements OnInit {
 
   /** タスクを複製 */
   duplicateTask() {
-    const ref = this.dialog.open(TaskFormComponent, {
-      width: '90vw',
-      maxWidth: '800px',
-      maxHeight: '90vh',
-      data: {
-        projectName: this.project?.projectName,
-        duplicateData: this.taskData,
-      },
-    });
+    if (!this.task || !this.project) {
+      return;
+    }
 
-    ref.afterClosed().subscribe((result) => {
-      if (result && this.task) {
-        this.projectService
-          .addTaskToProject(this.task.projectId, result)
-          .then(() => {
-            console.log('タスクが複製されました');
-          });
-      }
+    // タスク作成画面に遷移し、複製データを渡す
+    const navigationState: any = {
+      projectName: this.project.projectName,
+      projectId: this.task.projectId,
+      returnUrl: this.router.url,
+      duplicateData: {
+        ...this.taskData,
+        parentTaskId: this.task.parentTaskId || undefined, // 子タスクの場合は親タスクIDを保持
+      },
+    };
+
+    // 子タスクの場合は、queryParamsにparentTaskIdを追加
+    const queryParams: any = {};
+    if (this.task.parentTaskId) {
+      queryParams.parentTaskId = this.task.parentTaskId;
+    }
+
+    this.router.navigate(['/task-create'], {
+      queryParams: Object.keys(queryParams).length > 0 ? queryParams : undefined,
+      state: navigationState,
     });
   }
 
