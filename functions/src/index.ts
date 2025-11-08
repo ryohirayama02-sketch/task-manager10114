@@ -198,17 +198,47 @@ async function groupTasksByUser(
  * タスクリマインダーメールのHTML生成
  */
 function generateTaskReminderHTML(tasks: any[]): string {
+  // 今日の日付をJSTで取得（時刻を00:00:00に設定）
+  const now = new Date();
+  const jstNow = new Date(
+    now.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' })
+  );
+  const today = new Date(jstNow);
+  today.setHours(0, 0, 0, 0);
+
+  // 期日までの日数を計算する関数
+  const getDaysUntilDue = (dueDate: string): number => {
+    if (!dueDate) return 0;
+
+    // 期日をローカルタイムゾーンで取得
+    const [year, month, day] = dueDate.split('T')[0].split('-').map(Number);
+    const due = new Date(year, month - 1, day);
+    due.setHours(0, 0, 0, 0);
+
+    // 日数の差分を計算（ミリ秒→日数）
+    const diff = due.getTime() - today.getTime();
+    return Math.floor(diff / (1000 * 60 * 60 * 24));
+  };
+
   const taskList = tasks
-    .map(
-      (task, index) => `
+    .map((task, index) => {
+      const daysUntilDue = getDaysUntilDue(task.dueDate);
+      const daysText =
+        daysUntilDue < 0
+          ? `(${Math.abs(daysUntilDue)}日遅れ)`
+          : daysUntilDue === 0
+          ? '(今日)'
+          : `(${daysUntilDue}日後)`;
+
+      return `
       <div style="background-color:#f8f9fa;padding:15px;margin:10px 0;
         border-radius:8px;border-left:4px solid #1976d2;">
         <h3 style="margin:0 0 10px;">${index + 1}. ${task.taskName}</h3>
         <p>プロジェクト: ${task.projectName}</p>
-        <p>期限: ${task.dueDate}</p>
+        <p>期限: ${task.dueDate} ${daysText}</p>
         <p>ステータス: ${task.status}</p>
-      </div>`
-    )
+      </div>`;
+    })
     .join('');
 
   return `

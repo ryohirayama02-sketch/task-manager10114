@@ -144,10 +144,32 @@ export class SettingsComponent implements OnInit {
 
       if (loadedSettings) {
         this.notificationSettings = loadedSettings;
+        // quietHoursが存在しない場合は初期化
+        if (!this.notificationSettings.quietHours) {
+          this.notificationSettings.quietHours = {
+            enabled: false,
+            startTime: '22:00',
+            endTime: '08:00',
+            weekends: true,
+          };
+        }
+        // enabledがundefinedの場合はfalseに設定
+        if (this.notificationSettings.quietHours.enabled === undefined) {
+          this.notificationSettings.quietHours.enabled = false;
+        }
+        // デバッグ: 読み込んだ設定を確認
+        console.log('📋 通知設定を読み込みました:', {
+          quietHours: this.notificationSettings.quietHours,
+          quietHoursEnabled: this.notificationSettings.quietHours?.enabled,
+        });
       } else {
         // デフォルト設定を作成
         this.notificationSettings =
           this.notificationService.createDefaultNotificationSettings();
+        console.log('📋 デフォルト通知設定を作成:', {
+          quietHours: this.notificationSettings.quietHours,
+          quietHoursEnabled: this.notificationSettings.quietHours?.enabled,
+        });
       }
 
       // 選択された日数を設定
@@ -198,6 +220,16 @@ export class SettingsComponent implements OnInit {
     }
   }
 
+  /** 通知オフ期間のON/OFF変更時の処理 */
+  onQuietHoursEnabledChange(event: any): void {
+    // 値を明示的に設定
+    this.notificationSettings.quietHours.enabled = event.checked;
+    console.log('🔔 通知オフ期間のON/OFF変更:', {
+      checked: event.checked,
+      quietHoursEnabled: this.notificationSettings.quietHours.enabled,
+    });
+  }
+
   /** 通知設定を保存 */
   async saveNotificationSettings() {
     if (!this.notificationSettings) return;
@@ -207,6 +239,12 @@ export class SettingsComponent implements OnInit {
       // 選択された日数を設定に反映
       this.notificationSettings.taskDeadlineNotifications.daysBeforeDeadline =
         this.selectedDeadlineDays;
+
+      // デバッグ: 保存前の値を確認
+      console.log('💾 保存前の通知設定:', {
+        quietHours: this.notificationSettings.quietHours,
+        quietHoursEnabled: this.notificationSettings.quietHours?.enabled,
+      });
 
       await this.notificationService.saveNotificationSettings(
         this.notificationSettings

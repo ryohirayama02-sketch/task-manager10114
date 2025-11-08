@@ -206,8 +206,8 @@
           <div class="quiet-hours-settings">
             <div class="setting-row">
               <mat-slide-toggle
-                [(ngModel)]="notificationSettings.quietHours.enabled"
-                name="quietHoursEnabled"
+                [checked]="notificationSettings.quietHours?.enabled ?? false"
+                (change)="onQuietHoursEnabledChange($event)"
               >
                 {{ "settings.quiet.enable" | translate }}
               </mat-slide-toggle>

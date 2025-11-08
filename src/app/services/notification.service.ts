@@ -65,7 +65,14 @@ export class NotificationService {
 
       if (!snapshot.empty) {
         const docSnap = snapshot.docs[0];
-        return { id: docSnap.id, ...docSnap.data() } as NotificationSettings;
+        const data = docSnap.data();
+        // デバッグ: 読み込んだデータを確認
+        console.log('📋 通知設定を読み込み:', {
+          id: docSnap.id,
+          quietHours: data['quietHours'],
+          quietHoursEnabled: data['quietHours']?.enabled,
+        });
+        return { id: docSnap.id, ...data } as NotificationSettings;
       }
 
       return null;
@@ -93,13 +100,24 @@ export class NotificationService {
         settings.taskDeadlineNotifications?.timeOfDay || '09:00';
       const normalizedTime = timeOfDay.padStart(5, '0');
 
+      // デバッグ: 保存するデータを確認
+      console.log('💾 通知設定を保存:', {
+        quietHours: settings.quietHours,
+        quietHoursEnabled: settings.quietHours?.enabled,
+      });
+
       const settingsData: any = {
         ...settings,
         userId: currentUser.uid,
         roomId,
         roomDocId,
-        'taskDeadlineNotifications.timeOfDay': normalizedTime,
         updatedAt: serverTimestamp(),
+      };
+      
+      // timeOfDayを正規化して設定に反映
+      settingsData.taskDeadlineNotifications = {
+        ...settings.taskDeadlineNotifications,
+        timeOfDay: normalizedTime,
       };
 
       const settingsRef = collection(
