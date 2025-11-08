@@ -9,8 +9,13 @@ import { PeriodFilterDialogComponent } from '../progress/period-filter-dialog/pe
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { ProjectService } from '../../services/project.service';
+import { MemberManagementService } from '../../services/member-management.service';
+import { Member } from '../../models/member.model';
+import { AuthService } from '../../services/auth.service';
 import { take } from 'rxjs';
 import { TranslatePipe } from '../../pipes/translate.pipe';
+import { getMemberName } from '../../utils/member-utils';
+import { Auth, getAuth } from '@angular/fire/auth';
 
 @Component({
   selector: 'app-logs',
@@ -30,6 +35,9 @@ export class LogsComponent implements OnInit {
   private readonly dialog = inject(MatDialog);
   private readonly projectService = inject(ProjectService);
   private readonly editLogService = inject(EditLogService);
+  private readonly memberManagementService = inject(MemberManagementService);
+  private readonly authService = inject(AuthService);
+  private readonly auth = inject(Auth);
 
   editLogs: EditLog[] = [];
   private allLogs: EditLog[] = [];
@@ -45,8 +53,21 @@ export class LogsComponent implements OnInit {
   periodStartDate: Date | null = null;
   periodEndDate: Date | null = null;
   private projectNameMap = new Map<string, string>();
+  private allMembers: Member[] = []; // メンバー一覧
 
   ngOnInit() {
+    // メンバー一覧を読み込み
+    this.memberManagementService.getMembers().subscribe({
+      next: (members) => {
+        this.allMembers = members;
+        console.log('メンバー一覧を読み込みました:', members.length, '件');
+        this.updateMemberOptions();
+      },
+      error: (error) => {
+        console.error('メンバー一覧の読み込みエラー:', error);
+      },
+    });
+
     this.loadProjectNames();
     this.loadRecentLogs();
   }
@@ -112,7 +133,9 @@ export class LogsComponent implements OnInit {
   formatChangeDescription(log: EditLog): string {
     // 個別の変更詳細がある場合はそれを使用
     if (log.changes && log.changes.length > 0) {
-      return log.changes.map(change => this.formatChangeDetail(change)).join('');
+      return log.changes
+        .map((change) => this.formatChangeDetail(change))
+        .join('');
     }
 
     // フォールバック：従来の方法
@@ -193,7 +216,41 @@ export class LogsComponent implements OnInit {
       this.allLogs.map((log) => this.resolveProjectName(log))
     );
     this.taskOptions = toUnique(this.allLogs.map((log) => log.taskName));
-    this.memberOptions = toUnique(this.allLogs.map((log) => log.userName));
+
+    // メンバーオプションは updateMemberOptions() で更新
+    this.updateMemberOptions();
+  }
+
+  /** メンバーオプションを更新（メンバー管理画面のメンバー一覧から取得、カンマ区切り対応） */
+  private updateMemberOptions(): void {
+    const memberSet = new Set<string>();
+
+    // メンバー管理画面のメンバー一覧から取得
+    this.allMembers.forEach((member) => {
+      if (member.name) {
+        // メンバー名がカンマ区切りの場合も分割
+        const names = member.name
+          .split(',')
+          .map((n) => n.trim())
+          .filter((n) => n.length > 0);
+        names.forEach((name) => memberSet.add(name));
+      }
+    });
+
+    // 編集ログのuserNameからも取得（カンマ区切り対応）
+    this.allLogs.forEach((log) => {
+      if (log.userName) {
+        const names = log.userName
+          .split(',')
+          .map((n) => n.trim())
+          .filter((n) => n.length > 0);
+        names.forEach((name) => memberSet.add(name));
+      }
+    });
+
+    this.memberOptions = Array.from(memberSet).sort((a, b) =>
+      a.localeCompare(b, 'ja')
+    );
   }
 
   applyFilters(): void {
@@ -205,9 +262,27 @@ export class LogsComponent implements OnInit {
       const matchTask =
         this.filterTasks.length === 0 ||
         (log.taskName && this.filterTasks.includes(log.taskName));
+
+      // メンバーフィルター（カンマ区切り対応）
       const matchMember =
         this.filterMembers.length === 0 ||
-        (log.userName && this.filterMembers.includes(log.userName));
+        (log.userName &&
+          (() => {
+            // userName をカンマで分割
+            const userNames = log.userName
+              .split(',')
+              .map((n) => n.trim())
+              .filter((n) => n.length > 0);
+
+            // フィルター値とマッチするか確認（複数選択対応）
+            return userNames.some((userName) =>
+              this.filterMembers.some(
+                (filterMember) =>
+                  userName.toLowerCase() === filterMember.toLowerCase()
+              )
+            );
+          })());
+
       const matchPeriod = this.matchesPeriod(log.createdAt);
       return matchProject && matchTask && matchMember && matchPeriod;
     });
@@ -344,5 +419,88 @@ export class LogsComponent implements OnInit {
     }
     const resolved = this.projectNameMap.get(log.projectId);
     return resolved || log.projectName || '';
+  }
+
+  /** 編集者名を表示（userEmailでメンバー管理画面と照合、カンマ区切り対応） */
+  getUserNameDisplay(log: EditLog): string {
+    const displayNames: string[] = [];
+
+    // まず、userEmailでメンバー管理画面と照合
+    if (log.userEmail) {
+      const memberByEmail = this.allMembers.find((m) => {
+        if (!m.email) return false;
+        return m.email.toLowerCase() === log.userEmail!.toLowerCase();
+      });
+
+      if (memberByEmail && memberByEmail.name) {
+        const names = memberByEmail.name
+          .split(',')
+          .map((n) => n.trim())
+          .filter((n) => n.length > 0);
+        displayNames.push(...names);
+      }
+    }
+
+    // userEmailでマッチしない場合、userIdがメンバー管理画面のメンバーのidと一致するか確認
+    if (displayNames.length === 0 && log.userId) {
+      const memberById = this.allMembers.find((m) => m.id === log.userId);
+      if (memberById && memberById.name) {
+        const names = memberById.name
+          .split(',')
+          .map((n) => n.trim())
+          .filter((n) => n.length > 0);
+        displayNames.push(...names);
+      }
+    }
+
+    // それでもマッチしない場合、userNameでメンバー名と照合
+    if (displayNames.length === 0 && log.userName) {
+      const userNameNormalized = log.userName.trim();
+
+      // userNameがメールアドレス形式の場合
+      if (userNameNormalized.includes('@')) {
+        const memberByEmail = this.allMembers.find((m) => {
+          if (!m.email) return false;
+          return m.email.toLowerCase() === userNameNormalized.toLowerCase();
+        });
+
+        if (memberByEmail && memberByEmail.name) {
+          const names = memberByEmail.name
+            .split(',')
+            .map((n) => n.trim())
+            .filter((n) => n.length > 0);
+          displayNames.push(...names);
+        }
+      } else {
+        // userNameがメールアドレス形式でない場合、メンバー名と照合（大文字小文字を区別しない）
+        const memberByName = this.allMembers.find((m) => {
+          if (!m.name) return false;
+          const memberNames = m.name
+            .split(',')
+            .map((n) => n.trim())
+            .filter((n) => n.length > 0);
+          return memberNames.some(
+            (name) => name.toLowerCase() === userNameNormalized.toLowerCase()
+          );
+        });
+
+        if (memberByName && memberByName.name) {
+          const names = memberByName.name
+            .split(',')
+            .map((n) => n.trim())
+            .filter((n) => n.length > 0);
+          displayNames.push(...names);
+        }
+      }
+    }
+
+    // それでもマッチしない場合、userNameをそのまま使用
+    if (displayNames.length === 0 && log.userName) {
+      displayNames.push(log.userName.trim());
+    } else if (displayNames.length === 0 && log.userId) {
+      displayNames.push(log.userId);
+    }
+
+    return displayNames.length > 0 ? displayNames.join(', ') : '—';
   }
 }

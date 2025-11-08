@@ -83,6 +83,7 @@ export interface EditLog {
   id?: string;
   userId: string;
   userName: string;
+  userEmail?: string; // メールアドレス（メンバー管理画面との照合用）
   projectId: string;
   projectName: string;
   taskId?: string;
