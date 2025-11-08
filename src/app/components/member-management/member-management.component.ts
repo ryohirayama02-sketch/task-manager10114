@@ -99,7 +99,9 @@ export class MemberManagementComponent implements OnInit {
    */
   openEditMemberDialog(member: Member): void {
     const dialogRef = this.dialog.open(MemberFormDialogComponent, {
-      width: '400px',
+      width: '90vw',
+      maxWidth: '600px',
+      maxHeight: '90vh',
       data: { mode: 'edit', member: member },
     });
 

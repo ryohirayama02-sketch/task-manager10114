@@ -1,7 +1,14 @@
+/* ダイアログコンテナ全体に角丸を適用 */
+::ng-deep .mat-dialog-container {
+  border-radius: 20px !important;
+  overflow: hidden;
+}
+
 .member-form-dialog {
-  min-width: 640px;
-  max-width: 760px;
+  width: 100%;
+  max-width: 600px;
   padding: 30px 36px 24px;
+  box-sizing: border-box;
 }
 
 h2[mat-dialog-title] {
@@ -76,9 +83,19 @@ mat-spinner {
 }
 
 /* レスポンシブデザイン */
+@media (max-width: 768px) {
+  .member-form-dialog {
+    max-width: 90vw;
+    padding: 24px 20px 20px;
+  }
+  
+  ::ng-deep .mat-dialog-container {
+    border-radius: 20px !important;
+  }
+}
+
 @media (max-width: 480px) {
   .member-form-dialog {
-    min-width: 90vw;
     max-width: 90vw;
     padding: 20px 16px 16px;
   }
