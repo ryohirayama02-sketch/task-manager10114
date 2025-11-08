@@ -36,7 +36,7 @@
           <strong>{{ 'projectDetail.responsible' | translate }}:</strong>
           {{ getResponsiblesDisplay() }}
         </p>
-        <p><strong>{{ 'projectDetail.members' | translate }}:</strong> {{ project.members || ("projectDetail.notSet" | translate) }}</p>
+        <p><strong>{{ 'projectDetail.members' | translate }}:</strong> {{ getMembersDisplay() || ("projectDetail.notSet" | translate) }}</p>
         <div
           class="project-attachments"
           *ngIf="project.attachments?.length; else noProjectAttachments"

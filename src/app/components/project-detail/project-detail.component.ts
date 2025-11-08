@@ -411,6 +411,14 @@ export class ProjectDetailComponent implements OnInit {
     return names.length > 0 ? names.join(', ') : '未設定';
   }
 
+  getMembersDisplay(): string {
+    if (!this.project) {
+      return '';
+    }
+    const membersString = this.normalizeMembersField(this.project.members);
+    return membersString || '';
+  }
+
   private syncSelectionsFromProject(): void {
     if (!this.project) {
       return;
