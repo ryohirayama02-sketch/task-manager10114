@@ -20,6 +20,8 @@ import { Task } from '../../models/task.model';
 import { IProject } from '../../models/project.model';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { LanguageService } from '../../services/language.service';
+import { MemberManagementService } from '../../services/member-management.service';
+import { Member } from '../../models/member.model';
 import { Observable, forkJoin, of, firstValueFrom } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 
@@ -54,6 +56,7 @@ export class KanbanComponent implements OnInit {
   // フィルター用
   filterPriority: string[] = [];
   filterAssignee: string[] = [];
+  members: Member[] = []; // メンバー一覧
 
   constructor(
     private taskService: TaskService,
@@ -62,10 +65,22 @@ export class KanbanComponent implements OnInit {
     private dialog: MatDialog,
     private router: Router,
     private languageService: LanguageService,
-    private authService: AuthService
+    private authService: AuthService,
+    private memberManagementService: MemberManagementService
   ) {}
 
   ngOnInit(): void {
+    // メンバー一覧を読み込み
+    this.memberManagementService.getMembers().subscribe({
+      next: (members) => {
+        this.members = members;
+        console.log('メンバー一覧を読み込みました:', members.length, '件');
+      },
+      error: (error) => {
+        console.error('メンバー一覧の読み込みエラー:', error);
+      },
+    });
+
     this.authService.currentUserEmail$
       .pipe(
         switchMap((userEmail) => {
@@ -238,28 +253,21 @@ export class KanbanComponent implements OnInit {
     this.applyFilters();
   }
 
-  /** ユニークな担当者一覧を取得（カンマ区切り対応） */
+  /** ユニークな担当者一覧を取得（メンバー管理画面のメンバー一覧から取得） */
   getUniqueAssignees(): string[] {
-    const assigneeSet = new Set<string>();
+    // メンバー管理画面のメンバー一覧から名前を取得
+    const memberNames = this.members
+      .map((member) => member.name)
+      .filter((name) => name && name.trim().length > 0);
     
-    this.allTasks.forEach((task) => {
-      if (task.assignee) {
-        // assignee をカンマで分割
-        const assignees = task.assignee
-          .split(',')
-          .map((name) => name.trim())
-          .filter((name) => name.length > 0);
-        assignees.forEach((assignee) => assigneeSet.add(assignee));
-      }
-      
-      // assignedMembers も含める
-      if (Array.isArray((task as any).assignedMembers)) {
-        (task as any).assignedMembers.forEach((member: string) => {
-          if (typeof member === 'string') {
-            assigneeSet.add(member.trim());
-          }
-        });
-      }
+    // カンマ区切りのメンバー名を分割
+    const assigneeSet = new Set<string>();
+    memberNames.forEach((name) => {
+      const names = name
+        .split(',')
+        .map((n) => n.trim())
+        .filter((n) => n.length > 0);
+      names.forEach((n) => assigneeSet.add(n));
     });
     
     return Array.from(assigneeSet).sort();
