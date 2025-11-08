@@ -51,6 +51,10 @@ export class KanbanComponent implements OnInit {
   statuses = ['未着手', '作業中', '完了'];
   private tasksByProject: Map<string, Task[]> = new Map<string, Task[]>();
 
+  // フィルター用
+  filterPriority: string[] = [];
+  filterAssignee: string[] = [];
+
   constructor(
     private taskService: TaskService,
     private projectService: ProjectService,
@@ -172,14 +176,59 @@ export class KanbanComponent implements OnInit {
 
   /** 選択されたプロジェクトのタスクをフィルタリング */
   filterTasksBySelectedProjects() {
-    if (this.selectedProjectIds.length === 0) {
-      this.tasks = [];
-    } else {
-      this.tasks = this.allTasks.filter((task) =>
+    this.applyFilters();
+  }
+
+  /** フィルターを適用 */
+  applyFilters() {
+    let filteredTasks = [...this.allTasks];
+
+    // プロジェクトフィルター
+    if (this.selectedProjectIds.length > 0) {
+      filteredTasks = filteredTasks.filter((task) =>
         this.selectedProjectIds.includes(task.projectId)
       );
+    } else {
+      // プロジェクトが選択されていない場合は空配列
+      filteredTasks = [];
     }
+
+    // 優先度フィルター
+    if (this.filterPriority.length > 0) {
+      filteredTasks = filteredTasks.filter(
+        (task) => this.filterPriority.includes(task.priority)
+      );
+    }
+
+    // 担当者フィルター
+    if (this.filterAssignee.length > 0) {
+      filteredTasks = filteredTasks.filter(
+        (task) => this.filterAssignee.includes(task.assignee)
+      );
+    }
+
+    // フィルター後の結果を表示
+    this.tasks = filteredTasks;
     console.log('フィルタリング後のタスク:', this.tasks);
+  }
+
+  /** フィルターをリセット */
+  resetFilters() {
+    this.filterPriority = [];
+    this.filterAssignee = [];
+    this.applyFilters();
+  }
+
+  /** ユニークな担当者一覧を取得 */
+  getUniqueAssignees(): string[] {
+    const assignees = [
+      ...new Set(
+        this.allTasks
+          .map((task) => task.assignee)
+          .filter((assignee) => assignee)
+      ),
+    ];
+    return assignees;
   }
 
   /** プロジェクトが選択されているかチェック */

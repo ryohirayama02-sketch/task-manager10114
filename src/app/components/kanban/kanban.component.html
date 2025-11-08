@@ -1,34 +1,70 @@
 <h2 class="kanban-title">{{ 'kanban.title' | translate }}</h2>
 
-<!-- プロジェクト選択 -->
-<div class="project-selector">
-  <h3>{{ 'kanban.projectSelector.title' | translate }}</h3>
-  <div class="project-checkboxes">
-      <mat-checkbox
-        *ngFor="let project of projects"
-        [checked]="project.id ? isProjectSelected(project.id) : false"
-        (change)="project.id ? toggleProjectSelection(project.id) : null"
-        class="project-checkbox"
+<!-- プロジェクト選択とフィルター -->
+<div class="controls-section" style="justify-content: space-between; align-items: flex-start;">
+  <div class="project-selector">
+    <h3>{{ 'kanban.projectSelector.title' | translate }}</h3>
+    <div class="project-checkboxes">
+        <mat-checkbox
+          *ngFor="let project of projects"
+          [checked]="project.id ? isProjectSelected(project.id) : false"
+          (change)="project.id ? toggleProjectSelection(project.id) : null"
+          class="project-checkbox"
+        >
+          {{ project.projectName }}
+        </mat-checkbox>
+    </div>
+    <div class="project-selection-actions">
+      <div class="project-action-row">
+      <button mat-stroked-button (click)="selectAllProjects()">
+        {{ 'kanban.projectSelector.selectAll' | translate }}
+      </button>
+      <button mat-stroked-button (click)="clearProjectSelection()">
+        {{ 'kanban.projectSelector.clearAll' | translate }}
+        </button>
+      </div>
+      <button
+        mat-stroked-button
+        class="create-project-button"
+        (click)="openProjectDialog()"
       >
-        {{ project.projectName }}
-      </mat-checkbox>
-  </div>
-  <div class="project-selection-actions">
-    <div class="project-action-row">
-    <button mat-stroked-button (click)="selectAllProjects()">
-      {{ 'kanban.projectSelector.selectAll' | translate }}
-    </button>
-    <button mat-stroked-button (click)="clearProjectSelection()">
-      {{ 'kanban.projectSelector.clearAll' | translate }}
+        {{ 'kanban.createProject' | translate }}
       </button>
     </div>
-    <button
-      mat-stroked-button
-      class="create-project-button"
-      (click)="openProjectDialog()"
-    >
-      {{ 'kanban.createProject' | translate }}
-    </button>
+  </div>
+
+  <!-- フィルター -->
+  <div class="filter-section">
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'kanban.filter.priority' | translate }}</mat-label>
+      <mat-select
+        [(ngModel)]="filterPriority"
+        (selectionChange)="applyFilters()"
+        multiple
+      >
+        <mat-option value="高">高</mat-option>
+        <mat-option value="中">中</mat-option>
+        <mat-option value="低">低</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'kanban.filter.assignee' | translate }}</mat-label>
+      <mat-select
+        [(ngModel)]="filterAssignee"
+        (selectionChange)="applyFilters()"
+        multiple
+      >
+        <mat-option
+          *ngFor="let assignee of getUniqueAssignees()"
+          [value]="assignee"
+        >
+          {{ assignee }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <button mat-stroked-button (click)="resetFilters()">{{ 'kanban.filter.reset' | translate }}</button>
   </div>
 </div>
 

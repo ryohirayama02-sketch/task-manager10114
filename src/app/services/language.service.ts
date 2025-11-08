@@ -174,6 +174,9 @@ export class LanguageService {
     'kanban.alert.incompleteSubtask': { ja: '「子タスク：{taskName}」が完了していません', en: 'The subtask "{taskName}" is not completed' },
     'kanban.dueDate': { ja: '期限', en: 'Due Date' },
     'kanban.assignee': { ja: '担当', en: 'Assigned To' },
+    'kanban.filter.priority': { ja: '優先度', en: 'Priority' },
+    'kanban.filter.assignee': { ja: '担当者', en: 'Assignee' },
+    'kanban.filter.reset': { ja: 'フィルターリセット', en: 'Reset Filters' },
     // 進捗画面（全プロジェクト）
     'progress.projects.title': { ja: '全プロジェクト進捗', en: 'All Projects Progress' },
     'progress.projects.sortBy': { ja: '並び替え', en: 'Sort By' },
