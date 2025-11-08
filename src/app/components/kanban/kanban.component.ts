@@ -24,6 +24,7 @@ import { MemberManagementService } from '../../services/member-management.servic
 import { Member } from '../../models/member.model';
 import { Observable, forkJoin, of, firstValueFrom } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
+import { getMemberNamesAsString } from '../../utils/member-utils';
 
 @Component({
   selector: 'app-kanban',
@@ -118,14 +119,10 @@ export class KanbanComponent implements OnInit {
     const storedSelection =
       this.projectSelectionService.getSelectedProjectIdsSync();
     const availableIds = new Set(
-      projects
-        .map((project) => project.id)
-        .filter((id): id is string => !!id)
+      projects.map((project) => project.id).filter((id): id is string => !!id)
     );
 
-    let nextSelection = storedSelection.filter((id) =>
-      availableIds.has(id)
-    );
+    let nextSelection = storedSelection.filter((id) => availableIds.has(id));
 
     if (nextSelection.length === 0) {
       // 保存された選択がない場合は、すべてのプロジェクトを選択
@@ -210,8 +207,8 @@ export class KanbanComponent implements OnInit {
 
     // 優先度フィルター
     if (this.filterPriority.length > 0) {
-      filteredTasks = filteredTasks.filter(
-        (task) => this.filterPriority.includes(task.priority)
+      filteredTasks = filteredTasks.filter((task) =>
+        this.filterPriority.includes(task.priority)
       );
     }
 
@@ -226,14 +223,16 @@ export class KanbanComponent implements OnInit {
           .split(',')
           .map((name) => name.trim())
           .filter((name) => name.length > 0);
-        
+
         // assignedMembers も含める
         if (Array.isArray((task as any).assignedMembers)) {
           assignees.push(
-            ...(task as any).assignedMembers.map((m: string) => String(m).trim())
+            ...(task as any).assignedMembers.map((m: string) =>
+              String(m).trim()
+            )
           );
         }
-        
+
         // フィルター値とマッチするか確認
         return assignees.some((assignee) =>
           this.filterAssignee.includes(assignee)
@@ -259,7 +258,7 @@ export class KanbanComponent implements OnInit {
     const memberNames = this.members
       .map((member) => member.name)
       .filter((name) => name && name.trim().length > 0);
-    
+
     // カンマ区切りのメンバー名を分割
     const assigneeSet = new Set<string>();
     memberNames.forEach((name) => {
@@ -269,7 +268,7 @@ export class KanbanComponent implements OnInit {
         .filter((n) => n.length > 0);
       names.forEach((n) => assigneeSet.add(n));
     });
-    
+
     return Array.from(assigneeSet).sort();
   }
 
@@ -293,10 +292,11 @@ export class KanbanComponent implements OnInit {
     this.projectSelectionService.clearSelection();
   }
 
-
   private async refreshProjectTasks(projectId: string): Promise<void> {
     try {
-      const userEmail = await firstValueFrom(this.authService.currentUserEmail$);
+      const userEmail = await firstValueFrom(
+        this.authService.currentUserEmail$
+      );
 
       if (!userEmail) {
         return;
@@ -352,18 +352,19 @@ export class KanbanComponent implements OnInit {
     const oldStatus = task.status;
 
     if (task.parentTaskId && newStatus !== '完了') {
-      const parentTask = this.allTasks.find(
-        (t) => t.id === task.parentTaskId
-      );
+      const parentTask = this.allTasks.find((t) => t.id === task.parentTaskId);
       if (
         parentTask &&
         parentTask.status === '完了' &&
         parentTask.detailSettings?.taskOrder?.requireSubtaskCompletion
       ) {
         alert(
-          this.languageService.translateWithParams('kanban.alert.parentTaskStatusChange', {
-            taskName: parentTask.taskName || '名称未設定'
-          })
+          this.languageService.translateWithParams(
+            'kanban.alert.parentTaskStatusChange',
+            {
+              taskName: parentTask.taskName || '名称未設定',
+            }
+          )
         );
         try {
           await this.taskService.updateTaskStatus(
@@ -394,9 +395,14 @@ export class KanbanComponent implements OnInit {
 
       if (incompleteChild) {
         const childName = incompleteChild.taskName || '名称未設定';
-        alert(this.languageService.translateWithParams('kanban.alert.incompleteSubtask', {
-          taskName: childName
-        }));
+        alert(
+          this.languageService.translateWithParams(
+            'kanban.alert.incompleteSubtask',
+            {
+              taskName: childName,
+            }
+          )
+        );
         return;
       }
     }
@@ -442,9 +448,7 @@ export class KanbanComponent implements OnInit {
     }
 
     if (this.selectedProjectIds.length > 1) {
-      alert(
-        this.languageService.translate('kanban.multipleProjectsSelected')
-      );
+      alert(this.languageService.translate('kanban.multipleProjectsSelected'));
       return;
     }
 
@@ -479,5 +483,38 @@ export class KanbanComponent implements OnInit {
     if (task.projectId && task.id) {
       this.router.navigate(['/project', task.projectId, 'task', task.id]);
     }
+  }
+
+  /** タスクの担当者を表示（カンマ区切り対応） */
+  getTaskAssigneeDisplay(task: Task): string {
+    // assignedMembers がある場合はそれを使用
+    if (task.assignedMembers && task.assignedMembers.length > 0) {
+      // デバッグ: assignedMembersとmembersの内容を確認
+      console.log('🔍 [Kanban getTaskAssigneeDisplay] タスク:', task.taskName);
+      console.log('   - assignedMembers:', task.assignedMembers);
+      console.log('   - this.members:', this.members);
+      console.log('   - this.members.length:', this.members.length);
+
+      // 各assignedMembersのUIDがmembersに存在するか確認
+      task.assignedMembers.forEach((memberId, index) => {
+        const member = this.members.find((m) => m.id === memberId);
+        console.log(
+          `   - assignedMembers[${index}]: ${memberId} → ${
+            member ? member.name : '(見つからない)'
+          }`
+        );
+      });
+
+      const display = getMemberNamesAsString(
+        task.assignedMembers,
+        this.members,
+        ', '
+      );
+      console.log('   - 表示結果:', display);
+      return display === '未設定' ? '—' : display;
+    }
+
+    // assignedMembers がない場合は assignee をそのまま表示（既にカンマ区切り）
+    return task.assignee || '—';
   }
 }

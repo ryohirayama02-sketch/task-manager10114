@@ -157,7 +157,7 @@
               [style.width.px]="assigneeColumnWidth"
               [style.min-width.px]="assigneeColumnWidth"
               [style.max-width.px]="assigneeColumnWidth"
-              [appTruncateOverflow]="task.assignee"
+              [appTruncateOverflow]="getTaskAssigneeDisplay(task)"
             ></div>
           </div>
         </div>

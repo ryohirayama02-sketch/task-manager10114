@@ -22,6 +22,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
 import { AuthService } from '../../services/auth.service';
 import { MemberManagementService } from '../../services/member-management.service';
 import { Member } from '../../models/member.model';
+import { getMemberNamesAsString } from '../../utils/member-utils';
 
 @Component({
   selector: 'app-calendar',
@@ -617,5 +618,38 @@ export class CalendarComponent implements OnInit, OnDestroy {
       '閉じる',
       { duration: 3000 }
     );
+  }
+
+  /** タスクの担当者を表示（カンマ区切り対応） */
+  getTaskAssigneeDisplay(task: Task): string {
+    // assignedMembers がある場合はそれを使用
+    if (task.assignedMembers && task.assignedMembers.length > 0) {
+      // デバッグ: assignedMembersとmembersの内容を確認
+      console.log('🔍 [Calendar getTaskAssigneeDisplay] タスク:', task.taskName);
+      console.log('   - assignedMembers:', task.assignedMembers);
+      console.log('   - this.members:', this.members);
+      console.log('   - this.members.length:', this.members.length);
+
+      // 各assignedMembersのUIDがmembersに存在するか確認
+      task.assignedMembers.forEach((memberId, index) => {
+        const member = this.members.find((m) => m.id === memberId);
+        console.log(
+          `   - assignedMembers[${index}]: ${memberId} → ${
+            member ? member.name : '(見つからない)'
+          }`
+        );
+      });
+
+      const display = getMemberNamesAsString(
+        task.assignedMembers,
+        this.members,
+        ', '
+      );
+      console.log('   - 表示結果:', display);
+      return display === '未設定' ? '—' : display;
+    }
+
+    // assignedMembers がない場合は assignee をそのまま表示（既にカンマ区切り）
+    return task.assignee || '—';
   }
 }

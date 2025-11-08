@@ -1073,11 +1073,24 @@ export class ProjectDetailComponent implements OnInit {
   getTaskAssigneeDisplay(task: Task): string {
     // assignedMembers がある場合はそれを使用
     if (task.assignedMembers && task.assignedMembers.length > 0) {
+      // デバッグ: assignedMembersとmembersの内容を確認
+      console.log('🔍 [getTaskAssigneeDisplay] タスク:', task.taskName);
+      console.log('   - assignedMembers:', task.assignedMembers);
+      console.log('   - this.members:', this.members);
+      console.log('   - this.members.length:', this.members.length);
+      
+      // 各assignedMembersのUIDがmembersに存在するか確認
+      task.assignedMembers.forEach((memberId, index) => {
+        const member = this.members.find((m) => m.id === memberId);
+        console.log(`   - assignedMembers[${index}]: ${memberId} → ${member ? member.name : '(見つからない)'}`);
+      });
+      
       const display = getMemberNamesAsString(
         task.assignedMembers,
         this.members,
         ', '
       );
+      console.log('   - 表示結果:', display);
       return display === '未設定' ? '—' : display;
     }
     

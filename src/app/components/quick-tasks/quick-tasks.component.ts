@@ -20,6 +20,8 @@ import { MemberManagementService } from '../../services/member-management.servic
 import { Task } from '../../models/task.model';
 import { DEFAULT_PROJECT_THEME_COLOR } from '../../constants/project-theme-colors';
 import { TranslatePipe } from '../../pipes/translate.pipe';
+import { Member } from '../../models/member.model';
+import { getMemberNamesAsString } from '../../utils/member-utils';
 
 @Component({
   selector: 'app-quick-tasks',
@@ -51,6 +53,7 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
   daysOptions = [3, 7, 14, 30];
   debugMode = false;
   currentUser: any = null;
+  members: Member[] = []; // メンバー一覧
 
   private destroy$ = new Subject<void>();
 
@@ -63,6 +66,17 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
+    // メンバー一覧を読み込み
+    this.memberService.getMembers().subscribe({
+      next: (members) => {
+        this.members = members;
+        console.log('メンバー一覧を読み込みました:', members.length, '件');
+      },
+      error: (error) => {
+        console.error('メンバー一覧の読み込みエラー:', error);
+      },
+    });
+
     this.authService.user$.pipe(takeUntil(this.destroy$)).subscribe((user) => {
       if (user) {
         this.currentUser = user;
@@ -97,11 +111,45 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
       console.error('メンバー情報の取得に失敗しました', error);
     }
 
+    // メンバー一覧が読み込まれていることを確認
+    if (this.members.length === 0) {
+      console.warn('⚠️ メンバー一覧がまだ読み込まれていません。タスク取得を待機します...');
+      // メンバー一覧の読み込みを待つ
+      this.memberService.getMembers().subscribe({
+        next: (members) => {
+          this.members = members;
+          console.log('メンバー一覧を読み込みました（タスク取得前）:', members.length, '件');
+          // メンバー一覧が読み込まれたらタスクを取得
+          this.loadTasksAfterMembersLoaded(userEmail, memberName);
+        },
+        error: (error) => {
+          console.error('メンバー一覧の読み込みエラー:', error);
+          // エラーでもタスク取得は続行
+          this.loadTasksAfterMembersLoaded(userEmail, memberName);
+        },
+      });
+    } else {
+      // メンバー一覧が既に読み込まれている場合はそのままタスク取得
+      this.loadTasksAfterMembersLoaded(userEmail, memberName);
+    }
+  }
+
+  /** メンバー一覧読み込み後のタスク取得 */
+  private loadTasksAfterMembersLoaded(userEmail: string, memberName: string | undefined) {
     this.taskService
       .getQuickTasks(this.daysFilter, userEmail, memberName)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (tasks: Task[]) => {
+          // デバッグ: 各タスクのassignedMembersを確認
+          tasks.forEach((task) => {
+            if (task.assignedMembers && task.assignedMembers.length > 0) {
+              console.log('🔍 [loadQuickTasks] タスク:', task.taskName);
+              console.log('   - assignedMembers:', task.assignedMembers);
+              console.log('   - this.members.length:', this.members.length);
+            }
+          });
+
           this.tasks = tasks.sort((a, b) =>
             a.dueDate < b.dueDate ? -1 : a.dueDate > b.dueDate ? 1 : 0
           );
@@ -222,5 +270,97 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
       'due-tomorrow': days === 1,
       'due-soon': days >= 2 && days <= 3,
     };
+  }
+
+  /** タスクの担当者を表示（カンマ区切り対応） */
+  getTaskAssigneeDisplay(task: Task): string {
+    const displayNames: string[] = [];
+    const foundMemberIds = new Set<string>();
+
+    // assignedMembers がある場合はそれを使用
+    if (task.assignedMembers && task.assignedMembers.length > 0) {
+      // デバッグ: assignedMembersとmembersの内容を確認
+      console.log('🔍 [QuickTasks getTaskAssigneeDisplay] タスク:', task.taskName);
+      console.log('   - assignedMembers:', task.assignedMembers);
+      console.log('   - this.members.length:', this.members.length);
+      console.log('   - this.membersのID一覧:', this.members.map(m => ({ id: m.id, name: m.name })));
+
+      // 各assignedMembersのIDがmembersに存在するか確認
+      task.assignedMembers.forEach((memberId, index) => {
+        const member = this.members.find((m) => m.id === memberId);
+        
+        console.log(
+          `   - assignedMembers[${index}]: ${memberId} → ${
+            member ? `${member.name} (id: ${member.id})` : '(見つからない)'
+          }`
+        );
+        
+        if (member && member.name) {
+          // メンバーが見つかった場合、名前を追加（カンマ区切りの場合も分割）
+          const names = member.name
+            .split(',')
+            .map((n) => n.trim())
+            .filter((n) => n.length > 0);
+          displayNames.push(...names);
+          foundMemberIds.add(memberId);
+          console.log(`   ✅ メンバー "${member.name}" を追加しました`);
+        } else {
+          // メンバーが見つからない場合、デバッグ情報を出力
+          console.warn(`⚠️ メンバーID "${memberId}" が見つかりません`);
+          console.warn(`   - 検索対象のメンバーID一覧:`, this.members.map(m => m.id));
+          
+          // メンバーが見つからない場合でも、assigneeから補完を試みる
+          // （ただし、assigneeが無効な値の場合はスキップ）
+        }
+      });
+
+      // assignedMembersから取得できなかったメンバーIDがある場合、assigneeから補完を試みる
+      const notFoundMemberIds = task.assignedMembers.filter(
+        (id) => !foundMemberIds.has(id)
+      );
+      
+      if (notFoundMemberIds.length > 0) {
+        console.log('   - assignedMembersから取得できなかったID:', notFoundMemberIds);
+        console.log('   - assignee:', task.assignee);
+        
+        // assigneeがある場合、それを補完として使用
+        if (task.assignee) {
+          const assigneeNames = task.assignee
+            .split(',')
+            .map((n) => n.trim())
+            .filter((n) => n.length > 0 && n !== '33333333333333333333'); // 明らかに無効な値は除外
+          
+          // assigneeの名前で、まだ表示されていないものを追加
+          assigneeNames.forEach((name) => {
+            // 既に表示されている名前と重複していない場合のみ追加
+            if (!displayNames.some((n) => n.toLowerCase() === name.toLowerCase())) {
+              displayNames.push(name);
+            }
+          });
+        }
+      }
+
+      // 結果を返す
+      if (displayNames.length > 0) {
+        const uniqueNames = [...new Set(displayNames)];
+        console.log('   - assignedMembersから取得した名前:', uniqueNames);
+        console.log('   - assignedMembersの総数:', task.assignedMembers.length);
+        console.log('   - 取得できた名前の数:', uniqueNames.length);
+        console.log('   - 最終的な表示名:', uniqueNames);
+        return uniqueNames.join(', ');
+      }
+    }
+
+    // assignedMembersがない、またはメンバーが見つからない場合は assignee を使用
+    if (task.assignee) {
+      const assigneeNames = task.assignee
+        .split(',')
+        .map((n) => n.trim())
+        .filter((n) => n.length > 0 && n !== '33333333333333333333'); // 明らかに無効な値は除外
+      console.log('   - assigneeから取得:', assigneeNames);
+      return assigneeNames.length > 0 ? assigneeNames.join(', ') : '—';
+    }
+
+    return '—';
   }
 }

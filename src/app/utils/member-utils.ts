@@ -43,9 +43,17 @@ export function getMemberNames(uids: string[] | undefined, members: Member[] | u
     return [];
   }
 
-  return uids
-    .map((uid) => getMemberName(uid, members))
-    .filter((name) => name !== '(不明)');
+  // デバッグ: 各UIDのマッチング結果を確認
+  const results = uids.map((uid) => {
+    const name = getMemberName(uid, members);
+    if (name === '(不明)') {
+      console.warn(`⚠️ [getMemberNames] UID "${uid}" に対応するメンバーが見つかりません`);
+      console.warn(`   - members:`, members.map(m => ({ id: m.id, uid: m.uid, name: m.name })));
+    }
+    return name;
+  });
+
+  return results.filter((name) => name !== '(不明)');
 }
 
 /**

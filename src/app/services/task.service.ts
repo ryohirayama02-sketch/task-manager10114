@@ -89,11 +89,18 @@ export class TaskService {
                         const projectThemeColor = resolveProjectThemeColor(
                           projectData as any
                         );
+                        // assignedMembersが正しく含まれているか確認
+                        const assignedMembers = taskData['assignedMembers'];
+                        if (assignedMembers) {
+                          console.log('🔍 [TaskService.getQuickTasks] タスク:', taskData['taskName']);
+                          console.log('   - assignedMembers:', assignedMembers);
+                        }
                         allTasks.push({
                           id: taskDoc.id,
                           projectId,
                           projectName: projectData['projectName'] || 'プロジェクト',
                           ...taskData,
+                          assignedMembers: assignedMembers || undefined, // assignedMembersを明示的に設定
                           projectThemeColor,
                         } as Task);
                       });
@@ -105,11 +112,18 @@ export class TaskService {
                     (tasksSnapshot) => {
                       tasksSnapshot.docs.forEach((taskDoc) => {
                         const taskData = taskDoc.data();
+                        // assignedMembersが正しく含まれているか確認
+                        const assignedMembers = taskData['assignedMembers'];
+                        if (assignedMembers) {
+                          console.log('🔍 [TaskService.getQuickTasks] スタンドアロンタスク:', taskData['taskName']);
+                          console.log('   - assignedMembers:', assignedMembers);
+                        }
                         allTasks.push({
                           id: taskDoc.id,
                           projectId: taskData['projectId'] || '',
                           projectName: taskData['projectName'] || 'タスク',
                           ...taskData,
+                          assignedMembers: assignedMembers || undefined, // assignedMembersを明示的に設定
                           projectThemeColor: DEFAULT_PROJECT_THEME_COLOR,
                         } as Task);
                       });
