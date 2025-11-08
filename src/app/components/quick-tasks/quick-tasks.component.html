@@ -119,11 +119,6 @@
                   </span>
                 </div>
               </div>
-
-              <!-- タスク説明 -->
-              <div *ngIf="task.description" class="task-description">
-                <p>{{ task.description }}</p>
-              </div>
             </mat-card-content>
           </mat-card>
         </div>
@@ -228,11 +223,6 @@
                 ({{ getAbsoluteValue(getDaysUntilDue(task.dueDate)) }}日遅れ)
               </span>
             </div>
-          </div>
-
-          <!-- タスク説明 -->
-          <div *ngIf="task.description" class="task-description">
-            <p>{{ task.description }}</p>
           </div>
         </mat-card-content>
       </mat-card>
