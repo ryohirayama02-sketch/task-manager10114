@@ -828,14 +828,14 @@ export const sendDailyTaskReminders = onSchedule(
 
         // メール送信
         try {
-          const taskList = quickTasks
+          const taskList = todayTasks
             .map(
               (task, index) => `
             <div style="background-color:#f8f9fa;padding:15px;margin:10px 0;border-radius:8px;border-left:4px solid #1976d2;">
               <h3 style="margin:0 0 10px;">${index + 1}. ${task.taskName}</h3>
               <p style="margin:5px 0;"><strong>期日:</strong> ${
                 task.dueDate
-              }</p>
+              } (今日)</p>
               <p style="margin:5px 0;"><strong>プロジェクト:</strong> ${
                 task.projectName
               }</p>
@@ -849,11 +849,11 @@ export const sendDailyTaskReminders = onSchedule(
           const msg = {
             to: emailAddress,
             from: fromEmail,
-            subject: `【日次リマインダー】期限が近いタスクが${quickTasks.length}件あります`,
+            subject: `【今日のタスク】期日が今日のタスクが${todayTasks.length}件あります`,
             html: `
               <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
-                <h2 style="color:#1976d2;">📋 日次リマインダー</h2>
-                <p>期限が近いタスクが${quickTasks.length}件あります。以下をご確認ください。</p>
+                <h2 style="color:#1976d2;">📋 今日のタスク</h2>
+                <p>期日が今日のタスクが${todayTasks.length}件あります。以下をご確認ください。</p>
                 ${taskList}
                 <p style="color:#999;font-size:12px;margin-top:20px;">
                   このメールはタスク管理アプリから自動送信されました。
@@ -863,7 +863,7 @@ export const sendDailyTaskReminders = onSchedule(
           };
           await sgMail.send(msg);
           console.log(
-            `✅ 日次リマインダーメール送信成功: ${emailAddress} (${quickTasks.length}件)`
+            `✅ 今日のタスク通知メール送信成功: ${emailAddress} (${todayTasks.length}件)`
           );
         } catch (error: any) {
           console.error(
