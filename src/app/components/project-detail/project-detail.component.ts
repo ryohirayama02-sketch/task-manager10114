@@ -34,6 +34,7 @@ import {
 } from '../../constants/project-theme-colors';
 import { inject } from '@angular/core';
 import { TranslatePipe } from '../../pipes/translate.pipe';
+import { getMemberNamesAsString } from '../../utils/member-utils';
 
 @Component({
   selector: 'app-project-detail',
@@ -1058,5 +1059,21 @@ export class ProjectDetailComponent implements OnInit {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  }
+
+  /** タスクの担当者を表示（カンマ区切り対応） */
+  getTaskAssigneeDisplay(task: Task): string {
+    // assignedMembers がある場合はそれを使用
+    if (task.assignedMembers && task.assignedMembers.length > 0) {
+      const display = getMemberNamesAsString(
+        task.assignedMembers,
+        this.members,
+        ', '
+      );
+      return display === '未設定' ? '—' : display;
+    }
+    
+    // assignedMembers がない場合は assignee をそのまま表示（既にカンマ区切り）
+    return task.assignee || '—';
   }
 }

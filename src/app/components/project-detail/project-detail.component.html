@@ -482,7 +482,7 @@
           <div class="task-main-info">
             <div class="task-detail-item task-detail-member">
               <mat-icon>person</mat-icon>
-              <span class="task-member-name">{{ task.assignee }}</span>
+              <span class="task-member-name">{{ getTaskAssigneeDisplay(task) }}</span>
               <div class="task-member-due">
                 <mat-icon>schedule</mat-icon>
                 <span>{{ task.dueDate }}</span>

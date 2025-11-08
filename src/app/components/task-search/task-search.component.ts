@@ -205,11 +205,30 @@ export class TaskSearchComponent implements OnInit {
 
     let filteredTasks = [...allTasks];
 
-    // 担当者でフィルタリング
+    // 担当者でフィルタリング（カンマ区切り対応）
     if (this.filters.assignee) {
-      filteredTasks = filteredTasks.filter(
-        (task) => task.assignee === this.filters.assignee
-      );
+      filteredTasks = filteredTasks.filter((task) => {
+        if (!task.assignee) {
+          return false;
+        }
+        // assignee をカンマで分割
+        const assignees = task.assignee
+          .split(',')
+          .map((name) => name.trim())
+          .filter((name) => name.length > 0);
+        
+        // assignedMembers も含める
+        if (Array.isArray((task as any).assignedMembers)) {
+          assignees.push(
+            ...(task as any).assignedMembers.map((m: string) => String(m).trim())
+          );
+        }
+        
+        // フィルター値とマッチするか確認
+        return assignees.some(
+          (assignee) => assignee.toLowerCase() === this.filters.assignee.toLowerCase()
+        );
+      });
     }
 
     // 優先度でフィルタリング

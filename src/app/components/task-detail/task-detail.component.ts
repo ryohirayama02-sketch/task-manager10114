@@ -1006,11 +1006,26 @@ export class TaskDetailComponent implements OnInit {
       tasks.filter((task) => task.parentTaskId === parentId)
     );
     this.childTasks = children;
-    this.childAssigneeOptions = [
-      ...new Set(
-        children.map((task) => task.assignee).filter((name) => !!name)
-      ),
-    ];
+    // 担当者オプションをカンマ区切りで分割
+    const assigneeSet = new Set<string>();
+    children.forEach((task) => {
+      if (task.assignee) {
+        const assignees = task.assignee
+          .split(',')
+          .map((name) => name.trim())
+          .filter((name) => name.length > 0);
+        assignees.forEach((assignee) => assigneeSet.add(assignee));
+      }
+      // assignedMembers も含める
+      if (Array.isArray(task.assignedMembers)) {
+        task.assignedMembers.forEach((member: string) => {
+          if (typeof member === 'string') {
+            assigneeSet.add(member.trim());
+          }
+        });
+      }
+    });
+    this.childAssigneeOptions = Array.from(assigneeSet).sort();
 
     if (
       this.childFilterStatus ||
@@ -1032,11 +1047,33 @@ export class TaskDetailComponent implements OnInit {
         !this.childFilterStatus || task.status === this.childFilterStatus;
       const priorityMatch =
         !this.childFilterPriority || task.priority === this.childFilterPriority;
-      const assigneeMatch =
-        !this.childFilterAssignee ||
-        task.assignee
-          .toLowerCase()
-          .includes(this.childFilterAssignee.toLowerCase());
+      
+      // 担当者フィルター（カンマ区切り対応）
+      let assigneeMatch = true;
+      if (this.childFilterAssignee) {
+        if (!task.assignee) {
+          assigneeMatch = false;
+        } else {
+          // assignee をカンマで分割
+          const assignees = task.assignee
+            .split(',')
+            .map((name) => name.trim())
+            .filter((name) => name.length > 0);
+          
+          // assignedMembers も含める
+          if (Array.isArray((task as any).assignedMembers)) {
+            assignees.push(
+              ...(task as any).assignedMembers.map((m: string) => String(m).trim())
+            );
+          }
+          
+          // フィルター値とマッチするか確認
+          assigneeMatch = assignees.some(
+            (assignee) => assignee.toLowerCase() === this.childFilterAssignee.toLowerCase()
+          );
+        }
+      }
+      
       const dueDateMatch =
         !this.childFilterDueDate || task.dueDate === this.childFilterDueDate;
 
