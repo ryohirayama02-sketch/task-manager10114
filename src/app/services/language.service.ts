@@ -81,10 +81,10 @@ export class LanguageService {
       ja: '担当者に通知',
       en: 'Notify assignee',
     },
-    'settings.daily.title': { ja: '日次リマインダー', en: 'Daily Reminder' },
+    'settings.daily.title': { ja: '今日のタスク', en: 'Today\'s Tasks' },
     'settings.daily.enable': {
-      ja: '日次リマインダーを有効にする',
-      en: 'Enable daily reminders',
+      ja: '今日のタスク通知を有効にする',
+      en: 'Enable today\'s tasks notification',
     },
     'settings.save': { ja: '設定を保存', en: 'Save Settings' },
     'settings.saving': { ja: '保存中...', en: 'Saving...' },

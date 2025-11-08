@@ -637,7 +637,7 @@ export class SettingsComponent implements OnInit {
   }
 
   /**
-   * 日次リマインダーを手動送信（テスト用・デバッグ用）
+   * 今日のタスク通知を手動送信（テスト用・デバッグ用）
    */
   async sendDailyTaskRemindersTest(): Promise<void> {
     const currentUser = this.authService.getCurrentUser();
@@ -660,7 +660,7 @@ export class SettingsComponent implements OnInit {
     this.isSaving = true;
 
     try {
-      console.log('🔔 日次リマインダーをテスト送信');
+      console.log('🔔 今日のタスク通知をテスト送信');
 
       const { getFunctions, httpsCallable } = await import(
         'firebase/functions'
@@ -705,7 +705,7 @@ export class SettingsComponent implements OnInit {
           0
         );
 
-        let message = `日次リマインダーのテスト実行が完了しました\n`;
+        let message = `今日のタスク通知のテスト実行が完了しました\n`;
         message += `成功: ${successCount}件、スキップ: ${skippedCount}件、エラー: ${errorCount}件\n`;
         message += `通知タスク数: ${taskCount}件\n`;
         message += `詳細はコンソールを確認してください`;
@@ -715,7 +715,7 @@ export class SettingsComponent implements OnInit {
         });
       } else {
         this.snackBar.open(
-          '日次リマインダーのテスト実行に失敗しました',
+          '今日のタスク通知のテスト実行に失敗しました',
           this.getCloseLabel(),
           {
             duration: 3000,
@@ -723,7 +723,7 @@ export class SettingsComponent implements OnInit {
         );
       }
     } catch (error: any) {
-      console.error('日次リマインダーテストエラー:', error);
+      console.error('今日のタスク通知テストエラー:', error);
       this.snackBar.open(
         `エラー: ${error.message || '不明なエラー'}`,
         this.getCloseLabel(),

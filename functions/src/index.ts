@@ -357,6 +357,164 @@ export const sendTestEmail = onCall(
  * 自動スケジュール関数（既存維持）
  */
 /**
+ * 🔹 今日のタスクを取得（ユーザーが担当者で、期日が今日のタスク）
+ */
+async function getTodayTasksForUser(
+  roomId: string,
+  roomDocId: string,
+  userEmail: string,
+  userName?: string
+): Promise<any[]> {
+  const db = admin.firestore();
+  const now = new Date();
+  const jstNow = new Date(
+    now.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' })
+  );
+  const jstToday = new Date(jstNow);
+  jstToday.setHours(0, 0, 0, 0);
+
+  const todayStr = `${jstToday.getFullYear()}-${String(
+    jstToday.getMonth() + 1
+  ).padStart(2, '0')}-${String(jstToday.getDate()).padStart(2, '0')}`;
+
+  console.log(`📅 今日のタスク取得: ${todayStr}`);
+
+  // メンバー情報を取得
+  const membersSnapshot = await db
+    .collection('members')
+    .where('roomId', '==', roomId)
+    .get();
+
+  const memberEmailMap = new Map<string, string>(); // memberId -> email
+  const memberNameMap = new Map<string, string>(); // name -> email
+  const memberIdMap = new Map<string, string>(); // email -> memberId
+  const memberIdToNameMap = new Map<string, string>(); // memberId -> name
+  membersSnapshot.forEach((doc) => {
+    const memberData = doc.data();
+    if (memberData.email) {
+      if (doc.id) {
+        memberEmailMap.set(doc.id, memberData.email);
+        memberIdMap.set(memberData.email, doc.id);
+        if (memberData.name) {
+          memberIdToNameMap.set(doc.id, memberData.name);
+        }
+      }
+      if (memberData.name) {
+        memberNameMap.set(memberData.name, memberData.email);
+      }
+    }
+  });
+
+  // ユーザーのメンバーIDを取得
+  const userMemberId = memberIdMap.get(userEmail);
+  const normalizedUserName = userName?.trim().toLowerCase();
+
+  // ユーザー名の配列を作成（フロントエンド側と同じロジック）
+  const members = normalizedUserName ? [normalizedUserName] : [];
+
+  // プロジェクトを取得
+  const projectsRef = db.collection('projects');
+  let projectsSnapshot = await projectsRef
+    .where('roomDocId', '==', roomDocId)
+    .get();
+
+  if (projectsSnapshot.empty) {
+    projectsSnapshot = await projectsRef.where('roomId', '==', roomId).get();
+  }
+
+  const allTasks: any[] = [];
+
+  // 各プロジェクトのタスクを取得
+  for (const projectDoc of projectsSnapshot.docs) {
+    const projectId = projectDoc.id;
+    const projectData = projectDoc.data();
+    const tasksRef = db.collection(`projects/${projectId}/tasks`);
+
+    const tasksSnapshot = await tasksRef.get();
+
+    tasksSnapshot.forEach((taskDoc) => {
+      const taskData = taskDoc.data();
+      const due = taskData.dueDate;
+
+      // 期日が今日で、ステータスが「未着手」または「作業中」のタスク
+      const isToday =
+        due === todayStr &&
+        (taskData.status === '未着手' || taskData.status === '作業中');
+
+      if (!isToday) {
+        return;
+      }
+
+      // 担当者をチェック
+      let assignees: string[] = [];
+
+      // ① assignee（カンマ区切り）
+      if (taskData.assignee) {
+        assignees.push(
+          ...taskData.assignee
+            .split(',')
+            .map((n: string) => n.trim().toLowerCase())
+            .filter((n: string) => n.length > 0)
+        );
+      }
+
+      // ② assignedMembers
+      if (Array.isArray(taskData.assignedMembers)) {
+        taskData.assignedMembers.forEach((member: any) => {
+          if (typeof member === 'string') {
+            assignees.push(member.trim().toLowerCase());
+          } else if (typeof member === 'object' && member) {
+            if (member.memberName)
+              assignees.push(member.memberName.trim().toLowerCase());
+            if (member.name) assignees.push(member.name.trim().toLowerCase());
+            if (member.memberEmail)
+              assignees.push(member.memberEmail.trim().toLowerCase());
+            if (member.email) assignees.push(member.email.trim().toLowerCase());
+          }
+        });
+      }
+
+      // ③ assigneeEmail
+      if (taskData.assigneeEmail) {
+        assignees.push(taskData.assigneeEmail.trim().toLowerCase());
+      }
+
+      assignees = [...new Set(assignees)];
+
+      const normalizedUserEmail = userEmail.trim().toLowerCase();
+
+      // フロントエンド側と同じロジック
+      const match =
+        members.length > 0
+          ? assignees.some((a) => members.includes(a))
+          : assignees.includes(normalizedUserEmail);
+
+      if (match) {
+        allTasks.push({
+          id: taskDoc.id,
+          projectId,
+          projectName: projectData.projectName || 'プロジェクト',
+          taskName: taskData.taskName || taskData.task,
+          dueDate: taskData.dueDate,
+          status: taskData.status,
+          priority: taskData.priority,
+        });
+      }
+    });
+  }
+
+  // 期日でソート（早い順）
+  allTasks.sort((a, b) => {
+    if (a.dueDate < b.dueDate) return -1;
+    if (a.dueDate > b.dueDate) return 1;
+    return 0;
+  });
+
+  // すべてのタスクを返す（制限なし）
+  return allTasks;
+}
+
+/**
  * 🔹 すぐやるタスクを取得（ユーザーが担当者のタスク）
  */
 async function getQuickTasksForUser(
@@ -530,7 +688,7 @@ async function getQuickTasksForUser(
 }
 
 /**
- * 🔹 日次リマインダーをスケジュール実行（毎分チェック）
+ * 🔹 今日のタスク通知をスケジュール実行（毎分チェック）
  */
 export const sendDailyTaskReminders = onSchedule(
   {
@@ -541,7 +699,7 @@ export const sendDailyTaskReminders = onSchedule(
     secrets: [sendgridApiKey, sendgridFromEmail],
   },
   async () => {
-    console.log('🕙 日次リマインダースケジュール実行開始');
+    console.log('🕙 今日のタスク通知スケジュール実行開始');
     const db = admin.firestore();
     const apiKey = sendgridApiKey
       .value()
@@ -571,7 +729,7 @@ export const sendDailyTaskReminders = onSchedule(
         .get();
 
       console.log(
-        `📋 日次リマインダー有効な設定数: ${settingsSnapshot.docs.length}`
+        `📋 今日のタスク通知有効な設定数: ${settingsSnapshot.docs.length}`
       );
 
       for (const settingsDoc of settingsSnapshot.docs) {
@@ -651,22 +809,21 @@ export const sendDailyTaskReminders = onSchedule(
           }
         });
 
-        // すぐやるタスクを取得（上位5つ）
-        const quickTasks = await getQuickTasksForUser(
+        // 今日のタスクを取得（期日が今日で、ステータスが「作業中」「未着手」のタスク）
+        const todayTasks = await getTodayTasksForUser(
           roomId,
           roomDocId,
           userEmail,
-          userName,
-          7 // 7日間
+          userName
         );
 
-        if (quickTasks.length === 0) {
-          console.log(`📭 すぐやるタスクなし: userId=${settingUserId}`);
+        if (todayTasks.length === 0) {
+          console.log(`📭 今日のタスクなし: userId=${settingUserId}`);
           continue;
         }
 
         console.log(
-          `📋 すぐやるタスク数: ${quickTasks.length}件 (userId=${settingUserId})`
+          `📋 今日のタスク数: ${todayTasks.length}件 (userId=${settingUserId})`
         );
 
         // メール送信
@@ -716,7 +873,7 @@ export const sendDailyTaskReminders = onSchedule(
         }
       }
     } catch (error: any) {
-      console.error('❌ 日次リマインダースケジュール実行エラー:', error);
+      console.error('❌ 今日のタスク通知スケジュール実行エラー:', error);
     }
   }
 );
@@ -2313,7 +2470,7 @@ export const sendWorkTimeOverflowNotificationsManual = onCall(
 );
 
 /**
- * 🔹 日次リマインダーを手動実行（デバッグ用）
+ * 🔹 今日のタスク通知を手動実行（デバッグ用）
  */
 export const sendDailyTaskRemindersManual = onCall(
   { secrets: [sendgridApiKey, sendgridFromEmail], cors: true },
@@ -2491,38 +2648,37 @@ export const sendDailyTaskRemindersManual = onCall(
           }
         });
 
-        // すぐやるタスクを取得（上位5つ）
-        const quickTasks = await getQuickTasksForUser(
+        // 今日のタスクを取得（期日が今日で、ステータスが「作業中」「未着手」のタスク）
+        const todayTasks = await getTodayTasksForUser(
           settingRoomId,
           settingRoomDocId,
           userEmail,
-          userName,
-          7 // 7日間
+          userName
         );
 
-        if (quickTasks.length === 0) {
-          console.log(`📭 すぐやるタスクなし`);
+        if (todayTasks.length === 0) {
+          console.log(`📭 今日のタスクなし`);
           results.push({
             userId: settingUserId,
             success: true,
             taskCount: 0,
-            message: 'すぐやるタスクなし',
+            message: '今日のタスクなし',
           });
           continue;
         }
 
-        console.log(`📋 すぐやるタスク数: ${quickTasks.length}件`);
+        console.log(`📋 今日のタスク数: ${todayTasks.length}件`);
 
         // メール送信
         try {
-          const taskList = quickTasks
+          const taskList = todayTasks
             .map(
               (task, index) => `
             <div style="background-color:#f8f9fa;padding:15px;margin:10px 0;border-radius:8px;border-left:4px solid #1976d2;">
               <h3 style="margin:0 0 10px;">${index + 1}. ${task.taskName}</h3>
               <p style="margin:5px 0;"><strong>期日:</strong> ${
                 task.dueDate
-              }</p>
+              } (今日)</p>
               <p style="margin:5px 0;"><strong>プロジェクト:</strong> ${
                 task.projectName
               }</p>
@@ -2536,11 +2692,11 @@ export const sendDailyTaskRemindersManual = onCall(
           const msg = {
             to: emailAddress,
             from: fromEmail,
-            subject: `【日次リマインダー】期限が近いタスクが${quickTasks.length}件あります`,
+            subject: `【今日のタスク】期日が今日のタスクが${todayTasks.length}件あります`,
             html: `
               <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
-                <h2 style="color:#1976d2;">📋 日次リマインダー</h2>
-                <p>期限が近いタスクが${quickTasks.length}件あります。以下をご確認ください。</p>
+                <h2 style="color:#1976d2;">📋 今日のタスク</h2>
+                <p>期日が今日のタスクが${todayTasks.length}件あります。以下をご確認ください。</p>
                 ${taskList}
                 <p style="color:#999;font-size:12px;margin-top:20px;">
                   このメールはタスク管理アプリから自動送信されました。
@@ -2550,12 +2706,12 @@ export const sendDailyTaskRemindersManual = onCall(
           };
           await sgMail.send(msg);
           console.log(
-            `✅ 日次リマインダーメール送信成功: ${emailAddress} (${quickTasks.length}件)`
+            `✅ 今日のタスク通知メール送信成功: ${emailAddress} (${todayTasks.length}件)`
           );
           results.push({
             userId: settingUserId,
             success: true,
-            taskCount: quickTasks.length,
+            taskCount: todayTasks.length,
             email: emailAddress,
           });
         } catch (error: any) {
@@ -2573,12 +2729,12 @@ export const sendDailyTaskRemindersManual = onCall(
 
       return {
         success: true,
-        message: '日次リマインダーの手動実行が完了しました',
+        message: '今日のタスク通知の手動実行が完了しました',
         currentTime,
         results,
       };
     } catch (error: any) {
-      console.error('❌ 日次リマインダー手動実行エラー:', error);
+      console.error('❌ 今日のタスク通知手動実行エラー:', error);
       throw new HttpsError('internal', `エラー: ${error.message}`);
     }
   }

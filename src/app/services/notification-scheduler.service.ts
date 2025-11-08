@@ -173,7 +173,7 @@ export class NotificationSchedulerService {
     }
   }
 
-  /** 日次リマインダーをチェック */
+  /** 今日のタスク通知をチェック */
   private async checkDailyReminder(
     settings: NotificationSettings,
     currentTime: string
@@ -195,7 +195,7 @@ export class NotificationSchedulerService {
       if (upcomingTasks.length > 0 || overdueTasks.length > 0) {
         const reminderTask: TaskNotificationData = {
           taskId: 'daily_reminder',
-          taskName: '日次リマインダー',
+          taskName: '今日のタスク',
           projectName: 'システム',
           assignee: this.authService.getCurrentUser()?.email || '',
           dueDate: new Date().toISOString().split('T')[0],
@@ -210,7 +210,7 @@ export class NotificationSchedulerService {
         );
       }
     } catch (error) {
-      console.error('日次リマインダーチェックエラー:', error);
+      console.error('今日のタスク通知チェックエラー:', error);
     }
   }
 
