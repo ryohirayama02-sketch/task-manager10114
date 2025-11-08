@@ -26,11 +26,11 @@ import { FormsModule } from '@angular/forms';
       <div class="period-dialog-content">
         <div class="date-field">
           <label for="startDate">開始日</label>
-          <input id="startDate" type="date" [(ngModel)]="startDate" />
+          <input id="startDate" type="date" [(ngModel)]="startDate" max="9999-12-31" />
         </div>
         <div class="date-field">
           <label for="endDate">終了日</label>
-          <input id="endDate" type="date" [(ngModel)]="endDate" />
+          <input id="endDate" type="date" [(ngModel)]="endDate" max="9999-12-31" />
         </div>
       </div>
     </mat-dialog-content>

@@ -90,6 +90,7 @@
                   type="date"
                   [(ngModel)]="editableProject!.startDate"
                   name="inlineStartDate"
+                  max="9999-12-31"
                 />
                 <mat-icon class="date-icon">event</mat-icon>
               </div>
@@ -105,6 +106,7 @@
                   [(ngModel)]="editableProject!.endDate"
                   name="inlineEndDate"
                   [min]="editableProject!.startDate || ''"
+                  max="9999-12-31"
                 />
                 <mat-icon class="date-icon">event</mat-icon>
               </div>
@@ -432,6 +434,7 @@
         type="date"
         [(ngModel)]="filterDueDate"
         (change)="applyFilter()"
+        max="9999-12-31"
       />
       <button
         mat-raised-button type="button" [disabled]="filterDueDateInput.disabled" (click)="openNativeDatePicker(filterDueDateInput)" [attr.aria-label]="'projectDetail.selectDueDate' | translate">

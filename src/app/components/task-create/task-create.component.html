@@ -58,6 +58,7 @@
                 type="date"
                 [(ngModel)]="taskForm.startDate"
                 name="startDate"
+                max="9999-12-31"
               />
             </div>
           </div>
@@ -72,6 +73,7 @@
                 [(ngModel)]="taskForm.dueDate"
                 name="dueDate"
                 [min]="taskForm.startDate || ''"
+                max="9999-12-31"
               />
             </div>
           </div>

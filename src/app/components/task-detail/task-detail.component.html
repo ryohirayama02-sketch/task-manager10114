@@ -230,6 +230,7 @@
                   type="date"
                   [(ngModel)]="taskData.startDate"
                   name="startDate"
+                  max="9999-12-31"
                 />
               </div>
             </div>
@@ -246,6 +247,7 @@
                   [(ngModel)]="taskData.dueDate"
                   name="dueDate"
                   [min]="taskData.startDate || ''"
+                  max="9999-12-31"
                 />
               </div>
             </div>
@@ -685,6 +687,7 @@
             type="date"
             [(ngModel)]="childFilterDueDate"
             (change)="applyChildFilter()"
+            max="9999-12-31"
           />
           <button
             mat-icon-button

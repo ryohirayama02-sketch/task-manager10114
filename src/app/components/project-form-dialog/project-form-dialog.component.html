@@ -49,6 +49,7 @@
               name="startDate"
               [placeholder]="'projectForm.startDateLabel' | translate"
               class="date-input"
+              max="9999-12-31"
             />
             <mat-icon class="date-icon">event</mat-icon>
           </div>
@@ -66,6 +67,7 @@
               [placeholder]="'projectForm.endDateLabel' | translate"
               [min]="project.startDate || ''"
               class="date-input"
+              max="9999-12-31"
             />
             <mat-icon class="date-icon">event</mat-icon>
           </div>

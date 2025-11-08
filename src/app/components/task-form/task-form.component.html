@@ -156,6 +156,7 @@
               [(ngModel)]="startDateString"
               placeholder="開始日を選択"
               class="date-input"
+              max="9999-12-31"
             />
             <mat-icon class="date-icon">event</mat-icon>
           </div>
@@ -171,6 +172,7 @@
               [min]="startDateString || ''"
               placeholder="期限を選択"
               class="date-input"
+              max="9999-12-31"
             />
             <mat-icon class="date-icon">event</mat-icon>
           </div>
