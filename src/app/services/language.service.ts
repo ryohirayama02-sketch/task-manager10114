@@ -27,7 +27,7 @@ export class LanguageService {
     'nav.settings': { ja: '設定', en: 'Settings' },
     'nav.login': { ja: 'ログイン', en: 'Login' },
     'nav.logout': { ja: 'ログアウト', en: 'Logout' },
-    'login.title': { ja: 'Task Manager', en: 'Task Manager' },
+    'login.title': { ja: '課題管理アプリ', en: 'Task Manager' },
     'login.subtitle': { ja: 'あなたのタスクを効率的に管理', en: 'Manage your tasks efficiently' },
     'login.googleLogin': { ja: 'Google でログイン', en: 'Sign in with Google' },
     'login.emailLogin': { ja: 'メールでログイン', en: 'Sign in with Email' },
