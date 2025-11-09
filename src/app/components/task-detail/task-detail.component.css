@@ -296,6 +296,12 @@
   margin-left: auto;
 }
 
+.detail-settings-group {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
 .delete-button-styled {
   display: flex;
   align-items: center;

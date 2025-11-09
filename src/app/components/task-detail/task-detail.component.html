@@ -13,6 +13,7 @@
 >
   <!-- ツールバー -->
   <div class="task-toolbar">
+    <div class="toolbar-spacer"></div>
     <div class="header-calendar-toggle">
       <button
         type="button"
@@ -29,28 +30,6 @@
         {{ "taskDetail.editMode" | translate }}
         {{
           isEditing
-            ? ("taskDetail.on" | translate)
-            : ("taskDetail.off" | translate)
-        }}
-      </span>
-    </div>
-    <div class="toolbar-spacer"></div>
-    <div class="header-calendar-toggle">
-      <button
-        type="button"
-        class="calendar-switch"
-        [class.on]="taskData.calendarSyncEnabled"
-        [disabled]="isCalendarSyncSaving"
-        (click)="toggleCalendarSync()"
-        role="switch"
-        [attr.aria-checked]="taskData.calendarSyncEnabled"
-      >
-        <span class="calendar-switch-handle"></span>
-      </button>
-      <span class="calendar-switch-label">
-        {{ "taskDetail.calendarSync" | translate }}
-        {{
-          taskData.calendarSyncEnabled
             ? ("taskDetail.on" | translate)
             : ("taskDetail.off" | translate)
         }}
@@ -607,10 +586,33 @@
             <mat-icon>content_copy</mat-icon>
             {{ "taskDetail.duplicate" | translate }}
           </button>
-          <button mat-raised-button (click)="openDetailSettings()">
-            <mat-icon>settings</mat-icon>
-            {{ "taskDetail.detailSettings" | translate }}
-          </button>
+          <div class="detail-settings-group">
+            <button mat-raised-button (click)="openDetailSettings()">
+              <mat-icon>settings</mat-icon>
+              {{ "taskDetail.detailSettings" | translate }}
+            </button>
+            <div class="header-calendar-toggle">
+              <button
+                type="button"
+                class="calendar-switch"
+                [class.on]="taskData.calendarSyncEnabled"
+                [disabled]="isCalendarSyncSaving"
+                (click)="toggleCalendarSync()"
+                role="switch"
+                [attr.aria-checked]="taskData.calendarSyncEnabled"
+              >
+                <span class="calendar-switch-handle"></span>
+              </button>
+              <span class="calendar-switch-label">
+                {{ "taskDetail.calendarSync" | translate }}
+                {{
+                  taskData.calendarSyncEnabled
+                    ? ("taskDetail.on" | translate)
+                    : ("taskDetail.off" | translate)
+                }}
+              </span>
+            </div>
+          </div>
         </div>
         <div class="action-buttons-right" *ngIf="isEditing">
           <button
