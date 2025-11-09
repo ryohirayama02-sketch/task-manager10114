@@ -723,14 +723,23 @@ textarea {
   gap: 8px;
   font-size: 14px;
   color: #666;
-  min-width: 0;
-  flex-shrink: 0;
+  min-width: 0; /* flexboxで改行を制御するため */
 }
 
 .task-detail-item mat-icon {
   font-size: 18px;
   width: 18px;
   height: 18px;
+  flex-shrink: 0;
+}
+
+.task-parent-name {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
 }
 
 .task-main-info {

@@ -501,7 +501,7 @@
             *ngIf="task.parentTaskId && taskNameById[task.parentTaskId]"
           >
             <mat-icon>subdirectory_arrow_right</mat-icon>
-            <span>{{ 'projectDetail.parentTask' | translate }}: {{ taskNameById[task.parentTaskId] }}</span>
+            <span class="task-parent-name">{{ 'projectDetail.parentTask' | translate }}: {{ taskNameById[task.parentTaskId] }}</span>
           </div>
         </div>
       </mat-card-content>
