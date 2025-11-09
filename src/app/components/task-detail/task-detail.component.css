@@ -31,6 +31,9 @@
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
   border: 1px solid rgba(0, 0, 0, 0.08);
   margin: 24px auto;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
 }
 
 .task-toolbar {
@@ -66,12 +69,18 @@
   display: flex;
   flex-direction: column;
   gap: 0;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
 }
 
 .task-header-section {
   padding-bottom: 16px;
   border-bottom: 4px solid #606b80;
   margin-bottom: 20px;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
 }
 
 .task-title {
@@ -79,6 +88,9 @@
   color: #1f2933;
   font-size: 1.7rem;
   font-weight: 600;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
 }
 
 .task-name-edit-field {
@@ -93,6 +105,9 @@
   padding-bottom: 20px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
   margin-bottom: 20px;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
 }
 
 .task-info-section > p,
@@ -102,6 +117,9 @@
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
   color: rgba(31, 41, 55, 0.85);
   font-size: 14px;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
 }
 
 .task-info-section > p:last-child,
@@ -862,6 +880,9 @@ mat-chip mat-icon {
   border: 1px solid #ddd;
   border-radius: 8px;
   background-color: #ffffff;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
 }
 
 .materials-list {
@@ -876,6 +897,7 @@ mat-chip mat-icon {
   gap: 8px;
   padding: 6px 0;
   font-size: 14px;
+  min-width: 0; /* flexboxで改行を制御するため */
 }
 
 .material-item.edit-mode {
@@ -895,9 +917,10 @@ mat-chip mat-icon {
   text-decoration: none;
   cursor: pointer;
   flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
   transition: color 0.2s ease;
 }
 
