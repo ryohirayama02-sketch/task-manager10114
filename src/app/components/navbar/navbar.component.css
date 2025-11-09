@@ -6,13 +6,21 @@
   border-bottom: 1px solid #ddd;
   background-color: #fff;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  flex-wrap: wrap;
+  gap: 8px;
+  row-gap: 12px;
+  min-width: 0;
 }
 
 .nav-links {
   display: flex;
   gap: 16px;
   align-items: center;
-  flex-shrink: 0;
+  flex-shrink: 1;
+  flex-wrap: nowrap;
+  min-width: 0;
+  flex-basis: auto;
+  white-space: nowrap;
 }
 
 .nav-links a {
@@ -22,6 +30,8 @@
   border-radius: 4px;
   transition: background-color 0.2s ease;
   font-size: 14px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .nav-links a:hover {
@@ -30,10 +40,13 @@
 
 .nav-right {
   display: flex;
-  gap: 16px;
+  gap: 8px;
   align-items: center;
   min-width: 0;
-  flex-shrink: 1;
+  flex-shrink: 0;
+  flex-wrap: nowrap;
+  flex-basis: auto;
+  white-space: nowrap;
 }
 
 .nav-right a {
@@ -43,6 +56,8 @@
   border-radius: 4px;
   transition: background-color 0.2s ease;
   font-size: 14px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .nav-right a:hover {
@@ -54,18 +69,20 @@
   align-items: center;
   min-width: 0;
   flex-shrink: 1;
+  max-width: 100%;
 }
 
 .user-button {
   display: flex !important;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   color: #333;
   font-size: 14px;
   min-width: 0;
   flex-shrink: 1;
   max-width: 100%;
-  overflow: visible;
+  overflow: hidden;
+  padding: 8px 8px !important;
 }
 
 .user-button mat-icon {
@@ -86,31 +103,76 @@
   white-space: nowrap;
   min-width: 0;
   flex-shrink: 1;
-  max-width: 200px;
+  max-width: 150px;
   display: block;
 }
 
 /* レスポンシブ対応 */
+/* 十分な幅がある場合は1段で表示（1400px以上） */
+@media (min-width: 1400px) {
+  .navbar {
+    flex-wrap: nowrap;
+  }
+}
+
+@media (max-width: 1200px) {
+  .nav-right {
+    gap: 4px;
+  }
+
+  .nav-right a {
+    font-size: 13px;
+    padding: 8px 8px;
+  }
+
+  .user-button .mdc-button__label,
+  .user-button span {
+    max-width: 120px;
+  }
+}
+
 @media (max-width: 768px) {
   .navbar {
-    flex-direction: column;
-    gap: 8px;
     padding: 12px;
+    justify-content: flex-start;
   }
 
   .nav-links {
-    flex-wrap: wrap;
-    justify-content: center;
     gap: 8px;
+    width: 100%;
   }
 
   .nav-right {
-    gap: 8px;
+    gap: 4px;
+    width: 100%;
   }
 
   .nav-links a,
   .nav-right a {
     font-size: 12px;
     padding: 6px 8px;
+  }
+
+  .user-button .mdc-button__label,
+  .user-button span {
+    max-width: 100px;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-right a {
+    font-size: 11px;
+    padding: 6px 6px;
+  }
+
+  .user-button {
+    padding: 6px 6px !important;
+    gap: 2px;
+  }
+
+  .user-button .mdc-button__label,
+  .user-button span {
+    max-width: 80px;
+    font-size: 12px;
   }
 }
