@@ -117,22 +117,19 @@ export class MemberProgressComponent implements OnInit {
     const memberTaskMap = new Map<string, Task[]>();
 
     tasks.forEach((task) => {
-      // ✅ 修正ポイント：assignee がカンマ区切りの場合も分割して処理
+      // assignee と assignedMembers を統合して、重複を削除
+      let assignees: string[] = [];
+
+      // assignee から名前を取得
       if (task.assignee) {
-        const assignees = task.assignee
+        const assigneeNames = task.assignee
           .split(',')
           .map((name) => name.trim())
           .filter((name) => name.length > 0);
-
-        assignees.forEach((name) => {
-          if (!memberTaskMap.has(name)) {
-            memberTaskMap.set(name, []);
-          }
-          memberTaskMap.get(name)!.push(task);
-        });
+        assignees.push(...assigneeNames);
       }
 
-      // ✅ assignedMembers が存在する場合も各メンバーに追加（メンバーIDから名前を取得）
+      // assignedMembers からメンバー名を取得
       if (task.assignedMembers && task.assignedMembers.length > 0) {
         task.assignedMembers.forEach((memberId) => {
           // メンバーIDからメンバー名を取得
@@ -145,14 +142,24 @@ export class MemberProgressComponent implements OnInit {
             .map((name) => name.trim())
             .filter((name) => name.length > 0);
           
-          names.forEach((name) => {
-            if (!memberTaskMap.has(name)) {
-              memberTaskMap.set(name, []);
-            }
-            memberTaskMap.get(name)!.push(task);
-          });
+          assignees.push(...names);
         });
       }
+
+      // 重複を削除
+      assignees = [...new Set(assignees)];
+
+      // 各メンバーにタスクを追加（重複チェック付き）
+      assignees.forEach((name) => {
+        if (!memberTaskMap.has(name)) {
+          memberTaskMap.set(name, []);
+        }
+        // 既に同じタスクが追加されていないかチェック
+        const memberTasks = memberTaskMap.get(name)!;
+        if (!memberTasks.some((t) => t.id === task.id)) {
+          memberTasks.push(task);
+        }
+      });
     });
 
     console.log('メンバー別タスク:', memberTaskMap);
