@@ -21,6 +21,7 @@ import { TaskService } from '../../services/task.service';
 import { MemberManagementService } from '../../services/member-management.service';
 import { CalendarService } from '../../services/calendar.service';
 import { TaskAttachmentService } from '../../services/task-attachment.service';
+import { NavigationHistoryService } from '../../services/navigation-history.service';
 import { Task, Project, ChatMessage, TaskAttachment } from '../../models/task.model';
 import { Member } from '../../models/member.model';
 import { ProjectChatComponent } from '../project-chat/project-chat.component';
@@ -68,6 +69,7 @@ export class TaskDetailComponent implements OnInit {
   private calendarService = inject(CalendarService);
   private snackBar = inject(MatSnackBar);
   private attachmentService = inject(TaskAttachmentService);
+  private navigationHistory = inject(NavigationHistoryService);
 
   @Output() taskUpdated = new EventEmitter<any>();
 
@@ -894,10 +896,32 @@ export class TaskDetailComponent implements OnInit {
 
   /** 戻る */
   goBack() {
-    if (window.history.length > 1) {
-      this.location.back();
-    } else {
+    if (window.history.length <= 1) {
       this.router.navigate(['/kanban']);
+      return;
+    }
+
+    const backCount = this.navigationHistory.getBackCount();
+    // 作成画面をスキップするために、必要な回数だけ戻る
+    this.goBackRecursive(backCount);
+  }
+
+  /** 再帰的に戻る操作を実行 */
+  private goBackRecursive(remainingCount: number) {
+    if (remainingCount <= 0 || window.history.length <= 1) {
+      if (window.history.length <= 1) {
+        this.router.navigate(['/kanban']);
+      }
+      return;
+    }
+
+    this.location.back();
+    
+    // 次の戻る操作を少し待ってから実行（ブラウザの履歴更新を待つ）
+    if (remainingCount > 1) {
+      setTimeout(() => {
+        this.goBackRecursive(remainingCount - 1);
+      }, 100); // 100ms待機
     }
   }
 

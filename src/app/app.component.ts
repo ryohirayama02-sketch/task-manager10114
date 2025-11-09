@@ -6,6 +6,7 @@ import { OfflineIndicatorComponent } from './components/offline-indicator/offlin
 import { NotificationSchedulerService } from './services/notification-scheduler.service';
 import { AuthService } from './services/auth.service';
 import { HomeScreenSettingsService } from './services/home-screen-settings.service';
+import { NavigationHistoryService } from './services/navigation-history.service';
 import { TranslatePipe } from './pipes/translate.pipe';
 
 @Component({
@@ -26,8 +27,11 @@ export class AppComponent implements OnInit, OnDestroy {
     private notificationScheduler: NotificationSchedulerService,
     private authService: AuthService,
     private homeScreenSettingsService: HomeScreenSettingsService,
-    private router: Router
-  ) {}
+    private router: Router,
+    private navigationHistory: NavigationHistoryService
+  ) {
+    // ナビゲーション履歴サービスを初期化（Routerイベントの監視を開始）
+  }
 
   ngOnInit() {
     // 🔍 現在のルーム情報をコンソールに出力（確認用）
