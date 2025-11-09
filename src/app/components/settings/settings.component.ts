@@ -83,8 +83,23 @@ export class SettingsComponent implements OnInit {
   deadlineNotificationDays = [1, 2, 3, 5, 7, 14, 30];
   selectedDeadlineDays: number[] = [1, 3, 7];
 
-  // 時間オプション
-  timeOptions: string[] = [];
+  // 時間オプション（タスク詳細画面と同じ形式）
+  hourOptions = Array.from({ length: 24 }, (_, i) => ({
+    value: i.toString().padStart(2, '0'),
+    label: i.toString().padStart(2, '0'),
+  }));
+  minuteOptions = Array.from({ length: 60 }, (_, i) => ({
+    value: i.toString().padStart(2, '0'),
+    label: i.toString().padStart(2, '0'),
+  }));
+  
+  // 時間入力用のオブジェクト
+  taskDeadlineTime = { hour: '09', minute: '00' };
+  quietStartTime = { hour: '22', minute: '00' };
+  quietEndTime = { hour: '08', minute: '00' };
+  workTimeOverflowTime = { hour: '09', minute: '00' };
+  dailyReminderTime = { hour: '09', minute: '00' };
+  
   workTimeOptions = [20, 30, 40, 50, 60, 80];
   checkPeriodOptions = [1, 3, 7, 14, 30];
 
@@ -95,17 +110,7 @@ export class SettingsComponent implements OnInit {
     private homeScreenSettingsService: HomeScreenSettingsService,
     private roomService: RoomService,
     private snackBar: MatSnackBar
-  ) {
-    // 時間オプションを生成（00:00 - 23:59 を1分刻み）
-    for (let hour = 0; hour < 24; hour++) {
-      for (let minute = 0; minute < 60; minute++) {
-        const timeStr = `${hour.toString().padStart(2, '0')}:${minute
-          .toString()
-          .padStart(2, '0')}`;
-        this.timeOptions.push(timeStr);
-      }
-    }
-  }
+  ) {}
 
   async ngOnInit() {
     const roomId = this.authService.getCurrentRoomId();
@@ -157,6 +162,24 @@ export class SettingsComponent implements OnInit {
         if (this.notificationSettings.quietHours.enabled === undefined) {
           this.notificationSettings.quietHours.enabled = false;
         }
+        
+        // 時間を{ hour, minute }形式に変換
+        this.taskDeadlineTime = this.parseTimeString(
+          this.notificationSettings.taskDeadlineNotifications.timeOfDay || '09:00'
+        );
+        this.quietStartTime = this.parseTimeString(
+          this.notificationSettings.quietHours.startTime || '22:00'
+        );
+        this.quietEndTime = this.parseTimeString(
+          this.notificationSettings.quietHours.endTime || '08:00'
+        );
+        this.workTimeOverflowTime = this.parseTimeString(
+          this.notificationSettings.workTimeOverflowNotifications.timeOfDay || '09:00'
+        );
+        this.dailyReminderTime = this.parseTimeString(
+          this.notificationSettings.dailyDeadlineReminder.timeOfDay || '09:00'
+        );
+        
         // デバッグ: 読み込んだ設定を確認
         console.log('📋 通知設定を読み込みました:', {
           quietHours: this.notificationSettings.quietHours,
@@ -230,6 +253,23 @@ export class SettingsComponent implements OnInit {
     });
   }
 
+  /** 時間文字列（'HH:mm'）を{ hour, minute }形式に変換 */
+  parseTimeString(timeString: string): { hour: string; minute: string } {
+    if (!timeString || !timeString.includes(':')) {
+      return { hour: '00', minute: '00' };
+    }
+    const [hour, minute] = timeString.split(':');
+    return {
+      hour: hour.padStart(2, '0'),
+      minute: minute.padStart(2, '0'),
+    };
+  }
+
+  /** { hour, minute }形式を時間文字列（'HH:mm'）に変換 */
+  formatTimeString(time: { hour: string; minute: string }): string {
+    return `${time.hour.padStart(2, '0')}:${time.minute.padStart(2, '0')}`;
+  }
+
   /** 通知設定を保存 */
   async saveNotificationSettings() {
     if (!this.notificationSettings) return;
@@ -239,6 +279,18 @@ export class SettingsComponent implements OnInit {
       // 選択された日数を設定に反映
       this.notificationSettings.taskDeadlineNotifications.daysBeforeDeadline =
         this.selectedDeadlineDays;
+
+      // 時間を文字列形式に変換して設定に反映
+      this.notificationSettings.taskDeadlineNotifications.timeOfDay =
+        this.formatTimeString(this.taskDeadlineTime);
+      this.notificationSettings.quietHours.startTime =
+        this.formatTimeString(this.quietStartTime);
+      this.notificationSettings.quietHours.endTime =
+        this.formatTimeString(this.quietEndTime);
+      this.notificationSettings.workTimeOverflowNotifications.timeOfDay =
+        this.formatTimeString(this.workTimeOverflowTime);
+      this.notificationSettings.dailyDeadlineReminder.timeOfDay =
+        this.formatTimeString(this.dailyReminderTime);
 
       // デバッグ: 保存前の値を確認
       console.log('💾 保存前の通知設定:', {

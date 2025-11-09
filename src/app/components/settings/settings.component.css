@@ -438,3 +438,26 @@ mat-card-actions button {
     color: #64b5f6;
   }
 }
+
+/* 時間入力のスタイル（タスク詳細画面と同じ） */
+.time-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.time-field {
+  width: 100px;
+}
+
+.time-separator {
+  font-weight: 600;
+  color: #666;
+}
+
+.time-input-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
