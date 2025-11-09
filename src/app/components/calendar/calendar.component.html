@@ -207,6 +207,7 @@
 <!-- カスタムツールチップ -->
 <div
   *ngIf="tooltipVisible"
+  #tooltip
   class="milestone-tooltip"
   [style.left.px]="tooltipPosition.x"
   [style.top.px]="tooltipPosition.y"

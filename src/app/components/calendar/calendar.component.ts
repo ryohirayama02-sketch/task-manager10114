@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -88,6 +88,7 @@ export class CalendarComponent implements OnInit, OnDestroy {
   tooltipVisible: boolean = false;
   tooltipPosition: { x: number; y: number } = { x: 0, y: 0 };
   tooltipMilestones: any[] = [];
+  @ViewChild('tooltip', { static: false }) tooltipElement?: ElementRef;
 
   constructor(
     private projectService: ProjectService,
@@ -558,11 +559,89 @@ export class CalendarComponent implements OnInit, OnDestroy {
       return;
     }
     this.tooltipMilestones = milestones;
-    this.tooltipPosition = {
-      x: event.clientX + 10,
-      y: event.clientY - 10,
-    };
+    
+    // 初期位置を設定
+    const tooltipWidth = 250; // max-width
+    const padding = 10;
+    const margin = 10;
+    
+    let x = event.clientX + margin;
+    let y = event.clientY - margin;
+    
+    // ウィンドウの境界を取得
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+    
+    // 右側にはみ出る場合は左側に表示
+    if (x + tooltipWidth > windowWidth - padding) {
+      x = event.clientX - tooltipWidth - margin;
+    }
+    
+    // 左側にはみ出る場合は右側に表示（最小限のマージンを確保）
+    if (x < padding) {
+      x = padding;
+    }
+    
+    // 高さは後で調整するため、まずは上方向に配置
+    // マイルストーンの数から高さを推定（1項目あたり約60px、ヘッダー約40px）
+    const estimatedHeight = 40 + milestones.length * 60;
+    
+    // 下側にはみ出る場合は上側に表示
+    if (y + estimatedHeight > windowHeight - padding) {
+      y = event.clientY - estimatedHeight - margin;
+    }
+    
+    // 上側にはみ出る場合は下側に表示
+    if (y < padding) {
+      y = event.clientY + margin;
+    }
+    
+    this.tooltipPosition = { x, y };
     this.tooltipVisible = true;
+    
+    // DOMが更新された後に実際のサイズで再調整
+    setTimeout(() => {
+      this.adjustTooltipPosition(event);
+    }, 0);
+  }
+  
+  /** ツールチップの位置を実際のサイズに基づいて調整 */
+  adjustTooltipPosition(event: MouseEvent) {
+    if (!this.tooltipElement?.nativeElement) {
+      return;
+    }
+    
+    const tooltip = this.tooltipElement.nativeElement;
+    const tooltipRect = tooltip.getBoundingClientRect();
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+    const padding = 10;
+    const margin = 10;
+    
+    let x = this.tooltipPosition.x;
+    let y = this.tooltipPosition.y;
+    
+    // 右側にはみ出る場合は左側に表示
+    if (tooltipRect.right > windowWidth - padding) {
+      x = event.clientX - tooltipRect.width - margin;
+    }
+    
+    // 左側にはみ出る場合は右側に表示
+    if (tooltipRect.left < padding) {
+      x = padding;
+    }
+    
+    // 下側にはみ出る場合は上側に表示
+    if (tooltipRect.bottom > windowHeight - padding) {
+      y = event.clientY - tooltipRect.height - margin;
+    }
+    
+    // 上側にはみ出る場合は下側に表示
+    if (tooltipRect.top < padding) {
+      y = event.clientY + margin;
+    }
+    
+    this.tooltipPosition = { x, y };
   }
 
   /** マイルストーンツールチップを非表示 */
