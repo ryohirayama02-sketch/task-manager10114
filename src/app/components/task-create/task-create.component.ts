@@ -18,6 +18,10 @@ import { TaskAttachmentService } from '../../services/task-attachment.service';
 import { CalendarService } from '../../services/calendar.service';
 import { Member } from '../../models/member.model';
 import { TranslatePipe } from '../../pipes/translate.pipe';
+import {
+  DEFAULT_PROJECT_THEME_COLOR,
+  resolveProjectThemeColor,
+} from '../../constants/project-theme-colors';
 
 @Component({
   selector: 'app-task-create',
@@ -76,6 +80,7 @@ export class TaskCreatePageComponent implements OnInit {
   selectedMemberIds: string[] = [];
   statusOptions = ['未着手', '作業中', '完了'];
   priorityOptions = ['高', '中', '低'];
+  projectThemeColor = DEFAULT_PROJECT_THEME_COLOR;
 
   constructor(
     private router: Router,
@@ -129,6 +134,15 @@ export class TaskCreatePageComponent implements OnInit {
         this.parentTaskId = duplicateData.parentTaskId;
         this.isSubtaskCreation = true;
       }
+    }
+
+    // プロジェクトのテーマ色を取得
+    if (this.projectId) {
+      this.projectService.getProjectById(this.projectId).subscribe((project) => {
+        if (project) {
+          this.projectThemeColor = resolveProjectThemeColor(project);
+        }
+      });
     }
 
     // Check for parentTaskId query parameter

@@ -475,7 +475,7 @@ export class LanguageService {
     'taskCreate.enterUrl': { ja: 'URLを入力', en: 'Enter URL' },
     'taskCreate.add': { ja: '追加', en: 'Add' },
     'taskCreate.uploadingFiles': { ja: 'アップロード中', en: 'Uploading' },
-    'taskCreate.createSubtask': { ja: '子タスク', en: 'Create Subtask' },
+    'taskCreate.createSubtask': { ja: '子タスク作成', en: 'Create Subtask' },
     // タスクフォーム（ダイアログ）
     'taskForm.title': { ja: 'タスクを追加', en: 'Add Task' },
     'taskForm.projectName': { ja: 'プロジェクト名', en: 'Project Name' },

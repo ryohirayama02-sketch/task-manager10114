@@ -1,4 +1,4 @@
-<div class="page-header">
+<div class="page-header" [style.background]="projectThemeColor">
   <button mat-button (click)="goBack()" class="back-button">
     <mat-icon>arrow_back</mat-icon>
     {{ 'taskCreate.back' | translate }}
@@ -12,7 +12,7 @@
   <mat-card class="task-form-card">
     <mat-card-header>
       <h3>
-        {{ isSubtaskCreation ? ('taskCreate.createSubtask' | translate) : (projectName ? projectName + ' - ' + ('taskCreate.title' | translate) : ('taskCreate.title' | translate)) }}
+        {{ isSubtaskCreation ? (parentTaskName ? parentTaskName + ' - ' + ('taskCreate.createSubtask' | translate) : ('taskCreate.createSubtask' | translate)) : (projectName ? projectName + ' - ' + ('taskCreate.title' | translate) : ('taskCreate.title' | translate)) }}
       </h3>
     </mat-card-header>
 
