@@ -23,6 +23,9 @@
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
   border: 1px solid rgba(0, 0, 0, 0.08);
   margin: 24px auto;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
 }
 
 .project-toolbar {
@@ -439,11 +442,15 @@
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 20px;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
 }
 
 .project-info {
   flex: 1;
   margin-right: 20px;
+  min-width: 0; /* flexboxで改行を有効にする */
 }
 
 .project-info-display {
@@ -451,6 +458,9 @@
   flex-direction: column;
   gap: 12px;
   color: rgba(31, 41, 55, 0.85);
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
 }
 
 .project-info-display > * {
@@ -474,10 +484,16 @@
   color: #1f2933;
   padding-bottom: 12px;
   border-bottom: 4px solid #606b80;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
 }
 
 .project-info-display p {
   margin: 0;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
 }
 
 .project-info-display p strong {
@@ -513,6 +529,10 @@
   color: #1565c0;
   text-decoration: none;
   font-size: 13px;
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
 }
 
 .project-attachments .attachment-links a:hover {
