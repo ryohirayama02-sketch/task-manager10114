@@ -46,9 +46,11 @@
             name="tagInput"
             [(ngModel)]="tagInputValue"
             [ngModelOptions]="{ standalone: true }"
-            placeholder="タグ名を入力してEnter"
+            placeholder="タグ名を入力してEnter（20文字以内）"
             (keydown.enter)="onTagInputEnter($event)"
+            maxlength="20"
           />
+          <mat-hint align="end">{{ (tagInputValue || '').length }}/20</mat-hint>
         </mat-form-field>
         <div class="tag-list" *ngIf="model.tags?.length">
           <div *ngFor="let tag of model.tags" class="tag-chip">

@@ -59,10 +59,12 @@ import { TaskDeleteConfirmDialogComponent } from './task-delete-confirm-dialog.c
               matInput
               [(ngModel)]="task.description"
               name="description"
-              placeholder="タスクの詳細説明を入力してください"
+              placeholder="タスクの詳細説明を入力してください（200文字以内）"
               rows="3"
+              maxlength="200"
             ></textarea>
             <mat-icon matSuffix>description</mat-icon>
+            <mat-hint align="end">{{ (task.description || '').length }}/200</mat-hint>
           </mat-form-field>
 
           <!-- タグ -->
@@ -76,9 +78,11 @@ import { TaskDeleteConfirmDialogComponent } from './task-delete-confirm-dialog.c
                 name="tagInput"
                 [(ngModel)]="tagInputValue"
                 [ngModelOptions]="{ standalone: true }"
-                placeholder="タグ名を入力してEnter"
+                placeholder="タグ名を入力してEnter（20文字以内）"
                 (keydown.enter)="onTagInputEnter($event)"
+                maxlength="20"
               />
+              <mat-hint align="end">{{ (tagInputValue || '').length }}/20</mat-hint>
             </mat-form-field>
             <div class="tag-list" *ngIf="task.tags?.length">
               <div *ngFor="let tag of task.tags" class="tag-chip">

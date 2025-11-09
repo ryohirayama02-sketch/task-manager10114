@@ -215,7 +215,10 @@
               rows="3"
               [(ngModel)]="taskData.description"
               name="description"
+              placeholder="タスクの詳細説明を入力してください（200文字以内）"
+              maxlength="200"
             ></textarea>
+            <mat-hint align="end">{{ (taskData.description || '').length }}/200</mat-hint>
           </mat-form-field>
 
           <div class="inline-date-row">
@@ -453,9 +456,11 @@
                 <input
                   matInput
                   #tagInput
-                  placeholder="{{ 'taskDetail.enterTag' | translate }}"
+                  placeholder="{{ 'taskDetail.enterTag' | translate }}（20文字以内）"
                   (keyup.enter)="addTag(tagInput.value); tagInput.value = ''"
+                  maxlength="20"
                 />
+                <mat-hint align="end">{{ tagInput.value?.length || 0 }}/20</mat-hint>
               </mat-form-field>
             </p>
           </div>
