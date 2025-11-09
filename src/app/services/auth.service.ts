@@ -11,10 +11,11 @@ import {
   onAuthStateChanged,
   User,
 } from '@angular/fire/auth';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, from } from 'rxjs';
 import { Router } from '@angular/router';
 import { Firestore, collection, query, where, getDocs } from '@angular/fire/firestore';
 import { ProjectSelectionService } from './project-selection.service';
+import { filter, switchMap, take, distinctUntilChanged } from 'rxjs/operators';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -57,6 +58,21 @@ export class AuthService {
         this.currentMemberNameSubject.next(null);
       }
     });
+
+    // ルームIDが変更されたときにメンバー名を再取得
+    this.currentRoomId$
+      .pipe(
+        distinctUntilChanged(), // 同じルームIDが連続して来た場合はスキップ
+        filter((roomId) => roomId !== null && roomId !== undefined),
+        switchMap(() => {
+          const currentUser = this.auth.currentUser;
+          if (currentUser?.email) {
+            return from(this.resolveAndUpdateMemberName(currentUser.email));
+          }
+          return from(Promise.resolve());
+        })
+      )
+      .subscribe();
 
     if (!isDevMode()) {
       this.checkRedirectResult();
@@ -155,26 +171,40 @@ export class AuthService {
   }
 
   /** 
-   * メールアドレスに基づいてFirestoreのmembersコレクションから名前を取得し、
+   * メールアドレスとルームIDに基づいてFirestoreのmembersコレクションから名前を取得し、
    * currentMemberNameSubjectを更新する
    */
   async resolveAndUpdateMemberName(email: string): Promise<void> {
     try {
+      const roomId = this.getCurrentRoomId();
+      if (!roomId) {
+        console.log('⚠️ ルームIDが設定されていません。フォールバック使用');
+        const currentUser = this.auth.currentUser;
+        const fallbackName = currentUser?.displayName || currentUser?.email || 'ユーザー';
+        this.currentMemberNameSubject.next(fallbackName);
+        return;
+      }
+
+      // 直接Firestoreからルーム内のメンバーを取得（循環依存を避けるため）
       const membersCollection = collection(this.firestore, 'members');
-      const q = query(membersCollection, where('email', '==', email));
+      const q = query(
+        membersCollection,
+        where('email', '==', email),
+        where('roomId', '==', roomId)
+      );
       const querySnapshot = await getDocs(q);
 
       if (!querySnapshot.empty) {
         const memberDoc = querySnapshot.docs[0].data() as { name?: string };
         if (memberDoc?.name) {
-          console.log('✅ メンバー名を取得 (Firestore):', memberDoc.name);
+          console.log('✅ メンバー名を取得 (ルームID考慮):', memberDoc.name, 'ルームID:', roomId);
           this.currentMemberNameSubject.next(memberDoc.name);
           return;
         }
       }
 
-      // Firestoreに一致なし、または nameフィールドがない場合
-      console.log('⚠️ Firestoreでメンバーが見つからない。フォールバック使用');
+      // メンバーが見つからない場合
+      console.log('⚠️ ルーム内でメンバーが見つからない。フォールバック使用');
       const currentUser = this.auth.currentUser;
       const fallbackName = currentUser?.displayName || currentUser?.email || 'ユーザー';
       this.currentMemberNameSubject.next(fallbackName);
@@ -192,6 +222,13 @@ export class AuthService {
     if (docId) {
       this.currentRoomDocId.next(docId);
       localStorage.setItem('roomDocId', docId);
+    }
+    // ルームIDが変更されたときにメンバー名を再取得
+    const currentUser = this.auth.currentUser;
+    if (currentUser?.email) {
+      this.resolveAndUpdateMemberName(currentUser.email).catch((error) => {
+        console.error('ルームID変更時のメンバー名更新エラー:', error);
+      });
     }
   }
 

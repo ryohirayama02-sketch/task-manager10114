@@ -89,22 +89,13 @@
                   </span>
                 </div>
 
-                <div
-                  class="due-date-info"
-                  [class.overdue]="isOverdue(task.dueDate)"
-                  [class.due-today]="getDaysUntilDue(task.dueDate) === 0"
-                  [class.due-tomorrow]="getDaysUntilDue(task.dueDate) === 1"
-                  [class.due-soon]="isDueSoon(task.dueDate)"
-                >
+                <div class="due-date-info">
                   <span>期日：</span>
                   <span>{{ task.dueDate }}</span>
                   <span class="days-until" *ngIf="!isOverdue(task.dueDate)">
                     ({{ getDaysUntilDue(task.dueDate) }}日後)
                   </span>
-                  <span
-                    class="days-until overdue-text"
-                    *ngIf="isOverdue(task.dueDate)"
-                  >
+                  <span class="days-until" *ngIf="isOverdue(task.dueDate)">
                     ({{
                       getAbsoluteValue(getDaysUntilDue(task.dueDate))
                     }}日遅れ)
@@ -188,22 +179,13 @@
               </span>
             </div>
 
-            <div
-              class="due-date-info"
-              [class.overdue]="isOverdue(task.dueDate)"
-              [class.due-today]="getDaysUntilDue(task.dueDate) === 0"
-              [class.due-tomorrow]="getDaysUntilDue(task.dueDate) === 1"
-              [class.due-soon]="isDueSoon(task.dueDate)"
-            >
+            <div class="due-date-info">
               <span>期日：</span>
               <span>{{ task.dueDate }}</span>
               <span class="days-until" *ngIf="!isOverdue(task.dueDate)">
                 ({{ getDaysUntilDue(task.dueDate) }}日後)
               </span>
-              <span
-                class="days-until overdue-text"
-                *ngIf="isOverdue(task.dueDate)"
-              >
+              <span class="days-until" *ngIf="isOverdue(task.dueDate)">
                 ({{ getAbsoluteValue(getDaysUntilDue(task.dueDate)) }}日遅れ)
               </span>
             </div>
