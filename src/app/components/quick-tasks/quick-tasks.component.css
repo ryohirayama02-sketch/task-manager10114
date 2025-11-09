@@ -278,6 +278,14 @@
   color: #666;
 }
 
+/* プロジェクト名と期日のラベルを同じスタイルに */
+.project-info > span:first-child,
+.due-date-info > span:first-child {
+  font-size: 0.9rem;
+  color: #666;
+  font-weight: normal;
+}
+
 .project-info mat-icon,
 .assignee-info mat-icon,
 .due-date-info mat-icon {
@@ -312,13 +320,24 @@
   color: #f44336;
 }
 
+.due-date-info.overdue > span:first-child {
+  color: #666;
+  font-weight: 500;
+}
+
 .due-date-info.due-tomorrow {
   color: #ffa726;
   font-weight: 600;
 }
 
-.due-date-info.due-tomorrow mat-icon {
+.due-date-info.due-tomorrow mat-icon,
+.due-date-info.due-tomorrow > span:not(:first-child) {
   color: #ffa726;
+}
+
+.due-date-info.due-tomorrow > span:first-child {
+  color: #666;
+  font-weight: 600;
 }
 
 .due-date-info.due-soon {
@@ -330,6 +349,11 @@
   color: #fdd835;
 }
 
+.due-date-info.due-soon > span:first-child {
+  color: #666;
+  font-weight: 500;
+}
+
 .due-date-info.due-today {
   color: #e65100;
   font-weight: 600;
@@ -337,6 +361,11 @@
 
 .due-date-info.due-today mat-icon {
   color: #e65100;
+}
+
+.due-date-info.due-today > span:first-child {
+  color: #666;
+  font-weight: 600;
 }
 
 .days-until {
