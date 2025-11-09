@@ -568,8 +568,49 @@ export class ProjectDetailComponent implements OnInit {
   }
 
   getResponsiblesDisplay(project: IProject | null = this.project): string {
+    if (!project) {
+      return '未設定';
+    }
+    
+    // responsibles が配列で、memberId が含まれている場合は、それを使って最新のメンバー名を取得
+    if (Array.isArray(project.responsibles) && project.responsibles.length > 0) {
+      const names: string[] = [];
+      project.responsibles.forEach((entry) => {
+        // memberId がある場合は、それを使って最新のメンバー名を取得
+        if (entry.memberId) {
+          const member = this.members.find((m) => m.id === entry.memberId);
+          if (member && member.name) {
+            names.push(member.name);
+          } else if (entry.memberName) {
+            // memberId で見つからない場合は、保存されている名前を使用
+            names.push(entry.memberName);
+          }
+        } else if (entry.memberName) {
+          // memberId がない場合は、メンバー名で検索
+          const member = this.members.find((m) => m.name === entry.memberName);
+          if (member && member.name) {
+            names.push(member.name);
+          }
+          // メンバー管理画面に存在しない名前は表示しない
+        }
+      });
+      return names.length > 0 ? names.join(', ') : '未設定';
+    }
+    
+    // responsibles がない場合は、responsible フィールドから取得
     const names = this.extractResponsibleNames(project);
-    return names.length > 0 ? names.join(', ') : '未設定';
+    if (names.length > 0) {
+      // メンバー名を最新の名前に更新（メンバー管理画面に存在しない名前は除外）
+      const updatedNames = names
+        .map(name => {
+          const member = this.members.find((m) => m.name === name);
+          return member ? member.name : null;
+        })
+        .filter((name): name is string => name !== null);
+      return updatedNames.length > 0 ? updatedNames.join(', ') : '未設定';
+    }
+    
+    return '未設定';
   }
 
   getMembersDisplay(): string {
@@ -577,7 +618,20 @@ export class ProjectDetailComponent implements OnInit {
       return '';
     }
     const membersString = this.normalizeMembersField(this.project.members);
-    return membersString || '';
+    if (!membersString) {
+      return '';
+    }
+    
+    // メンバー名を最新の名前に更新（メンバー管理画面に存在しない名前は除外）
+    const memberNames = membersString.split(',').map(name => name.trim());
+    const updatedNames = memberNames
+      .map(name => {
+        const member = this.members.find((m) => m.name === name);
+        return member ? member.name : null;
+      })
+      .filter((name): name is string => name !== null);
+    
+    return updatedNames.join(', ');
   }
 
   private syncSelectionsFromProject(): void {
@@ -1277,7 +1331,20 @@ export class ProjectDetailComponent implements OnInit {
       return display === '未設定' ? '—' : display;
     }
     
-    // assignedMembers がない場合は assignee をそのまま表示（既にカンマ区切り）
-    return task.assignee || '—';
+    // assignedMembers がない場合は assignee から最新のメンバー名を取得
+    if (!task.assignee) {
+      return '—';
+    }
+    
+    // assignee がカンマ区切りの場合を考慮
+    const assigneeNames = task.assignee.split(',').map(name => name.trim());
+    const updatedNames = assigneeNames
+      .map(name => {
+        const member = this.members.find((m) => m.name === name);
+        return member ? member.name : null;
+      })
+      .filter((name): name is string => name !== null);
+    
+    return updatedNames.length > 0 ? updatedNames.join(', ') : '—';
   }
 }

@@ -18,6 +18,8 @@ import {
 import { TranslatePipe } from '../../../pipes/translate.pipe';
 import { LanguageService } from '../../../services/language.service';
 import { AuthService } from '../../../services/auth.service';
+import { MemberManagementService } from '../../../services/member-management.service';
+import { Member } from '../../../models/member.model';
 import { combineLatest, of, Subject } from 'rxjs';
 import { switchMap, takeUntil } from 'rxjs/operators';
 
@@ -47,13 +49,15 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   private currentUserEmail: string | null = null;
   private progressRequestId = 0;
+  members: Member[] = [];
 
   constructor(
     private router: Router,
     private projectService: ProjectService,
     private progressService: ProgressService,
     private languageService: LanguageService,
-    private authService: AuthService
+    private authService: AuthService,
+    private memberManagementService: MemberManagementService
   ) {
     this.initializeSortOptions();
   }
@@ -68,6 +72,16 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    // メンバー一覧を読み込み
+    this.memberManagementService.getMembers().subscribe({
+      next: (members) => {
+        this.members = members;
+      },
+      error: (error) => {
+        console.error('メンバー一覧の読み込みエラー:', error);
+      },
+    });
+
     const storedOption = localStorage.getItem(this.sortStorageKey);
     if (this.isValidSortOption(storedOption)) {
       this.sortOption = storedOption;
@@ -109,13 +123,78 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
     if (Array.isArray(members)) {
       const names = members
         .map((member) => member?.memberName || member?.name || '')
-        .filter((name) => !!name);
+        .filter((name) => !!name)
+        .filter((name) => {
+          // メンバー管理画面に存在する名前のみを表示
+          return this.members.some((m) => m.name === name);
+        });
       return names.length > 0 ? names.join(', ') : '（メンバー情報未設定）';
     }
     if (typeof members === 'string') {
-      return members || '（メンバー情報未設定）';
+      // カンマ区切りの文字列の場合
+      const memberNames = members
+        .split(',')
+        .map((name) => name.trim())
+        .filter((name) => !!name)
+        .filter((name) => {
+          // メンバー管理画面に存在する名前のみを表示
+          return this.members.some((m) => m.name === name);
+        });
+      return memberNames.length > 0 ? memberNames.join(', ') : '（メンバー情報未設定）';
     }
     return '（メンバー情報未設定）';
+  }
+
+  /**
+   * プロジェクトの責任者を表示（メンバー管理画面に存在しない名前は除外）
+   */
+  getResponsiblesDisplay(project: IProject): string {
+    if (!project) {
+      return '（責任者未設定）';
+    }
+    
+    // responsibles が配列で、memberId が含まれている場合は、それを使って最新のメンバー名を取得
+    if (Array.isArray(project.responsibles) && project.responsibles.length > 0) {
+      const names: string[] = [];
+      project.responsibles.forEach((entry) => {
+        // memberId がある場合は、それを使って最新のメンバー名を取得
+        if (entry.memberId) {
+          const member = this.members.find((m) => m.id === entry.memberId);
+          if (member && member.name) {
+            names.push(member.name);
+          } else if (entry.memberName) {
+            // memberId で見つからない場合は、メンバー管理画面に存在するかチェック
+            const memberByName = this.members.find((m) => m.name === entry.memberName);
+            if (memberByName && memberByName.name) {
+              names.push(memberByName.name);
+            }
+          }
+        } else if (entry.memberName) {
+          // memberId がない場合は、メンバー名で検索
+          const member = this.members.find((m) => m.name === entry.memberName);
+          if (member && member.name) {
+            names.push(member.name);
+          }
+          // メンバー管理画面に存在しない名前は表示しない
+        }
+      });
+      return names.length > 0 ? names.join(', ') : '（責任者未設定）';
+    }
+    
+    // responsibles がない場合は、responsible フィールドから取得
+    if (project.responsible) {
+      const names = project.responsible
+        .split(',')
+        .map((name) => name.trim())
+        .filter((name) => !!name)
+        .filter((name) => {
+          // メンバー管理画面に存在する名前のみを表示
+          return this.members.some((m) => m.name === name);
+        });
+      return names.length > 0 ? names.join(', ') : '（責任者未設定）';
+    }
+    
+    return '（責任者未設定）';
   }
 
   getProjectThemeColor(project?: IProject | null): string {

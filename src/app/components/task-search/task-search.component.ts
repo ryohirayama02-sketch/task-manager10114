@@ -149,20 +149,11 @@ export class TaskSearchComponent implements OnInit {
   generateFilterOptions(allTasks: Task[]) {
     console.log('フィルター選択肢を生成中...', allTasks);
 
-    // 担当者一覧を生成（カンマ区切り対応）
+    // 担当者一覧を生成（カンマ区切り対応、メンバー管理画面に存在する名前のみ）
     const assigneeSet = new Set<string>();
     
-    // タスクのassigneeから取得（カンマ区切りを分割）
+    // assignedMembers から取得（メンバーIDからメンバー名に変換）
     allTasks.forEach((task) => {
-      if (task.assignee) {
-        const assignees = task.assignee
-          .split(',')
-          .map((name) => name.trim())
-          .filter((name) => name.length > 0);
-        assignees.forEach((assignee) => assigneeSet.add(assignee));
-      }
-      
-      // assignedMembers からも取得（メンバーIDからメンバー名に変換）
       if (Array.isArray((task as any).assignedMembers)) {
         (task as any).assignedMembers.forEach((memberId: string) => {
           const member = this.allMembers.find((m) => m.id === memberId);
@@ -175,6 +166,19 @@ export class TaskSearchComponent implements OnInit {
             names.forEach((name) => assigneeSet.add(name));
           }
         });
+      }
+      
+      // タスクのassigneeから取得（メンバー管理画面に存在する名前のみ）
+      if (task.assignee) {
+        const assignees = task.assignee
+          .split(',')
+          .map((name) => name.trim())
+          .filter((name) => name.length > 0)
+          .filter((name) => {
+            // メンバー管理画面に存在する名前のみを追加
+            return this.allMembers.some((m) => m.name === name);
+          });
+        assignees.forEach((assignee) => assigneeSet.add(assignee));
       }
     });
     
@@ -284,16 +288,7 @@ export class TaskSearchComponent implements OnInit {
       filteredTasks = filteredTasks.filter((task) => {
         const assignees: string[] = [];
         
-        // assignee をカンマで分割
-        if (task.assignee) {
-          const names = task.assignee
-            .split(',')
-            .map((name) => name.trim())
-            .filter((name) => name.length > 0);
-          assignees.push(...names);
-        }
-        
-        // assignedMembers も含める（メンバーIDからメンバー名に変換）
+        // assignedMembers から取得（メンバーIDからメンバー名に変換）
         if (Array.isArray((task as any).assignedMembers)) {
           (task as any).assignedMembers.forEach((memberId: string) => {
             const member = this.allMembers.find((m) => m.id === memberId);
@@ -304,11 +299,21 @@ export class TaskSearchComponent implements OnInit {
                 .map((n) => n.trim())
                 .filter((n) => n.length > 0);
               assignees.push(...names);
-            } else if (typeof memberId === 'string') {
-              // メンバーが見つからない場合はIDをそのまま使用
-              assignees.push(memberId.trim());
             }
           });
+        }
+        
+        // assignee から取得（メンバー管理画面に存在する名前のみ）
+        if (task.assignee) {
+          const names = task.assignee
+            .split(',')
+            .map((name) => name.trim())
+            .filter((name) => name.length > 0)
+            .filter((name) => {
+              // メンバー管理画面に存在する名前のみを追加
+              return this.allMembers.some((m) => m.name === name);
+            });
+          assignees.push(...names);
         }
         
         // フィルター値とマッチするか確認（複数選択対応）
@@ -435,4 +440,36 @@ export class TaskSearchComponent implements OnInit {
       projectThemeColor: color,
     };
   }
+
+  /**
+   * タスクの担当者を表示（メンバー管理画面に存在しない名前は除外）
+   */
+  getTaskAssigneeDisplay(task: Task): string {
+    if (task.assignedMembers && task.assignedMembers.length > 0) {
+      const names: string[] = [];
+      task.assignedMembers.forEach((memberId) => {
+        const member = this.allMembers.find((m) => m.id === memberId);
+        if (member && member.name) {
+          names.push(member.name);
+        }
+      });
+      return names.length > 0 ? names.join(', ') : '—';
+    }
+
+    if (!task.assignee) {
+      return '—';
+    }
+
+    // assignee がカンマ区切りの場合を考慮
+    const assigneeNames = task.assignee.split(',').map(name => name.trim());
+    const updatedNames = assigneeNames
+      .map(name => {
+        const member = this.allMembers.find((m) => m.name === name);
+        return member ? member.name : null;
+      })
+      .filter((name): name is string => name !== null);
+
+    return updatedNames.length > 0 ? updatedNames.join(', ') : '—';
+  }
 }
+

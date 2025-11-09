@@ -170,12 +170,16 @@ export class MemberDetailComponent implements OnInit {
     allTasks.forEach((task) => {
       let assignees: string[] = [];
 
-      // assignee から名前を取得
+      // assignee から名前を取得（メンバー管理画面に存在する名前のみ）
       if (task.assignee) {
         const assigneeNames = task.assignee
           .split(',')
           .map((n) => n.trim())
-          .filter((n) => n.length > 0);
+          .filter((n) => n.length > 0)
+          .filter((name) => {
+            // メンバー管理画面に存在する名前のみを追加
+            return this.allMembers.some((m) => m.name === name);
+          });
         assignees.push(...assigneeNames);
       }
 

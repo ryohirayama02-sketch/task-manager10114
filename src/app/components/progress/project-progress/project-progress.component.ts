@@ -12,6 +12,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslatePipe } from '../../../pipes/translate.pipe';
 import { LanguageService } from '../../../services/language.service';
+import { MemberManagementService } from '../../../services/member-management.service';
+import { Member } from '../../../models/member.model';
 
 @Component({
   selector: 'app-project-progress',
@@ -26,16 +28,28 @@ export class ProjectProgressComponent implements OnInit {
 
   projectId: string | null = null;
   projectThemeColor = DEFAULT_PROJECT_THEME_COLOR;
+  members: Member[] = [];
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private projectService: ProjectService,
     private location: Location,
-    private languageService: LanguageService
+    private languageService: LanguageService,
+    private memberManagementService: MemberManagementService
   ) {}
 
   ngOnInit() {
+    // メンバー一覧を読み込み
+    this.memberManagementService.getMembers().subscribe({
+      next: (members) => {
+        this.members = members;
+      },
+      error: (error) => {
+        console.error('メンバー一覧の読み込みエラー:', error);
+      },
+    });
+
     this.projectId = this.route.snapshot.paramMap.get('projectId');
     console.log('プロジェクトID:', this.projectId); // ← 確認ポイント
 
@@ -96,5 +110,36 @@ export class ProjectProgressComponent implements OnInit {
       ...task,
       projectThemeColor: color,
     };
+  }
+
+  /**
+   * タスクの担当者を表示（メンバー管理画面に存在しない名前は除外）
+   */
+  getTaskAssigneeDisplay(task: Task): string {
+    if (task.assignedMembers && task.assignedMembers.length > 0) {
+      const names: string[] = [];
+      task.assignedMembers.forEach((memberId) => {
+        const member = this.members.find((m) => m.id === memberId);
+        if (member && member.name) {
+          names.push(member.name);
+        }
+      });
+      return names.length > 0 ? names.join(', ') : '—';
+    }
+
+    if (!task.assignee) {
+      return '—';
+    }
+
+    // assignee がカンマ区切りの場合を考慮
+    const assigneeNames = task.assignee.split(',').map(name => name.trim());
+    const updatedNames = assigneeNames
+      .map(name => {
+        const member = this.members.find((m) => m.name === name);
+        return member ? member.name : null;
+      })
+      .filter((name): name is string => name !== null);
+
+    return updatedNames.length > 0 ? updatedNames.join(', ') : '—';
   }
 }

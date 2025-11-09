@@ -30,7 +30,7 @@
     [ngStyle]="getTaskThemeStyle(task)"
   >
     <p><strong>{{ 'progress.project.taskName' | translate }}:</strong> {{ task.taskName }}</p>
-    <p><strong>{{ 'progress.project.assignee' | translate }}:</strong> {{ task.assignee }}</p>
+    <p><strong>{{ 'progress.project.assignee' | translate }}:</strong> {{ getTaskAssigneeDisplay(task) }}</p>
     <p><strong>{{ 'progress.project.dueDate' | translate }}:</strong> {{ task.dueDate }}</p>
     <p><strong>{{ 'progress.project.status' | translate }}:</strong> {{ task.status }}</p>
   </div>

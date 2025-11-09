@@ -389,10 +389,41 @@ export class TaskDetailComponent implements OnInit {
     return member ? member.name : memberId;
   }
 
+  /**
+   * メンバー名から最新のメンバー名を取得（メンバー名が更新された場合に対応）
+   * メンバー管理画面に存在しない名前の場合は空文字列を返す
+   */
+  getCurrentMemberNameByName(memberName: string | null | undefined): string {
+    if (!memberName) {
+      return '—';
+    }
+    
+    // まずメールアドレスで検索（より確実）
+    if (this.taskData.assigneeEmail) {
+      const memberByEmail = this.projectMembers.find((m) => m.email === this.taskData.assigneeEmail) ||
+                           this.members.find((m) => m.email === this.taskData.assigneeEmail);
+      if (memberByEmail && memberByEmail.name) {
+        return memberByEmail.name;
+      }
+    }
+    
+    // メールアドレスで見つからない場合、メンバー名で検索
+    const member = this.projectMembers.find((m) => m.name === memberName) || 
+                   this.members.find((m) => m.name === memberName);
+    
+    if (member && member.name) {
+      return member.name;
+    }
+    
+    // 見つからない場合は、メンバー管理画面に存在しない名前なので空文字列を返す
+    return '';
+  }
+
   /** 担当者をカンマ区切りで表示 */
   getAssignedMembersDisplay(): string {
     if (!this.taskData.assignedMembers || this.taskData.assignedMembers.length === 0) {
-      return this.taskData.assignee || '—';
+      const name = this.getCurrentMemberNameByName(this.taskData.assignee);
+      return name || '—';
     }
     
     const display = getMemberNamesAsString(
@@ -1198,7 +1229,23 @@ export class TaskDetailComponent implements OnInit {
       );
       return display === '未設定' ? '未割当' : display;
     }
-    return child.assignee || '未割当';
+    
+    // assignedMembers がない場合は assignee から最新のメンバー名を取得
+    if (!child.assignee) {
+      return '未割当';
+    }
+    
+    // assignee がカンマ区切りの場合を考慮
+    const assigneeNames = child.assignee.split(',').map(name => name.trim());
+    const updatedNames = assigneeNames
+      .map(name => {
+        const member = this.projectMembers.find((m) => m.name === name) ||
+                       this.members.find((m) => m.name === name);
+        return member ? member.name : null;
+      })
+      .filter((name): name is string => name !== null);
+    
+    return updatedNames.length > 0 ? updatedNames.join(', ') : '未割当';
   }
 
   openChildTaskDetail(task: Task): void {

@@ -514,7 +514,20 @@ export class KanbanComponent implements OnInit {
       return display === '未設定' ? '—' : display;
     }
 
-    // assignedMembers がない場合は assignee をそのまま表示（既にカンマ区切り）
-    return task.assignee || '—';
+    // assignedMembers がない場合は assignee から最新のメンバー名を取得
+    if (!task.assignee) {
+      return '—';
+    }
+    
+    // assignee がカンマ区切りの場合を考慮
+    const assigneeNames = task.assignee.split(',').map(name => name.trim());
+    const updatedNames = assigneeNames
+      .map(name => {
+        const member = this.members.find((m) => m.name === name);
+        return member ? member.name : null;
+      })
+      .filter((name): name is string => name !== null);
+    
+    return updatedNames.length > 0 ? updatedNames.join(', ') : '—';
   }
 }

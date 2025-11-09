@@ -67,7 +67,7 @@
         <p class="project-meta-line">
           <strong>{{ 'progress.projects.responsible' | translate }}:</strong>
           <span class="info-text">
-            {{ project.responsible || "（責任者未設定）" }}
+            {{ getResponsiblesDisplay(project) }}
           </span>
         </p>
         <p class="project-meta-line">
