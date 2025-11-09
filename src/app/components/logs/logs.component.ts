@@ -237,13 +237,26 @@ export class LogsComponent implements OnInit {
       }
     });
 
-    // 編集ログのuserNameからも取得（カンマ区切り対応）
+    // 編集ログのuserNameからも取得（メンバー管理画面に存在する名前のみ、カンマ区切り対応）
     this.allLogs.forEach((log) => {
       if (log.userName) {
         const names = log.userName
           .split(',')
           .map((n) => n.trim())
-          .filter((n) => n.length > 0);
+          .filter((n) => n.length > 0)
+          .filter((name) => {
+            // メンバー管理画面に存在する名前のみを追加
+            return this.allMembers.some((m) => {
+              if (!m.name) return false;
+              const memberNames = m.name
+                .split(',')
+                .map((n) => n.trim())
+                .filter((n) => n.length > 0);
+              return memberNames.some(
+                (memberName) => memberName.toLowerCase() === name.toLowerCase()
+              );
+            });
+          });
         names.forEach((name) => memberSet.add(name));
       }
     });
@@ -263,25 +276,30 @@ export class LogsComponent implements OnInit {
         this.filterTasks.length === 0 ||
         (log.taskName && this.filterTasks.includes(log.taskName));
 
-      // メンバーフィルター（カンマ区切り対応）
+      // メンバーフィルター（カンマ区切り対応、メンバー管理画面に存在する名前のみ）
       const matchMember =
         this.filterMembers.length === 0 ||
-        (log.userName &&
-          (() => {
-            // userName をカンマで分割
-            const userNames = log.userName
-              .split(',')
-              .map((n) => n.trim())
-              .filter((n) => n.length > 0);
+        (() => {
+          // getUserNameDisplay()で取得した名前を使用（メンバー管理画面に存在する名前のみ）
+          const displayName = this.getUserNameDisplay(log);
+          if (displayName === '—') {
+            return false;
+          }
+          
+          // 表示名をカンマで分割
+          const userNames = displayName
+            .split(',')
+            .map((n) => n.trim())
+            .filter((n) => n.length > 0);
 
-            // フィルター値とマッチするか確認（複数選択対応）
-            return userNames.some((userName) =>
-              this.filterMembers.some(
-                (filterMember) =>
-                  userName.toLowerCase() === filterMember.toLowerCase()
-              )
-            );
-          })());
+          // フィルター値とマッチするか確認（複数選択対応）
+          return userNames.some((userName) =>
+            this.filterMembers.some(
+              (filterMember) =>
+                userName.toLowerCase() === filterMember.toLowerCase()
+            )
+          );
+        })();
 
       const matchPeriod = this.matchesPeriod(log.createdAt);
       return matchProject && matchTask && matchMember && matchPeriod;
@@ -494,12 +512,8 @@ export class LogsComponent implements OnInit {
       }
     }
 
-    // それでもマッチしない場合、userNameをそのまま使用
-    if (displayNames.length === 0 && log.userName) {
-      displayNames.push(log.userName.trim());
-    } else if (displayNames.length === 0 && log.userId) {
-      displayNames.push(log.userId);
-    }
+    // それでもマッチしない場合、メンバー管理画面に存在しない名前なので表示しない
+    // （userNameやuserIdをそのまま表示しない）
 
     return displayNames.length > 0 ? displayNames.join(', ') : '—';
   }
