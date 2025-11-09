@@ -1,8 +1,8 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { EditLogService } from '../../services/edit-log.service';
 import { EditLog } from '../../models/task.model';
-import { DocumentSnapshot } from '@angular/fire/firestore';
+import { DocumentSnapshot, Firestore, collection, query, where, collectionData } from '@angular/fire/firestore';
 import { FormsModule } from '@angular/forms';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { PeriodFilterDialogComponent } from '../progress/period-filter-dialog/period-filter-dialog.component';
@@ -16,6 +16,11 @@ import { take } from 'rxjs';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { getMemberName } from '../../utils/member-utils';
 import { Auth, getAuth } from '@angular/fire/auth';
+import { Router, NavigationEnd } from '@angular/router';
+import { filter, switchMap } from 'rxjs/operators';
+import { Subject, Observable, of } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { IProject } from '../../models/project.model';
 
 @Component({
   selector: 'app-logs',
@@ -31,13 +36,16 @@ import { Auth, getAuth } from '@angular/fire/auth';
   templateUrl: './logs.component.html',
   styleUrl: './logs.component.css',
 })
-export class LogsComponent implements OnInit {
+export class LogsComponent implements OnInit, OnDestroy {
   private readonly dialog = inject(MatDialog);
   private readonly projectService = inject(ProjectService);
   private readonly editLogService = inject(EditLogService);
   private readonly memberManagementService = inject(MemberManagementService);
   private readonly authService = inject(AuthService);
   private readonly auth = inject(Auth);
+  private readonly router = inject(Router);
+  private readonly firestore = inject(Firestore);
+  private readonly destroy$ = new Subject<void>();
 
   editLogs: EditLog[] = [];
   private allLogs: EditLog[] = [];
@@ -54,6 +62,8 @@ export class LogsComponent implements OnInit {
   periodEndDate: Date | null = null;
   private projectNameMap = new Map<string, string>();
   private allMembers: Member[] = []; // メンバー一覧
+  private currentProjectNames = new Set<string>(); // 現在存在するプロジェクト名のセット
+  private currentTaskNames = new Set<string>(); // 現在存在するタスク名のセット
 
   ngOnInit() {
     // メンバー一覧を読み込み
@@ -68,8 +78,34 @@ export class LogsComponent implements OnInit {
       },
     });
 
+    // ルーターイベントを監視して、編集ログ画面に戻ってきた時にプロジェクト一覧を再読み込み
+    let isInitialLoad = true;
+    this.router.events
+      .pipe(
+        filter((event) => event instanceof NavigationEnd),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((event) => {
+        const navigationEnd = event as NavigationEnd;
+        // 編集ログ画面に戻ってきた時（URLが /logs の場合）
+        // ただし、初回の読み込み時は除外（ngOnInitで既に呼ばれるため）
+        if (navigationEnd.urlAfterRedirects.includes('/logs')) {
+          if (isInitialLoad) {
+            isInitialLoad = false;
+          } else {
+            console.log('編集ログ画面に戻ってきました。プロジェクト一覧を再読み込みします。');
+            this.loadProjectNames();
+          }
+        }
+      });
+
     this.loadProjectNames();
     this.loadRecentLogs();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   /** 直近の編集ログを読み込み */
@@ -207,15 +243,21 @@ export class LogsComponent implements OnInit {
   }
 
   private updateFilterOptions(): void {
-    const toUnique = (values: (string | undefined)[]) =>
-      Array.from(
-        new Set(values.filter((value): value is string => !!value?.trim()))
-      ).sort((a, b) => a.localeCompare(b, 'ja'));
-
-    this.projectOptions = toUnique(
-      this.allLogs.map((log) => this.resolveProjectName(log))
+    console.log('updateFilterOptions() が呼ばれました');
+    console.log('currentProjectNames:', Array.from(this.currentProjectNames));
+    console.log('currentTaskNames:', Array.from(this.currentTaskNames));
+    
+    // プロジェクト名：現在存在するすべてのプロジェクト名を選択肢に表示
+    this.projectOptions = Array.from(this.currentProjectNames).sort((a, b) =>
+      a.localeCompare(b, 'ja')
     );
-    this.taskOptions = toUnique(this.allLogs.map((log) => log.taskName));
+    console.log('projectOptions:', this.projectOptions);
+
+    // タスク名：現在存在するすべてのタスク名を選択肢に表示
+    this.taskOptions = Array.from(this.currentTaskNames).sort((a, b) =>
+      a.localeCompare(b, 'ja')
+    );
+    console.log('taskOptions:', this.taskOptions);
 
     // メンバーオプションは updateMemberOptions() で更新
     this.updateMemberOptions();
@@ -225,7 +267,7 @@ export class LogsComponent implements OnInit {
   private updateMemberOptions(): void {
     const memberSet = new Set<string>();
 
-    // メンバー管理画面のメンバー一覧から取得
+    // メンバー管理画面のメンバー一覧から取得（現在存在するすべてのメンバー名を選択肢に表示）
     this.allMembers.forEach((member) => {
       if (member.name) {
         // メンバー名がカンマ区切りの場合も分割
@@ -233,30 +275,6 @@ export class LogsComponent implements OnInit {
           .split(',')
           .map((n) => n.trim())
           .filter((n) => n.length > 0);
-        names.forEach((name) => memberSet.add(name));
-      }
-    });
-
-    // 編集ログのuserNameからも取得（メンバー管理画面に存在する名前のみ、カンマ区切り対応）
-    this.allLogs.forEach((log) => {
-      if (log.userName) {
-        const names = log.userName
-          .split(',')
-          .map((n) => n.trim())
-          .filter((n) => n.length > 0)
-          .filter((name) => {
-            // メンバー管理画面に存在する名前のみを追加
-            return this.allMembers.some((m) => {
-              if (!m.name) return false;
-              const memberNames = m.name
-                .split(',')
-                .map((n) => n.trim())
-                .filter((n) => n.length > 0);
-              return memberNames.some(
-                (memberName) => memberName.toLowerCase() === name.toLowerCase()
-              );
-            });
-          });
         names.forEach((name) => memberSet.add(name));
       }
     });
@@ -400,20 +418,77 @@ export class LogsComponent implements OnInit {
   }
 
   private loadProjectNames(): void {
-    this.projectService
-      .getProjects()
-      .pipe(take(1))
+    console.log('loadProjectNames() が呼ばれました');
+    // 全プロジェクト進捗画面と同じ方法でプロジェクトを取得
+    // projectService.getProjects()はcurrentRoomId$を使用してルーム内のすべてのプロジェクトを取得
+    // currentRoomId$がnullでない値になるまで待つ
+    this.authService.currentRoomId$
+      .pipe(
+        filter((roomId) => roomId !== null && roomId !== undefined && roomId !== ''),
+        take(1),
+        switchMap(() => this.projectService.getProjects()),
+        take(1)
+      )
       .subscribe((projects) => {
+        console.log('プロジェクト一覧を取得しました:', projects.length, '件');
+        console.log('プロジェクト一覧:', projects.map(p => ({ id: p.id, name: p.projectName })));
         this.projectNameMap.clear();
+        this.currentProjectNames.clear();
         projects.forEach((project) => {
           if (project.id && project.projectName) {
             this.projectNameMap.set(project.id, project.projectName);
+            this.currentProjectNames.add(project.projectName);
           }
         });
+        console.log('currentProjectNames:', Array.from(this.currentProjectNames));
+        
+        // 現在のタスク名も取得
+        this.loadCurrentTaskNames(projects);
+        
         this.applyProjectNameFallback();
-        this.updateFilterOptions();
-        this.applyFilters();
       });
+  }
+
+  /** 現在存在するタスク名を取得 */
+  private loadCurrentTaskNames(projects: any[]): void {
+    this.currentTaskNames.clear();
+    let completedRequests = 0;
+    
+    if (projects.length === 0) {
+      console.log('プロジェクトが0件のため、フィルターオプションを更新します');
+      this.updateFilterOptions();
+      this.applyFilters();
+      return;
+    }
+    
+    projects.forEach((project) => {
+      if (project.id) {
+        this.projectService
+          .getTasksByProjectId(project.id)
+          .pipe(take(1))
+          .subscribe((tasks) => {
+            tasks.forEach((task) => {
+              if (task.taskName) {
+                this.currentTaskNames.add(task.taskName);
+              }
+            });
+            completedRequests++;
+            if (completedRequests === projects.length) {
+              console.log('すべてのタスク名を取得しました。フィルターオプションを更新します');
+              console.log('currentTaskNames:', Array.from(this.currentTaskNames));
+              this.updateFilterOptions();
+              this.applyFilters();
+            }
+          });
+      } else {
+        completedRequests++;
+        if (completedRequests === projects.length) {
+          console.log('すべてのタスク名を取得しました（プロジェクトIDなし）。フィルターオプションを更新します');
+          this.updateFilterOptions();
+          this.applyFilters();
+        }
+      }
+    });
   }
 
   private applyProjectNameFallback(): void {
