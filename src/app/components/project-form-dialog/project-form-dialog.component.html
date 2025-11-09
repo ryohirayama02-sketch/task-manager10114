@@ -24,17 +24,19 @@
         <mat-icon matSuffix>folder</mat-icon>
       </mat-form-field>
 
-      <!-- 概要 -->
+      <!-- 説明 -->
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>{{ 'projectForm.overview' | translate }}</mat-label>
         <textarea
           matInput
           [(ngModel)]="project.overview"
           name="overview"
-          [placeholder]="'projectForm.overviewPlaceholder' | translate"
+          [placeholder]="('projectForm.overviewPlaceholder' | translate) + '（200文字以内）'"
           rows="3"
+          maxlength="200"
         ></textarea>
         <mat-icon matSuffix>description</mat-icon>
+        <mat-hint align="end">{{ (project.overview || '').length }}/200</mat-hint>
       </mat-form-field>
 
       <div class="date-field-group">

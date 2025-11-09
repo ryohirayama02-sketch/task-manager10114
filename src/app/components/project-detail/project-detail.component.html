@@ -77,7 +77,9 @@
               rows="3"
               [(ngModel)]="editableProject!.overview"
               name="inlineOverview"
+              maxlength="200"
             ></textarea>
+            <mat-hint align="end">{{ (editableProject!.overview || '').length }}/200</mat-hint>
           </mat-form-field>
 
           <div class="inline-date-row">

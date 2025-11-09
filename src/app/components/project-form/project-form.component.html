@@ -31,16 +31,18 @@
           </mat-error>
         </mat-form-field>
 
-        <!-- プロジェクト概要 -->
+        <!-- プロジェクト説明 -->
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>{{ "projectForm.overview" | translate }}</mat-label>
           <textarea
             matInput
             formControlName="overview"
-            placeholder="プロジェクトの概要を入力してください"
+            placeholder="プロジェクトの詳細説明を入力してください（200文字以内）"
             rows="3"
+            maxlength="200"
           ></textarea>
           <mat-icon matSuffix>description</mat-icon>
+          <mat-hint align="end">{{ (projectForm.get('overview')?.value || '').length }}/200</mat-hint>
         </mat-form-field>
 
         <!-- 開始日・終了日 -->
