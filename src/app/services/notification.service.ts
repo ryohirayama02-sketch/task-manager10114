@@ -218,6 +218,12 @@ export class NotificationService {
   /** 🔹 テスト通知を送信 */
   async sendTestNotification(email: string): Promise<boolean> {
     try {
+      const currentUser = this.authService.getCurrentUser();
+      if (!currentUser) {
+        console.error('❌ テスト通知送信エラー: ユーザーがログインしていません');
+        throw new Error('ユーザーがログインしていません');
+      }
+
       const { getFunctions, httpsCallable } = await import(
         'firebase/functions'
       );
@@ -229,13 +235,27 @@ export class NotificationService {
         { success?: boolean; message?: string }
       >(functions, 'sendTestEmail');
 
+      console.log('🔍 テスト通知送信開始:', {
+        email,
+        userId: currentUser.uid,
+        userEmail: currentUser.email,
+        roomId: this.authService.getCurrentRoomId(),
+        roomDocId: this.authService.getCurrentRoomDocId(),
+      });
+
       const result = await callable({ email });
       const data = (result as any)?.data ?? result;
       console.log('✅ テスト通知送信結果:', data);
       return !!data?.success;
     } catch (error: any) {
       console.error('❌ テスト通知送信エラー:', error);
-      return false;
+      console.error('❌ エラー詳細:', {
+        code: error?.code,
+        message: error?.message,
+        details: error?.details,
+        stack: error?.stack,
+      });
+      throw error; // エラーを再スローして、呼び出し元で詳細を表示できるようにする
     }
   }
 

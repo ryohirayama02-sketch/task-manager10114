@@ -354,6 +354,52 @@ export const sendTestEmail = onCall(
 );
 
 /**
+ * 🔹 メール通知を送信（汎用関数）
+ */
+export const sendEmailNotification = onCall(
+  { secrets: [sendgridApiKey, sendgridFromEmail], cors: true },
+  async (request) => {
+    if (!request.auth)
+      throw new HttpsError('unauthenticated', '認証が必要です');
+
+    const { to, subject, message } = request.data || {};
+    
+    if (!to || !subject || !message) {
+      throw new HttpsError(
+        'invalid-argument',
+        'to, subject, message は必須です'
+      );
+    }
+
+    try {
+      const apiKey = sendgridApiKey
+        .value()
+        .trim()
+        .replace(/[\r\n\t\s]+/g, '');
+      sgMail.setApiKey(apiKey);
+      const fromEmail = sendgridFromEmail.value() || 'noreply@taskmanager.com';
+
+      const msg = {
+        to,
+        from: fromEmail,
+        subject,
+        html: message,
+      };
+
+      await sgMail.send(msg);
+      console.log(`✅ メール送信成功: ${to}`);
+      return { success: true, message: 'メールを送信しました' };
+    } catch (error: any) {
+      console.error('❌ SendGrid送信エラー:', error.response?.body || error);
+      throw new HttpsError(
+        'internal',
+        `メール送信に失敗しました: ${error.message || '不明なエラー'}`
+      );
+    }
+  }
+);
+
+/**
  * 自動スケジュール関数（既存維持）
  */
 /**

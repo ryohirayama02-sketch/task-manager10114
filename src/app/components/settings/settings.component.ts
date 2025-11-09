@@ -387,11 +387,9 @@ export class SettingsComponent implements OnInit {
         );
         console.log('送信結果:', result);
 
-        // Functions側の戻り値が { success: true, message: "..." } の想定
-        const data = (result as any)?.data ?? result; // onCallの戻りを安全に取得
-        if (data?.success) {
+        if (result) {
           this.snackBar.open(
-            data.message || 'テスト通知を送信しました ✅',
+            'テスト通知を送信しました ✅',
             this.getCloseLabel(),
             {
               duration: 3000,
@@ -415,10 +413,11 @@ export class SettingsComponent implements OnInit {
           }
         );
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('テスト通知エラー:', error);
+      const errorMessage = error?.message || error?.code || '不明なエラー';
       this.snackBar.open(
-        'テスト通知の送信に失敗しました',
+        `テスト通知の送信に失敗しました: ${errorMessage}`,
         this.getCloseLabel(),
         {
           duration: 3000,
