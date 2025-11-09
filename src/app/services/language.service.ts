@@ -328,6 +328,7 @@ export class LanguageService {
     'projectDetail.milestoneName': { ja: 'マイルストーン名', en: 'Milestone Name' },
     'projectDetail.removeMilestone': { ja: 'マイルストーンを削除', en: 'Remove Milestone' },
     'projectDetail.addMilestone': { ja: 'マイルストーンを追加', en: 'Add Milestone' },
+    'projectDetail.themeColor': { ja: 'プロジェクトカラー', en: 'Project Color' },
     'projectDetail.taskList': { ja: 'タスク一覧', en: 'Tasks' },
     'projectDetail.addTask': { ja: '+ タスク', en: '+ Task' },
     'projectDetail.export': { ja: '出力', en: 'Export' },

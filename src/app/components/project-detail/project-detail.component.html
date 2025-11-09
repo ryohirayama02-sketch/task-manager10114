@@ -325,6 +325,7 @@
               </button>
             </div>
           </div>
+
         </form>
       </ng-template>
     </div>
@@ -356,6 +357,24 @@
         {{ milestone.date | date : "yyyy/MM/dd" }}
       </div>
       <div class="milestone-name">{{ milestone.name }}</div>
+    </div>
+  </div>
+
+  <!-- プロジェクトカラー選択 -->
+  <div class="theme-color-section" *ngIf="isInlineEditMode" style="margin-top: 20px">
+    <h4>{{ 'projectDetail.themeColor' | translate }}</h4>
+    <div class="theme-color-selector">
+      <button
+        *ngFor="let color of themeColors"
+        type="button"
+        class="theme-color-option"
+        [class.selected]="editableThemeColor === color"
+        [style.background-color]="color"
+        (click)="editableThemeColor = color"
+        [attr.aria-label]="('projectDetail.themeColor' | translate) + ': ' + color"
+      >
+        <mat-icon *ngIf="editableThemeColor === color">check</mat-icon>
+      </button>
     </div>
   </div>
 

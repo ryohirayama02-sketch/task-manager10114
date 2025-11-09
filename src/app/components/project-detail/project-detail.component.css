@@ -368,6 +368,62 @@
   color: #555;
 }
 
+.theme-color-section {
+  margin-top: 20px;
+  padding: 16px 0;
+}
+
+.theme-color-section h4 {
+  margin: 0 0 16px 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.theme-color-selector {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.theme-color-option {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  outline: none;
+}
+
+.theme-color-option:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-color: rgba(0, 0, 0, 0.5);
+}
+
+.theme-color-option:focus-visible {
+  border-color: #1976d2;
+  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.25);
+}
+
+.theme-color-option.selected {
+  border-color: #1976d2;
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+}
+
+.theme-color-option mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  color: #263238;
+}
+
 .inline-milestones {
   display: flex;
   flex-direction: column;

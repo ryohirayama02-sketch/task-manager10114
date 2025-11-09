@@ -31,6 +31,7 @@ import { ProgressCircleComponent } from '../progress/projects-overview/progress-
 import { ProjectChatComponent } from '../project-chat/project-chat.component';
 import {
   DEFAULT_PROJECT_THEME_COLOR,
+  PROJECT_THEME_COLORS,
   resolveProjectThemeColor,
 } from '../../constants/project-theme-colors';
 import { inject } from '@angular/core';
@@ -83,6 +84,8 @@ export class ProjectDetailComponent implements OnInit {
   isDeletingProject = false;
   editableTags: string[] = [];
   tagInputValue = '';
+  editableThemeColor: string = DEFAULT_PROJECT_THEME_COLOR;
+  readonly themeColors = PROJECT_THEME_COLORS;
   editableMilestones: Milestone[] = [];
   editableAttachments: ProjectAttachment[] = [];
   pendingFiles: { id: string; file: File }[] = [];
@@ -234,6 +237,7 @@ export class ProjectDetailComponent implements OnInit {
     this.attachmentsToRemove = [];
     this.newUrlInput = '';
     this.tagInputValue = '';
+    this.editableThemeColor = resolveProjectThemeColor(this.project);
     this.syncSelectionsFromProject();
   }
 
@@ -326,6 +330,7 @@ export class ProjectDetailComponent implements OnInit {
       responsibles: responsiblesPayload,
       members: membersString,
       tags: tagsString,
+      themeColor: this.editableThemeColor,
       milestones: milestonesPayload,
       attachments,
       updatedAt: new Date(),
@@ -344,6 +349,7 @@ export class ProjectDetailComponent implements OnInit {
         ...payload,
       } as IProject;
       this.project.responsibles = responsiblesPayload;
+      this.project.themeColor = this.editableThemeColor;
       this.projectThemeColor = resolveProjectThemeColor(this.project);
       this.project.attachments = attachments;
       this.project.milestones = milestonesPayload;
@@ -465,6 +471,7 @@ export class ProjectDetailComponent implements OnInit {
       responsibles: responsiblesPayload,
       members: membersString,
       tags: tagsString,
+      themeColor: this.editableThemeColor,
       milestones: milestonesPayload,
       attachments,
       updatedAt: new Date(),
@@ -484,6 +491,7 @@ export class ProjectDetailComponent implements OnInit {
         ...payload,
       } as IProject;
       this.project.responsibles = responsiblesPayload;
+      this.project.themeColor = this.editableThemeColor;
       this.projectThemeColor = resolveProjectThemeColor(this.project);
       this.project.attachments = attachments;
       this.project.milestones = milestonesPayload;
