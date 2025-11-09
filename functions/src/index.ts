@@ -363,7 +363,7 @@ export const sendEmailNotification = onCall(
       throw new HttpsError('unauthenticated', '認証が必要です');
 
     const { to, subject, message } = request.data || {};
-    
+
     if (!to || !subject || !message) {
       throw new HttpsError(
         'invalid-argument',
@@ -437,14 +437,18 @@ async function getTodayTasksForUser(
     .get();
 
   console.log(`   - メンバー数: ${membersSnapshot.size}`);
-  
+
   if (membersSnapshot.size === 0) {
     console.log(`   ⚠️ メンバーが見つかりませんでした`);
   } else {
     console.log(`   - メンバー一覧:`);
     membersSnapshot.forEach((doc) => {
       const memberData = doc.data();
-      console.log(`     - ${doc.id}: ${memberData.name || '名前なし'} (${memberData.email || 'メールなし'})`);
+      console.log(
+        `     - ${doc.id}: ${memberData.name || '名前なし'} (${
+          memberData.email || 'メールなし'
+        })`
+      );
     });
   }
 
@@ -481,21 +485,21 @@ async function getTodayTasksForUser(
   console.log(`\n   🔍 [プロジェクト取得] 開始`);
   console.log(`      - roomIdで検索: ${roomId}`);
   const projectsRef = db.collection('projects');
-  let projectsSnapshot = await projectsRef
-    .where('roomId', '==', roomId)
-    .get();
+  let projectsSnapshot = await projectsRef.where('roomId', '==', roomId).get();
 
   console.log(`      - roomId検索結果: ${projectsSnapshot.size}件`);
-  
+
   if (projectsSnapshot.empty) {
     console.log(`      - roomId検索結果が空のため、roomDocIdで再検索`);
     console.log(`      - roomDocIdで検索: ${roomDocId}`);
-    projectsSnapshot = await projectsRef.where('roomDocId', '==', roomDocId).get();
+    projectsSnapshot = await projectsRef
+      .where('roomDocId', '==', roomDocId)
+      .get();
     console.log(`      - roomDocId検索結果: ${projectsSnapshot.size}件`);
   }
 
   console.log(`   - プロジェクト数: ${projectsSnapshot.size}`);
-  
+
   if (projectsSnapshot.size === 0) {
     console.log(`   ⚠️ プロジェクトが見つかりませんでした`);
   } else {
@@ -517,9 +521,15 @@ async function getTodayTasksForUser(
     try {
       // デバッグ: プロジェクト「b」の全タスクを取得して確認
       const allTasksSnapshot = await tasksRef.get();
-      console.log(`\n   🔍 プロジェクト「${projectData.projectName || projectId}」の全タスク数: ${allTasksSnapshot.size}件`);
-      console.log(`      - 検索条件: roomId=${roomId}, dueDate=${todayStr}, status=['未着手', '作業中']`);
-      
+      console.log(
+        `\n   🔍 プロジェクト「${
+          projectData.projectName || projectId
+        }」の全タスク数: ${allTasksSnapshot.size}件`
+      );
+      console.log(
+        `      - 検索条件: roomId=${roomId}, dueDate=${todayStr}, status=['未着手', '作業中']`
+      );
+
       if (allTasksSnapshot.size > 0) {
         console.log(`      - 全タスクの詳細:`);
         let taskIndex = 0;
@@ -532,7 +542,11 @@ async function getTodayTasksForUser(
           const taskStatus = taskData.status || '未設定';
           const taskAssignee = taskData.assignee || '未設定';
           const taskAssignedMembers = taskData.assignedMembers || '未設定';
-          console.log(`        [${taskIndex}] ${taskName}: roomId=${taskRoomId}, dueDate=${taskDueDate}, status=${taskStatus}, assignee=${taskAssignee}, assignedMembers=${JSON.stringify(taskAssignedMembers)}`);
+          console.log(
+            `        [${taskIndex}] ${taskName}: roomId=${taskRoomId}, dueDate=${taskDueDate}, status=${taskStatus}, assignee=${taskAssignee}, assignedMembers=${JSON.stringify(
+              taskAssignedMembers
+            )}`
+          );
         });
         console.log(`      - 全タスク詳細出力完了 (${taskIndex}件)`);
       }
@@ -547,34 +561,47 @@ async function getTodayTasksForUser(
           .get();
       } catch (error: any) {
         // インデックスエラーの場合、statusフィルタを外して再試行
-        console.error(`❌ プロジェクト「${projectData.projectName || projectId}」のタスク取得エラー:`, error);
+        console.error(
+          `❌ プロジェクト「${
+            projectData.projectName || projectId
+          }」のタスク取得エラー:`,
+          error
+        );
         if (error.code === 9 || error.message?.includes('index')) {
           console.log(`🔄 statusフィルタを外して再試行`);
-          tasksSnapshot = await tasksRef
-            .where('dueDate', '==', todayStr)
-            .get();
+          tasksSnapshot = await tasksRef.where('dueDate', '==', todayStr).get();
         } else {
           throw error;
         }
       }
 
-      console.log(`\n   📋 プロジェクト「${projectData.projectName || projectId}」のタスク取得結果（roomIdフィルタなし）:`);
+      console.log(
+        `\n   📋 プロジェクト「${
+          projectData.projectName || projectId
+        }」のタスク取得結果（roomIdフィルタなし）:`
+      );
       console.log(`      - タスク数: ${tasksSnapshot.size}件`);
 
       tasksSnapshot.forEach((taskDoc) => {
         const taskData = taskDoc.data();
-        
+
         // roomIdを手動でチェック（roomIdが一致するか、またはroomIdが未設定の場合も含める）
         if (taskData.roomId && taskData.roomId !== roomId) {
           return; // roomIdが設定されていて、一致しない場合はスキップ
         }
-        
+
         // statusを手動でチェック（エラーハンドリングでstatusフィルタを外した場合に備えて）
         if (taskData.status !== '未着手' && taskData.status !== '作業中') {
           return; // statusが「未着手」または「作業中」でない場合はスキップ
         }
 
-        console.log(`🔍 タスク確認: ${taskData.taskName || taskData.task}, dueDate=${taskData.dueDate}, status=${taskData.status}, assignee=${taskData.assignee}, assignedMembers=${JSON.stringify(taskData.assignedMembers)}`);
+        console.log(
+          `🔍 タスク確認: ${taskData.taskName || taskData.task}, dueDate=${
+            taskData.dueDate
+          }, status=${taskData.status}, assignee=${
+            taskData.assignee
+          }, assignedMembers=${JSON.stringify(taskData.assignedMembers)}`
+        );
 
         // 担当者をチェック
         let assignees: string[] = [];
@@ -615,7 +642,8 @@ async function getTodayTasksForUser(
               if (member.name) assignees.push(member.name.trim().toLowerCase());
               if (member.memberEmail)
                 assignees.push(member.memberEmail.trim().toLowerCase());
-              if (member.email) assignees.push(member.email.trim().toLowerCase());
+              if (member.email)
+                assignees.push(member.email.trim().toLowerCase());
             }
           });
         }
@@ -651,7 +679,9 @@ async function getTodayTasksForUser(
         }
 
         if (match) {
-          console.log(`✅ マッチしたタスク: ${taskData.taskName || taskData.task}`);
+          console.log(
+            `✅ マッチしたタスク: ${taskData.taskName || taskData.task}`
+          );
           allTasks.push({
             id: taskDoc.id,
             projectId,
@@ -662,12 +692,25 @@ async function getTodayTasksForUser(
             priority: taskData.priority,
           });
         } else {
-          console.log(`❌ マッチしなかったタスク: ${taskData.taskName || taskData.task}, assignees=${JSON.stringify(assignees)}, userEmail=${userEmail}, userName=${userName}, userMemberId=${userMemberId}`);
+          console.log(
+            `❌ マッチしなかったタスク: ${
+              taskData.taskName || taskData.task
+            }, assignees=${JSON.stringify(
+              assignees
+            )}, userEmail=${userEmail}, userName=${userName}, userMemberId=${userMemberId}`
+          );
         }
       });
     } catch (error: any) {
-      console.error(`❌ プロジェクト「${projectData.projectName || projectId}」のタスク取得エラー:`, error);
-      console.error(`   エラー詳細: code=${error.code}, message=${error.message}`);
+      console.error(
+        `❌ プロジェクト「${
+          projectData.projectName || projectId
+        }」のタスク取得エラー:`,
+        error
+      );
+      console.error(
+        `   エラー詳細: code=${error.code}, message=${error.message}`
+      );
       // インデックスエラーの場合、roomIdフィルタを外して再試行
       if (error.code === 9 || error.message?.includes('index')) {
         console.log(`🔄 roomIdフィルタを外して再試行`);
@@ -676,22 +719,36 @@ async function getTodayTasksForUser(
             .where('dueDate', '==', todayStr)
             .where('status', 'in', ['未着手', '作業中'])
             .get();
-          
-          console.log(`📋 プロジェクト「${projectData.projectName || projectId}」の今日のタスク数（roomIdフィルタなし）: ${tasksSnapshot.size}`);
-          
+
+          console.log(
+            `📋 プロジェクト「${
+              projectData.projectName || projectId
+            }」の今日のタスク数（roomIdフィルタなし）: ${tasksSnapshot.size}`
+          );
+
           tasksSnapshot.forEach((taskDoc) => {
             const taskData = taskDoc.data();
             // roomIdを手動でチェック（roomIdが一致するか、またはroomIdが未設定の場合も含める）
             if (taskData.roomId && taskData.roomId !== roomId) {
-              console.log(`⚠️ roomId不一致でスキップ: ${taskData.taskName || taskData.task}, taskRoomId=${taskData.roomId}, expectedRoomId=${roomId}`);
+              console.log(
+                `⚠️ roomId不一致でスキップ: ${
+                  taskData.taskName || taskData.task
+                }, taskRoomId=${taskData.roomId}, expectedRoomId=${roomId}`
+              );
               return;
             }
-            
-            console.log(`🔍 タスク確認: ${taskData.taskName || taskData.task}, dueDate=${taskData.dueDate}, status=${taskData.status}, assignee=${taskData.assignee}, assignedMembers=${JSON.stringify(taskData.assignedMembers)}`);
-            
+
+            console.log(
+              `🔍 タスク確認: ${taskData.taskName || taskData.task}, dueDate=${
+                taskData.dueDate
+              }, status=${taskData.status}, assignee=${
+                taskData.assignee
+              }, assignedMembers=${JSON.stringify(taskData.assignedMembers)}`
+            );
+
             // 担当者をチェック（以下、同じロジック）
             let assignees: string[] = [];
-            
+
             if (taskData.assignee) {
               assignees.push(
                 ...taskData.assignee
@@ -700,7 +757,7 @@ async function getTodayTasksForUser(
                   .filter((n: string) => n.length > 0)
               );
             }
-            
+
             if (Array.isArray(taskData.assignedMembers)) {
               taskData.assignedMembers.forEach((member: any) => {
                 if (typeof member === 'string') {
@@ -720,27 +777,29 @@ async function getTodayTasksForUser(
                 } else if (typeof member === 'object' && member) {
                   if (member.memberName)
                     assignees.push(member.memberName.trim().toLowerCase());
-                  if (member.name) assignees.push(member.name.trim().toLowerCase());
+                  if (member.name)
+                    assignees.push(member.name.trim().toLowerCase());
                   if (member.memberEmail)
                     assignees.push(member.memberEmail.trim().toLowerCase());
-                  if (member.email) assignees.push(member.email.trim().toLowerCase());
+                  if (member.email)
+                    assignees.push(member.email.trim().toLowerCase());
                 }
               });
             }
-            
+
             if (taskData.assigneeEmail) {
               assignees.push(taskData.assigneeEmail.trim().toLowerCase());
             }
-            
+
             assignees = [...new Set(assignees)];
-            
+
             const normalizedUserEmail = userEmail.trim().toLowerCase();
             let match = assignees.includes(normalizedUserEmail);
-            
+
             if (!match && members.length > 0) {
               match = assignees.some((a) => members.includes(a));
             }
-            
+
             if (!match && userMemberId) {
               if (Array.isArray(taskData.assignedMembers)) {
                 match = taskData.assignedMembers.some(
@@ -750,9 +809,11 @@ async function getTodayTasksForUser(
                 );
               }
             }
-            
+
             if (match) {
-              console.log(`✅ マッチしたタスク: ${taskData.taskName || taskData.task}`);
+              console.log(
+                `✅ マッチしたタスク: ${taskData.taskName || taskData.task}`
+              );
               allTasks.push({
                 id: taskDoc.id,
                 projectId,
@@ -763,7 +824,13 @@ async function getTodayTasksForUser(
                 priority: taskData.priority,
               });
             } else {
-              console.log(`❌ マッチしなかったタスク: ${taskData.taskName || taskData.task}, assignees=${JSON.stringify(assignees)}, userEmail=${userEmail}, userName=${userName}, userMemberId=${userMemberId}`);
+              console.log(
+                `❌ マッチしなかったタスク: ${
+                  taskData.taskName || taskData.task
+                }, assignees=${JSON.stringify(
+                  assignees
+                )}, userEmail=${userEmail}, userName=${userName}, userMemberId=${userMemberId}`
+              );
             }
           });
         } catch (retryError: any) {
@@ -772,7 +839,7 @@ async function getTodayTasksForUser(
       }
     }
   }
-  
+
   // スタンドアロンタスクも取得（roomIdが未設定のタスクも含める）
   try {
     const standaloneTasksSnapshot = await db
@@ -780,27 +847,35 @@ async function getTodayTasksForUser(
       .where('dueDate', '==', todayStr)
       .where('status', 'in', ['未着手', '作業中'])
       .get();
-    
-    console.log(`📋 スタンドアロンタスク数（roomIdフィルタなし）: ${standaloneTasksSnapshot.size}`);
-    
+
+    console.log(
+      `📋 スタンドアロンタスク数（roomIdフィルタなし）: ${standaloneTasksSnapshot.size}`
+    );
+
     standaloneTasksSnapshot.forEach((taskDoc) => {
       const taskData = taskDoc.data();
-      
+
       // roomIdを手動でチェック（roomIdが一致するか、またはroomIdが未設定の場合も含める）
       if (taskData.roomId && taskData.roomId !== roomId) {
         return; // roomIdが設定されていて、一致しない場合はスキップ
       }
-      
+
       // statusを手動でチェック
       if (taskData.status !== '未着手' && taskData.status !== '作業中') {
         return; // statusが「未着手」または「作業中」でない場合はスキップ
       }
-      
-      console.log(`🔍 スタンドアロンタスク確認: ${taskData.taskName || taskData.task}, dueDate=${taskData.dueDate}, status=${taskData.status}, assignee=${taskData.assignee}, assignedMembers=${JSON.stringify(taskData.assignedMembers)}`);
-      
+
+      console.log(
+        `🔍 スタンドアロンタスク確認: ${
+          taskData.taskName || taskData.task
+        }, dueDate=${taskData.dueDate}, status=${taskData.status}, assignee=${
+          taskData.assignee
+        }, assignedMembers=${JSON.stringify(taskData.assignedMembers)}`
+      );
+
       // 担当者をチェック（以下、同じロジック）
       let assignees: string[] = [];
-      
+
       if (taskData.assignee) {
         assignees.push(
           ...taskData.assignee
@@ -809,7 +884,7 @@ async function getTodayTasksForUser(
             .filter((n: string) => n.length > 0)
         );
       }
-      
+
       if (Array.isArray(taskData.assignedMembers)) {
         taskData.assignedMembers.forEach((member: any) => {
           if (typeof member === 'string') {
@@ -836,20 +911,20 @@ async function getTodayTasksForUser(
           }
         });
       }
-      
+
       if (taskData.assigneeEmail) {
         assignees.push(taskData.assigneeEmail.trim().toLowerCase());
       }
-      
+
       assignees = [...new Set(assignees)];
-      
+
       const normalizedUserEmail = userEmail.trim().toLowerCase();
       let match = assignees.includes(normalizedUserEmail);
-      
+
       if (!match && members.length > 0) {
         match = assignees.some((a) => members.includes(a));
       }
-      
+
       if (!match && userMemberId) {
         if (Array.isArray(taskData.assignedMembers)) {
           match = taskData.assignedMembers.some(
@@ -859,9 +934,13 @@ async function getTodayTasksForUser(
           );
         }
       }
-      
+
       if (match) {
-        console.log(`✅ マッチしたスタンドアロンタスク: ${taskData.taskName || taskData.task}`);
+        console.log(
+          `✅ マッチしたスタンドアロンタスク: ${
+            taskData.taskName || taskData.task
+          }`
+        );
         allTasks.push({
           id: taskDoc.id,
           projectId: taskData.projectId || '',
@@ -872,7 +951,13 @@ async function getTodayTasksForUser(
           priority: taskData.priority,
         });
       } else {
-        console.log(`❌ マッチしなかったスタンドアロンタスク: ${taskData.taskName || taskData.task}, assignees=${JSON.stringify(assignees)}, userEmail=${userEmail}, userName=${userName}, userMemberId=${userMemberId}`);
+        console.log(
+          `❌ マッチしなかったスタンドアロンタスク: ${
+            taskData.taskName || taskData.task
+          }, assignees=${JSON.stringify(
+            assignees
+          )}, userEmail=${userEmail}, userName=${userName}, userMemberId=${userMemberId}`
+        );
       }
     });
   } catch (error: any) {
@@ -881,11 +966,15 @@ async function getTodayTasksForUser(
 
   console.log(`\n✅ [getTodayTasksForUser] 処理完了`);
   console.log(`   - 取得したタスク総数: ${allTasks.length}件`);
-  
+
   if (allTasks.length > 0) {
     console.log(`   - 取得したタスク詳細:`);
     allTasks.forEach((task: any, index: number) => {
-      console.log(`     ${index + 1}. ${task.taskName} (${task.projectName}) - ${task.dueDate} - ${task.status}`);
+      console.log(
+        `     ${index + 1}. ${task.taskName} (${task.projectName}) - ${
+          task.dueDate
+        } - ${task.status}`
+      );
     });
   } else {
     console.log(`   ⚠️ タスクが1件も取得できませんでした`);
@@ -2477,6 +2566,20 @@ export const sendWorkTimeOverflowNotifications = onSchedule(
           `📊 チェック期間: 未来${checkPeriodDays}日間, 最大予定時間: ${maxWorkHours}時間`
         );
 
+        // メンバー情報を取得（メールアドレスからメンバー名を取得するため）
+        const membersSnapshot = await db
+          .collection('members')
+          .where('roomId', '==', roomId)
+          .get();
+
+        const emailToNameMap = new Map<string, string>(); // email -> name
+        membersSnapshot.forEach((doc) => {
+          const memberData = doc.data();
+          if (memberData.email && memberData.name) {
+            emailToNameMap.set(memberData.email, memberData.name);
+          }
+        });
+
         // ユーザーごとの予定時間を集計
         const userWorkTimeMap = await getUserWorkTimeSummary(
           roomId,
@@ -2487,14 +2590,16 @@ export const sendWorkTimeOverflowNotifications = onSchedule(
         // 予定時間オーバーのユーザーを特定
         const overflowUsers: Array<{
           email: string;
+          name: string;
           workHours: number;
         }> = [];
 
         for (const [userEmail, workHours] of Object.entries(userWorkTimeMap)) {
           if (workHours > maxWorkHours) {
-            overflowUsers.push({ email: userEmail, workHours });
+            const userName = emailToNameMap.get(userEmail) || userEmail;
+            overflowUsers.push({ email: userEmail, name: userName, workHours });
             console.log(
-              `⚠️ 予定時間オーバー: ${userEmail} (${workHours.toFixed(
+              `⚠️ 予定時間オーバー: ${userName} (${userEmail}) (${workHours.toFixed(
                 2
               )}時間 / ${maxWorkHours}時間)`
             );
@@ -2506,67 +2611,105 @@ export const sendWorkTimeOverflowNotifications = onSchedule(
           continue;
         }
 
-        // 各オーバーユーザーについて、責任者に通知
-        for (const overflowUser of overflowUsers) {
-          const managerEmails = await getProjectManagersForUser(
-            roomId,
-            roomDocId,
-            overflowUser.email
-          );
+        // 通知設定を有効にしているユーザー（管理者）のメールアドレスを取得
+        // notificationSettingsにuserEmailが保存されている場合はそれを使用
+        // なければ、Firebase Authenticationから取得を試みる
+        let adminEmail = settings.userEmail || null;
+        console.log(
+          `🔍 管理者メールアドレス取得試行: settings.userEmail=${
+            settings.userEmail || 'null'
+          }, settingUserId=${settingUserId}`
+        );
 
-          if (managerEmails.length === 0) {
-            console.log(`⚠️ 責任者が見つかりません: ${overflowUser.email}`);
-            continue;
+        if (!adminEmail) {
+          // Firebase Authenticationから取得を試みる
+          try {
+            console.log(
+              `🔍 Firebase Authenticationからメールアドレスを取得中...`
+            );
+            const adminUser = await admin.auth().getUser(settingUserId);
+            adminEmail = adminUser.email || null;
+            console.log(
+              `✅ Firebase Authenticationから取得: ${adminEmail || 'null'}`
+            );
+          } catch (error: any) {
+            console.error(
+              `❌ Firebase Authenticationからメールアドレスを取得できませんでした: ${error.message}`
+            );
+            console.error(`   エラー詳細:`, error);
           }
+        }
 
+        if (!adminEmail) {
+          console.error(
+            `❌ 管理者のメールアドレスが見つかりません: userId=${settingUserId}`
+          );
+          continue;
+        }
+
+        console.log(`📧 通知先管理者: ${adminEmail}`);
+
+        // オーバーユーザー一覧をメール本文に含める
+        const overflowUsersList = overflowUsers
+          .map(
+            (user, index) => `
+              <div style="background-color:#fff3cd;padding:15px;margin:10px 0;border-radius:8px;border-left:4px solid #ff9800;">
+                <h3 style="margin:0 0 10px;">${index + 1}. ユーザー: ${
+              user.name
+            }</h3>
+                <p><strong>メールアドレス:</strong> ${user.email}</p>
+                <p><strong>予定時間合計:</strong> ${user.workHours.toFixed(
+                  2
+                )}時間</p>
+                <p><strong>設定上限:</strong> ${maxWorkHours}時間</p>
+                <p><strong>超過時間:</strong> ${(
+                  user.workHours - maxWorkHours
+                ).toFixed(2)}時間</p>
+              </div>
+            `
+          )
+          .join('');
+
+        // 管理者にメール送信
+        try {
+          console.log(`📧 メール送信開始: to=${adminEmail}, from=${fromEmail}`);
+          const msg = {
+            to: adminEmail,
+            from: fromEmail,
+            subject: `【予定時間オーバー通知】${overflowUsers.length}名のユーザーの予定時間が上限を超えています`,
+            html: `
+              <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+                <h2 style="color:#d32f2f;">⏰ 予定時間オーバー通知</h2>
+                <p>以下の${overflowUsers.length}名のユーザーの予定時間が設定された上限を超えています。</p>
+                ${overflowUsersList}
+                <div style="background-color:#f5f5f5;padding:15px;margin:10px 0;border-radius:8px;">
+                  <p><strong>集計期間:</strong> 未来${checkPeriodDays}日間</p>
+                  <p><strong>対象タスク:</strong> ステータス「未着手」「作業中」で、期間が重なるタスク</p>
+                </div>
+                <p style="color:#999;font-size:12px;">
+                  このメールはタスク管理アプリから自動送信されました。
+                </p>
+              </div>
+            `,
+          };
           console.log(
-            `📧 通知先責任者: ${managerEmails.join(', ')} (ユーザー: ${
-              overflowUser.email
-            })`
+            `📧 SendGrid API呼び出し前: to=${msg.to}, subject=${msg.subject}`
           );
-
-          // 責任者にメール送信
-          for (const managerEmail of managerEmails) {
-            try {
-              const msg = {
-                to: managerEmail,
-                from: fromEmail,
-                subject: `【予定時間オーバー通知】${overflowUser.email}の予定時間が上限を超えています`,
-                html: `
-                  <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
-                    <h2 style="color:#d32f2f;">⏰ 予定時間オーバー通知</h2>
-                    <p>以下のユーザーの予定時間が設定された上限を超えています。</p>
-                    <div style="background-color:#fff3cd;padding:15px;margin:10px 0;border-radius:8px;border-left:4px solid #ff9800;">
-                      <h3 style="margin:0 0 10px;">ユーザー: ${
-                        overflowUser.email
-                      }</h3>
-                      <p><strong>予定時間合計:</strong> ${overflowUser.workHours.toFixed(
-                        2
-                      )}時間</p>
-                      <p><strong>設定上限:</strong> ${maxWorkHours}時間</p>
-                      <p><strong>超過時間:</strong> ${(
-                        overflowUser.workHours - maxWorkHours
-                      ).toFixed(2)}時間</p>
-                      <p><strong>集計期間:</strong> 未来${checkPeriodDays}日間</p>
-                      <p><strong>対象タスク:</strong> ステータス「未着手」「作業中」で、期間が重なるタスク</p>
-                    </div>
-                    <p style="color:#999;font-size:12px;">
-                      このメールはタスク管理アプリから自動送信されました。
-                    </p>
-                  </div>
-                `,
-              };
-              await sgMail.send(msg);
-              console.log(
-                `✅ 作業時間オーバー通知メール送信成功: ${managerEmail}`
-              );
-            } catch (error: any) {
-              console.error(
-                `❌ SendGrid送信エラー(${managerEmail}):`,
-                error.response?.body || error
-              );
-            }
-          }
+          await sgMail.send(msg);
+          console.log(
+            `✅ 作業時間オーバー通知メール送信成功: ${adminEmail} (オーバーユーザー数: ${overflowUsers.length})`
+          );
+        } catch (error: any) {
+          console.error(
+            `❌ SendGrid送信エラー(${adminEmail}):`,
+            error.response?.body || error
+          );
+          console.error(`   エラータイプ: ${error.name || 'Unknown'}`);
+          console.error(
+            `   エラーメッセージ: ${error.message || 'No message'}`
+          );
+          console.error(`   エラーコード: ${error.code || 'No code'}`);
+          console.error(`   エラー詳細:`, error);
         }
       }
     } catch (error: any) {
@@ -2579,7 +2722,12 @@ export const sendWorkTimeOverflowNotifications = onSchedule(
  * 🔹 作業時間オーバー通知を手動実行（デバッグ用）
  */
 export const sendWorkTimeOverflowNotificationsManual = onCall(
-  { secrets: [sendgridApiKey, sendgridFromEmail], cors: true },
+  {
+    secrets: [sendgridApiKey, sendgridFromEmail],
+    cors: true,
+    timeoutSeconds: 540,
+    memory: '512MiB',
+  },
   async (request) => {
     if (!request.auth)
       throw new HttpsError('unauthenticated', '認証が必要です');
@@ -2588,6 +2736,22 @@ export const sendWorkTimeOverflowNotificationsManual = onCall(
     const roomId = request.data?.roomId;
     const roomDocId = request.data?.roomDocId;
     const force = request.data?.force || false;
+
+    // 早期リターン: ルームIDが指定されていない場合はエラー
+    if (!roomId || !roomDocId) {
+      throw new HttpsError(
+        'invalid-argument',
+        'roomId と roomDocId は必須です'
+      );
+    }
+
+    // リクエストから管理者のメールアドレスを取得（フォールバック用）
+    const requestAdminEmail = request.auth?.token?.email || null;
+    console.log(
+      `🔍 リクエストから管理者メールアドレス取得: ${
+        requestAdminEmail || 'null'
+      }`
+    );
 
     const db = admin.firestore();
     const apiKey = sendgridApiKey
@@ -2611,10 +2775,10 @@ export const sendWorkTimeOverflowNotificationsManual = onCall(
     console.log(`⏰ JST現在時刻: ${currentTime} (UTC: ${now.toISOString()})`);
 
     try {
-      // 通知設定を取得
-      let settingsQuery: admin.firestore.Query = db.collection(
-        'notificationSettings'
-      );
+      // 通知設定を取得（ルームIDでフィルタリング）
+      let settingsQuery: admin.firestore.Query = db
+        .collection('notificationSettings')
+        .where('roomId', '==', roomId);
 
       if (userId) {
         settingsQuery = settingsQuery.where('userId', '==', userId);
@@ -2628,6 +2792,16 @@ export const sendWorkTimeOverflowNotificationsManual = onCall(
 
       const settingsSnapshot = await settingsQuery.get();
       console.log(`📋 通知設定数: ${settingsSnapshot.docs.length}`);
+
+      // 早期リターン: 通知設定がない場合
+      if (settingsSnapshot.empty) {
+        return {
+          success: true,
+          message: '通知設定が見つかりませんでした',
+          currentTime,
+          results: [],
+        };
+      }
 
       const results: any[] = [];
 
@@ -2736,6 +2910,20 @@ export const sendWorkTimeOverflowNotificationsManual = onCall(
           `📊 チェック期間: 未来${checkPeriodDays}日間, 最大予定時間: ${maxWorkHours}時間`
         );
 
+        // メンバー情報を取得（メールアドレスからメンバー名を取得するため）
+        const membersSnapshot = await db
+          .collection('members')
+          .where('roomId', '==', settingRoomId)
+          .get();
+
+        const emailToNameMap = new Map<string, string>(); // email -> name
+        membersSnapshot.forEach((doc) => {
+          const memberData = doc.data();
+          if (memberData.email && memberData.name) {
+            emailToNameMap.set(memberData.email, memberData.name);
+          }
+        });
+
         // ユーザーごとの予定時間を集計
         const userWorkTimeMap = await getUserWorkTimeSummary(
           settingRoomId,
@@ -2746,14 +2934,16 @@ export const sendWorkTimeOverflowNotificationsManual = onCall(
         // 予定時間オーバーのユーザーを特定
         const overflowUsers: Array<{
           email: string;
+          name: string;
           workHours: number;
         }> = [];
 
         for (const [userEmail, workHours] of Object.entries(userWorkTimeMap)) {
           if (workHours > maxWorkHours) {
-            overflowUsers.push({ email: userEmail, workHours });
+            const userName = emailToNameMap.get(userEmail) || userEmail;
+            overflowUsers.push({ email: userEmail, name: userName, workHours });
             console.log(
-              `⚠️ 予定時間オーバー: ${userEmail} (${workHours.toFixed(
+              `⚠️ 予定時間オーバー: ${userName} (${userEmail}) (${workHours.toFixed(
                 2
               )}時間 / ${maxWorkHours}時間)`
             );
@@ -2771,69 +2961,120 @@ export const sendWorkTimeOverflowNotificationsManual = onCall(
           continue;
         }
 
-        // 各オーバーユーザーについて、責任者に通知
+        // 通知設定を有効にしているユーザー（管理者）のメールアドレスを取得
+        // 優先順位: 1. settings.userEmail, 2. request.auth.token.email, 3. Firebase Authentication
+        let adminEmail = settings.userEmail || null;
+        console.log(
+          `🔍 管理者メールアドレス取得試行: settings.userEmail=${
+            settings.userEmail || 'null'
+          }, settingUserId=${settingUserId}`
+        );
+
+        if (!adminEmail) {
+          // リクエストから取得を試みる（手動実行版のみ）
+          adminEmail = requestAdminEmail;
+          console.log(`🔍 リクエストから取得: ${adminEmail || 'null'}`);
+        }
+
+        if (!adminEmail) {
+          // Firebase Authenticationから取得を試みる
+          try {
+            console.log(
+              `🔍 Firebase Authenticationからメールアドレスを取得中...`
+            );
+            const adminUser = await admin.auth().getUser(settingUserId);
+            adminEmail = adminUser.email || null;
+            console.log(
+              `✅ Firebase Authenticationから取得: ${adminEmail || 'null'}`
+            );
+          } catch (error: any) {
+            console.error(
+              `❌ Firebase Authenticationからメールアドレスを取得できませんでした: ${error.message}`
+            );
+            console.error(`   エラー詳細:`, error);
+          }
+        }
+
+        if (!adminEmail) {
+          console.error(
+            `❌ 管理者のメールアドレスが見つかりません: userId=${settingUserId}`
+          );
+          results.push({
+            userId: settingUserId,
+            success: false,
+            error: '管理者のメールアドレスが見つかりません',
+            overflowUserCount: overflowUsers.length,
+            notificationCount: 0,
+          });
+          continue;
+        }
+
+        console.log(`📧 通知先管理者: ${adminEmail}`);
+
+        // オーバーユーザー一覧をメール本文に含める
+        const overflowUsersList = overflowUsers
+          .map(
+            (user, index) => `
+              <div style="background-color:#fff3cd;padding:15px;margin:10px 0;border-radius:8px;border-left:4px solid #ff9800;">
+                <h3 style="margin:0 0 10px;">${index + 1}. ユーザー: ${
+              user.name
+            }</h3>
+                <p><strong>メールアドレス:</strong> ${user.email}</p>
+                <p><strong>予定時間合計:</strong> ${user.workHours.toFixed(
+                  2
+                )}時間</p>
+                <p><strong>設定上限:</strong> ${maxWorkHours}時間</p>
+                <p><strong>超過時間:</strong> ${(
+                  user.workHours - maxWorkHours
+                ).toFixed(2)}時間</p>
+              </div>
+            `
+          )
+          .join('');
+
+        // 管理者にメール送信
         let notificationCount = 0;
-        for (const overflowUser of overflowUsers) {
-          const managerEmails = await getProjectManagersForUser(
-            settingRoomId,
-            settingRoomDocId,
-            overflowUser.email
-          );
-
-          if (managerEmails.length === 0) {
-            console.log(`⚠️ 責任者が見つかりません: ${overflowUser.email}`);
-            continue;
-          }
-
+        try {
+          console.log(`📧 メール送信開始: to=${adminEmail}, from=${fromEmail}`);
+          const msg = {
+            to: adminEmail,
+            from: fromEmail,
+            subject: `【予定時間オーバー通知】${overflowUsers.length}名のユーザーの予定時間が上限を超えています`,
+            html: `
+              <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+                <h2 style="color:#d32f2f;">⏰ 予定時間オーバー通知</h2>
+                <p>以下の${overflowUsers.length}名のユーザーの予定時間が設定された上限を超えています。</p>
+                ${overflowUsersList}
+                <div style="background-color:#f5f5f5;padding:15px;margin:10px 0;border-radius:8px;">
+                  <p><strong>集計期間:</strong> 未来${checkPeriodDays}日間</p>
+                  <p><strong>対象タスク:</strong> ステータス「未着手」「作業中」で、期間が重なるタスク</p>
+                </div>
+                <p style="color:#999;font-size:12px;">
+                  このメールはタスク管理アプリから自動送信されました。
+                </p>
+              </div>
+            `,
+          };
           console.log(
-            `📧 通知先責任者: ${managerEmails.join(', ')} (ユーザー: ${
-              overflowUser.email
-            })`
+            `📧 SendGrid API呼び出し前: to=${msg.to}, subject=${msg.subject}`
           );
-
-          // 責任者にメール送信
-          for (const managerEmail of managerEmails) {
-            try {
-              const msg = {
-                to: managerEmail,
-                from: fromEmail,
-                subject: `【予定時間オーバー通知】${overflowUser.email}の予定時間が上限を超えています`,
-                html: `
-                  <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
-                    <h2 style="color:#d32f2f;">⏰ 予定時間オーバー通知</h2>
-                    <p>以下のユーザーの予定時間が設定された上限を超えています。</p>
-                    <div style="background-color:#fff3cd;padding:15px;margin:10px 0;border-radius:8px;border-left:4px solid #ff9800;">
-                      <h3 style="margin:0 0 10px;">ユーザー: ${
-                        overflowUser.email
-                      }</h3>
-                      <p><strong>予定時間合計:</strong> ${overflowUser.workHours.toFixed(
-                        2
-                      )}時間</p>
-                      <p><strong>設定上限:</strong> ${maxWorkHours}時間</p>
-                      <p><strong>超過時間:</strong> ${(
-                        overflowUser.workHours - maxWorkHours
-                      ).toFixed(2)}時間</p>
-                      <p><strong>集計期間:</strong> 未来${checkPeriodDays}日間</p>
-                      <p><strong>対象タスク:</strong> ステータス「未着手」「作業中」で、期間が重なるタスク</p>
-                    </div>
-                    <p style="color:#999;font-size:12px;">
-                      このメールはタスク管理アプリから自動送信されました。
-                    </p>
-                  </div>
-                `,
-              };
-              await sgMail.send(msg);
-              console.log(
-                `✅ 作業時間オーバー通知メール送信成功: ${managerEmail}`
-              );
-              notificationCount++;
-            } catch (error: any) {
-              console.error(
-                `❌ SendGrid送信エラー(${managerEmail}):`,
-                error.response?.body || error
-              );
-            }
-          }
+          await sgMail.send(msg);
+          console.log(
+            `✅ 作業時間オーバー通知メール送信成功: ${adminEmail} (オーバーユーザー数: ${overflowUsers.length})`
+          );
+          notificationCount = 1; // 1通のメールに複数のオーバーユーザーを含める
+        } catch (error: any) {
+          console.error(
+            `❌ SendGrid送信エラー(${adminEmail}):`,
+            error.response?.body || error
+          );
+          console.error(`   エラータイプ: ${error.name || 'Unknown'}`);
+          console.error(
+            `   エラーメッセージ: ${error.message || 'No message'}`
+          );
+          console.error(`   エラーコード: ${error.code || 'No code'}`);
+          console.error(`   エラー詳細:`, error);
+          // エラーが発生してもnotificationCountは0のまま（エラーを記録）
         }
 
         results.push({
@@ -2917,7 +3158,9 @@ export const sendDailyTaskRemindersManual = onCall(
           const data = doc.data();
           return data.dailyDeadlineReminder?.enabled === true;
         });
-        console.log(`📋 有効な通知設定数: ${filteredDocs.length} (userId指定時)`);
+        console.log(
+          `📋 有効な通知設定数: ${filteredDocs.length} (userId指定時)`
+        );
         // フィルタリングされたドキュメントを使用
         settingsSnapshot = {
           docs: filteredDocs,
@@ -2941,7 +3184,9 @@ export const sendDailyTaskRemindersManual = onCall(
 
         // ルーム情報が未設定の場合はスキップ（エラーとして記録しない）
         if (!settingRoomId || !settingRoomDocId) {
-          console.warn(`⚠️ ルーム情報が未設定のためスキップ: userId=${settingUserId}`);
+          console.warn(
+            `⚠️ ルーム情報が未設定のためスキップ: userId=${settingUserId}`
+          );
           results.push({
             userId: settingUserId,
             skipped: true,
@@ -3074,7 +3319,7 @@ export const sendDailyTaskRemindersManual = onCall(
           console.log(`   - userName: ${userName}`);
           console.log(`   - roomId: ${settingRoomId}`);
           console.log(`   - roomDocId: ${settingRoomDocId}`);
-          
+
           const todayTasks = await getTodayTasksForUser(
             settingRoomId,
             settingRoomDocId,
@@ -3084,11 +3329,15 @@ export const sendDailyTaskRemindersManual = onCall(
 
           console.log(`\n✅ [段階1完了] タスク取得完了`);
           console.log(`   - 取得したタスク数: ${todayTasks.length}件`);
-          
+
           if (todayTasks.length > 0) {
             console.log(`   - タスク一覧:`);
             todayTasks.forEach((t: any, index: number) => {
-              console.log(`     ${index + 1}. ${t.taskName} (${t.projectName}) - ${t.dueDate} - ${t.status}`);
+              console.log(
+                `     ${index + 1}. ${t.taskName} (${t.projectName}) - ${
+                  t.dueDate
+                } - ${t.status}`
+              );
             });
           } else {
             console.log(`   ⚠️ タスクが見つかりませんでした`);
@@ -3113,14 +3362,21 @@ export const sendDailyTaskRemindersManual = onCall(
           console.log(`   - メール生成用タスク数: ${todayTasks.length}件`);
           console.log(`   - メール生成用タスク一覧:`);
           todayTasks.forEach((task: any, index: number) => {
-            console.log(`     ${index + 1}. ${task.taskName} (${task.projectName}) - ${task.dueDate} - ${task.status}`);
+            console.log(
+              `     ${index + 1}. ${task.taskName} (${task.projectName}) - ${
+                task.dueDate
+              } - ${task.status}`
+            );
           });
-          
+
           const taskList = todayTasks
-            .map(
-              (task, index) => {
-                console.log(`   - メールHTML生成中: ${index + 1}/${todayTasks.length} - ${task.taskName}`);
-                return `
+            .map((task, index) => {
+              console.log(
+                `   - メールHTML生成中: ${index + 1}/${todayTasks.length} - ${
+                  task.taskName
+                }`
+              );
+              return `
             <div style="background-color:#f8f9fa;padding:15px;margin:10px 0;border-radius:8px;border-left:4px solid #1976d2;">
               <h3 style="margin:0 0 10px;">${index + 1}. ${task.taskName}</h3>
               <p style="margin:5px 0;"><strong>期日:</strong> ${
@@ -3133,11 +3389,12 @@ export const sendDailyTaskRemindersManual = onCall(
                 task.status
               }</p>
             </div>`;
-              }
-            )
+            })
             .join('');
 
-          console.log(`   - メールHTML生成完了: タスク数=${todayTasks.length}件`);
+          console.log(
+            `   - メールHTML生成完了: タスク数=${todayTasks.length}件`
+          );
           console.log(`   - 生成されたHTMLの長さ: ${taskList.length}文字`);
 
           const msg = {
@@ -3155,46 +3412,57 @@ export const sendDailyTaskRemindersManual = onCall(
               </div>
             `,
           };
-          
+
           console.log(`   - メール件名: ${msg.subject}`);
           console.log(`   - 送信元メールアドレス: ${fromEmail}`);
-          console.log(`   - メールHTML内のタスク数: ${todayTasks.length}件（件名と一致しているか確認）`);
-          
+          console.log(
+            `   - メールHTML内のタスク数: ${todayTasks.length}件（件名と一致しているか確認）`
+          );
+
           console.log(`\n🔍 [段階3] SendGridにメール送信開始`);
           await sgMail.send(msg);
-          
+
           console.log(`\n✅ [段階3完了] メール送信成功`);
           console.log(`   - 送信先: ${emailAddress}`);
           console.log(`   - タスク数: ${todayTasks.length}件`);
-          
+
           results.push({
             userId: settingUserId,
             success: true,
             taskCount: todayTasks.length,
             email: emailAddress,
           });
-          
-          console.log(`\n✅ [全段階完了] 今日のタスク通知処理が正常に完了しました\n`);
+
+          console.log(
+            `\n✅ [全段階完了] 今日のタスク通知処理が正常に完了しました\n`
+          );
         } catch (error: any) {
-          console.error(`\n❌ [エラー発生] 今日のタスク通知処理でエラーが発生しました`);
+          console.error(
+            `\n❌ [エラー発生] 今日のタスク通知処理でエラーが発生しました`
+          );
           console.error(`   - userId: ${settingUserId}`);
           console.error(`   - userEmail: ${userEmail}`);
           console.error(`   - emailAddress: ${emailAddress}`);
           console.error(`   - エラータイプ: ${error.name || 'Unknown'}`);
-          console.error(`   - エラーメッセージ: ${error.message || 'No message'}`);
+          console.error(
+            `   - エラーメッセージ: ${error.message || 'No message'}`
+          );
           console.error(`   - エラーコード: ${error.code || 'No code'}`);
           console.error(`   - エラー詳細:`, error);
-          
+
           if (error.response) {
-            console.error(`   - SendGridレスポンス:`, error.response.body || error.response);
+            console.error(
+              `   - SendGridレスポンス:`,
+              error.response.body || error.response
+            );
           }
-          
+
           results.push({
             userId: settingUserId,
             error: 'タスク取得またはメール送信エラー',
             details: error.message || JSON.stringify(error),
           });
-          
+
           console.error(`\n❌ [エラー処理完了] エラーを記録しました\n`);
         }
       }

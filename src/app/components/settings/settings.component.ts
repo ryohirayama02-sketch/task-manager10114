@@ -92,14 +92,14 @@ export class SettingsComponent implements OnInit {
     value: i.toString().padStart(2, '0'),
     label: i.toString().padStart(2, '0'),
   }));
-  
+
   // 時間入力用のオブジェクト
   taskDeadlineTime = { hour: '09', minute: '00' };
   quietStartTime = { hour: '22', minute: '00' };
   quietEndTime = { hour: '08', minute: '00' };
   workTimeOverflowTime = { hour: '09', minute: '00' };
   dailyReminderTime = { hour: '09', minute: '00' };
-  
+
   workTimeOptions = [20, 30, 40, 50, 60, 80];
   checkPeriodOptions = [1, 3, 7, 14, 30];
 
@@ -162,10 +162,11 @@ export class SettingsComponent implements OnInit {
         if (this.notificationSettings.quietHours.enabled === undefined) {
           this.notificationSettings.quietHours.enabled = false;
         }
-        
+
         // 時間を{ hour, minute }形式に変換
         this.taskDeadlineTime = this.parseTimeString(
-          this.notificationSettings.taskDeadlineNotifications.timeOfDay || '09:00'
+          this.notificationSettings.taskDeadlineNotifications.timeOfDay ||
+            '09:00'
         );
         this.quietStartTime = this.parseTimeString(
           this.notificationSettings.quietHours.startTime || '22:00'
@@ -174,12 +175,13 @@ export class SettingsComponent implements OnInit {
           this.notificationSettings.quietHours.endTime || '08:00'
         );
         this.workTimeOverflowTime = this.parseTimeString(
-          this.notificationSettings.workTimeOverflowNotifications.timeOfDay || '09:00'
+          this.notificationSettings.workTimeOverflowNotifications.timeOfDay ||
+            '09:00'
         );
         this.dailyReminderTime = this.parseTimeString(
           this.notificationSettings.dailyDeadlineReminder.timeOfDay || '09:00'
         );
-        
+
         // デバッグ: 読み込んだ設定を確認
         console.log('📋 通知設定を読み込みました:', {
           quietHours: this.notificationSettings.quietHours,
@@ -283,10 +285,12 @@ export class SettingsComponent implements OnInit {
       // 時間を文字列形式に変換して設定に反映
       this.notificationSettings.taskDeadlineNotifications.timeOfDay =
         this.formatTimeString(this.taskDeadlineTime);
-      this.notificationSettings.quietHours.startTime =
-        this.formatTimeString(this.quietStartTime);
-      this.notificationSettings.quietHours.endTime =
-        this.formatTimeString(this.quietEndTime);
+      this.notificationSettings.quietHours.startTime = this.formatTimeString(
+        this.quietStartTime
+      );
+      this.notificationSettings.quietHours.endTime = this.formatTimeString(
+        this.quietEndTime
+      );
       this.notificationSettings.workTimeOverflowNotifications.timeOfDay =
         this.formatTimeString(this.workTimeOverflowTime);
       this.notificationSettings.dailyDeadlineReminder.timeOfDay =
@@ -584,54 +588,80 @@ export class SettingsComponent implements OnInit {
    * 作業時間オーバー通知を手動送信（テスト用・デバッグ用）
    */
   async sendWorkTimeOverflowNotificationsTest(): Promise<void> {
+    console.log('🔔 [1/7] 作業時間オーバー通知テスト送信開始');
+
     const currentUser = this.authService.getCurrentUser();
     if (!currentUser) {
+      console.error('❌ [1/7] ユーザーがログインしていません');
       this.snackBar.open('ログインしてください', this.getCloseLabel(), {
         duration: 3000,
       });
       return;
     }
+    console.log(
+      '✅ [1/7] ユーザー認証確認完了:',
+      currentUser.uid,
+      currentUser.email
+    );
 
     const roomId = this.authService.getCurrentRoomId();
     const roomDocId = this.authService.getCurrentRoomDocId();
     if (!roomId || !roomDocId) {
+      console.error('❌ [2/7] ルーム情報が取得できません:', {
+        roomId,
+        roomDocId,
+      });
       this.snackBar.open('ルームに入室してください', this.getCloseLabel(), {
         duration: 3000,
       });
       return;
     }
+    console.log('✅ [2/7] ルーム情報確認完了:', { roomId, roomDocId });
 
     this.isSaving = true;
 
     try {
-      console.log('🔔 作業時間オーバー通知をテスト送信');
+      console.log('🔔 [3/7] Firebase Functionsのインポート開始');
 
       const { getFunctions, httpsCallable } = await import(
         'firebase/functions'
       );
       const { getApp } = await import('firebase/app');
-      const functions = getFunctions(getApp(), 'us-central1');
+      console.log('✅ [3/7] Firebase Functionsのインポート完了');
 
+      console.log('🔔 [4/7] Functionsインスタンスの取得開始');
+      const functions = getFunctions(getApp(), 'us-central1');
+      console.log('✅ [4/7] Functionsインスタンスの取得完了');
+
+      console.log('🔔 [5/7] Callable関数の準備開始');
       const callable = httpsCallable(
         functions,
         'sendWorkTimeOverflowNotificationsManual'
       );
-      const result = (await callable({
+      console.log('✅ [5/7] Callable関数の準備完了');
+
+      const requestData = {
         userId: currentUser.uid,
         roomId,
         roomDocId,
         force: true, // 通知時間チェックをスキップ
-      })) as any;
+      };
+      console.log('🔔 [6/7] Cloud Function呼び出し開始:', requestData);
 
-      console.log('📊 実行結果:', result.data);
+      const result = (await callable(requestData)) as any;
+      console.log('✅ [6/7] Cloud Function呼び出し完了');
+
+      console.log('📊 [7/7] 実行結果:', result.data);
 
       if (result.data?.success) {
+        console.log('✅ [7/7] 実行成功フラグ確認');
         const results = result.data.results || [];
+        console.log('📋 [7/7] 詳細結果配列:', results);
+        console.log(`📋 [7/7] 結果数: ${results.length}件`);
 
         // 詳細ログを出力
-        console.log('📋 詳細結果:', results);
         results.forEach((r: any, index: number) => {
-          console.log(`\n結果 ${index + 1}:`, {
+          console.log(`\n📋 [結果 ${index + 1}/${results.length}]`, {
             userId: r.userId,
             success: r.success,
             skipped: r.skipped,
@@ -641,6 +671,30 @@ export class SettingsComponent implements OnInit {
             message: r.message,
             error: r.error,
           });
+
+          // 各結果の詳細分析
+          if (r.error) {
+            console.error(`❌ [結果 ${index + 1}] エラー発生:`, r.error);
+          }
+          if (r.skipped) {
+            console.warn(`⚠️ [結果 ${index + 1}] スキップ:`, r.reason);
+          }
+          if (r.overflowUserCount > 0 && r.notificationCount === 0) {
+            console.warn(
+              `⚠️ [結果 ${
+                index + 1
+              }] オーバーユーザーは検出されたが、通知数が0:`,
+              {
+                overflowUserCount: r.overflowUserCount,
+                notificationCount: r.notificationCount,
+              }
+            );
+          }
+          if (r.notificationCount > 0) {
+            console.log(`✅ [結果 ${index + 1}] 通知送信成功:`, {
+              notificationCount: r.notificationCount,
+            });
+          }
         });
 
         const successCount = results.filter((r: any) => r.success).length;
@@ -655,16 +709,35 @@ export class SettingsComponent implements OnInit {
           0
         );
 
+        console.log('📊 [7/7] 集計結果:', {
+          successCount,
+          skippedCount,
+          errorCount,
+          overflowUserCount,
+          notificationCount,
+        });
+
         let message = `作業時間オーバー通知のテスト実行が完了しました\n`;
         message += `成功: ${successCount}件、スキップ: ${skippedCount}件、エラー: ${errorCount}件\n`;
         message += `作業時間オーバーユーザー: ${overflowUserCount}人\n`;
         message += `送信通知数: ${notificationCount}件\n`;
         message += `詳細はコンソールを確認してください`;
 
+        if (notificationCount === 0 && overflowUserCount > 0) {
+          console.warn(
+            '⚠️ [7/7] 警告: オーバーユーザーは検出されたが、メールが送信されていません'
+          );
+          console.warn('⚠️ [7/7] Firebase Consoleのログを確認してください:');
+          console.warn(
+            '⚠️ [7/7] https://console.firebase.google.com/project/kensyu10114/functions/logs'
+          );
+        }
+
         this.snackBar.open(message, this.getCloseLabel(), {
           duration: 10000,
         });
       } else {
+        console.error('❌ [7/7] 実行失敗:', result.data);
         this.snackBar.open(
           '作業時間オーバー通知のテスト実行に失敗しました',
           this.getCloseLabel(),
@@ -674,7 +747,11 @@ export class SettingsComponent implements OnInit {
         );
       }
     } catch (error: any) {
-      console.error('作業時間オーバー通知テストエラー:', error);
+      console.error('❌ [エラー] 作業時間オーバー通知テストエラー:', error);
+      console.error('❌ [エラー] エラータイプ:', error.name);
+      console.error('❌ [エラー] エラーメッセージ:', error.message);
+      console.error('❌ [エラー] エラーコード:', error.code);
+      console.error('❌ [エラー] エラー詳細:', error);
       this.snackBar.open(
         `エラー: ${error.message || '不明なエラー'}`,
         this.getCloseLabel(),
@@ -683,6 +760,7 @@ export class SettingsComponent implements OnInit {
         }
       );
     } finally {
+      console.log('🔔 [完了] 作業時間オーバー通知テスト送信処理完了');
       this.isSaving = false;
     }
   }
