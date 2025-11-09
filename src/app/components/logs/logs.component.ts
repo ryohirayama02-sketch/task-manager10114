@@ -169,9 +169,26 @@ export class LogsComponent implements OnInit, OnDestroy {
   formatChangeDescription(log: EditLog): string {
     // 個別の変更詳細がある場合はそれを使用
     if (log.changes && log.changes.length > 0) {
-      return log.changes
+      const changeDescriptions = log.changes
         .map((change) => this.formatChangeDetail(change))
-        .join('');
+        .filter((desc) => desc.length > 0);
+      
+      if (changeDescriptions.length > 0) {
+        // アクションラベルを取得
+        let actionLabel = '';
+        if (log.action === 'update') {
+          // タスク名がある場合は「タスクを更新しました」、ない場合は「プロジェクトを更新しました」
+          actionLabel = log.taskName ? 'タスクを更新しました' : 'プロジェクトを更新しました';
+        } else if (log.action === 'create') {
+          actionLabel = log.taskName ? 'タスクを作成しました' : 'プロジェクトを作成しました';
+        } else if (log.action === 'delete') {
+          actionLabel = log.taskName ? 'タスクを削除しました' : 'プロジェクトを削除しました';
+        } else {
+          actionLabel = this.getActionLabel(log.action);
+        }
+        // 変更内容を括弧で囲む
+        return `${actionLabel} 。(${changeDescriptions.join(', ')})`;
+      }
     }
 
     // フォールバック：従来の方法
@@ -182,24 +199,24 @@ export class LogsComponent implements OnInit, OnDestroy {
     const hasNew = !!newValue;
 
     if (!hasOld && !hasNew) {
-      return baseLabel ? `・${baseLabel}` : '・変更内容なし';
+      return baseLabel || '';
     }
 
     if (hasOld && hasNew) {
       return baseLabel
-        ? `・${baseLabel}：${oldValue}→${newValue}`
-        : `・${oldValue}→${newValue}`;
+        ? `${baseLabel} (${oldValue}→${newValue})`
+        : `${oldValue}→${newValue}`;
     }
 
     if (hasNew) {
       return baseLabel
-        ? `・${baseLabel}：「${newValue}」が追加`
-        : `・「${newValue}」が追加`;
+        ? `${baseLabel} (${newValue}が追加)`
+        : `${newValue}が追加`;
     }
 
     return baseLabel
-      ? `・${baseLabel}：「${oldValue}」が削除`
-      : `・「${oldValue}」が削除`;
+      ? `${baseLabel} (${oldValue}が削除)`
+      : `${oldValue}が削除`;
   }
 
   /** 個別の変更詳細を整形 */
@@ -211,18 +228,18 @@ export class LogsComponent implements OnInit, OnDestroy {
     const hasNew = !!newValue;
 
     if (!hasOld && !hasNew) {
-      return `・${field}：変更内容なし\n`;
+      return '';
     }
 
     if (hasOld && hasNew) {
-      return `・${field}：${oldValue}→${newValue}に変更しました\n`;
+      return `${field}: ${oldValue}→${newValue}`;
     }
 
     if (hasNew) {
-      return `・${field}：${newValue}が追加されました\n`;
+      return `${field}: ${newValue}が追加`;
     }
 
-    return `・${field}：${oldValue}が削除されました\n`;
+    return `${field}: ${oldValue}が削除`;
   }
 
   /** 日付をフォーマット */

@@ -20,6 +20,17 @@ import { EditLogService } from './edit-log.service';
 import { resolveProjectThemeColor } from '../constants/project-theme-colors';
 import { AuthService } from './auth.service';
 
+// プロジェクトフィールドの日本語名マッピング
+const PROJECT_FIELD_NAMES: { [key: string]: string } = {
+  projectName: 'プロジェクト名',
+  overview: '説明',
+  startDate: '開始日',
+  endDate: '終了日',
+  themeColor: 'テーマ色',
+  attachments: '資料',
+  responsible: '責任者',
+};
+
 type ProjectWithRoom = IProject & { roomId?: string };
 type TaskWithRoom = Task & { roomId?: string };
 
@@ -317,22 +328,19 @@ export class ProjectService {
     console.log('Firestore document reference:', projectRef.path);
 
     try {
-      // プロジェクト名が変更された場合、古いプロジェクト名を取得
-      let oldProjectName: string | null = null;
-      if (projectData.projectName) {
-        const projectDoc = await getDoc(projectRef);
-        if (projectDoc.exists()) {
-          const currentProject = projectDoc.data() as IProject;
-          oldProjectName = currentProject.projectName || null;
-        }
+      // 古いプロジェクトデータを取得
+      const projectDoc = await getDoc(projectRef);
+      let oldProject: IProject | null = null;
+      if (projectDoc.exists()) {
+        oldProject = projectDoc.data() as IProject;
       }
 
       const result = await updateDoc(projectRef, projectData);
 
       // プロジェクト名が変更された場合、そのプロジェクトのすべてのタスクのprojectNameも更新
-      if (projectData.projectName && oldProjectName && projectData.projectName !== oldProjectName) {
+      if (oldProject && projectData.projectName && oldProject.projectName && projectData.projectName !== oldProject.projectName) {
         console.log('プロジェクト名が変更されました。タスクのprojectNameも更新します。', {
-          oldProjectName,
+          oldProjectName: oldProject.projectName,
           newProjectName: projectData.projectName,
         });
 
@@ -346,7 +354,7 @@ export class ProjectService {
             const taskRef = doc(this.firestore, `projects/${projectId}/tasks/${taskDoc.id}`);
             return updateDoc(taskRef, { projectName: projectData.projectName });
           });
-
+          
           await Promise.all(updatePromises);
           console.log(`✅ ${tasksSnapshot.docs.length}件のタスクのprojectNameを更新しました`);
         } catch (taskUpdateError: any) {
@@ -355,42 +363,96 @@ export class ProjectService {
         }
       }
 
+      // 変更があったフィールドのみをChangeDetail配列として作成
+      const changeDetails: ChangeDetail[] = [];
+      
+      if (oldProject) {
+        // プロジェクト名
+        if (projectData.projectName !== undefined && projectData.projectName !== oldProject['projectName']) {
+          changeDetails.push({
+            field: PROJECT_FIELD_NAMES['projectName'],
+            oldValue: oldProject['projectName'] || '',
+            newValue: projectData.projectName || '',
+          });
+        }
+        
+        // 説明（overview）
+        if (projectData.overview !== undefined && projectData.overview !== oldProject['overview']) {
+          changeDetails.push({
+            field: PROJECT_FIELD_NAMES['overview'],
+            oldValue: oldProject['overview'] || '',
+            newValue: projectData.overview || '',
+          });
+        }
+        
+        // 開始日
+        if (projectData.startDate !== undefined && projectData.startDate !== oldProject['startDate']) {
+          changeDetails.push({
+            field: PROJECT_FIELD_NAMES['startDate'],
+            oldValue: oldProject['startDate'] || '',
+            newValue: projectData.startDate || '',
+          });
+        }
+        
+        // 終了日
+        if (projectData.endDate !== undefined && projectData.endDate !== oldProject['endDate']) {
+          changeDetails.push({
+            field: PROJECT_FIELD_NAMES['endDate'],
+            oldValue: oldProject['endDate'] || '',
+            newValue: projectData.endDate || '',
+          });
+        }
+        
+        // テーマ色
+        if (projectData.themeColor !== undefined && projectData.themeColor !== oldProject['themeColor']) {
+          changeDetails.push({
+            field: PROJECT_FIELD_NAMES['themeColor'],
+            oldValue: oldProject['themeColor'] || '',
+            newValue: projectData.themeColor || '',
+          });
+        }
+        
+        // 資料（添付ファイル数）
+        if (projectData.attachments !== undefined) {
+          const oldAttachmentCount = Array.isArray(oldProject['attachments']) ? oldProject['attachments'].length : 0;
+          const newAttachmentCount = Array.isArray(projectData.attachments) ? projectData.attachments.length : 0;
+          if (oldAttachmentCount !== newAttachmentCount) {
+            changeDetails.push({
+              field: PROJECT_FIELD_NAMES['attachments'],
+              oldValue: `${oldAttachmentCount}件`,
+              newValue: `${newAttachmentCount}件`,
+            });
+          }
+        }
+        
+        // 責任者
+        if (projectData.responsible !== undefined && projectData.responsible !== oldProject['responsible']) {
+          changeDetails.push({
+            field: PROJECT_FIELD_NAMES['responsible'],
+            oldValue: oldProject['responsible'] || '',
+            newValue: projectData.responsible || '',
+          });
+        }
+      }
+
       // 編集ログを記録
-      const changes: string[] = [];
-      if (projectData.projectName) {
-        changes.push(`プロジェクト名: ${projectData.projectName}`);
-      }
-      if (projectData.description) {
-        changes.push(`説明: ${projectData.description}`);
-      }
-      if (projectData.startDate) {
-        changes.push(`開始日: ${projectData.startDate}`);
-      }
-      if (projectData.endDate) {
-        changes.push(`終了日: ${projectData.endDate}`);
-      }
-      if (projectData.themeColor) {
-        changes.push(`テーマ色: ${projectData.themeColor}`);
-      }
-      if (projectData.attachments) {
-        const attachmentCount = Array.isArray(projectData.attachments)
-          ? projectData.attachments.length
-          : 0;
-        changes.push(`資料: ${attachmentCount}件`);
-      }
-      if (projectData.responsible) {
-        changes.push(`責任者: ${projectData.responsible}`);
-      }
+      const changeDescriptions = changeDetails.map(change => 
+        `${change.field}: ${change.oldValue}→${change.newValue}`
+      );
+      const changeDescriptionText = changeDescriptions.length > 0
+        ? `プロジェクトを更新しました (${changeDescriptions.join(', ')})`
+        : 'プロジェクトを更新しました';
 
       await this.editLogService.logEdit(
         projectId,
-        projectData.projectName || 'プロジェクト',
+        projectData.projectName || (oldProject ? oldProject['projectName'] : null) || 'プロジェクト',
         'update',
-        `プロジェクトを更新しました (${changes.join(', ')})`,
-        undefined,
-        undefined,
-        undefined,
-        changes.join(', ')
+        changeDescriptionText,
+        undefined, // taskId
+        undefined, // taskName
+        undefined, // oldValue
+        undefined, // newValue
+        changeDetails.length > 0 ? changeDetails : undefined // changes
       );
 
       return result;
