@@ -503,16 +503,6 @@
             <mat-icon>subdirectory_arrow_right</mat-icon>
             <span>{{ 'projectDetail.parentTask' | translate }}: {{ taskNameById[task.parentTaskId] }}</span>
           </div>
-          <div
-            class="task-detail-item"
-            *ngIf="
-              task.description &&
-              !(task.parentTaskId && taskNameById[task.parentTaskId])
-            "
-          >
-            <mat-icon>description</mat-icon>
-            <span>{{ task.description }}</span>
-          </div>
         </div>
       </mat-card-content>
     </mat-card>
