@@ -83,18 +83,13 @@
             <mat-card-content>
               <div class="task-info">
                 <div class="project-info">
-                  <mat-icon>folder</mat-icon>
+                  <span>プロジェクト名：</span>
                   <span
                     class="project-name-pill"
                     [ngStyle]="getProjectNameStyle(task)"
                   >
                     {{ task.projectName }}
                   </span>
-                </div>
-
-                <div class="assignee-info">
-                  <mat-icon>person</mat-icon>
-                  <span>{{ getTaskAssigneeDisplay(task) }}</span>
                 </div>
 
                 <div
@@ -104,7 +99,7 @@
                   [class.due-tomorrow]="getDaysUntilDue(task.dueDate) === 1"
                   [class.due-soon]="isDueSoon(task.dueDate)"
                 >
-                  <mat-icon>schedule</mat-icon>
+                  <span>期日：</span>
                   <span>{{ task.dueDate }}</span>
                   <span class="days-until" *ngIf="!isOverdue(task.dueDate)">
                     ({{ getDaysUntilDue(task.dueDate) }}日後)
@@ -190,18 +185,13 @@
         <mat-card-content>
           <div class="task-info">
             <div class="project-info">
-              <mat-icon>folder</mat-icon>
+              <span>プロジェクト名：</span>
               <span
                 class="project-name-pill"
                 [ngStyle]="getProjectNameStyle(task)"
               >
                 {{ task.projectName }}
               </span>
-            </div>
-
-            <div class="assignee-info">
-              <mat-icon>person</mat-icon>
-              <span>{{ getTaskAssigneeDisplay(task) }}</span>
             </div>
 
             <div
@@ -211,7 +201,7 @@
               [class.due-tomorrow]="getDaysUntilDue(task.dueDate) === 1"
               [class.due-soon]="isDueSoon(task.dueDate)"
             >
-              <mat-icon>schedule</mat-icon>
+              <span>期日：</span>
               <span>{{ task.dueDate }}</span>
               <span class="days-until" *ngIf="!isOverdue(task.dueDate)">
                 ({{ getDaysUntilDue(task.dueDate) }}日後)
