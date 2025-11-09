@@ -438,13 +438,14 @@ mat-chip mat-icon {
   font-size: 14px;
   color: #666;
   min-width: 0;
-  flex-shrink: 0;
+  flex-shrink: 1;
 }
 
 .child-task-detail-item mat-icon {
   font-size: 18px;
   width: 18px;
   height: 18px;
+  flex-shrink: 0;
 }
 
 .child-task-main-info {
