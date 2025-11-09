@@ -143,6 +143,9 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   background-color: #fff;
   height: 100%;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
 }
 
 .task-card.completed {
@@ -192,6 +195,10 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+  min-width: 0;
 }
 
 .task-detail-item {
@@ -253,6 +260,28 @@
   flex: 0 0 auto;
   margin-left: 8px;
   white-space: nowrap;
+}
+
+.task-detail-item.parent-task {
+  flex: 1 1 auto;
+  min-width: 0;
+  flex-shrink: 1;
+}
+
+.task-parent-name {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+
+.task-detail-item.parent-task mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
 }
 
 .status-chip,

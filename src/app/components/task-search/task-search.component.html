@@ -153,7 +153,7 @@
             
             <div class="task-detail-item parent-task" *ngIf="task.parentTaskId && taskNameById[task.parentTaskId]">
               <mat-icon>subdirectory_arrow_right</mat-icon>
-              <span class="parent-task-text"
+              <span class="task-parent-name"
                 >親タスク：{{ taskNameById[task.parentTaskId] }}</span
               >
             </div>
