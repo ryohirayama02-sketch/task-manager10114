@@ -3,7 +3,7 @@
     <mat-icon>arrow_back</mat-icon>
     {{ "taskDetail.back" | translate }}
   </button>
-  <h2>{{ "taskDetail.title" | translate }}</h2>
+  <h2>{{ (task?.parentTaskId ? "taskDetail.childTaskTitle" : "taskDetail.title") | translate }}</h2>
 </div>
 
 <div

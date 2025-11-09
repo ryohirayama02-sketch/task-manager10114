@@ -346,6 +346,7 @@ export class LanguageService {
     // タスク詳細追加キー
     'taskDetail.back': { ja: '戻る', en: 'Back' },
     'taskDetail.title': { ja: 'タスク詳細', en: 'Task Detail' },
+    'taskDetail.childTaskTitle': { ja: '子タスク詳細', en: 'Child Task Detail' },
     'taskDetail.editMode': { ja: '編集モード', en: 'Edit Mode' },
     'taskDetail.on': { ja: 'ON', en: 'ON' },
     'taskDetail.off': { ja: 'OFF', en: 'OFF' },
