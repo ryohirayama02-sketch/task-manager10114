@@ -75,6 +75,7 @@ export class TaskSearchComponent implements OnInit {
   hasSearched = false;
   private themeColorByProjectId: Record<string, string> = {};
   readonly defaultThemeColor = DEFAULT_PROJECT_THEME_COLOR;
+  taskNameById: Record<string, string> = {}; // 親タスク名を取得するためのマップ
 
   ngOnInit() {
     // メンバー一覧を読み込み
@@ -125,6 +126,13 @@ export class TaskSearchComponent implements OnInit {
 
               // すべてのプロジェクトのタスクを取得したら処理を実行
               if (completedRequests === projects.length) {
+                // 親タスク名のマップを作成
+                this.taskNameById = allTasks.reduce((acc, task) => {
+                  if (task.id && task.taskName) {
+                    acc[task.id] = task.taskName;
+                  }
+                  return acc;
+                }, {} as Record<string, string>);
                 this.generateFilterOptions(allTasks);
               }
             });
@@ -229,6 +237,13 @@ export class TaskSearchComponent implements OnInit {
 
               // すべてのプロジェクトのタスクを取得したら処理を実行
               if (completedRequests === projects.length) {
+                // 親タスク名のマップを作成
+                this.taskNameById = allTasks.reduce((acc, task) => {
+                  if (task.id && task.taskName) {
+                    acc[task.id] = task.taskName;
+                  }
+                  return acc;
+                }, {} as Record<string, string>);
                 this.filterTasks(allTasks);
               }
             });
@@ -250,8 +265,17 @@ export class TaskSearchComponent implements OnInit {
         id: task.id,
         projectId: task.projectId,
         taskName: task.taskName,
+        parentTaskId: (task as any).parentTaskId,
       }))
     );
+    
+    // 子タスクの数を確認
+    const subtasks = allTasks.filter((task) => (task as any).parentTaskId);
+    console.log(`子タスクの数: ${subtasks.length}件`, subtasks.map((task) => ({
+      id: task.id,
+      taskName: task.taskName,
+      parentTaskId: (task as any).parentTaskId,
+    })));
 
     let filteredTasks = [...allTasks];
 

@@ -42,23 +42,14 @@
         </mat-form-field>
 
         <!-- タグ -->
-        <div class="filter-field">
-          <label class="filter-label">タグ</label>
-          <div class="tag-selection">
-            <mat-chip-set>
-              <mat-chip
-                *ngFor="let tag of allTags"
-                [class.selected]="filters.tags.includes(tag)"
-                (click)="
-                  filters.tags.includes(tag) ? removeTag(tag) : addTag(tag)
-                "
-                class="tag-chip"
-              >
-                {{ tag }}
-              </mat-chip>
-            </mat-chip-set>
-          </div>
-        </div>
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>タグ</mat-label>
+          <mat-select [(ngModel)]="filters.tags" multiple>
+            <mat-option *ngFor="let tag of allTags" [value]="tag">
+              {{ tag }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
 
         <!-- フリーワード -->
         <mat-form-field appearance="outline" class="filter-field full-width">
@@ -157,6 +148,13 @@
               <mat-icon>widgets</mat-icon>
               <span class="project-name-text"
                 >プロジェクト：{{ task.projectName }}</span
+              >
+            </div>
+            
+            <div class="task-detail-item parent-task" *ngIf="task.parentTaskId && taskNameById[task.parentTaskId]">
+              <mat-icon>subdirectory_arrow_right</mat-icon>
+              <span class="parent-task-text"
+                >親タスク：{{ taskNameById[task.parentTaskId] }}</span
               >
             </div>
           </div>
