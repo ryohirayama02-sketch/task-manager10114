@@ -11,6 +11,7 @@ import {
   deleteDoc,
   query,
   where,
+  getDocs,
 } from '@angular/fire/firestore';
 import { Observable, combineLatest, map, of, switchMap } from 'rxjs';
 import { IProject } from '../models/project.model'; // 上の方に追加
@@ -316,7 +317,43 @@ export class ProjectService {
     console.log('Firestore document reference:', projectRef.path);
 
     try {
+      // プロジェクト名が変更された場合、古いプロジェクト名を取得
+      let oldProjectName: string | null = null;
+      if (projectData.projectName) {
+        const projectDoc = await getDoc(projectRef);
+        if (projectDoc.exists()) {
+          const currentProject = projectDoc.data() as IProject;
+          oldProjectName = currentProject.projectName || null;
+        }
+      }
+
       const result = await updateDoc(projectRef, projectData);
+
+      // プロジェクト名が変更された場合、そのプロジェクトのすべてのタスクのprojectNameも更新
+      if (projectData.projectName && oldProjectName && projectData.projectName !== oldProjectName) {
+        console.log('プロジェクト名が変更されました。タスクのprojectNameも更新します。', {
+          oldProjectName,
+          newProjectName: projectData.projectName,
+        });
+
+        try {
+          const tasksRef = collection(this.firestore, `projects/${projectId}/tasks`);
+          const tasksQuery = query(tasksRef);
+          const tasksSnapshot = await getDocs(tasksQuery);
+          
+          // 各タスクのprojectNameを更新
+          const updatePromises = tasksSnapshot.docs.map((taskDoc) => {
+            const taskRef = doc(this.firestore, `projects/${projectId}/tasks/${taskDoc.id}`);
+            return updateDoc(taskRef, { projectName: projectData.projectName });
+          });
+
+          await Promise.all(updatePromises);
+          console.log(`✅ ${tasksSnapshot.docs.length}件のタスクのprojectNameを更新しました`);
+        } catch (taskUpdateError: any) {
+          console.error('タスクのprojectName更新エラー:', taskUpdateError);
+          // タスク更新のエラーはプロジェクト更新を失敗させない
+        }
+      }
 
       // 編集ログを記録
       const changes: string[] = [];

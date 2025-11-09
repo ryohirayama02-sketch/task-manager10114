@@ -35,7 +35,7 @@
     "@angular-devkit/build-angular": "^18.2.21",
     "@angular/cli": "^18.2.21",
     "@angular/compiler-cli": "^18.2.0",
-    "@rollup/rollup-linux-x64-gnu": "^4.52.5",
+    "@rollup/rollup-win32-x64-msvc": "^4.53.1",
     "@types/jasmine": "~5.1.0",
     "@types/node": "^24.9.2",
     "@typescript-eslint/eslint-plugin": "^8.12.1",

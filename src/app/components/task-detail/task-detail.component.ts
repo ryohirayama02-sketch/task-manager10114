@@ -183,6 +183,10 @@ export class TaskDetailComponent implements OnInit {
       }
       this.project = project;
       this.projectThemeColor = resolveProjectThemeColor(project);
+      // プロジェクト名を最新の情報で更新
+      if (this.taskData) {
+        this.taskData.projectName = project.projectName;
+      }
       this.updateNotificationRecipientOptions();
       // プロジェクトメンバーを読み込み
       this.loadProjectMembers(projectId);
@@ -204,9 +208,11 @@ export class TaskDetailComponent implements OnInit {
         console.log('見つかったタスク:', this.task);
 
         if (this.task) {
+          // プロジェクト名はプロジェクトオブジェクトから取得（最新の情報を優先）
+          const currentProjectName = this.project?.projectName || this.task.projectName || '';
           this.taskData = {
             projectId: this.task.projectId || projectId,
-            projectName: this.task.projectName || '',
+            projectName: currentProjectName,
             taskName: this.task.taskName || '',
             description: this.task.description || '',
             startDate: this.task.startDate || '',
