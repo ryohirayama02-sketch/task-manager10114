@@ -34,6 +34,67 @@
   margin-bottom: 12px;
 }
 
+.header-calendar-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background-color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.header-calendar-toggle .calendar-switch-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #546e7a;
+  letter-spacing: 0.4px;
+}
+
+.calendar-switch {
+  position: relative;
+  width: 56px;
+  height: 32px;
+  border-radius: 999px;
+  border: none;
+  background-color: #cfd8dc;
+  cursor: pointer;
+  transition: background-color 0.25s ease, box-shadow 0.25s ease;
+  padding: 0;
+  outline: none;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+
+.calendar-switch.on {
+  background-color: #34c759;
+  box-shadow: inset 0 0 0 1px rgba(52, 199, 89, 0.3);
+}
+
+.calendar-switch:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.calendar-switch:focus-visible {
+  box-shadow: 0 0 0 4px rgba(52, 144, 220, 0.35);
+}
+
+.calendar-switch-handle {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: transform 0.25s ease;
+}
+
+.calendar-switch.on .calendar-switch-handle {
+  transform: translateX(24px);
+}
+
 .project-inline-edit-form {
   display: grid;
   gap: 16px;

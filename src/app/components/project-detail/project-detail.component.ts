@@ -177,6 +177,22 @@ export class ProjectDetailComponent implements OnInit {
     }
   }
 
+  async onInlineEditToggleClick(): Promise<void> {
+    if (!this.project) {
+      this.isInlineEditMode = false;
+      return;
+    }
+
+    if (this.isInlineEditMode) {
+      // 編集モードから通常モードに戻る（保存）
+      await this.saveInlineEditChangesClick();
+    } else {
+      // 通常モードから編集モードに切り替え
+      this.enterInlineEditMode();
+      this.isInlineEditMode = true;
+    }
+  }
+
   private enterInlineEditMode(): void {
     if (!this.project) {
       return;
@@ -217,6 +233,141 @@ export class ProjectDetailComponent implements OnInit {
     this.newUrlInput = '';
     this.tagInputValue = '';
     this.syncSelectionsFromProject();
+  }
+
+  private async saveInlineEditChangesClick(): Promise<void> {
+    if (!this.project || !this.editableProject) {
+      this.isInlineEditMode = false;
+      return;
+    }
+
+    const trimmedName = this.editableProject.projectName.trim();
+    if (!trimmedName) {
+      this.snackBar.open('プロジェクト名を入力してください', '閉じる', {
+        duration: 3000,
+      });
+      this.isInlineEditMode = true;
+      return;
+    }
+
+    const membersString =
+      this.selectedMembers.length > 0
+        ? this.selectedMembers
+            .map((member) => member.name)
+            .filter((name) => !!name)
+            .join(', ')
+        : this.editableProject.members?.trim() || this.project.members || '';
+    const tagsString = this.editableTags.join(', ');
+
+    const responsiblesPayload = this.selectedResponsibles.map((member) => ({
+      memberId: member.id || '',
+      memberName: member.name,
+      memberEmail: member.email || '',
+    }));
+
+    const responsibleNames = responsiblesPayload
+      .map((entry) => entry.memberName)
+      .filter((name) => !!name)
+      .join(', ');
+    const responsibleIdsArray = responsiblesPayload
+      .map((entry) => entry.memberId)
+      .filter((id): id is string => !!id);
+    const responsibleEmailsArray = responsiblesPayload
+      .map((entry) => entry.memberEmail || '')
+      .filter((email) => !!email);
+    const primaryResponsibleId = responsibleIdsArray[0] ?? '';
+    const primaryResponsibleEmail = responsibleEmailsArray[0] ?? '';
+
+    let attachments: ProjectAttachment[] = [...this.editableAttachments];
+
+    if (this.pendingFiles.length > 0) {
+      this.isUploading = true;
+      try {
+        const uploaded = await this.uploadPendingFiles(this.project.id);
+        if (uploaded.length > 0) {
+          attachments = [...attachments, ...uploaded];
+        }
+      } finally {
+        this.isUploading = false;
+      }
+    }
+
+    if (this.attachmentsToRemove.length > 0) {
+      await this.deleteMarkedAttachments(this.project.id);
+      attachments = attachments.filter(
+        (attachment) =>
+          !this.attachmentsToRemove.some(
+            (removed) => removed.id === attachment.id
+          )
+      );
+      this.attachmentsToRemove = [];
+    }
+
+    const milestonesPayload = this.editableMilestones
+      .filter((milestone) => milestone.name || milestone.date)
+      .map((milestone) => ({
+        id: milestone.id || this.generateId(),
+        name: milestone.name?.trim() || '',
+        date: milestone.date || '',
+        description: milestone.description || '',
+      }));
+
+    const payload = {
+      projectName: trimmedName,
+      overview: this.editableProject.overview?.trim() || '',
+      startDate: this.editableProject.startDate || '',
+      endDate: this.editableProject.endDate || '',
+      responsible:
+        responsibleNames || this.editableProject.responsible?.trim() || '',
+      responsibleId: primaryResponsibleId,
+      responsibleEmail: primaryResponsibleEmail,
+      responsibles: responsiblesPayload,
+      members: membersString,
+      tags: tagsString,
+      milestones: milestonesPayload,
+      attachments,
+      updatedAt: new Date(),
+    };
+
+    if (this.isSavingInlineEdit) {
+      this.isInlineEditMode = true;
+      return;
+    }
+
+    this.isSavingInlineEdit = true;
+    try {
+      await this.projectService.updateProject(this.project.id, payload);
+      this.project = {
+        ...this.project,
+        ...payload,
+      } as IProject;
+      this.project.responsibles = responsiblesPayload;
+      this.projectThemeColor = resolveProjectThemeColor(this.project);
+      this.project.attachments = attachments;
+      this.project.milestones = milestonesPayload;
+      this.snackBar.open('プロジェクトを更新しました', '閉じる', {
+        duration: 3000,
+      });
+      this.isInlineEditMode = false;
+      this.editableProject = null;
+      this.editableTags = [];
+      this.editableMilestones = [];
+      this.editableAttachments = [];
+      this.pendingFiles = [];
+      this.attachmentsToRemove = [];
+      this.selectedMemberIds = [];
+      this.selectedMembers = [];
+      this.selectedResponsibleIds = [];
+      this.selectedResponsibles = [];
+    } catch (error) {
+      console.error('プロジェクトの更新エラー:', error);
+      this.snackBar.open('プロジェクトの更新に失敗しました', '閉じる', {
+        duration: 3000,
+      });
+      this.isInlineEditMode = true;
+    } finally {
+      this.isSavingInlineEdit = false;
+    }
   }
 
   private async saveInlineEditChanges(

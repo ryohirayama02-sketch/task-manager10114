@@ -13,19 +13,27 @@
 >
   <!-- ツールバー -->
   <div class="task-toolbar">
-    <mat-slide-toggle
-      color="primary"
-      [checked]="isEditing"
-      [disabled]="isSaving"
-      (change)="toggleEdit()"
-    >
-      {{ "taskDetail.editMode" | translate }}
-      {{
-        isEditing
-          ? ("taskDetail.on" | translate)
-          : ("taskDetail.off" | translate)
-      }}
-    </mat-slide-toggle>
+    <div class="header-calendar-toggle">
+      <button
+        type="button"
+        class="calendar-switch"
+        [class.on]="isEditing"
+        [disabled]="isSaving"
+        (click)="toggleEdit()"
+        role="switch"
+        [attr.aria-checked]="isEditing"
+      >
+        <span class="calendar-switch-handle"></span>
+      </button>
+      <span class="calendar-switch-label">
+        {{ "taskDetail.editMode" | translate }}
+        {{
+          isEditing
+            ? ("taskDetail.on" | translate)
+            : ("taskDetail.off" | translate)
+        }}
+      </span>
+    </div>
     <div class="toolbar-spacer"></div>
     <div class="header-calendar-toggle">
       <button

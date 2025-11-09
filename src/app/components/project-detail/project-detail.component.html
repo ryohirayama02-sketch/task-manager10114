@@ -12,14 +12,22 @@
   [style.background]="getProjectCardBackground()"
 >
   <div class="project-toolbar">
-    <mat-slide-toggle
-      color="primary"
-      [checked]="isInlineEditMode"
-      [disabled]="isSavingInlineEdit"
-      (change)="onInlineEditToggle($event)"
-    >
-      {{ 'projectDetail.editMode' | translate }} {{ isInlineEditMode ? ('projectDetail.on' | translate) : ('projectDetail.off' | translate) }}
-    </mat-slide-toggle>
+    <div class="header-calendar-toggle">
+      <button
+        type="button"
+        class="calendar-switch"
+        [class.on]="isInlineEditMode"
+        [disabled]="isSavingInlineEdit"
+        (click)="onInlineEditToggleClick()"
+        role="switch"
+        [attr.aria-checked]="isInlineEditMode"
+      >
+        <span class="calendar-switch-handle"></span>
+      </button>
+      <span class="calendar-switch-label">
+        {{ 'projectDetail.editMode' | translate }} {{ isInlineEditMode ? ('projectDetail.on' | translate) : ('projectDetail.off' | translate) }}
+      </span>
+    </div>
   </div>
 
   <div class="project-header">
