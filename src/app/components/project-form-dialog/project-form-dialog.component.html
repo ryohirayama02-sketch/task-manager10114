@@ -405,8 +405,10 @@
                 type="text"
                 [(ngModel)]="milestone.name"
                 name="milestoneName{{ i }}"
-                [placeholder]="'projectForm.milestoneName' | translate"
+                [placeholder]="('projectForm.milestoneName' | translate) + '（30文字以内）'"
+                maxlength="30"
               />
+              <mat-hint align="end">{{ (milestone.name || '').length }}/30</mat-hint>
             </mat-form-field>
             <button
               mat-icon-button

@@ -262,7 +262,14 @@
                 <mat-label>{{
                   "projectForm.milestoneName" | translate
                 }}</mat-label>
-                <input matInput type="text" formControlName="name" />
+                <input
+                  matInput
+                  type="text"
+                  formControlName="name"
+                  placeholder="マイルストーン名（30文字以内）"
+                  maxlength="30"
+                />
+                <mat-hint align="end">{{ (milestone.get('name')?.value || '').length }}/30</mat-hint>
               </mat-form-field>
 
               <button
