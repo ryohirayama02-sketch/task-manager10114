@@ -408,6 +408,7 @@ export class LanguageService {
     'taskDetail.loadingTaskInfo': { ja: 'タスク情報を読み込み中...', en: 'Loading task info...' },
     'taskDetail.attachments': { ja: '添付ファイル', en: 'Attachments' },
     'taskDetail.attachedFiles': { ja: '添付済みファイル', en: 'Attached Files' },
+    'taskDetail.addFile': { ja: 'ファイルを追加', en: 'Add File' },
     'taskDetail.uploadingFiles': { ja: 'アップロード中のファイル', en: 'Uploading Files' },
     'taskDetail.uploadingAttachments': { ja: '添付ファイルをアップロード中...', en: 'Uploading attachments...' },
     'taskDetail.noAttachments': { ja: '添付ファイルなし', en: 'No Attachments' },
