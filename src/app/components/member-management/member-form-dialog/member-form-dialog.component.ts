@@ -20,6 +20,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MemberManagementService } from '../../../services/member-management.service';
 import { Member } from '../../../models/member.model';
+import { AuthService } from '../../../services/auth.service';
 
 export interface MemberFormData {
   mode: 'add' | 'edit';
@@ -53,7 +54,8 @@ export class MemberFormDialogComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: MemberFormData,
     private memberService: MemberManagementService,
     private snackBar: MatSnackBar,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private authService: AuthService
   ) {
     this.memberForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(1), Validators.maxLength(20)]],
@@ -92,6 +94,11 @@ export class MemberFormDialogComponent implements OnInit {
       } else if (this.data.mode === 'edit' && this.data.member?.id) {
         await this.memberService.updateMember(this.data.member.id, formData);
         console.log('✅ メンバーを更新しました');
+        
+        // 更新されたメンバーが現在ログインしているユーザーの場合、ナビバーのユーザー名を更新
+        if (this.data.member.email && formData.name) {
+          this.authService.updateMemberNameIfCurrentUser(this.data.member.email, formData.name);
+        }
       }
 
       this.dialogRef.close('success');

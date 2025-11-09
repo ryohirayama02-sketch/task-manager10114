@@ -158,7 +158,7 @@ export class AuthService {
    * メールアドレスに基づいてFirestoreのmembersコレクションから名前を取得し、
    * currentMemberNameSubjectを更新する
    */
-  private async resolveAndUpdateMemberName(email: string): Promise<void> {
+  async resolveAndUpdateMemberName(email: string): Promise<void> {
     try {
       const membersCollection = collection(this.firestore, 'members');
       const q = query(membersCollection, where('email', '==', email));
@@ -208,5 +208,29 @@ export class AuthService {
 
   getCurrentRoomDocId(): string | null {
     return this.currentRoomDocId.value;
+  }
+
+  /**
+   * 現在ログインしているユーザーのメンバー名を更新する
+   * メンバー管理画面でユーザー名を更新した際に呼び出す
+   */
+  async refreshCurrentMemberName(): Promise<void> {
+    const currentUser = this.auth.currentUser;
+    if (currentUser?.email) {
+      await this.resolveAndUpdateMemberName(currentUser.email);
+    }
+  }
+
+  /**
+   * メンバー名を直接更新する（メールアドレスが一致する場合のみ）
+   * @param email メールアドレス
+   * @param name 新しい名前
+   */
+  updateMemberNameIfCurrentUser(email: string, name: string): void {
+    const currentUser = this.auth.currentUser;
+    if (currentUser?.email === email) {
+      console.log('✅ 現在のユーザーのメンバー名を更新:', name);
+      this.currentMemberNameSubject.next(name);
+    }
   }
 }
