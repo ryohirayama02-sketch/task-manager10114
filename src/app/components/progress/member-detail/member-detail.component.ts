@@ -28,6 +28,8 @@ import { Inject } from '@angular/core';
 import { TranslatePipe } from '../../../pipes/translate.pipe';
 import { LanguageService } from '../../../services/language.service';
 import { PeriodFilterDialogComponent } from '../period-filter-dialog/period-filter-dialog.component';
+import { MemberManagementService } from '../../../services/member-management.service';
+import { Member } from '../../../models/member.model';
 
 interface MemberDetail {
   name: string;
@@ -71,6 +73,7 @@ export class MemberDetailComponent implements OnInit {
   private location = inject(Location);
   private dialog = inject(MatDialog);
   private languageService = inject(LanguageService);
+  private memberManagementService = inject(MemberManagementService);
 
   memberDetail: MemberDetail | null = null;
   isLoading = true;
@@ -91,6 +94,7 @@ export class MemberDetailComponent implements OnInit {
 
   private projectMap: Record<string, any> = {};
   private projectNameToId: Record<string, string> = {};
+  private allMembers: Member[] = []; // メンバー一覧
 
   periodStartDate: Date | null = null;
   periodEndDate: Date | null = null;
@@ -106,6 +110,21 @@ export class MemberDetailComponent implements OnInit {
     this.isLoading = true;
     console.log('メンバー詳細を読み込み中:', memberName);
 
+    // メンバー一覧を読み込み
+    this.memberManagementService.getMembers().subscribe({
+      next: (members) => {
+        this.allMembers = members;
+        console.log('メンバー一覧を読み込みました:', members.length, '件');
+        this.loadProjectsAndTasks(memberName);
+      },
+      error: (error) => {
+        console.error('メンバー一覧の読み込みエラー:', error);
+        this.loadProjectsAndTasks(memberName);
+      },
+    });
+  }
+
+  private loadProjectsAndTasks(memberName: string) {
     this.projectService.getProjects().subscribe((projects) => {
       if (projects.length === 0) {
         this.isLoading = false;
@@ -151,17 +170,33 @@ export class MemberDetailComponent implements OnInit {
     allTasks.forEach((task) => {
       let assignees: string[] = [];
 
+      // assignee から名前を取得
       if (task.assignee) {
-        assignees = task.assignee
+        const assigneeNames = task.assignee
           .split(',')
           .map((n) => n.trim())
           .filter((n) => n.length > 0);
+        assignees.push(...assigneeNames);
       }
 
+      // assignedMembers からメンバー名を取得
       if (task.assignedMembers && task.assignedMembers.length > 0) {
-        assignees.push(...task.assignedMembers);
+        task.assignedMembers.forEach((memberId) => {
+          // メンバーIDからメンバー名を取得
+          const member = this.allMembers.find((m) => m.id === memberId);
+          const memberName = member ? member.name : memberId;
+          
+          // メンバー名がカンマ区切りの場合も分割
+          const names = memberName
+            .split(',')
+            .map((n) => n.trim())
+            .filter((n) => n.length > 0);
+          
+          assignees.push(...names);
+        });
       }
 
+      // 重複を削除
       assignees = [...new Set(assignees)];
 
       if (assignees.includes(memberName)) {
