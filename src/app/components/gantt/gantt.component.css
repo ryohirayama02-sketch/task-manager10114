@@ -514,6 +514,9 @@
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
   animation: tooltipFadeIn 0.2s ease-out;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
 }
 
 @keyframes tooltipFadeIn {
@@ -566,18 +569,27 @@
   font-weight: 500;
   color: #ffd700;
   font-size: 12px;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
 }
 
 .tooltip-name {
   font-weight: 600;
   font-size: 14px;
   color: white;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
 }
 
 .tooltip-date {
   font-size: 11px;
   color: rgba(255, 255, 255, 0.8);
   font-style: italic;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
 }
 
 .tooltip-arrow {
