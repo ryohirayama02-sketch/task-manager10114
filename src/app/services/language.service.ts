@@ -199,7 +199,7 @@ export class LanguageService {
     'progress.projects.sortBy.dueDate': { ja: '期限', en: 'Due Date' },
     'progress.projects.sortBy.status': { ja: '状態', en: 'Status' },
     'progress.projects.sortBy.assignee': { ja: '担当', en: 'Assigned To' },
-    'progress.projects.sortBy.progress': { ja: '進捗', en: 'Progress' },
+    'progress.projects.sortBy.progress': { ja: '進捗率', en: 'Progress Rate' },
     'progress.projects.sortBy.soon': { ja: '近い順', en: 'Soon' },
     'progress.projects.sortBy.later': { ja: '遠い順', en: 'Later' },
     'progress.projects.sortBy.high': { ja: '高い順', en: 'High' },

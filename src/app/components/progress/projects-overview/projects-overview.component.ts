@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatMenuModule } from '@angular/material/menu';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
 import { MatCardModule } from '@angular/material/card';
 import { ProjectService } from '../../../services/project.service';
 import {
@@ -32,7 +33,8 @@ import { switchMap, takeUntil } from 'rxjs/operators';
     RouterModule,
     MatButtonModule,
     MatIconModule,
-    MatMenuModule,
+    MatFormFieldModule,
+    MatSelectModule,
     MatCardModule,
     ProgressCircleComponent,
     TranslatePipe,

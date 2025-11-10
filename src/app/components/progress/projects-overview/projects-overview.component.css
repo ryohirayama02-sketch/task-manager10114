@@ -16,21 +16,11 @@
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
 }
 
-.sort-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.sort-button .expand-icon {
-  margin-left: 2px;
-}
-
-.selected-icon {
-  margin-left: auto;
+.sort-filter {
+  min-width: 200px;
 }
 
 .header h2 {
