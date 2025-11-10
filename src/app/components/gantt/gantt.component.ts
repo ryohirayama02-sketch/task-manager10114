@@ -735,6 +735,20 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
       y = event.clientY + margin;
     }
     
+    // 最終的な境界チェック（確実に画面内に収める）
+    if (x + tooltipRect.width > windowWidth - padding) {
+      x = windowWidth - tooltipRect.width - padding;
+    }
+    if (x < padding) {
+      x = padding;
+    }
+    if (y + tooltipRect.height > windowHeight - padding) {
+      y = windowHeight - tooltipRect.height - padding;
+    }
+    if (y < padding) {
+      y = padding;
+    }
+    
     this.tooltipPosition = { x, y };
   }
 
