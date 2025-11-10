@@ -351,6 +351,18 @@ export class ProjectFormComponent implements OnInit {
       return;
     }
 
+    // プロジェクト名の重複チェック
+    const projectName = this.projectForm.get('projectName')?.value?.trim();
+    if (projectName) {
+      const exists = await this.projectService.projectNameExists(projectName);
+      if (exists) {
+        this.snackBar.open('このプロジェクト名は既に使用されています', '閉じる', {
+          duration: 5000,
+        });
+        return;
+      }
+    }
+
     this.isSubmitting = true;
 
     try {

@@ -12,6 +12,7 @@ import {
   query,
   where,
   getDocs,
+  limit,
 } from '@angular/fire/firestore';
 import { Observable, combineLatest, map, of, switchMap, firstValueFrom } from 'rxjs';
 import { IProject } from '../models/project.model'; // 上の方に追加
@@ -74,6 +75,33 @@ export class ProjectService {
     const roomQuery = query(projectsRef, where('roomId', '==', roomId));
     const snapshot = await getDocs(roomQuery);
     return snapshot.size;
+  }
+
+  /** 🔹 プロジェクト名の重複チェック（同じルーム内） */
+  async projectNameExists(projectName: string, excludeProjectId?: string): Promise<boolean> {
+    if (!projectName || projectName.trim() === '') {
+      return false;
+    }
+    const roomId = this.authService.getCurrentRoomId();
+    if (!roomId) {
+      return false;
+    }
+    const projectsRef = collection(this.firestore, 'projects');
+    const roomQuery = query(
+      projectsRef,
+      where('roomId', '==', roomId),
+      where('projectName', '==', projectName.trim()),
+      limit(1)
+    );
+    const snapshot = await getDocs(roomQuery);
+    
+    // 編集時は自分自身を除外
+    if (excludeProjectId && snapshot.size > 0) {
+      const existingProject = snapshot.docs.find(doc => doc.id !== excludeProjectId);
+      return !!existingProject;
+    }
+    
+    return !snapshot.empty;
   }
 
   /** 🔹 ログイン中のユーザーに関連するプロジェクトのみを取得 */

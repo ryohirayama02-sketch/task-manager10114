@@ -516,6 +516,45 @@ export class TaskDetailComponent implements OnInit {
       return;
     }
 
+    // タスク名の重複チェック
+    const taskName = this.taskData.taskName?.trim();
+    if (taskName) {
+      try {
+        const isSubtask = !!this.task.parentTaskId;
+        if (isSubtask && this.task.parentTaskId) {
+          // 子タスクの場合
+          const exists = await this.taskService.childTaskNameExists(
+            this.task.projectId,
+            this.task.parentTaskId,
+            taskName,
+            this.task.id
+          );
+          if (exists) {
+            this.snackBar.open('この子タスク名は既に使用されています', '閉じる', {
+              duration: 5000,
+            });
+            return;
+          }
+        } else {
+          // 親タスクの場合
+          const exists = await this.taskService.taskNameExists(
+            this.task.projectId,
+            taskName,
+            this.task.id
+          );
+          if (exists) {
+            this.snackBar.open('このタスク名は既に使用されています', '閉じる', {
+              duration: 5000,
+            });
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('タスク名重複チェックエラー:', error);
+        // エラーが発生してもタスク保存は続行
+      }
+    }
+
     this.isSaving = true;
     try {
       // 保留中のファイルをアップロード

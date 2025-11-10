@@ -10,6 +10,7 @@ import {
   query,
   where,
   getDocs,
+  limit,
 } from '@angular/fire/firestore';
 import { Observable, of, switchMap, firstValueFrom } from 'rxjs';
 import { EditLogService } from './edit-log.service';
@@ -270,6 +271,86 @@ export class TaskService {
     );
     const snapshot = await getDocs(childTasksQuery);
     return snapshot.size;
+  }
+
+  /** 🔹 タスク名の重複チェック（ルーム全体の親タスク・子タスク両方） */
+  async taskNameExists(projectId: string, taskName: string, excludeTaskId?: string): Promise<boolean> {
+    if (!taskName || taskName.trim() === '') {
+      return false;
+    }
+    const roomId = this.authService.getCurrentRoomId();
+    if (!roomId) {
+      return false;
+    }
+    
+    // ルーム内のすべてのプロジェクトを取得
+    const projectsRef = collection(this.firestore, 'projects');
+    const roomProjectsQuery = query(projectsRef, where('roomId', '==', roomId));
+    const projectsSnapshot = await getDocs(roomProjectsQuery);
+    
+    const trimmedTaskName = taskName.trim();
+    
+    // 各プロジェクトのタスクをチェック（親タスク・子タスク両方）
+    for (const projectDoc of projectsSnapshot.docs) {
+      const projectIdToCheck = projectDoc.id;
+      const tasksRef = collection(this.firestore, `projects/${projectIdToCheck}/tasks`);
+      const tasksSnapshot = await getDocs(tasksRef);
+      
+      // すべてのタスク（親タスク・子タスク問わず）で、名前が一致するものを検索
+      for (const taskDoc of tasksSnapshot.docs) {
+        const data = taskDoc.data();
+        
+        if (data['taskName'] === trimmedTaskName) {
+          // 編集時は自分自身を除外
+          if (excludeTaskId && taskDoc.id === excludeTaskId && projectIdToCheck === projectId) {
+            continue;
+          }
+          return true;
+        }
+      }
+    }
+    
+    return false;
+  }
+
+  /** 🔹 子タスク名の重複チェック（ルーム全体の親タスク・子タスク両方） */
+  async childTaskNameExists(projectId: string, parentTaskId: string, taskName: string, excludeTaskId?: string): Promise<boolean> {
+    if (!taskName || taskName.trim() === '') {
+      return false;
+    }
+    const roomId = this.authService.getCurrentRoomId();
+    if (!roomId) {
+      return false;
+    }
+    
+    // ルーム内のすべてのプロジェクトを取得
+    const projectsRef = collection(this.firestore, 'projects');
+    const roomProjectsQuery = query(projectsRef, where('roomId', '==', roomId));
+    const projectsSnapshot = await getDocs(roomProjectsQuery);
+    
+    const trimmedTaskName = taskName.trim();
+    
+    // 各プロジェクトのタスクをチェック（親タスク・子タスク両方）
+    for (const projectDoc of projectsSnapshot.docs) {
+      const projectIdToCheck = projectDoc.id;
+      const tasksRef = collection(this.firestore, `projects/${projectIdToCheck}/tasks`);
+      const tasksSnapshot = await getDocs(tasksRef);
+      
+      // すべてのタスク（親タスク・子タスク問わず）で、名前が一致するものを検索
+      for (const taskDoc of tasksSnapshot.docs) {
+        const data = taskDoc.data();
+        
+        if (data['taskName'] === trimmedTaskName) {
+          // 編集時は自分自身を除外
+          if (excludeTaskId && taskDoc.id === excludeTaskId && projectIdToCheck === projectId) {
+            continue;
+          }
+          return true;
+        }
+      }
+    }
+    
+    return false;
   }
 
   /** 🔁 タスク更新 */

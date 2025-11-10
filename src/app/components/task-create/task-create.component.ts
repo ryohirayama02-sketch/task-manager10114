@@ -336,6 +336,39 @@ export class TaskCreatePageComponent implements OnInit {
       return;
     }
 
+    // タスク名の重複チェック
+    const taskName = this.taskForm.taskName.trim();
+    if (taskName) {
+      try {
+        if (isSubtask) {
+          // 子タスクの場合
+          const exists = await this.taskService.childTaskNameExists(
+            this.projectId,
+            this.parentTaskId,
+            taskName
+          );
+          if (exists) {
+            this.snackBar.open('この子タスク名は既に使用されています', '閉じる', {
+              duration: 5000,
+            });
+            return;
+          }
+        } else {
+          // 親タスクの場合
+          const exists = await this.taskService.taskNameExists(this.projectId, taskName);
+          if (exists) {
+            this.snackBar.open('このタスク名は既に使用されています', '閉じる', {
+              duration: 5000,
+            });
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('タスク名重複チェックエラー:', error);
+        // エラーが発生してもタスク作成は続行
+      }
+    }
+
     this.isSaving = true;
     try {
       // Step 1: タスクを作成（URL は含める）

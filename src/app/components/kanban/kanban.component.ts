@@ -501,6 +501,34 @@ export class KanbanComponent implements OnInit {
               return;
             }
           }
+
+          // タスク名の重複チェック
+          const taskName = result.taskName?.trim();
+          if (taskName) {
+            if (isSubtask) {
+              // 子タスクの場合
+              const exists = await this.taskService.childTaskNameExists(
+                projectId,
+                result.parentTaskId,
+                taskName
+              );
+              if (exists) {
+                this.snackBar.open('この子タスク名は既に使用されています', '閉じる', {
+                  duration: 5000,
+                });
+                return;
+              }
+            } else {
+              // 親タスクの場合
+              const exists = await this.taskService.taskNameExists(projectId, taskName);
+              if (exists) {
+                this.snackBar.open('このタスク名は既に使用されています', '閉じる', {
+                  duration: 5000,
+                });
+                return;
+              }
+            }
+          }
           
           await this.projectService.addTaskToProject(projectId, result);
           console.log('新しいタスクが追加されました');

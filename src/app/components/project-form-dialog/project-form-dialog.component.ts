@@ -120,9 +120,10 @@ export class ProjectFormDialogComponent implements OnInit {
         responsibleEmail: data.project.responsibleEmail || '',
         tags: data.project.tags || '',
         milestones: data.project.milestones ? [...data.project.milestones] : [],
-        attachments: data.project.attachments ? [...data.project.attachments] : [],
-        themeColor:
-          data.project.themeColor ?? data.project.color ?? null,
+        attachments: data.project.attachments
+          ? [...data.project.attachments]
+          : [],
+        themeColor: data.project.themeColor ?? data.project.color ?? null,
       };
       this.selectedResponsibleId = this.project.responsibleId || '';
       this.attachments = data.project.attachments
@@ -263,7 +264,9 @@ export class ProjectFormDialogComponent implements OnInit {
   }
 
   removePendingFile(pendingId: string): void {
-    this.pendingFiles = this.pendingFiles.filter((item) => item.id !== pendingId);
+    this.pendingFiles = this.pendingFiles.filter(
+      (item) => item.id !== pendingId
+    );
   }
 
   addLinkAttachment(): void {
@@ -282,7 +285,9 @@ export class ProjectFormDialogComponent implements OnInit {
     }
 
     if (!this.isValidUrl(trimmedUrl)) {
-      this.snackBar.open('URLの形式が正しくありません', '閉じる', { duration: 3000 });
+      this.snackBar.open('URLの形式が正しくありません', '閉じる', {
+        duration: 3000,
+      });
       return;
     }
 
@@ -290,9 +295,11 @@ export class ProjectFormDialogComponent implements OnInit {
     const exists = this.attachments.some(
       (att) => att.type === 'link' && att.url === trimmedUrl
     );
-    
+
     if (exists) {
-      this.snackBar.open('このURLは既に追加されています', '閉じる', { duration: 3000 });
+      this.snackBar.open('このURLは既に追加されています', '閉じる', {
+        duration: 3000,
+      });
       return;
     }
 
@@ -312,10 +319,16 @@ export class ProjectFormDialogComponent implements OnInit {
   }
 
   async removeAttachment(attachment: ProjectAttachment): Promise<void> {
-    this.attachments = this.attachments.filter((item) => item.id !== attachment.id);
+    this.attachments = this.attachments.filter(
+      (item) => item.id !== attachment.id
+    );
     this.project.attachments = [...this.attachments];
 
-    if (attachment.type === 'file' && attachment.storagePath && this.isEditMode) {
+    if (
+      attachment.type === 'file' &&
+      attachment.storagePath &&
+      this.isEditMode
+    ) {
       this.attachmentsToRemove.push(attachment);
     }
   }
@@ -343,6 +356,29 @@ export class ProjectFormDialogComponent implements OnInit {
         this.snackBar.open('プロジェクト数の確認に失敗しました', '閉じる', {
           duration: 3000,
         });
+        return;
+      }
+    }
+
+    // プロジェクト名の重複チェック
+    const projectName = this.project.projectName?.trim();
+    if (projectName) {
+      const excludeProjectId =
+        this.isEditMode && this.originalProject?.id
+          ? this.originalProject.id
+          : undefined;
+      const exists = await this.projectService.projectNameExists(
+        projectName,
+        excludeProjectId
+      );
+      if (exists) {
+        this.snackBar.open(
+          'このプロジェクト名は既に使用されています',
+          '閉じる',
+          {
+            duration: 5000,
+          }
+        );
         return;
       }
     }
