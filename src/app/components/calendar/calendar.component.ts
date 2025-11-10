@@ -359,6 +359,20 @@ export class CalendarComponent implements OnInit, OnDestroy {
     return project ? project.projectName : '';
   }
 
+  /** 表示モードに応じた最大タスク表示数を取得 */
+  getMaxTasksForViewMode(): number {
+    switch (this.viewMode) {
+      case 'day':
+        return 12;
+      case 'week':
+        return 12;
+      case 'month':
+        return 5;
+      default:
+        return 12;
+    }
+  }
+
   /** 指定された日付のタスクを取得（期限ベース） */
   getTasksForDate(date: Date): Task[] {
     return this.tasks.filter((task) => {
@@ -387,6 +401,20 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
       return dueDateStr === dateStr;
     });
+  }
+
+  /** 指定された日付のタスクの表示用リストを取得（最大件数制限付き） */
+  getDisplayTasksForDate(date: Date): Task[] {
+    const allTasks = this.getTasksForDate(date);
+    const maxTasks = this.getMaxTasksForViewMode();
+    return allTasks.slice(0, maxTasks);
+  }
+
+  /** 指定された日付の残りのタスク数を取得 */
+  getRemainingTasksCount(date: Date): number {
+    const allTasks = this.getTasksForDate(date);
+    const maxTasks = this.getMaxTasksForViewMode();
+    return Math.max(0, allTasks.length - maxTasks);
   }
 
   /** 日付が今日かチェック */
