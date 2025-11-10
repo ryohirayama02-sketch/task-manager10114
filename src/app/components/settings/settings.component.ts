@@ -17,6 +17,8 @@ import { AuthService } from '../../services/auth.service';
 import { TaskReminderService } from '../../services/task-reminder.service';
 import { HomeScreenSettingsService } from '../../services/home-screen-settings.service';
 import { RoomService } from '../../services/room.service';
+import { Router } from '@angular/router';
+import { ProjectSelectionService } from '../../services/project-selection.service';
 import { NotificationSettings } from '../../models/notification.model';
 import {
   HomeScreenSettings,
@@ -109,7 +111,9 @@ export class SettingsComponent implements OnInit {
     private taskReminderService: TaskReminderService,
     private homeScreenSettingsService: HomeScreenSettingsService,
     private roomService: RoomService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private router: Router,
+    private projectSelectionService: ProjectSelectionService
   ) {}
 
   async ngOnInit() {
@@ -1010,5 +1014,15 @@ export class SettingsComponent implements OnInit {
     } catch (error) {
       console.error('ルーム情報の読み込みエラー:', error);
     }
+  }
+
+  /** ルームを変更 */
+  changeRoom() {
+    // 現在のルームから退出（サインイン状態は維持）
+    this.authService.clearRoomId();
+    // プロジェクト選択状態もクリア
+    this.projectSelectionService.clearSelection();
+    // ルーム入室画面に遷移
+    this.router.navigate(['/room-login']);
   }
 }
