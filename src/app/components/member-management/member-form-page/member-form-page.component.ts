@@ -14,6 +14,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import { MemberManagementService } from '../../../services/member-management.service';
+import { AuthService } from '../../../services/auth.service';
 import { firstValueFrom } from 'rxjs';
 
 @Component({
@@ -40,7 +41,8 @@ export class MemberFormPageComponent {
     private fb: FormBuilder,
     private memberService: MemberManagementService,
     private snackBar: MatSnackBar,
-    private router: Router
+    private router: Router,
+    private authService: AuthService
   ) {
     this.memberForm = this.fb.group({
       name: ['', [
@@ -136,6 +138,12 @@ export class MemberFormPageComponent {
 
     try {
       await this.memberService.addMember(formData);
+      
+      // 追加されたメンバーが現在ログインしているユーザーの場合、ナビバーのユーザー名を更新
+      if (formData.email && formData.name) {
+        this.authService.updateMemberNameIfCurrentUser(formData.email, formData.name);
+      }
+      
       this.router.navigate(['/members'], { state: { memberAdded: true } });
     } catch (error) {
       console.error('メンバー追加エラー:', error);

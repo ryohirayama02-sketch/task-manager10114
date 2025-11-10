@@ -211,6 +211,11 @@ export class MemberFormDialogComponent implements OnInit {
       if (this.data.mode === 'add') {
         await this.memberService.addMember(formData);
         console.log('✅ メンバーを追加しました');
+        
+        // 追加されたメンバーが現在ログインしているユーザーの場合、ナビバーのユーザー名を更新
+        if (formData.email && formData.name) {
+          this.authService.updateMemberNameIfCurrentUser(formData.email, formData.name);
+        }
       } else if (this.data.mode === 'edit' && this.data.member?.id) {
         await this.memberService.updateMember(this.data.member.id, formData);
         console.log('✅ メンバーを更新しました');
