@@ -529,6 +529,17 @@ export class TaskDetailComponent implements OnInit {
 
       // タスクデータに添付ファイル情報を追加
       this.taskData.attachments = this.editableAttachments;
+      
+      // tagsが未初期化の場合は空配列に設定
+      if (!this.taskData.tags) {
+        this.taskData.tags = [];
+      }
+      
+      console.log('保存するタスクデータ:', {
+        ...this.taskData,
+        tags: this.taskData.tags,
+        tagsLength: this.taskData.tags.length
+      });
 
       await this.taskService.updateTask(
         this.task.id,
@@ -803,8 +814,20 @@ export class TaskDetailComponent implements OnInit {
 
   /** タグを追加 */
   addTag(tag: string) {
-    if (tag && this.taskData.tags && !this.taskData.tags.includes(tag)) {
-      this.taskData.tags.push(tag);
+    const trimmedTag = tag?.trim();
+    if (!trimmedTag) {
+      return;
+    }
+    
+    // tagsが未初期化の場合は初期化
+    if (!this.taskData.tags) {
+      this.taskData.tags = [];
+    }
+    
+    // 既に存在する場合は追加しない
+    if (!this.taskData.tags.includes(trimmedTag)) {
+      this.taskData.tags.push(trimmedTag);
+      console.log('タグを追加:', trimmedTag, '現在のタグ:', this.taskData.tags);
     }
   }
 

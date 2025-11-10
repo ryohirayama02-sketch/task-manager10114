@@ -262,6 +262,19 @@ export class TaskService {
       taskData.roomId = roomId;
     }
     
+    // tagsが未設定の場合は空配列に設定（Firestoreに確実に保存されるように）
+    if (!taskData.tags) {
+      taskData.tags = [];
+    }
+    
+    console.log('[TaskService.updateTask] 更新するタスクデータ:', {
+      taskId,
+      projectId,
+      tags: taskData.tags,
+      tagsLength: taskData.tags?.length || 0,
+      taskDataKeys: Object.keys(taskData)
+    });
+    
     await updateDoc(taskRef, taskData);
 
     const changeDetails: ChangeDetail[] = [];

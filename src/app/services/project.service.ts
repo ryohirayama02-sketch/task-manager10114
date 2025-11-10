@@ -227,7 +227,17 @@ export class ProjectService {
   /** 🔹 指定されたタスクを取得 */
   getTask(projectId: string, taskId: string): Observable<any> {
     const taskRef = doc(this.firestore, `projects/${projectId}/tasks/${taskId}`);
-    return docData(taskRef, { idField: 'id' }) as Observable<any>;
+    const task$ = docData(taskRef, { idField: 'id' }) as Observable<any>;
+    
+    // デバッグ: 単一タスク取得時のデータを確認
+    return task$.pipe(
+      map((task) => {
+        console.log(`[ProjectService.getTask] タスク「${task.taskName}」の生データ:`, task);
+        console.log(`[ProjectService.getTask] タスク「${task.taskName}」のtags（生）:`, task.tags);
+        console.log(`[ProjectService.getTask] タスク「${task.taskName}」の全キー:`, Object.keys(task));
+        return task;
+      })
+    );
   }
 
   getProjectById(projectId: string): Observable<IProject | null> {
@@ -270,17 +280,31 @@ export class ProjectService {
 
         return tasks$.pipe(
           map(
-            (tasks) =>
-              tasks
+            (tasks) => {
+              // デバッグ: Firestoreから取得した生のデータを確認
+              console.log(`[ProjectService] プロジェクト「${projectName}」のタスク取得（生データ）:`, tasks.length, '件');
+              if (tasks.length > 0) {
+                console.log('[ProjectService] 最初のタスクの生データ:', tasks[0]);
+                console.log('[ProjectService] 最初のタスクのtags（生）:', tasks[0].tags);
+                console.log('[ProjectService] 最初のタスクの全キー:', Object.keys(tasks[0]));
+              }
+              
+              return tasks
                 .filter((task) =>
                   roomId ? !task.roomId || task.roomId === roomId : true
                 )
-                .map((task) => ({
-                  ...task,
-                  projectId,
-                  projectName: task.projectName || projectName,
-                  projectThemeColor: task.projectThemeColor || themeColor,
-                })) as Task[]
+                .map((task) => {
+                  const mappedTask = {
+                    ...task,
+                    projectId,
+                    projectName: task.projectName || projectName,
+                    projectThemeColor: task.projectThemeColor || themeColor,
+                  };
+                  // デバッグ: マッピング後のタスクデータを確認
+                  console.log(`[ProjectService] タスク「${task.taskName}」マッピング後のtags:`, mappedTask.tags);
+                  return mappedTask;
+                }) as Task[];
+            }
           )
         );
       })

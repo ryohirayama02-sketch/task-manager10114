@@ -114,6 +114,11 @@ export class TaskSearchComponent implements OnInit {
             .getTasksByProjectId(project.id)
             .subscribe((tasks) => {
               // タスクデータにprojectIdを追加
+              console.log(`プロジェクト「${project.projectName}」のタスク取得:`, tasks.length, '件');
+              if (tasks.length > 0) {
+                console.log('最初のタスクのデータ構造:', tasks[0]);
+                console.log('最初のタスクのtags:', tasks[0].tags, '型:', typeof tasks[0].tags);
+              }
               const tasksWithProjectId = tasks.map((task) => ({
                 ...task,
                 projectId: task.projectId || project.id,
@@ -149,6 +154,7 @@ export class TaskSearchComponent implements OnInit {
 
   generateFilterOptions(allTasks: Task[]) {
     console.log('フィルター選択肢を生成中...', allTasks);
+    console.log('タスク数:', allTasks.length);
 
     // 担当者一覧を生成（カンマ区切り対応、メンバー管理画面に存在する名前のみ）
     const assigneeSet = new Set<string>();
@@ -196,13 +202,56 @@ export class TaskSearchComponent implements OnInit {
     
     this.assignees = Array.from(assigneeSet).sort();
 
-    // タグ一覧を生成
-    const allTags = allTasks.flatMap((task) => task.tags || []);
-    this.allTags = [...new Set(allTags)];
+    // タグ一覧を生成（ルーム内のタスクから抽出、空文字列やnullを除外）
+    console.log('タグ抽出前のタスク:', allTasks.map(t => ({ 
+      id: t.id, 
+      taskName: t.taskName, 
+      tags: t.tags,
+      tagsType: typeof t.tags,
+      tagsIsArray: Array.isArray(t.tags),
+      allKeys: Object.keys(t)
+    })));
+    
+    const allTags: string[] = [];
+    allTasks.forEach((task) => {
+      let tags: string[] = [];
+      
+      // tagsフィールドの型を確認
+      if (task.tags) {
+        if (Array.isArray(task.tags)) {
+          tags = task.tags;
+        } else if (typeof task.tags === 'string') {
+          // 文字列の場合は配列に変換を試みる
+          try {
+            const parsed = JSON.parse(task.tags);
+            tags = Array.isArray(parsed) ? parsed : [task.tags];
+          } catch {
+            tags = [task.tags];
+          }
+        } else {
+          console.warn(`タスク「${task.taskName}」のtagsが予期しない型です:`, typeof task.tags, task.tags);
+        }
+      }
+      
+      console.log(`タスク「${task.taskName}」のタグ:`, tags, '型:', typeof tags, '配列か:', Array.isArray(tags));
+      
+      // タグを追加
+      tags.forEach((tag) => {
+        if (tag && typeof tag === 'string' && tag.trim().length > 0) {
+          allTags.push(tag.trim());
+        }
+      });
+    });
+    
+    this.allTags = [...new Set(allTags)].sort();
+    console.log('抽出されたタグ（重複前）:', allTags);
+    console.log('重複除去・ソート後のタグ:', this.allTags);
+    console.log('最終的なallTagsの長さ:', this.allTags.length);
 
     console.log('生成された選択肢:', {
       assignees: this.assignees,
       allTags: this.allTags,
+      allTagsLength: this.allTags.length,
     });
   }
 
@@ -229,6 +278,10 @@ export class TaskSearchComponent implements OnInit {
             .getTasksByProjectId(project.id)
             .subscribe((tasks) => {
               // タスクデータにprojectIdを追加
+              console.log(`[検索] プロジェクト「${project.projectName}」のタスク取得:`, tasks.length, '件');
+              if (tasks.length > 0) {
+                console.log('[検索] 最初のタスクのtags:', tasks[0].tags);
+              }
               const tasksWithProjectId = tasks.map((task) => ({
                 ...task,
                 projectId: task.projectId || project.id,

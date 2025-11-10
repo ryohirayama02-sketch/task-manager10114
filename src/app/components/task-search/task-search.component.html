@@ -44,11 +44,15 @@
         <!-- タグ -->
         <mat-form-field appearance="outline" class="filter-field">
           <mat-label>タグ</mat-label>
-          <mat-select [(ngModel)]="filters.tags" multiple>
+          <mat-select [(ngModel)]="filters.tags" multiple [disabled]="allTags.length === 0">
             <mat-option *ngFor="let tag of allTags" [value]="tag">
               {{ tag }}
             </mat-option>
+            <mat-option *ngIf="allTags.length === 0" disabled>
+              タグがありません
+            </mat-option>
           </mat-select>
+          <mat-hint *ngIf="allTags.length === 0">ルーム内にタグが設定されたタスクがありません</mat-hint>
         </mat-form-field>
 
         <!-- フリーワード -->
