@@ -50,7 +50,12 @@ import { RoomService } from '../../services/room.service';
             name="newRoomId"
             required
             [(ngModel)]="newRoomId"
+            (input)="checkRoomIdExists()"
+            [class.error]="roomIdExistsError"
           />
+          <span *ngIf="roomIdExistsError" class="error-message">
+            {{ roomIdExistsError }}
+          </span>
         </label>
         <label>
           表示名
@@ -72,7 +77,7 @@ import { RoomService } from '../../services/room.service';
         </label>
         <button
           type="submit"
-          [disabled]="createRoomForm.invalid || isCreating"
+          [disabled]="createRoomForm.invalid || isCreating || !!roomIdExistsError || isCheckingRoomId"
         >
           作成
         </button>
@@ -110,6 +115,14 @@ import { RoomService } from '../../services/room.service';
         color: #d32f2f;
         text-align: center;
       }
+      input.error {
+        border-color: #d32f2f;
+      }
+      .error-message {
+        color: #d32f2f;
+        font-size: 12px;
+        margin-top: 4px;
+      }
     `,
   ],
 })
@@ -123,6 +136,8 @@ export class RoomLoginComponent {
   newRoomName = '';
   newRoomPassword = '';
   isCreating = false;
+  roomIdExistsError: string | null = null;
+  isCheckingRoomId = false;
 
   constructor(
     private roomService: RoomService,
@@ -156,10 +171,45 @@ export class RoomLoginComponent {
     }
   }
 
+  async checkRoomIdExists() {
+    if (!this.newRoomId || this.newRoomId.trim() === '') {
+      this.roomIdExistsError = null;
+      return;
+    }
+
+    this.isCheckingRoomId = true;
+    this.roomIdExistsError = null;
+
+    try {
+      const exists = await this.roomService.roomIdExists(this.newRoomId.trim());
+      if (exists) {
+        this.roomIdExistsError = 'このroomIDはすでに作られています。別のroomIDにしてください。';
+      }
+    } catch (err) {
+      console.error('Failed to check room ID', err);
+      // エラーが発生した場合は警告を表示しない（ネットワークエラーなどの可能性）
+    } finally {
+      this.isCheckingRoomId = false;
+    }
+  }
+
   async createRoom() {
     if (!this.newRoomId || !this.newRoomName || !this.newRoomPassword) {
       return;
     }
+
+    // roomIDが既に存在する場合は作成を防ぐ
+    if (this.roomIdExistsError) {
+      return;
+    }
+
+    // 念のため再度チェック
+    const exists = await this.roomService.roomIdExists(this.newRoomId.trim());
+    if (exists) {
+      this.roomIdExistsError = 'このroomIDはすでに作られています。別のroomIDにしてください。';
+      return;
+    }
+
     this.error = null;
     this.isCreating = true;
     try {
@@ -169,9 +219,9 @@ export class RoomLoginComponent {
         this.newRoomName,
         this.newRoomPassword,
         createdBy,
-        this.newRoomId
+        this.newRoomId.trim()
       );
-      this.authService.setRoomId(this.newRoomId, docRef.id);
+      this.authService.setRoomId(this.newRoomId.trim(), docRef.id);
       await this.router.navigate(['/projects']);
     } catch (err) {
       console.error('Failed to create room', err);

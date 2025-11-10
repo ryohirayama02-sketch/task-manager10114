@@ -59,4 +59,23 @@ export class RoomService {
       password: data['password'],
     };
   }
+
+  /**
+   * roomIdが既に存在するかチェック
+   * @param roomId チェックするroomId
+   * @returns roomIdが既に存在する場合true、存在しない場合false
+   */
+  async roomIdExists(roomId: string): Promise<boolean> {
+    if (!roomId || roomId.trim() === '') {
+      return false;
+    }
+    const roomsRef = collection(this.firestore, 'rooms');
+    const roomQuery = query(
+      roomsRef,
+      where('roomId', '==', roomId.trim()),
+      limit(1)
+    );
+    const snapshot = await getDocs(roomQuery);
+    return !snapshot.empty;
+  }
 }
