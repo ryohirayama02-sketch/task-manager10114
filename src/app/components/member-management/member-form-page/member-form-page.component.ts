@@ -55,6 +55,26 @@ export class MemberFormPageComponent {
       return;
     }
 
+    // メンバー数の制限をチェック
+    try {
+      const currentCount = await this.memberService.getMemberCount();
+      const maxCount = 30;
+      if (currentCount >= maxCount) {
+        this.snackBar.open(
+          `管理メンバーは最大${maxCount}人登録できます`,
+          '閉じる',
+          { duration: 5000 }
+        );
+        return;
+      }
+    } catch (error) {
+      console.error('メンバー数チェックエラー:', error);
+      this.snackBar.open('メンバー数の確認に失敗しました', '閉じる', {
+        duration: 3000,
+      });
+      return;
+    }
+
     this.isSubmitting = true;
 
     try {

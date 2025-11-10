@@ -243,6 +243,35 @@ export class TaskService {
     );
   }
 
+  /** 🔹 プロジェクト内の親タスク数を取得 */
+  async getParentTaskCount(projectId: string): Promise<number> {
+    const tasksRef = collection(this.firestore, `projects/${projectId}/tasks`);
+    const snapshot = await getDocs(tasksRef);
+    
+    // parentTaskIdが空文字列、undefined、nullのタスクを親タスクとしてカウント
+    let parentTaskCount = 0;
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      const parentTaskId = data['parentTaskId'];
+      if (!parentTaskId || parentTaskId === '' || parentTaskId === null || parentTaskId === undefined) {
+        parentTaskCount++;
+      }
+    });
+    
+    return parentTaskCount;
+  }
+
+  /** 🔹 親タスク内の子タスク数を取得 */
+  async getChildTaskCount(projectId: string, parentTaskId: string): Promise<number> {
+    const tasksRef = collection(this.firestore, `projects/${projectId}/tasks`);
+    const childTasksQuery = query(
+      tasksRef,
+      where('parentTaskId', '==', parentTaskId)
+    );
+    const snapshot = await getDocs(childTasksQuery);
+    return snapshot.size;
+  }
+
   /** 🔁 タスク更新 */
   async updateTask(
     taskId: string,

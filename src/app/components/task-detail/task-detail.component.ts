@@ -618,7 +618,33 @@ export class TaskDetailComponent implements OnInit {
   }
 
   /** 子タスクを作成 */
-  createSubtask() {
+  async createSubtask() {
+    if (!this.task?.projectId || !this.task?.id) {
+      return;
+    }
+
+    // 子タスク数の制限をチェック
+    try {
+      const childTaskCount = await this.taskService.getChildTaskCount(
+        this.task.projectId,
+        this.task.id
+      );
+      const maxChildTasks = 5;
+      if (childTaskCount >= maxChildTasks) {
+        this.snackBar.open(
+          `子タスクは最大${maxChildTasks}個作成できます`,
+          '閉じる',
+          { duration: 5000 }
+        );
+        return;
+      }
+    } catch (error) {
+      console.error('子タスク数チェックエラー:', error);
+      this.snackBar.open('子タスク数の確認に失敗しました', '閉じる', {
+        duration: 3000,
+      });
+      return;
+    }
     if (this.task?.parentTaskId) {
       return;
     }

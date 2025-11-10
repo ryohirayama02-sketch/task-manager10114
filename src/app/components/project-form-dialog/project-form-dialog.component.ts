@@ -325,6 +325,28 @@ export class ProjectFormDialogComponent implements OnInit {
       return;
     }
 
+    // プロジェクト数の制限をチェック（新規作成時のみ）
+    if (!this.isEditMode) {
+      try {
+        const currentCount = await this.projectService.getProjectCount();
+        const maxCount = 10;
+        if (currentCount >= maxCount) {
+          this.snackBar.open(
+            `プロジェクトは最大${maxCount}個作成できます`,
+            '閉じる',
+            { duration: 5000 }
+          );
+          return;
+        }
+      } catch (error) {
+        console.error('プロジェクト数チェックエラー:', error);
+        this.snackBar.open('プロジェクト数の確認に失敗しました', '閉じる', {
+          duration: 3000,
+        });
+        return;
+      }
+    }
+
     this.isSubmitting = true;
     try {
       const themeColor = this.project.themeColor ?? null;

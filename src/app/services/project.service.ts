@@ -64,6 +64,18 @@ export class ProjectService {
     );
   }
 
+  /** 🔹 ルーム内のプロジェクト数を取得 */
+  async getProjectCount(): Promise<number> {
+    const roomId = this.authService.getCurrentRoomId();
+    if (!roomId) {
+      return 0;
+    }
+    const projectsRef = collection(this.firestore, 'projects');
+    const roomQuery = query(projectsRef, where('roomId', '==', roomId));
+    const snapshot = await getDocs(roomQuery);
+    return snapshot.size;
+  }
+
   /** 🔹 ログイン中のユーザーに関連するプロジェクトのみを取得 */
   getUserProjects(
     userEmail: string,

@@ -11,6 +11,7 @@ import {
   serverTimestamp,
   query,
   where,
+  getDocs,
 } from '@angular/fire/firestore';
 import { Observable, of, switchMap, firstValueFrom } from 'rxjs';
 import { Member } from '../models/member.model';
@@ -56,6 +57,20 @@ export class MemberManagementService {
     return docData(memberRef, { idField: 'id' }) as Observable<
       Member | undefined
     >;
+  }
+
+  /**
+   * ルーム内のメンバー数を取得
+   */
+  async getMemberCount(): Promise<number> {
+    const roomId = this.authService.getCurrentRoomId();
+    if (!roomId) {
+      return 0;
+    }
+    const membersRef = collection(this.firestore, this.MEMBERS_COLLECTION);
+    const roomQuery = query(membersRef, where('roomId', '==', roomId));
+    const snapshot = await getDocs(roomQuery);
+    return snapshot.size;
   }
 
   /**

@@ -7,6 +7,7 @@ import {
   ProgressService,
   ProjectProgress,
 } from '../../services/progress.service';
+import { TaskService } from '../../services/task.service';
 import { IProject, ProjectAttachment } from '../../models/project.model';
 import { Milestone, Task } from '../../models/task.model';
 import { MatButtonModule } from '@angular/material/button';
@@ -122,7 +123,8 @@ export class ProjectDetailComponent implements OnInit {
     private snackBar: MatSnackBar,
     private memberService: MemberManagementService,
     private attachmentService: ProjectAttachmentService,
-    private location: Location
+    private location: Location,
+    private taskService: TaskService
   ) {
     const nav = this.router.getCurrentNavigation();
     const navState = nav?.extras?.state as { returnUrl?: string } | undefined;
@@ -1092,8 +1094,25 @@ export class ProjectDetailComponent implements OnInit {
   }
 
   /** ✅ 「＋タスク」ボタン押下でフォームを開く */
-  openAddTaskDialog() {
-    if (!this.project) return;
+  async openAddTaskDialog() {
+    if (!this.project || !this.projectId) return;
+
+    // 親タスク数の制限をチェック
+    try {
+      const parentTaskCount = await this.taskService.getParentTaskCount(this.projectId);
+      const maxParentTasks = 10;
+      if (parentTaskCount >= maxParentTasks) {
+        this.snackBar.open(
+          `親タスクは最大${maxParentTasks}個作成できます`,
+          '閉じる',
+          { duration: 5000 }
+        );
+        return;
+      }
+    } catch (error) {
+      console.error('親タスク数チェックエラー:', error);
+      // エラーが発生してもタスク作成ページに遷移する
+    }
 
     // タスク作成ページに移行
     this.router.navigate(['/task-create'], {

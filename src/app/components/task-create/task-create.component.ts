@@ -16,6 +16,7 @@ import { ProjectService } from '../../services/project.service';
 import { MemberManagementService } from '../../services/member-management.service';
 import { TaskAttachmentService } from '../../services/task-attachment.service';
 import { CalendarService } from '../../services/calendar.service';
+import { TaskService } from '../../services/task.service';
 import { Member } from '../../models/member.model';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import {
@@ -90,6 +91,7 @@ export class TaskCreatePageComponent implements OnInit {
     private memberService: MemberManagementService,
     private attachmentService: TaskAttachmentService,
     private calendarService: CalendarService,
+    private taskService: TaskService,
     private snackBar: MatSnackBar
   ) {}
 
@@ -294,6 +296,43 @@ export class TaskCreatePageComponent implements OnInit {
 
     if (!this.projectId) {
       alert('プロジェクトが指定されていません');
+      return;
+    }
+
+    // タスク数の制限をチェック
+    const isSubtask = !!this.parentTaskId;
+    try {
+      if (isSubtask) {
+        // 子タスクの場合
+        const childTaskCount = await this.taskService.getChildTaskCount(
+          this.projectId,
+          this.parentTaskId
+        );
+        const maxChildTasks = 5;
+        if (childTaskCount >= maxChildTasks) {
+          this.snackBar.open(
+            `子タスクは最大${maxChildTasks}個作成できます`,
+            '閉じる',
+            { duration: 5000 }
+          );
+          return;
+        }
+      } else {
+        // 親タスクの場合
+        const parentTaskCount = await this.taskService.getParentTaskCount(this.projectId);
+        const maxParentTasks = 10;
+        if (parentTaskCount >= maxParentTasks) {
+          this.snackBar.open(
+            `親タスクは最大${maxParentTasks}個作成できます`,
+            '閉じる',
+            { duration: 5000 }
+          );
+          return;
+        }
+      }
+    } catch (error) {
+      console.error('タスク数チェックエラー:', error);
+      this.snackBar.open('タスク数の確認に失敗しました', '閉じる', { duration: 3000 });
       return;
     }
 

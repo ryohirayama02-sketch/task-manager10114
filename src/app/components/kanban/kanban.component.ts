@@ -9,6 +9,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ProjectService } from '../../services/project.service';
@@ -40,6 +41,7 @@ import { getMemberNamesAsString } from '../../utils/member-utils';
     MatFormFieldModule,
     MatCheckboxModule,
     MatChipsModule,
+    MatSnackBarModule,
     FormsModule,
     TranslatePipe,
   ],
@@ -67,7 +69,8 @@ export class KanbanComponent implements OnInit {
     private router: Router,
     private languageService: LanguageService,
     private authService: AuthService,
-    private memberManagementService: MemberManagementService
+    private memberManagementService: MemberManagementService,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
@@ -461,19 +464,51 @@ export class KanbanComponent implements OnInit {
       width: '450px',
       data: { project: selectedProject }, // プロジェクト全体を渡す
     });
-    ref.afterClosed().subscribe((result) => {
+    ref.afterClosed().subscribe(async (result) => {
       if (result && this.selectedProjectIds.length === 1) {
         console.log('保存するタスクデータ:', result); // デバッグ用ログ
-        this.projectService
-          .addTaskToProject(this.selectedProjectIds[0], result)
-          .then(() => {
-            console.log('新しいタスクが追加されました');
-            // タスク一覧を再読み込み
-            void this.refreshProjectTasks(this.selectedProjectIds[0]);
-          })
-          .catch((error) => {
-            console.error('タスク追加エラー:', error);
-          });
+        
+        // タスク数の制限をチェック
+        const projectId = this.selectedProjectIds[0];
+        const isSubtask = !!result.parentTaskId;
+        
+        try {
+          if (isSubtask) {
+            // 子タスクの場合
+            const childTaskCount = await this.taskService.getChildTaskCount(
+              projectId,
+              result.parentTaskId
+            );
+            const maxChildTasks = 5;
+            if (childTaskCount >= maxChildTasks) {
+              this.snackBar.open(
+                `子タスクは最大${maxChildTasks}個作成できます`,
+                '閉じる',
+                { duration: 5000 }
+              );
+              return;
+            }
+          } else {
+            // 親タスクの場合
+            const parentTaskCount = await this.taskService.getParentTaskCount(projectId);
+            const maxParentTasks = 10;
+            if (parentTaskCount >= maxParentTasks) {
+              this.snackBar.open(
+                `親タスクは最大${maxParentTasks}個作成できます`,
+                '閉じる',
+                { duration: 5000 }
+              );
+              return;
+            }
+          }
+          
+          await this.projectService.addTaskToProject(projectId, result);
+          console.log('新しいタスクが追加されました');
+          // タスク一覧を再読み込み
+          void this.refreshProjectTasks(projectId);
+        } catch (error) {
+          console.error('タスク追加エラー:', error);
+        }
       }
     });
   }

@@ -65,6 +65,8 @@ export class ProjectFormComponent implements OnInit {
   isSubmitting = false;
   isUploading = false;
   currentLanguage: 'ja' | 'en' = 'ja';
+  projectCountLimitReached = false;
+  projectCountLimitMessage = '';
   readonly fileAccept =
     '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.bmp,.heic,.webp,.svg,.txt,.csv,.zip';
 
@@ -123,6 +125,26 @@ export class ProjectFormComponent implements OnInit {
   ngOnInit(): void {
     this.currentLanguage = this.detectLanguage();
     this.loadMembers();
+    this.checkProjectCountLimit();
+  }
+
+  /**
+   * プロジェクト数の制限をチェック
+   */
+  async checkProjectCountLimit(): Promise<void> {
+    try {
+      const currentCount = await this.projectService.getProjectCount();
+      const maxCount = 10;
+      if (currentCount >= maxCount) {
+        this.projectCountLimitReached = true;
+        this.projectCountLimitMessage = `プロジェクトは最大${maxCount}個作成できます`;
+      } else {
+        this.projectCountLimitReached = false;
+        this.projectCountLimitMessage = '';
+      }
+    } catch (error) {
+      console.error('プロジェクト数の取得エラー:', error);
+    }
   }
 
   /**
@@ -316,6 +338,15 @@ export class ProjectFormComponent implements OnInit {
     if (this.projectForm.invalid) {
       this.snackBar.open('入力内容を確認してください', '閉じる', {
         duration: 3000,
+      });
+      return;
+    }
+
+    // プロジェクト数の制限をチェック
+    await this.checkProjectCountLimit();
+    if (this.projectCountLimitReached) {
+      this.snackBar.open(this.projectCountLimitMessage, '閉じる', {
+        duration: 5000,
       });
       return;
     }
