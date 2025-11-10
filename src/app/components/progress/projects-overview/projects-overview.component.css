@@ -2,6 +2,8 @@
   padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .header {
@@ -44,6 +46,9 @@
   gap: 18px;
   align-items: stretch;
   grid-auto-rows: 1fr;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .project-card {
@@ -67,6 +72,9 @@
   transition: transform 0.25s ease, box-shadow 0.25s ease,
     filter 0.25s ease;
   color: #1f2933;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .project-card:hover {

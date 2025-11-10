@@ -197,7 +197,10 @@
           (click)="openTaskDetail(task)"
         >
           <div class="task-name">{{ task.taskName }}</div>
-          <div class="task-project">{{ task.projectName }}</div>
+          <div class="task-project" *ngIf="task.projectName">
+            <mat-icon class="project-icon">folder</mat-icon>
+            <span class="project-name-text">{{ task.projectName }}</span>
+          </div>
         </div>
         <div
           *ngIf="getRemainingTasksCount(date) > 0"

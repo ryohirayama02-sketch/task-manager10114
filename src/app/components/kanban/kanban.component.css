@@ -102,6 +102,9 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
   padding: 16px 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .status-column {
@@ -110,6 +113,10 @@
   border-radius: 8px;
   padding: 16px;
   min-height: 400px;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .status-未着手 {
@@ -169,6 +176,9 @@
   cursor: pointer;
   overflow: hidden;
   position: relative;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .task-card:hover {

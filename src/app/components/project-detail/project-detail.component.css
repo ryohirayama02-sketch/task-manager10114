@@ -735,6 +735,7 @@ textarea {
   width: 100%;
   margin-left: auto;
   margin-right: auto;
+  box-sizing: border-box;
 }
 
 .tasks-header {
@@ -770,9 +771,12 @@ textarea {
 /* タスク一覧 */
 .tasks-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 15px;
   margin-bottom: 20px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .task-card {
@@ -783,6 +787,10 @@ textarea {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   background-color: #fff;
   height: 100%;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .task-card-header {

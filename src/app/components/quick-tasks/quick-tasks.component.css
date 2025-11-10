@@ -1,7 +1,9 @@
 .quick-tasks-container {
   padding: 24px;
-  max-width: 1200px;
+  max-width: 800px;
   margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* ヘッダー */
@@ -83,6 +85,9 @@
   align-items: center;
   gap: 16px;
   margin-top: 24px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 /* タスクカード */
@@ -93,8 +98,10 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   border: 2px solid #e0e0e0;
   width: 100%;
-  max-width: 800px;
+  max-width: 100%;
   background-color: #ffffff;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .task-card:hover {
