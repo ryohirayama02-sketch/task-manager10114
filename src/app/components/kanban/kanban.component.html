@@ -68,24 +68,6 @@
   </div>
 </div>
 
-<div
-  style="
-    display: flex;
-    justify-content: flex-end;
-    margin-bottom: 16px;
-    gap: 8px;
-  "
->
-  <button
-    mat-raised-button
-    color="accent"
-    (click)="openTaskDialog()"
-    [disabled]="selectedProjectIds.length !== 1"
-  >
-    {{ 'kanban.createTask' | translate }}
-  </button>
-</div>
-
 <div class="kanban-board">
   <div
     *ngFor="let status of statuses"

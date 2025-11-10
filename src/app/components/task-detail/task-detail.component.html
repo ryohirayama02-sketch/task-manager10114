@@ -871,8 +871,8 @@
           </div>
         </mat-expansion-panel>
 
-        <!-- タスクの順番管理 -->
-        <mat-expansion-panel>
+        <!-- タスクの順番管理（親タスクのみ表示） -->
+        <mat-expansion-panel *ngIf="!task?.parentTaskId">
           <mat-expansion-panel-header>
             <mat-panel-title>{{
               "taskDetail.taskOrder" | translate
