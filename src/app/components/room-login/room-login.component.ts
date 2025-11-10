@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { RoomService } from '../../services/room.service';
+import { HomeScreenSettingsService } from '../../services/home-screen-settings.service';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-room-login',
@@ -142,7 +144,8 @@ export class RoomLoginComponent {
   constructor(
     private roomService: RoomService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private homeScreenSettingsService: HomeScreenSettingsService
   ) {}
 
   async enterRoom() {
@@ -158,14 +161,14 @@ export class RoomLoginComponent {
         this.password
       );
       if (!roomDoc) {
-        this.error = 'ルーム情報が正しくありません。';
+        this.error = '入力内容が正しくありません';
         return;
       }
       this.authService.setRoomId(this.roomId, roomDoc.id);
-      await this.router.navigate(['/projects']);
+      await this.navigateToHomeScreen();
     } catch (err) {
       console.error('Failed to join room', err);
-      this.error = 'ルーム情報が正しくありません。';
+      this.error = '入力内容が正しくありません';
     } finally {
       this.isLoading = false;
     }
@@ -222,12 +225,30 @@ export class RoomLoginComponent {
         this.newRoomId.trim()
       );
       this.authService.setRoomId(this.newRoomId.trim(), docRef.id);
-      await this.router.navigate(['/projects']);
+      await this.navigateToHomeScreen();
     } catch (err) {
       console.error('Failed to create room', err);
       this.error = 'ルームを作成できませんでした。';
     } finally {
       this.isCreating = false;
+    }
+  }
+
+  /**
+   * ホーム画面設定に基づいて遷移先を決定して遷移
+   */
+  private async navigateToHomeScreen(): Promise<void> {
+    try {
+      const settings = await firstValueFrom(
+        this.homeScreenSettingsService.getHomeScreenSettings()
+      );
+      const homeScreen = settings?.homeScreen || 
+        this.homeScreenSettingsService.getDefaultHomeScreen();
+      await this.router.navigate([`/${homeScreen}`]);
+    } catch (error) {
+      console.error('ホーム画面設定の取得エラー:', error);
+      // エラー時はデフォルトのカンバン画面に遷移
+      await this.router.navigate(['/kanban']);
     }
   }
 }
