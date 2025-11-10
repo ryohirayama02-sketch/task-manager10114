@@ -53,6 +53,10 @@ export class LanguageService {
       ja: 'タスクの期限や作業時間に関する通知を設定できます',
       en: 'Configure notifications for task due dates and working hours',
     },
+    'settings.notifications.spamWarning': {
+      ja: '通知は迷惑メールとして受信される場合がございます。',
+      en: 'Notifications may be received as spam.',
+    },
     'settings.notifications.targets': { ja: '通知先設定', en: 'Notification Targets' },
     'settings.notifications.email': { ja: 'メール通知', en: 'Email Notifications' },
     'settings.notifications.address': { ja: 'メールアドレス', en: 'Email Address' },
