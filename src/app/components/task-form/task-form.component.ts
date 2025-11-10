@@ -23,6 +23,7 @@ import {
 } from '../../constants/project-theme-colors';
 import { LanguageService } from '../../services/language.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
+import { ProjectService } from '../../services/project.service';
 
 interface TaskFormModel {
   projectName: string;
@@ -65,6 +66,7 @@ export class TaskFormComponent implements OnInit {
   private memberService = inject(MemberManagementService);
   private snackBar = inject(MatSnackBar);
   private languageService = inject(LanguageService);
+  private projectService = inject(ProjectService);
   parentTaskName = '';
 
   // プロジェクト情報
@@ -99,7 +101,31 @@ export class TaskFormComponent implements OnInit {
   tagInputValue = '';
 
   ngOnInit(): void {
-    this.loadMembers();
+    // プロジェクト情報が渡されていない場合、projectIdから取得を試みる
+    if (!this.project && this.data?.projectId) {
+      console.log('🔍 [TaskForm] プロジェクト情報が未設定のため、projectIdから取得します:', this.data.projectId);
+      this.projectService.getProjectById(this.data.projectId).subscribe({
+        next: (project) => {
+          if (project) {
+            this.project = project;
+            this.model.projectName = project.projectName;
+            console.log('🔍 [TaskForm] プロジェクト情報を取得しました:', project);
+            console.log('🔍 [TaskForm] プロジェクトのmembersフィールド:', project.members);
+            // プロジェクト情報を取得した後にメンバーを読み込む
+            this.loadMembers();
+          } else {
+            console.warn('🔍 [TaskForm] プロジェクトが見つかりませんでした');
+            this.loadMembers();
+          }
+        },
+        error: (error) => {
+          console.error('🔍 [TaskForm] プロジェクト情報の取得エラー:', error);
+          this.loadMembers();
+        },
+      });
+    } else {
+      this.loadMembers();
+    }
     console.log('TaskFormComponent initialized');
     this.checkDateInputSupport();
   }
@@ -135,9 +161,16 @@ export class TaskFormComponent implements OnInit {
     if (this.data?.project) {
       this.project = this.data.project;
       this.model.projectName = this.data.project.projectName;
+      console.log('🔍 [TaskForm] constructor: プロジェクト情報を受け取りました:', this.project);
+      console.log('🔍 [TaskForm] constructor: プロジェクトのmembersフィールド:', this.project?.members);
     } else if (this.data?.projectName) {
       // 後方互換性を保つ
       this.model.projectName = this.data.projectName;
+    }
+    
+    // projectIdが渡されている場合も保存
+    if (this.data?.projectId && !this.project) {
+      console.log('🔍 [TaskForm] constructor: projectIdを受け取りました:', this.data.projectId);
     }
 
     if (this.data?.parentTaskName) {
@@ -196,9 +229,16 @@ export class TaskFormComponent implements OnInit {
    */
   loadMembers(): void {
     this.loading = true;
+    console.log('🔍 [TaskForm] loadMembers() 開始');
+    console.log('🔍 [TaskForm] this.project:', this.project);
+    console.log('🔍 [TaskForm] this.project?.members:', this.project?.members);
+    console.log('🔍 [TaskForm] this.data?.project:', this.data?.project);
+    
     this.memberService.getMembers().subscribe({
       next: (members) => {
         this.members = members;
+        console.log('🔍 [TaskForm] 全メンバー数:', members.length, '件');
+        console.log('🔍 [TaskForm] 全メンバー一覧:', members.map(m => ({ id: m.id, name: m.name })));
         
         // プロジェクトのmembersフィールドはメンバー名のカンマ区切り文字列
         if (this.project?.members && this.project.members.trim().length > 0) {
@@ -207,18 +247,36 @@ export class TaskFormComponent implements OnInit {
             .map((name) => name.trim())
             .filter((name) => name.length > 0);
           
+          console.log('🔍 [TaskForm] プロジェクトのメンバー名（カンマ区切り）:', projectMemberNames);
+          
           // プロジェクトのメンバー名に一致するメンバーのみをフィルタリング
-          this.projectMembers = members.filter((member) =>
-            projectMemberNames.includes(member.name || '')
+          this.projectMembers = members.filter((member) => {
+            const isIncluded = projectMemberNames.includes(member.name || '');
+            if (isIncluded) {
+              console.log('🔍 [TaskForm] マッチしたメンバー:', member.name, 'ID:', member.id);
+            }
+            return isIncluded;
+          });
+          
+          console.log('🔍 [TaskForm] フィルタリング後のプロジェクトメンバー数:', this.projectMembers.length, '件');
+          console.log('🔍 [TaskForm] フィルタリング後のプロジェクトメンバー:', this.projectMembers.map(m => ({ id: m.id, name: m.name })));
+          
+          // マッチしないメンバー名を確認
+          const unmatchedNames = projectMemberNames.filter(
+            name => !members.some(m => m.name === name)
           );
+          if (unmatchedNames.length > 0) {
+            console.warn('🔍 [TaskForm] マッチしないメンバー名:', unmatchedNames);
+          }
         } else {
+          console.log('🔍 [TaskForm] プロジェクトのメンバーが設定されていないか、空文字列です');
+          console.log('🔍 [TaskForm] this.project?.members:', this.project?.members);
           // プロジェクトのメンバーが設定されていない場合は全メンバーを表示
           this.projectMembers = members;
         }
         
         this.loading = false;
-        console.log('メンバー一覧を読み込みました:', members.length, '件');
-        console.log('プロジェクトのメンバー:', this.projectMembers.length, '件');
+        console.log('🔍 [TaskForm] 最終的なプロジェクトメンバー数:', this.projectMembers.length, '件');
 
         // 複製データがある場合、担当者を設定
         if (this.data?.duplicateData?.assignee) {

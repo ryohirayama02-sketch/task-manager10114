@@ -191,61 +191,95 @@ export class TaskCreatePageComponent implements OnInit {
     this.loadMembers();
   }
 
+  /**
+   * メンバーフィールドを正規化（文字列、配列、その他の型に対応）
+   */
+  private normalizeMembersField(members: any): string {
+    if (!members) {
+      return '';
+    }
+    if (typeof members === 'string') {
+      return members;
+    }
+    if (Array.isArray(members)) {
+      return members
+        .map((member: any) => member?.memberName || member?.name || '')
+        .filter((name: string) => !!name)
+        .join(', ');
+    }
+    // その他の型の場合は空文字列を返す
+    return '';
+  }
+
   loadMembers() {
     this.memberService.getMembers().subscribe({
       next: (members) => {
         this.members = members;
-        console.log('全メンバー数:', members.length, '件');
-        console.log('メンバー一覧:', members.map(m => ({ id: m.id, name: m.name })));
+        console.log('🔍 [TaskCreate] 全メンバー数:', members.length, '件');
+        console.log('🔍 [TaskCreate] 全メンバー一覧:', members.map(m => ({ id: m.id, name: m.name })));
         
         // プロジェクト情報を取得して、プロジェクトのメンバーのみをフィルタリング
         if (this.projectId) {
-          console.log('プロジェクトID:', this.projectId);
+          console.log('🔍 [TaskCreate] プロジェクトID:', this.projectId);
           this.projectService.getProjectById(this.projectId).subscribe({
             next: (project) => {
-              console.log('プロジェクト情報:', project);
-              console.log('プロジェクトのmembersフィールド:', project?.members, '型:', typeof project?.members);
+              console.log('🔍 [TaskCreate] プロジェクト情報:', project);
+              console.log('🔍 [TaskCreate] プロジェクトのmembersフィールド:', project?.members, '型:', typeof project?.members);
               
-              if (project?.members && project.members.trim().length > 0) {
+              // メンバーフィールドを正規化
+              const membersString = this.normalizeMembersField(project?.members);
+              console.log('🔍 [TaskCreate] 正規化後のmembers文字列:', membersString);
+              
+              if (membersString && membersString.trim().length > 0) {
                 // プロジェクトのmembersフィールドはメンバー名のカンマ区切り文字列
-                const projectMemberNames = project.members
+                const projectMemberNames = membersString
                   .split(',')
                   .map((name) => name.trim())
                   .filter((name) => name.length > 0);
                 
-                console.log('プロジェクトのメンバー名:', projectMemberNames);
+                console.log('🔍 [TaskCreate] プロジェクトのメンバー名（カンマ区切り）:', projectMemberNames);
                 
                 // プロジェクトのメンバー名に一致するメンバーのみをフィルタリング
                 this.projectMembers = members.filter((member) => {
-                  const isIncluded = projectMemberNames.includes(member.name || '');
+                  const memberName = member.name || '';
+                  const isIncluded = projectMemberNames.includes(memberName);
                   if (isIncluded) {
-                    console.log('マッチしたメンバー:', member.name, 'ID:', member.id);
+                    console.log('🔍 [TaskCreate] マッチしたメンバー:', memberName, 'ID:', member.id);
                   }
                   return isIncluded;
                 });
                 
-                console.log('フィルタリング後のプロジェクトメンバー数:', this.projectMembers.length, '件');
-                console.log('フィルタリング後のプロジェクトメンバー:', this.projectMembers.map(m => ({ id: m.id, name: m.name })));
+                console.log('🔍 [TaskCreate] フィルタリング後のプロジェクトメンバー数:', this.projectMembers.length, '件');
+                console.log('🔍 [TaskCreate] フィルタリング後のプロジェクトメンバー:', this.projectMembers.map(m => ({ id: m.id, name: m.name })));
+                
+                // マッチしないメンバー名を確認
+                const unmatchedNames = projectMemberNames.filter(
+                  name => !members.some(m => m.name === name)
+                );
+                if (unmatchedNames.length > 0) {
+                  console.warn('🔍 [TaskCreate] マッチしないメンバー名（メンバー管理に存在しない）:', unmatchedNames);
+                }
               } else {
-                console.log('プロジェクトのメンバーが設定されていないか、空文字列です');
+                console.log('🔍 [TaskCreate] プロジェクトのメンバーが設定されていないか、空文字列です');
+                console.log('🔍 [TaskCreate] project.members:', project?.members);
                 // プロジェクトのメンバーが設定されていない場合は全メンバーを表示
                 this.projectMembers = members;
               }
             },
             error: (error) => {
-              console.error('プロジェクト情報の取得エラー:', error);
+              console.error('🔍 [TaskCreate] プロジェクト情報の取得エラー:', error);
               // エラー時は全メンバーを表示
               this.projectMembers = members;
             },
           });
         } else {
-          console.log('プロジェクトIDが設定されていません');
+          console.log('🔍 [TaskCreate] プロジェクトIDが設定されていません');
           // プロジェクトIDがない場合は全メンバーを表示
           this.projectMembers = members;
         }
       },
       error: (error) => {
-        console.error('メンバー一覧の読み込みエラー:', error);
+        console.error('🔍 [TaskCreate] メンバー一覧の読み込みエラー:', error);
       },
     });
   }
