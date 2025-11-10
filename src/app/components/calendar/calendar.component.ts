@@ -62,6 +62,10 @@ export class CalendarComponent implements OnInit, OnDestroy {
   viewMode: 'day' | 'week' | 'month' = 'month';
   selectedDate: Date | null = null;
 
+  // 表示可能な月の範囲
+  minAvailableDate: Date | null = null;
+  maxAvailableDate: Date | null = null;
+
   // フィルター用
   filterPriority: string[] = [];
   filterAssignee: string[] = [];
@@ -234,6 +238,7 @@ export class CalendarComponent implements OnInit, OnDestroy {
     this.loadAllTasks();
     this.loadAllMilestones();
     this.filterTasksBySelectedProjects();
+    this.updateAvailableDateRange();
   }
 
   /** 全プロジェクトのタスクを読み込み */
@@ -255,6 +260,7 @@ export class CalendarComponent implements OnInit, OnDestroy {
             );
             this.allTasks = [...this.allTasks, ...tasksWithProject];
             this.filterTasksBySelectedProjects();
+            this.updateAvailableDateRange();
           });
       }
     });
@@ -326,6 +332,7 @@ export class CalendarComponent implements OnInit, OnDestroy {
     }
 
     this.tasks = filteredTasks;
+    this.updateAvailableDateRange();
   }
 
   /** プロジェクト選択をトグル */
@@ -435,26 +442,50 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
   /** 日付を変更 */
   changeDate(direction: number) {
+    const newDate = new Date(this.currentDate);
+    
     if (this.viewMode === 'day') {
-      this.currentDate.setDate(this.currentDate.getDate() + direction);
+      newDate.setDate(newDate.getDate() + direction);
     } else if (this.viewMode === 'week') {
-      this.currentDate.setDate(this.currentDate.getDate() + direction * 7);
+      newDate.setDate(newDate.getDate() + direction * 7);
     } else {
-      this.currentDate.setMonth(this.currentDate.getMonth() + direction);
+      newDate.setMonth(newDate.getMonth() + direction);
     }
-    if (this.selectedDate) {
-      this.selectedDate = new Date(this.currentDate);
+
+    // 表示可能な範囲内かチェック
+    if (this.isDateInAvailableRange(newDate)) {
+      this.currentDate = newDate;
+      if (this.selectedDate) {
+        this.selectedDate = new Date(this.currentDate);
+      }
+      this.generateCalendarDays();
     }
-    this.generateCalendarDays();
   }
 
   /** 現在の日付に戻る */
   goToCurrentDate() {
-    this.currentDate = new Date();
-    if (this.selectedDate) {
-      this.selectedDate = new Date(this.currentDate);
+    const today = new Date();
+    // 表示可能な範囲内かチェック
+    if (this.isDateInAvailableRange(today)) {
+      this.currentDate = today;
+      if (this.selectedDate) {
+        this.selectedDate = new Date(this.currentDate);
+      }
+      this.generateCalendarDays();
+    } else {
+      // 範囲外の場合は、範囲内の最も近い日付に移動
+      if (this.minAvailableDate && today < this.minAvailableDate) {
+        this.currentDate = new Date(this.minAvailableDate);
+      } else if (this.maxAvailableDate && today > this.maxAvailableDate) {
+        this.currentDate = new Date(this.maxAvailableDate);
+      } else {
+        this.currentDate = today;
+      }
+      if (this.selectedDate) {
+        this.selectedDate = new Date(this.currentDate);
+      }
+      this.generateCalendarDays();
     }
-    this.generateCalendarDays();
   }
 
   /** 表示モードを変更 */
@@ -785,5 +816,108 @@ export class CalendarComponent implements OnInit, OnDestroy {
       .filter((name): name is string => name !== null);
     
     return updatedNames.length > 0 ? updatedNames.join(', ') : '—';
+  }
+
+  /** タスクの日付範囲を計算して表示可能な月の範囲を更新 */
+  private updateAvailableDateRange(): void {
+    if (!this.tasks || this.tasks.length === 0) {
+      // タスクがない場合は制限なし
+      this.minAvailableDate = null;
+      this.maxAvailableDate = null;
+      return;
+    }
+
+    let minDate: Date | null = null;
+    let maxDate: Date | null = null;
+
+    this.tasks.forEach((task) => {
+      // 開始日と終了日の両方をチェック
+      const startDate = task.startDate ? new Date(task.startDate) : null;
+      const dueDate = task.dueDate ? new Date(task.dueDate) : null;
+
+      // 開始日がある場合
+      if (startDate && !isNaN(startDate.getTime())) {
+        if (!minDate || startDate < minDate) {
+          minDate = startDate;
+        }
+        if (!maxDate || startDate > maxDate) {
+          maxDate = startDate;
+        }
+      }
+
+      // 終了日がある場合
+      if (dueDate && !isNaN(dueDate.getTime())) {
+        if (!minDate || dueDate < minDate) {
+          minDate = dueDate;
+        }
+        if (!maxDate || dueDate > maxDate) {
+          maxDate = dueDate;
+        }
+      }
+    });
+
+    if (!minDate || !maxDate) {
+      // 有効な日付がない場合は制限なし
+      this.minAvailableDate = null;
+      this.maxAvailableDate = null;
+      return;
+    }
+
+    // 型を確実にするために変数に代入
+    const ensuredMinDate = minDate as Date;
+    const ensuredMaxDate = maxDate as Date;
+
+    // 最も古いタスクの-1か月と、最も新しいタスクの+1か月を設定
+    this.minAvailableDate = new Date(
+      ensuredMinDate.getFullYear(),
+      ensuredMinDate.getMonth() - 1,
+      1
+    );
+    this.maxAvailableDate = new Date(
+      ensuredMaxDate.getFullYear(),
+      ensuredMaxDate.getMonth() + 2,
+      0 // 前月の最終日
+    );
+  }
+
+  /** 指定された日付が表示可能な範囲内かチェック */
+  private isDateInAvailableRange(date: Date): boolean {
+    if (!this.minAvailableDate || !this.maxAvailableDate) {
+      return true; // 制限がない場合は常にtrue
+    }
+
+    // 月単位で比較（日付の詳細は無視）
+    const dateYear = date.getFullYear();
+    const dateMonth = date.getMonth();
+    const minYear = this.minAvailableDate.getFullYear();
+    const minMonth = this.minAvailableDate.getMonth();
+    const maxYear = this.maxAvailableDate.getFullYear();
+    const maxMonth = this.maxAvailableDate.getMonth();
+
+    const dateValue = dateYear * 12 + dateMonth;
+    const minValue = minYear * 12 + minMonth;
+    const maxValue = maxYear * 12 + maxMonth;
+
+    return dateValue >= minValue && dateValue <= maxValue;
+  }
+
+  /** 前の月に移動できるかチェック */
+  canMoveToPreviousMonth(): boolean {
+    if (!this.minAvailableDate) {
+      return true;
+    }
+    const prevDate = new Date(this.currentDate);
+    prevDate.setMonth(prevDate.getMonth() - 1);
+    return this.isDateInAvailableRange(prevDate);
+  }
+
+  /** 次の月に移動できるかチェック */
+  canMoveToNextMonth(): boolean {
+    if (!this.maxAvailableDate) {
+      return true;
+    }
+    const nextDate = new Date(this.currentDate);
+    nextDate.setMonth(nextDate.getMonth() + 1);
+    return this.isDateInAvailableRange(nextDate);
   }
 }

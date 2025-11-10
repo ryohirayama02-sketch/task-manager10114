@@ -132,11 +132,11 @@
   </div>
   <!-- カレンダーヘッダー -->
   <div class="calendar-header">
-    <button mat-icon-button (click)="changeDate(-1)">
+    <button mat-icon-button (click)="changeDate(-1)" [disabled]="viewMode === 'month' && !canMoveToPreviousMonth()">
       <mat-icon>chevron_left</mat-icon>
     </button>
     <h3>{{ getDisplayName() }}</h3>
-    <button mat-icon-button (click)="changeDate(1)">
+    <button mat-icon-button (click)="changeDate(1)" [disabled]="viewMode === 'month' && !canMoveToNextMonth()">
       <mat-icon>chevron_right</mat-icon>
     </button>
     <button mat-button (click)="goToCurrentDate()">{{ 'calendar.header.today' | translate }}</button>
