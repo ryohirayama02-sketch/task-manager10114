@@ -792,11 +792,13 @@ export class ProjectDetailComponent implements OnInit {
       return;
     }
 
+    const tasksCount = this.tasks?.length || 0;
     const dialogRef = this.dialog.open(ProjectDeleteConfirmDialogComponent, {
       width: '400px',
       data: {
         projectName: this.project.projectName || 'プロジェクト',
         projectId: this.project.id,
+        tasksCount: tasksCount,
       },
     });
 

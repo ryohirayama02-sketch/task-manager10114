@@ -24,6 +24,7 @@ import {
   ProjectThemeColor,
 } from '../../constants/project-theme-colors';
 import { TranslatePipe } from '../../pipes/translate.pipe';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-project-form-dialog',
@@ -456,9 +457,20 @@ export class ProjectFormDialogComponent implements OnInit {
   }
 
   /** プロジェクト削除の確認ダイアログ */
-  confirmDeleteProject(): void {
+  async confirmDeleteProject(): Promise<void> {
     if (!this.originalProject) {
       return;
+    }
+
+    // タスク数を取得
+    let tasksCount = 0;
+    try {
+      const tasks = await firstValueFrom(
+        this.projectService.getTasksByProjectId(this.originalProject.id)
+      );
+      tasksCount = tasks?.length || 0;
+    } catch (error) {
+      console.error('タスク数の取得エラー:', error);
     }
 
     const dialogRef = this.dialog.open(ProjectDeleteConfirmDialogComponent, {
@@ -466,6 +478,7 @@ export class ProjectFormDialogComponent implements OnInit {
       data: {
         projectName: this.originalProject.projectName,
         projectId: this.originalProject.id,
+        tasksCount: tasksCount,
       },
     });
 

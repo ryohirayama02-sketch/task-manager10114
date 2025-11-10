@@ -13,12 +13,15 @@ import {
   where,
   getDocs,
 } from '@angular/fire/firestore';
-import { Observable, combineLatest, map, of, switchMap } from 'rxjs';
+import { Observable, combineLatest, map, of, switchMap, firstValueFrom } from 'rxjs';
 import { IProject } from '../models/project.model'; // 上の方に追加
 import { Task, ChangeDetail } from '../models/task.model';
 import { EditLogService } from './edit-log.service';
 import { resolveProjectThemeColor } from '../constants/project-theme-colors';
 import { AuthService } from './auth.service';
+import { TaskService } from './task.service';
+import { TaskAttachmentService } from './task-attachment.service';
+import { ProjectAttachmentService } from './project-attachment.service';
 
 // プロジェクトフィールドの日本語名マッピング
 const PROJECT_FIELD_NAMES: { [key: string]: string } = {
@@ -39,7 +42,10 @@ export class ProjectService {
   constructor(
     private firestore: Firestore,
     private editLogService: EditLogService,
-    private authService: AuthService
+    private authService: AuthService,
+    private taskService: TaskService,
+    private taskAttachmentService: TaskAttachmentService,
+    private projectAttachmentService: ProjectAttachmentService
   ) {}
 
   /** 🔹 全プロジェクト一覧を取得 */
@@ -670,7 +676,7 @@ export class ProjectService {
     }
   }
 
-  /** ✅ プロジェクトを削除 */
+  /** ✅ プロジェクトを削除（プロジェクト内のすべてのタスクも削除） */
   async deleteProject(projectId: string, projectData: any) {
     console.log('🔍 ProjectService.deleteProject が呼び出されました');
     console.log(
@@ -680,6 +686,24 @@ export class ProjectService {
       projectData
     );
 
+    // プロジェクト内のすべてのタスクを削除
+    await this.deleteAllTasksInProject(projectId, projectData.projectName || 'プロジェクト');
+
+    // プロジェクトの添付ファイルを削除
+    if (projectData.attachments && Array.isArray(projectData.attachments)) {
+      for (const attachment of projectData.attachments) {
+        if (attachment.type === 'file' && attachment.storagePath) {
+          try {
+            await this.projectAttachmentService.deleteAttachment(attachment);
+          } catch (error) {
+            console.error('プロジェクトの添付ファイル削除エラー:', error);
+            // エラーが発生してもプロジェクト削除は続行
+          }
+        }
+      }
+    }
+
+    // プロジェクト自体を削除
     const projectRef = doc(this.firestore, `projects/${projectId}`);
     const result = await deleteDoc(projectRef);
 
@@ -702,6 +726,64 @@ export class ProjectService {
 
     console.log('✅ プロジェクト削除とログ記録が完了しました');
     return result;
+  }
+
+  /**
+   * プロジェクト内のすべてのタスクを削除（親タスクから順に削除）
+   * @param projectId プロジェクトID
+   * @param projectName プロジェクト名
+   */
+  private async deleteAllTasksInProject(
+    projectId: string,
+    projectName: string
+  ): Promise<void> {
+    console.log(`プロジェクト「${projectName}」内のタスクを削除開始`);
+
+    // プロジェクト内のすべてのタスクを取得
+    const tasksRef = collection(this.firestore, `projects/${projectId}/tasks`);
+    const tasksSnapshot = await getDocs(tasksRef);
+
+    if (tasksSnapshot.empty) {
+      console.log('削除するタスクがありません');
+      return;
+    }
+
+    const allTasks = tasksSnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as Array<{ id: string; parentTaskId?: string; taskName?: string; attachments?: any[]; [key: string]: any }>;
+
+    console.log(`削除対象タスク数: ${allTasks.length}件`);
+
+    // 親タスク（parentTaskIdがないタスク）を取得
+    const parentTasks = allTasks.filter(
+      (task) => !task.parentTaskId || task.parentTaskId === ''
+    );
+
+    console.log(`親タスク数: ${parentTasks.length}件`);
+
+    // 親タスクから順に削除（親タスク削除時に子タスクも自動的に削除される）
+    const deletePromises = parentTasks.map(async (task) => {
+      const taskId = task.id;
+      const taskData = {
+        taskName: task.taskName || 'タスク',
+        projectName: projectName,
+        attachments: task.attachments || [],
+      };
+
+      console.log(`親タスクを削除中: ${taskData.taskName} (ID: ${taskId})`);
+
+      try {
+        await this.taskService.deleteTask(taskId, taskData, projectId);
+      } catch (error) {
+        console.error(`タスク削除エラー (ID: ${taskId}):`, error);
+        // エラーが発生しても他のタスクの削除は続行
+      }
+    });
+
+    await Promise.all(deletePromises);
+
+    console.log(`プロジェクト「${projectName}」内のすべてのタスクを削除完了`);
   }
 
   /** ✅ マイルストーンを追加 */
