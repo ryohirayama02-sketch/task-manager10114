@@ -21,6 +21,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MemberManagementService } from '../../../services/member-management.service';
 import { Member } from '../../../models/member.model';
 import { AuthService } from '../../../services/auth.service';
+import { firstValueFrom } from 'rxjs';
 
 export interface MemberFormData {
   mode: 'add' | 'edit';
@@ -83,14 +84,47 @@ export class MemberFormDialogComponent implements OnInit {
       return;
     }
 
+    const formData = this.memberForm.value;
+
     // メンバー数の制限をチェック（追加時のみ）
     if (this.data.mode === 'add') {
       try {
         const currentCount = await this.memberService.getMemberCount();
-        const maxCount = 30;
+        const maxCount = 20;
         if (currentCount >= maxCount) {
           this.snackBar.open(
             `管理メンバーは最大${maxCount}人登録できます`,
+            '閉じる',
+            { duration: 5000 }
+          );
+          return;
+        }
+
+        // 既存メンバーとの重複チェック（名前・メールアドレス）
+        const existingMembers = await firstValueFrom(
+          this.memberService.getMembers()
+        ).catch(() => []);
+        
+        const nameExists = existingMembers.some(
+          (member) => member.name?.toLowerCase().trim() === formData.name?.toLowerCase().trim()
+        );
+        
+        const emailExists = existingMembers.some(
+          (member) => member.email?.toLowerCase().trim() === formData.email?.toLowerCase().trim()
+        );
+
+        if (nameExists) {
+          this.snackBar.open(
+            'この名前は既に登録されています',
+            '閉じる',
+            { duration: 5000 }
+          );
+          return;
+        }
+
+        if (emailExists) {
+          this.snackBar.open(
+            'このメールアドレスは既に登録されています',
             '閉じる',
             { duration: 5000 }
           );
@@ -105,11 +139,52 @@ export class MemberFormDialogComponent implements OnInit {
       }
     }
 
+    // 編集モードの場合も重複チェック（編集中のメンバー自身は除外）
+    if (this.data.mode === 'edit' && this.data.member?.id) {
+      try {
+        const existingMembers = await firstValueFrom(
+          this.memberService.getMembers()
+        ).catch(() => []);
+        
+        // 編集中のメンバー以外で重複チェック
+        const otherMembers = existingMembers.filter(
+          (member) => member.id !== this.data.member?.id
+        );
+        
+        const nameExists = otherMembers.some(
+          (member) => member.name?.toLowerCase().trim() === formData.name?.toLowerCase().trim()
+        );
+        
+        const emailExists = otherMembers.some(
+          (member) => member.email?.toLowerCase().trim() === formData.email?.toLowerCase().trim()
+        );
+
+        if (nameExists) {
+          this.snackBar.open(
+            'この名前は既に登録されています',
+            '閉じる',
+            { duration: 5000 }
+          );
+          return;
+        }
+
+        if (emailExists) {
+          this.snackBar.open(
+            'このメールアドレスは既に登録されています',
+            '閉じる',
+            { duration: 5000 }
+          );
+          return;
+        }
+      } catch (error) {
+        console.error('重複チェックエラー:', error);
+        // エラーが発生しても更新処理は続行
+      }
+    }
+
     this.isSubmitting = true;
 
     try {
-      const formData = this.memberForm.value;
-
       if (this.data.mode === 'add') {
         await this.memberService.addMember(formData);
         console.log('✅ メンバーを追加しました');

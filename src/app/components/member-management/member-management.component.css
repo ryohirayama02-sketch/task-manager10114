@@ -18,6 +18,31 @@
   font-weight: 500;
 }
 
+.header-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.limit-warning {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #d32f2f;
+  font-size: 14px;
+  padding: 8px 12px;
+  background-color: #ffebee;
+  border-radius: 4px;
+  border-left: 4px solid #d32f2f;
+}
+
+.limit-warning mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
 .loading-container {
   display: flex;
   flex-direction: column;
@@ -148,6 +173,15 @@
   .header h1 {
     text-align: center;
     font-size: 24px;
+  }
+
+  .header-actions {
+    align-items: stretch;
+  }
+
+  .limit-warning {
+    font-size: 12px;
+    padding: 6px 10px;
   }
 
   .members-table {

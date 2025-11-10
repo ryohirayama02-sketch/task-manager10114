@@ -1,10 +1,22 @@
 <div class="member-management-container">
   <div class="header">
     <h1>{{ 'memberManagement.title' | translate }}</h1>
-    <button mat-raised-button color="primary" (click)="openAddMemberDialog()">
-      <mat-icon>person_add</mat-icon>
-      {{ 'memberManagement.addMember' | translate }}
-    </button>
+    <div class="header-actions">
+      <button 
+        mat-raised-button 
+        color="primary" 
+        (click)="openAddMemberDialog()"
+        [disabled]="memberCountLimitReached"
+        [matTooltip]="memberCountLimitReached ? '管理メンバーは最大' + maxMemberCount + '人登録できます' : ''"
+      >
+        <mat-icon>person_add</mat-icon>
+        {{ 'memberManagement.addMember' | translate }}
+      </button>
+      <div *ngIf="memberCountLimitReached" class="limit-warning">
+        <mat-icon>warning</mat-icon>
+        <span>管理メンバーは最大{{ maxMemberCount }}人登録できます</span>
+      </div>
+    </div>
   </div>
 
   <!-- ローディング表示 -->

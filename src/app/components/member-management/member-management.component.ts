@@ -43,6 +43,8 @@ export class MemberManagementComponent implements OnInit {
   displayedColumns: string[] = ['name', 'email', 'createdAt', 'actions'];
   loading = false;
   private memberAddedFeedback = false;
+  memberCountLimitReached = false;
+  readonly maxMemberCount = 20;
 
   constructor(
     private memberService: MemberManagementService,
@@ -65,6 +67,7 @@ export class MemberManagementComponent implements OnInit {
     this.memberService.getMembers().subscribe({
       next: (members) => {
         this.members = members;
+        this.memberCountLimitReached = members.length >= this.maxMemberCount;
         this.loading = false;
         console.log('メンバー一覧を読み込みました:', members.length, '件');
         if (this.memberAddedFeedback) {
