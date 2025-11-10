@@ -9,6 +9,7 @@ import {
   where,
   doc,
   getDoc,
+  deleteDoc,
 } from '@angular/fire/firestore';
 
 @Injectable({ providedIn: 'root' })
@@ -77,5 +78,27 @@ export class RoomService {
     );
     const snapshot = await getDocs(roomQuery);
     return !snapshot.empty;
+  }
+
+  /**
+   * ルームを削除（roomIdからroomDocIdを取得して削除）
+   * @param roomId 削除するルームのroomId
+   */
+  async deleteRoom(roomId: string): Promise<void> {
+    if (!roomId || roomId.trim() === '') {
+      throw new Error('ルームIDが指定されていません');
+    }
+    const roomsRef = collection(this.firestore, 'rooms');
+    const roomQuery = query(
+      roomsRef,
+      where('roomId', '==', roomId.trim()),
+      limit(1)
+    );
+    const snapshot = await getDocs(roomQuery);
+    if (snapshot.empty) {
+      throw new Error('ルームが見つかりません');
+    }
+    const roomDoc = snapshot.docs[0];
+    await deleteDoc(doc(this.firestore, `rooms/${roomDoc.id}`));
   }
 }

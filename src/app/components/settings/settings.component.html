@@ -660,14 +660,27 @@
     class="settings-content"
   >
     <mat-card class="settings-card">
-      <mat-card-header>
-        <mat-card-title>
-          <mat-icon>info</mat-icon>
-          {{ "settings.roomInfo.title" | translate }}
-        </mat-card-title>
-        <mat-card-subtitle>
-          {{ "settings.roomInfo.subtitle" | translate }}
-        </mat-card-subtitle>
+      <mat-card-header class="room-info-card-header">
+        <div class="room-info-header-title">
+          <mat-card-title>
+            <mat-icon>info</mat-icon>
+            {{ "settings.roomInfo.title" | translate }}
+          </mat-card-title>
+          <mat-card-subtitle>
+            {{ "settings.roomInfo.subtitle" | translate }}
+          </mat-card-subtitle>
+        </div>
+        <div class="room-info-header-actions">
+          <button
+            mat-raised-button
+            color="primary"
+            (click)="changeRoom()"
+            class="change-room-button"
+          >
+            <mat-icon>swap_horiz</mat-icon>
+            ルームを変更
+          </button>
+        </div>
       </mat-card-header>
 
       <mat-card-content>
@@ -692,11 +705,12 @@
       <mat-card-actions>
         <button
           mat-raised-button
-          color="primary"
-          (click)="changeRoom()"
+          color="warn"
+          (click)="deleteRoom()"
+          class="delete-room-button"
         >
-          <mat-icon>swap_horiz</mat-icon>
-          ルームを変更
+          <mat-icon>delete</mat-icon>
+          ルームを削除
         </button>
       </mat-card-actions>
     </mat-card>

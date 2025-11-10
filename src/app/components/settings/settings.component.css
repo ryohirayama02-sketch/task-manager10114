@@ -223,6 +223,15 @@ mat-card-actions button {
   min-width: 140px;
 }
 
+.delete-room-button {
+  background-color: #d32f2f !important;
+  color: white !important;
+}
+
+.delete-room-button:hover {
+  background-color: #b71c1c !important;
+}
+
 /* レスポンシブ対応 */
 @media (max-width: 768px) {
   .settings-container {
@@ -390,6 +399,27 @@ mat-card-actions button {
 }
 
 /* ルーム情報のスタイル */
+.room-info-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 16px 24px;
+}
+
+.room-info-header-title {
+  flex: 1;
+}
+
+.room-info-header-actions {
+  display: flex;
+  align-items: center;
+  margin-left: 16px;
+}
+
+.change-room-button {
+  white-space: nowrap;
+}
+
 .room-info-content {
   display: flex;
   flex-direction: column;
@@ -418,6 +448,23 @@ mat-card-actions button {
   color: #333;
   word-break: break-all;
   padding: 8px 0;
+}
+
+@media (max-width: 768px) {
+  .room-info-card-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .room-info-header-actions {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .change-room-button {
+    width: 100%;
+  }
 }
 
 @media (prefers-color-scheme: dark) {

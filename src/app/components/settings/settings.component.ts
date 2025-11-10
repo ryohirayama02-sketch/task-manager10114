@@ -12,6 +12,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { NotificationService } from '../../services/notification.service';
 import { AuthService } from '../../services/auth.service';
 import { TaskReminderService } from '../../services/task-reminder.service';
@@ -19,6 +20,8 @@ import { HomeScreenSettingsService } from '../../services/home-screen-settings.s
 import { RoomService } from '../../services/room.service';
 import { Router } from '@angular/router';
 import { ProjectSelectionService } from '../../services/project-selection.service';
+import { RoomDeleteConfirmDialogComponent } from './room-delete-confirm-dialog.component';
+import { ProjectService } from '../../services/project.service';
 import { NotificationSettings } from '../../models/notification.model';
 import {
   HomeScreenSettings,
@@ -30,6 +33,7 @@ import {
   SupportedLanguage,
 } from '../../services/language.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-settings',
@@ -48,6 +52,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
     MatExpansionModule,
     MatSnackBarModule,
     MatProgressSpinnerModule,
+    MatDialogModule,
     TranslatePipe,
   ],
   templateUrl: './settings.component.html',
@@ -113,7 +118,9 @@ export class SettingsComponent implements OnInit {
     private roomService: RoomService,
     private snackBar: MatSnackBar,
     private router: Router,
-    private projectSelectionService: ProjectSelectionService
+    private projectSelectionService: ProjectSelectionService,
+    private dialog: MatDialog,
+    private projectService: ProjectService,
   ) {}
 
   async ngOnInit() {
@@ -1024,5 +1031,69 @@ export class SettingsComponent implements OnInit {
     this.projectSelectionService.clearSelection();
     // ルーム入室画面に遷移
     this.router.navigate(['/room-login']);
+  }
+
+  /** ルームを削除 */
+  async deleteRoom() {
+    if (!this.roomInfo) {
+      return;
+    }
+
+    // 確認ダイアログを表示
+    const dialogRef = this.dialog.open(RoomDeleteConfirmDialogComponent, {
+      width: '500px',
+      data: {
+        roomName: this.roomInfo.name,
+        roomId: this.roomInfo.roomId,
+      },
+    });
+
+    dialogRef.afterClosed().subscribe(async (confirmed) => {
+      if (confirmed) {
+        try {
+          const roomId = this.authService.getCurrentRoomId();
+          if (!roomId) {
+            this.snackBar.open('ルームIDが取得できませんでした', '閉じる', {
+              duration: 3000,
+            });
+            return;
+          }
+
+          // ルーム内のすべてのプロジェクトを取得して削除
+          const projects = await firstValueFrom(this.projectService.getProjects());
+          if (projects && projects.length > 0) {
+            for (const project of projects) {
+              if (project.id) {
+                try {
+                  // プロジェクトデータをそのまま使用（getProjectsで取得したデータ）
+                  await this.projectService.deleteProject(project.id, project);
+                } catch (error) {
+                  console.error(`プロジェクト「${project.projectName}」の削除エラー:`, error);
+                }
+              }
+            }
+          }
+
+          // ルームを削除
+          await this.roomService.deleteRoom(roomId);
+
+          // ルーム情報をクリア
+          this.authService.clearRoomId();
+          this.projectSelectionService.clearSelection();
+
+          this.snackBar.open('ルームを削除しました', '閉じる', {
+            duration: 3000,
+          });
+
+          // ルーム入室画面に遷移
+          this.router.navigate(['/room-login']);
+        } catch (error) {
+          console.error('ルーム削除エラー:', error);
+          this.snackBar.open('ルームの削除に失敗しました', '閉じる', {
+            duration: 5000,
+          });
+        }
+      }
+    });
   }
 }
