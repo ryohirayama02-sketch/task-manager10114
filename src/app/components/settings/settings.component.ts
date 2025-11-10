@@ -124,7 +124,7 @@ export class SettingsComponent implements OnInit {
     private dialog: MatDialog,
     private projectService: ProjectService,
     private memberManagementService: MemberManagementService,
-    private editLogService: EditLogService,
+    private editLogService: EditLogService
   ) {}
 
   async ngOnInit() {
@@ -1064,7 +1064,9 @@ export class SettingsComponent implements OnInit {
           }
 
           // ルーム内のすべてのプロジェクトを取得して削除
-          const projects = await firstValueFrom(this.projectService.getProjects());
+          const projects = await firstValueFrom(
+            this.projectService.getProjects()
+          );
           if (projects && projects.length > 0) {
             for (const project of projects) {
               if (project.id) {
@@ -1072,7 +1074,10 @@ export class SettingsComponent implements OnInit {
                   // プロジェクトデータをそのまま使用（getProjectsで取得したデータ）
                   await this.projectService.deleteProject(project.id, project);
                 } catch (error) {
-                  console.error(`プロジェクト「${project.projectName}」の削除エラー:`, error);
+                  console.error(
+                    `プロジェクト「${project.projectName}」の削除エラー:`,
+                    error
+                  );
                 }
               }
             }
