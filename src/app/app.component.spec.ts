@@ -16,8 +16,9 @@ describe('AppComponent', () => {
 
   it(`should have the '課題管理アプリ' title`, () => {
     const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app.title).toEqual('課題管理アプリ');
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('h1')?.textContent).toContain('課題管理アプリ');
   });
 
   it('should render title', () => {

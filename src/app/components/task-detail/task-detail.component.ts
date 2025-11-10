@@ -138,7 +138,6 @@ export class TaskDetailComponent implements OnInit {
     label: i.toString().padStart(2, '0'),
   }));
   estimatedHours = { hour: '00', minute: '00' };
-  actualHours = { hour: '00', minute: '00' };
 
   // ステータスと優先度のオプション
   statusOptions = ['未着手', '作業中', '完了'];
@@ -901,10 +900,6 @@ export class TaskDetailComponent implements OnInit {
     this.detailSettings.workTime.estimatedHours = `${this.estimatedHours.hour}:${this.estimatedHours.minute}`;
   }
 
-  onActualTimeChange(): void {
-    this.detailSettings.workTime.actualHours = `${this.actualHours.hour}:${this.actualHours.minute}`;
-  }
-
   /** タグを追加 */
   addTag(tag: string) {
     const trimmedTag = tag?.trim();
@@ -1096,7 +1091,6 @@ export class TaskDetailComponent implements OnInit {
       },
       workTime: {
         estimatedHours: '00:00',
-        actualHours: '00:00',
       },
     };
   }
@@ -1547,9 +1541,6 @@ export class TaskDetailComponent implements OnInit {
   private rebuildTimePickers(): void {
     this.estimatedHours = this.splitTimeString(
       this.detailSettings.workTime.estimatedHours
-    );
-    this.actualHours = this.splitTimeString(
-      this.detailSettings.workTime.actualHours
     );
   }
 

@@ -608,7 +608,10 @@ export class LanguageService {
       ja: '子タスク完了まで完了ステータスにできない',
       en: 'Cannot complete until all subtasks are done',
     },
-    'taskDetail.timeTracking': { ja: '作業時間記録', en: 'Time Tracking' },
+    'taskDetail.timeTracking': {
+      ja: '作業予定時間入力',
+      en: 'Estimated Time Input',
+    },
     'taskDetail.estimatedTime': { ja: '予定時間', en: 'Estimated Time' },
     'taskDetail.hour': { ja: '時間', en: 'Hour' },
     'taskDetail.minute': { ja: '分', en: 'Minute' },
