@@ -1228,25 +1228,42 @@ export class TaskDetailComponent implements OnInit {
       tasks.filter((task) => task.parentTaskId === parentId)
     );
     this.childTasks = children;
-    // 担当者オプションをカンマ区切りで分割
+    // ✅ 修正：メンバー管理画面のメンバー一覧から選択肢を生成（最新の名前を表示）
     const assigneeSet = new Set<string>();
+    
+    // 各タスクの担当者を取得（assignedMembersから最新のメンバー名を取得）
     children.forEach((task) => {
+      // assignedMembers から取得（メンバーIDからメンバー名に変換）
+      if (Array.isArray(task.assignedMembers)) {
+        const memberNames = getMemberNames(task.assignedMembers, this.projectMembers);
+        memberNames.forEach((name) => assigneeSet.add(name));
+      }
+      
+      // assignee から取得（メンバー管理画面に存在する名前のみ）
       if (task.assignee) {
         const assignees = task.assignee
           .split(',')
           .map((name) => name.trim())
-          .filter((name) => name.length > 0);
+          .filter((name) => name.length > 0)
+          .filter((name) => {
+            // メンバー管理画面に存在する名前のみを追加
+            return this.projectMembers.some((m) => m.name === name);
+          });
         assignees.forEach((assignee) => assigneeSet.add(assignee));
       }
-      // assignedMembers も含める
-      if (Array.isArray(task.assignedMembers)) {
-        task.assignedMembers.forEach((member: string) => {
-          if (typeof member === 'string') {
-            assigneeSet.add(member.trim());
-          }
-        });
+    });
+    
+    // メンバー管理画面のメンバー一覧からも取得（最新の名前を確実に含める）
+    this.projectMembers.forEach((member) => {
+      if (member.name) {
+        const names = member.name
+          .split(',')
+          .map((n) => n.trim())
+          .filter((n) => n.length > 0);
+        names.forEach((name) => assigneeSet.add(name));
       }
     });
+    
     this.childAssigneeOptions = Array.from(assigneeSet).sort();
 
     if (
@@ -1270,28 +1287,27 @@ export class TaskDetailComponent implements OnInit {
       const priorityMatch =
         !this.childFilterPriority || task.priority === this.childFilterPriority;
       
-      // 担当者フィルター（カンマ区切り対応）
+      // 担当者フィルター（カンマ区切り対応 + メンバーIDをメンバー名に変換）
       let assigneeMatch = true;
       if (this.childFilterAssignee) {
-        if (!task.assignee) {
+        // assignee をカンマで分割
+        const assignees = (task.assignee || '')
+          .split(',')
+          .map((name) => name.trim().toLowerCase())
+          .filter((name) => name.length > 0);
+        
+        // assignedMembers も含める（メンバーIDをメンバー名に変換）
+        if (Array.isArray((task as any).assignedMembers)) {
+          const memberNames = getMemberNames((task as any).assignedMembers, this.projectMembers);
+          assignees.push(...memberNames.map((name) => name.toLowerCase()));
+        }
+        
+        // フィルター値とマッチするか確認
+        if (assignees.length === 0) {
           assigneeMatch = false;
         } else {
-          // assignee をカンマで分割
-          const assignees = task.assignee
-            .split(',')
-            .map((name) => name.trim())
-            .filter((name) => name.length > 0);
-          
-          // assignedMembers も含める
-          if (Array.isArray((task as any).assignedMembers)) {
-            assignees.push(
-              ...(task as any).assignedMembers.map((m: string) => String(m).trim())
-            );
-          }
-          
-          // フィルター値とマッチするか確認
           assigneeMatch = assignees.some(
-            (assignee) => assignee.toLowerCase() === this.childFilterAssignee.toLowerCase()
+            (assignee) => assignee === this.childFilterAssignee.toLowerCase()
           );
         }
       }
