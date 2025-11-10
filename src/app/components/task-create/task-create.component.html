@@ -91,10 +91,11 @@
             multiple
             (ngModelChange)="onMembersSelectionChange($event)"
           >
-            <mat-option *ngFor="let member of members" [value]="member.id">
+            <mat-option *ngFor="let member of projectMembers" [value]="member.id">
               {{ member.name }}
             </mat-option>
           </mat-select>
+          <mat-hint *ngIf="projectMembers.length === 0">プロジェクトにメンバーが登録されていません</mat-hint>
         </mat-form-field>
 
         <!-- ステータス -->

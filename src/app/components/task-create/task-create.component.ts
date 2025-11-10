@@ -53,6 +53,7 @@ export class TaskCreatePageComponent implements OnInit {
   parentTaskName: string = '';
   isSubtaskCreation: boolean = false;
   members: Member[] = [];
+  projectMembers: Member[] = []; // プロジェクトのメンバーのみ
   isLoading = false;
   isSaving = false;
 
@@ -194,6 +195,54 @@ export class TaskCreatePageComponent implements OnInit {
     this.memberService.getMembers().subscribe({
       next: (members) => {
         this.members = members;
+        console.log('全メンバー数:', members.length, '件');
+        console.log('メンバー一覧:', members.map(m => ({ id: m.id, name: m.name })));
+        
+        // プロジェクト情報を取得して、プロジェクトのメンバーのみをフィルタリング
+        if (this.projectId) {
+          console.log('プロジェクトID:', this.projectId);
+          this.projectService.getProjectById(this.projectId).subscribe({
+            next: (project) => {
+              console.log('プロジェクト情報:', project);
+              console.log('プロジェクトのmembersフィールド:', project?.members, '型:', typeof project?.members);
+              
+              if (project?.members && project.members.trim().length > 0) {
+                // プロジェクトのmembersフィールドはメンバー名のカンマ区切り文字列
+                const projectMemberNames = project.members
+                  .split(',')
+                  .map((name) => name.trim())
+                  .filter((name) => name.length > 0);
+                
+                console.log('プロジェクトのメンバー名:', projectMemberNames);
+                
+                // プロジェクトのメンバー名に一致するメンバーのみをフィルタリング
+                this.projectMembers = members.filter((member) => {
+                  const isIncluded = projectMemberNames.includes(member.name || '');
+                  if (isIncluded) {
+                    console.log('マッチしたメンバー:', member.name, 'ID:', member.id);
+                  }
+                  return isIncluded;
+                });
+                
+                console.log('フィルタリング後のプロジェクトメンバー数:', this.projectMembers.length, '件');
+                console.log('フィルタリング後のプロジェクトメンバー:', this.projectMembers.map(m => ({ id: m.id, name: m.name })));
+              } else {
+                console.log('プロジェクトのメンバーが設定されていないか、空文字列です');
+                // プロジェクトのメンバーが設定されていない場合は全メンバーを表示
+                this.projectMembers = members;
+              }
+            },
+            error: (error) => {
+              console.error('プロジェクト情報の取得エラー:', error);
+              // エラー時は全メンバーを表示
+              this.projectMembers = members;
+            },
+          });
+        } else {
+          console.log('プロジェクトIDが設定されていません');
+          // プロジェクトIDがない場合は全メンバーを表示
+          this.projectMembers = members;
+        }
       },
       error: (error) => {
         console.error('メンバー一覧の読み込みエラー:', error);
@@ -204,7 +253,8 @@ export class TaskCreatePageComponent implements OnInit {
   onMembersSelectionChange(memberIds: string[]) {
     this.selectedMemberIds = memberIds;
     this.taskForm.assignee = this.selectedMemberIds
-      .map((id) => this.members.find((m) => m.id === id)?.name)
+      .map((id) => this.projectMembers.find((m) => m.id === id)?.name)
+      .filter((name) => name) // undefinedを除外
       .join(', ');
   }
 

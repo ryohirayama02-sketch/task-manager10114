@@ -332,31 +332,59 @@ export class TaskDetailComponent implements OnInit {
     }
   }
 
-  /** プロジェクトメンバーを読み込み */
+  /** プロジェクトメンバーを読み込み（プロジェクトのメンバーのみ） */
   private loadProjectMembers(projectId: string): void {
     this.membersLoading = true;
     this.memberService.getMembers().subscribe({
       next: (members) => {
-        this.projectMembers = members;
-        this.membersLoading = false;
-        console.log(
-          'プロジェクトメンバーを読み込みました:',
-          members.length,
-          '件'
-        );
-        
-        // 編集モードがONの場合は、担当者を初期化
-        if (this.isEditing) {
-          console.log('編集モードON中なので、担当者を初期化します');
-          this.initializeAssigneeForEdit();
-        } else {
-          // 読み取りモードの場合も、assignedMembers を selectedAssignedMemberIds に反映
-          if (this.task?.assignedMembers && this.task.assignedMembers.length > 0) {
-            this.selectedAssignedMemberIds = [...this.task.assignedMembers];
-          } else if (this.taskData.assignedMembers && this.taskData.assignedMembers.length > 0) {
-            this.selectedAssignedMemberIds = [...this.taskData.assignedMembers];
-          }
-        }
+        // プロジェクト情報を取得して、プロジェクトのメンバーのみをフィルタリング
+        this.projectService.getProjectById(projectId).subscribe({
+          next: (project) => {
+            if (project?.members && project.members.trim().length > 0) {
+              // プロジェクトのmembersフィールドはメンバー名のカンマ区切り文字列
+              const projectMemberNames = project.members
+                .split(',')
+                .map((name) => name.trim())
+                .filter((name) => name.length > 0);
+              
+              // プロジェクトのメンバー名に一致するメンバーのみをフィルタリング
+              this.projectMembers = members.filter((member) =>
+                projectMemberNames.includes(member.name || '')
+              );
+            } else {
+              // プロジェクトのメンバーが設定されていない場合は全メンバーを表示
+              this.projectMembers = members;
+            }
+            
+            this.membersLoading = false;
+            console.log(
+              'プロジェクトメンバーを読み込みました:',
+              this.projectMembers.length,
+              '件（全メンバー:',
+              members.length,
+              '件）'
+            );
+            
+            // 編集モードがONの場合は、担当者を初期化
+            if (this.isEditing) {
+              console.log('編集モードON中なので、担当者を初期化します');
+              this.initializeAssigneeForEdit();
+            } else {
+              // 読み取りモードの場合も、assignedMembers を selectedAssignedMemberIds に反映
+              if (this.task?.assignedMembers && this.task.assignedMembers.length > 0) {
+                this.selectedAssignedMemberIds = [...this.task.assignedMembers];
+              } else if (this.taskData.assignedMembers && this.taskData.assignedMembers.length > 0) {
+                this.selectedAssignedMemberIds = [...this.taskData.assignedMembers];
+              }
+            }
+          },
+          error: (error) => {
+            console.error('プロジェクト情報の取得エラー:', error);
+            // エラー時は全メンバーを表示
+            this.projectMembers = members;
+            this.membersLoading = false;
+          },
+        });
       },
       error: (error) => {
         console.error('プロジェクトメンバーの読み込みエラー:', error);

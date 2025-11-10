@@ -123,7 +123,7 @@
         </div>
 
         <!-- メンバー選択 -->
-        <div *ngIf="!loading && members.length > 0">
+        <div *ngIf="!loading && projectMembers.length > 0">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>担当者を選択</mat-label>
             <mat-select
@@ -131,7 +131,7 @@
               (selectionChange)="onMemberSelectionChange($event.value)"
               placeholder="担当者を選択してください"
             >
-              <mat-option *ngFor="let member of members" [value]="member.id">
+              <mat-option *ngFor="let member of projectMembers" [value]="member.id">
                 {{ member.name }}
               </mat-option>
             </mat-select>
@@ -140,10 +140,10 @@
         </div>
 
         <!-- メンバーがいない場合 -->
-        <div *ngIf="!loading && members.length === 0" class="no-members">
+        <div *ngIf="!loading && projectMembers.length === 0" class="no-members">
           <mat-icon class="no-members-icon">people_outline</mat-icon>
-          <p>メンバーが登録されていません</p>
-          <p>先にメンバー管理画面でメンバーを登録してください。</p>
+          <p>プロジェクトにメンバーが登録されていません</p>
+          <p>先にプロジェクト詳細画面でメンバーを登録してください。</p>
         </div>
       </div>
 

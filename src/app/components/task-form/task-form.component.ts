@@ -72,6 +72,7 @@ export class TaskFormComponent implements OnInit {
 
   // メンバー関連
   members: Member[] = [];
+  projectMembers: Member[] = []; // プロジェクトのメンバーのみ
   loading = false;
 
   // 日付用の文字列プロパティ
@@ -191,19 +192,37 @@ export class TaskFormComponent implements OnInit {
   }
 
   /**
-   * メンバー一覧を読み込み
+   * メンバー一覧を読み込み（プロジェクトのメンバーのみ）
    */
   loadMembers(): void {
     this.loading = true;
     this.memberService.getMembers().subscribe({
       next: (members) => {
         this.members = members;
+        
+        // プロジェクトのmembersフィールドはメンバー名のカンマ区切り文字列
+        if (this.project?.members && this.project.members.trim().length > 0) {
+          const projectMemberNames = this.project.members
+            .split(',')
+            .map((name) => name.trim())
+            .filter((name) => name.length > 0);
+          
+          // プロジェクトのメンバー名に一致するメンバーのみをフィルタリング
+          this.projectMembers = members.filter((member) =>
+            projectMemberNames.includes(member.name || '')
+          );
+        } else {
+          // プロジェクトのメンバーが設定されていない場合は全メンバーを表示
+          this.projectMembers = members;
+        }
+        
         this.loading = false;
         console.log('メンバー一覧を読み込みました:', members.length, '件');
+        console.log('プロジェクトのメンバー:', this.projectMembers.length, '件');
 
         // 複製データがある場合、担当者を設定
         if (this.data?.duplicateData?.assignee) {
-          const member = members.find(
+          const member = this.projectMembers.find(
             (m) => m.name === this.data.duplicateData.assignee
           );
           if (member) {
@@ -235,7 +254,7 @@ export class TaskFormComponent implements OnInit {
       return;
     }
 
-    const selectedMember = this.members.find(
+    const selectedMember = this.projectMembers.find(
       (member) => member.id === memberId
     );
 

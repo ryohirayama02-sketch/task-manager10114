@@ -1140,33 +1140,49 @@ export class ProjectDetailComponent implements OnInit {
         this.taskNameById = nameMap;
         this.tasks = this.sortTasks(tasks);
         
-        // ✅ 修正：メンバー管理画面のメンバー一覧から選択肢を生成（最新の名前を表示）
+        // ✅ 修正：プロジェクトのメンバーのみから選択肢を生成
         const assigneeSet = new Set<string>();
+        
+        // プロジェクトのmembersフィールドはメンバー名のカンマ区切り文字列
+        const projectMemberNames: string[] = [];
+        if (this.project?.members && this.project.members.trim().length > 0) {
+          projectMemberNames.push(
+            ...this.project.members
+              .split(',')
+              .map((name) => name.trim())
+              .filter((name) => name.length > 0)
+          );
+        }
+        
+        // プロジェクトのメンバー名に一致するメンバーのみをフィルタリング
+        const projectMembers = this.members.filter((member) =>
+          projectMemberNames.includes(member.name || '')
+        );
         
         // 各タスクの担当者を取得（assignedMembersから最新のメンバー名を取得）
         tasks.forEach((task) => {
-          // assignedMembers から取得（メンバーIDからメンバー名に変換）
+          // assignedMembers から取得（メンバーIDからメンバー名に変換、プロジェクトのメンバーのみ）
           if (Array.isArray((task as any).assignedMembers)) {
-            const memberNames = getMemberNames((task as any).assignedMembers, this.members);
+            const memberNames = getMemberNames((task as any).assignedMembers, projectMembers);
             memberNames.forEach((name) => assigneeSet.add(name));
           }
           
-          // assignee から取得（メンバー管理画面に存在する名前のみ）
+          // assignee から取得（プロジェクトのメンバーのみ）
           if (task.assignee) {
             const assignees = task.assignee
               .split(',')
               .map((name) => name.trim())
               .filter((name) => name.length > 0)
               .filter((name) => {
-                // メンバー管理画面に存在する名前のみを追加
-                return this.members.some((m) => m.name === name);
+                // プロジェクトのメンバーのみを追加
+                return projectMembers.some((m) => m.name === name);
               });
             assignees.forEach((assignee) => assigneeSet.add(assignee));
           }
         });
         
-        // メンバー管理画面のメンバー一覧からも取得（最新の名前を確実に含める）
-        this.members.forEach((member) => {
+        // プロジェクトのメンバー一覧からも取得（最新の名前を確実に含める）
+        projectMembers.forEach((member) => {
           if (member.name) {
             const names = member.name
               .split(',')
@@ -1191,20 +1207,40 @@ export class ProjectDetailComponent implements OnInit {
       const priorityMatch =
         !this.filterPriority || task.priority === this.filterPriority;
       
-      // ✅ 修正：カンマ区切りメンバー対応 + メンバーIDをメンバー名に変換
+      // ✅ 修正：カンマ区切りメンバー対応 + メンバーIDをメンバー名に変換（プロジェクトのメンバーのみ）
       let assigneeMatch = false;
       if (!this.filterAssignee) {
         assigneeMatch = true;
       } else {
+        // プロジェクトのmembersフィールドはメンバー名のカンマ区切り文字列
+        const projectMemberNames: string[] = [];
+        if (this.project?.members && this.project.members.trim().length > 0) {
+          projectMemberNames.push(
+            ...this.project.members
+              .split(',')
+              .map((name) => name.trim())
+              .filter((name) => name.length > 0)
+          );
+        }
+        
+        // プロジェクトのメンバー名に一致するメンバーのみをフィルタリング
+        const projectMembers = this.members.filter((member) =>
+          projectMemberNames.includes(member.name || '')
+        );
+        
         // assignee をカンマで分割
         const assignees = (task.assignee || '')
           .split(',')
           .map((name) => name.trim().toLowerCase())
-          .filter((name) => name.length > 0);
+          .filter((name) => name.length > 0)
+          .filter((name) => {
+            // プロジェクトのメンバーのみを対象
+            return projectMembers.some((m) => m.name.toLowerCase() === name);
+          });
         
-        // assignedMembers も含める（メンバーIDをメンバー名に変換）
+        // assignedMembers も含める（メンバーIDをメンバー名に変換、プロジェクトのメンバーのみ）
         if (Array.isArray((task as any).assignedMembers)) {
-          const memberNames = getMemberNames((task as any).assignedMembers, this.members);
+          const memberNames = getMemberNames((task as any).assignedMembers, projectMembers);
           assignees.push(...memberNames.map((name) => name.toLowerCase()));
         }
         
