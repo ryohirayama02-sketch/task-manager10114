@@ -33,7 +33,7 @@
   </mat-menu>
 
   <!-- ▼ プロジェクトカード一覧 -->
-  <div class="project-card-list">
+  <div *ngIf="projects.length > 0" class="project-card-list">
     <div
       *ngFor="let project of projects"
       (click)="project.id ? goToProgress(project.id) : null"
@@ -96,5 +96,16 @@
         </app-progress-circle>
       </div>
     </div>
+  </div>
+
+  <!-- プロジェクトが見つからない場合 -->
+  <div *ngIf="projects.length === 0" class="no-projects">
+    <mat-card>
+      <mat-card-content>
+        <div class="no-projects-content">
+          <h3>プロジェクトが見つかりません</h3>
+        </div>
+      </mat-card-content>
+    </mat-card>
   </div>
 </div>

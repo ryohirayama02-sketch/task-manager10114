@@ -4,6 +4,7 @@ import { Router, RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatCardModule } from '@angular/material/card';
 import { ProjectService } from '../../../services/project.service';
 import {
   ProgressService,
@@ -32,6 +33,7 @@ import { switchMap, takeUntil } from 'rxjs/operators';
     MatButtonModule,
     MatIconModule,
     MatMenuModule,
+    MatCardModule,
     ProgressCircleComponent,
     TranslatePipe,
   ],

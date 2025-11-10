@@ -200,3 +200,23 @@
   font-size: 16px;
   font-weight: bold;
 }
+
+/* プロジェクトが見つからない場合 */
+.no-projects {
+  margin-top: 40px;
+}
+
+.no-projects-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 40px;
+}
+
+.no-projects-content h3 {
+  color: #333;
+  margin: 0;
+  font-size: 20px;
+  font-weight: 500;
+}
