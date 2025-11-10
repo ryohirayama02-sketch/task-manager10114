@@ -567,7 +567,9 @@ export class TaskCreatePageComponent implements OnInit {
 
   goBack() {
     if (this.returnUrl) {
-      this.router.navigateByUrl(this.returnUrl);
+      // replaceUrl: true を指定して、ブラウザの履歴に新しいエントリを追加しない
+      // これにより、タスク作成画面が履歴に残らず、正しく戻れる
+      this.router.navigateByUrl(this.returnUrl, { replaceUrl: true });
     } else {
       this.location.back();
     }
