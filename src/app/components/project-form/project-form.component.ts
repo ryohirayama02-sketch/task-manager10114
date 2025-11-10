@@ -405,11 +405,7 @@ export class ProjectFormComponent implements OnInit {
         responsible: responsibleNames,
         responsibleId: primaryResponsibleId,
         responsibleEmail: primaryResponsibleEmail,
-        members: this.selectedMembers.map((member) => ({
-          memberId: member.id || '',
-          memberName: member.name,
-          memberEmail: member.email,
-        })),
+        members: this.selectedMembers.map((member) => member.name).join(', '),
         milestones: this.getPreparedMilestones(),
         attachments: linkAttachments,
         createdAt: new Date(),
