@@ -20,6 +20,7 @@ import {
   DEFAULT_PROJECT_THEME_COLOR,
   resolveProjectThemeColor,
 } from '../../constants/project-theme-colors';
+import { getMemberNamesAsString } from '../../utils/member-utils';
 
 interface SearchFilters {
   assignee: string[];
@@ -445,17 +446,17 @@ export class TaskSearchComponent implements OnInit {
    * タスクの担当者を表示（メンバー管理画面に存在しない名前は除外）
    */
   getTaskAssigneeDisplay(task: Task): string {
+    // assignedMembers がある場合はそれを使用
     if (task.assignedMembers && task.assignedMembers.length > 0) {
-      const names: string[] = [];
-      task.assignedMembers.forEach((memberId) => {
-        const member = this.allMembers.find((m) => m.id === memberId);
-        if (member && member.name) {
-          names.push(member.name);
-        }
-      });
-      return names.length > 0 ? names.join(', ') : '—';
+      const display = getMemberNamesAsString(
+        task.assignedMembers,
+        this.allMembers,
+        ', '
+      );
+      return display === '未設定' ? '—' : display;
     }
 
+    // assignedMembers がない場合は assignee から最新のメンバー名を取得
     if (!task.assignee) {
       return '—';
     }

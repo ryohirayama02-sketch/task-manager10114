@@ -653,16 +653,22 @@ export class TaskDetailComponent implements OnInit {
 
   /** タスクを削除 */
   deleteTask() {
-    if (
-      confirm(
-        `タスク「${this.taskData.taskName}」を削除してもよろしいですか？この操作は元に戻せません。`
-      )
-    ) {
+    const childTasksCount = this.childTasks?.length || 0;
+    let confirmMessage = `タスク「${this.taskData.taskName}」を削除してもよろしいですか？この操作は元に戻せません。`;
+    
+    if (childTasksCount > 0) {
+      confirmMessage += `\n\n注意: このタスクに紐づく${childTasksCount}件の子タスクも一緒に削除されます。`;
+    }
+    
+    if (confirm(confirmMessage)) {
       if (this.task && this.task.projectId && this.task.id) {
         this.taskService
           .deleteTask(this.task.id, this.taskData, this.task.projectId)
           .then(() => {
             console.log('タスクが削除されました');
+            if (childTasksCount > 0) {
+              console.log(`${childTasksCount}件の子タスクも削除されました`);
+            }
             this.goBack();
           })
           .catch((error: Error) => {

@@ -266,23 +266,39 @@ export class ProjectFormDialogComponent implements OnInit {
   }
 
   addLinkAttachment(): void {
-    const url = this.linkUrl.trim();
-    const title = this.linkTitle.trim();
+    const url = this.linkUrl?.trim() || '';
+    const title = this.linkTitle?.trim() || '';
 
     if (!url) {
       this.snackBar.open('URLを入力してください', '閉じる', { duration: 3000 });
       return;
     }
 
-    if (!this.isValidUrl(url)) {
+    // プロトコルがない場合は自動的にhttps://を追加
+    let trimmedUrl = url;
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      trimmedUrl = 'https://' + url;
+    }
+
+    if (!this.isValidUrl(trimmedUrl)) {
       this.snackBar.open('URLの形式が正しくありません', '閉じる', { duration: 3000 });
+      return;
+    }
+
+    // 既に同じURLが存在するかチェック
+    const exists = this.attachments.some(
+      (att) => att.type === 'link' && att.url === trimmedUrl
+    );
+    
+    if (exists) {
+      this.snackBar.open('このURLは既に追加されています', '閉じる', { duration: 3000 });
       return;
     }
 
     const attachment: ProjectAttachment = {
       id: this.generateId(),
-      name: title || url,
-      url,
+      name: title || this.extractUrlLabel(trimmedUrl),
+      url: trimmedUrl,
       type: 'link',
       uploadedAt: new Date().toISOString(),
     };
@@ -560,6 +576,20 @@ export class ProjectFormDialogComponent implements OnInit {
       return !!url.protocol && !!url.host;
     } catch {
       return false;
+    }
+  }
+
+  /**
+   * URLラベルを抽出
+   */
+  private extractUrlLabel(url: string): string {
+    try {
+      const urlObj = new URL(url);
+      // ホスト名またはパス名から短いラベルを作成
+      const hostname = urlObj.hostname.replace('www.', '');
+      return hostname || url.substring(0, 30);
+    } catch {
+      return url.substring(0, 30);
     }
   }
 

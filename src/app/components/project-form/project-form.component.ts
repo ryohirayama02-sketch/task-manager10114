@@ -258,25 +258,43 @@ export class ProjectFormComponent implements OnInit {
    * URL 添付を追加
    */
   addLinkAttachment(): void {
-    const url = this.linkUrl.trim();
-    if (!url) {
+    if (!this.linkUrl || !this.linkUrl.trim()) {
       this.snackBar.open('URLを入力してください', '閉じる', { duration: 3000 });
       return;
     }
 
-    if (!this.isValidUrl(url)) {
+    const url = this.linkUrl.trim();
+
+    // プロトコルがない場合は自動的にhttps://を追加
+    let trimmedUrl = url;
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      trimmedUrl = 'https://' + url;
+    }
+
+    if (!this.isValidUrl(trimmedUrl)) {
       this.snackBar.open('URLの形式が正しくありません', '閉じる', { duration: 3000 });
       return;
     }
 
-    this.attachments.push({
-      id: this.generateId(),
-      name: url,
-      url,
-      type: 'link',
-      uploadedAt: new Date().toISOString(),
-    });
+    // 既に同じURLが存在するかチェック
+    const exists = this.attachments.some(
+      (att) => att.type === 'link' && att.url === trimmedUrl
+    );
+    
+    if (exists) {
+      this.snackBar.open('このURLは既に追加されています', '閉じる', { duration: 3000 });
+      return;
+    }
 
+    const newAttachment = {
+      id: this.generateId(),
+      name: this.extractUrlLabel(trimmedUrl),
+      url: trimmedUrl,
+      type: 'link' as const,
+      uploadedAt: new Date().toISOString(),
+    };
+
+    this.attachments.push(newAttachment);
     this.linkUrl = '';
   }
 
@@ -544,6 +562,20 @@ export class ProjectFormComponent implements OnInit {
       return !!url.protocol && !!url.host;
     } catch {
       return false;
+    }
+  }
+
+  /**
+   * URLラベルを抽出
+   */
+  private extractUrlLabel(url: string): string {
+    try {
+      const urlObj = new URL(url);
+      // ホスト名またはパス名から短いラベルを作成
+      const hostname = urlObj.hostname.replace('www.', '');
+      return hostname || url.substring(0, 30);
+    } catch {
+      return url.substring(0, 30);
     }
   }
 

@@ -595,11 +595,13 @@ export class TaskEditDialogComponent implements OnInit {
 
   /** タスク削除の確認ダイアログ */
   confirmDeleteTask(): void {
+    const childTasksCount = this.childTasksForValidation?.length || 0;
     const dialogRef = this.dialog.open(TaskDeleteConfirmDialogComponent, {
       width: '400px',
       data: {
         taskName: this.task.taskName,
         taskId: this.task.id,
+        childTasksCount: childTasksCount,
       },
     });
 
@@ -616,17 +618,26 @@ export class TaskEditDialogComponent implements OnInit {
       return;
     }
 
+    const childTasksCount = this.childTasksForValidation?.length || 0;
+    const taskData = {
+      taskName: this.task.taskName,
+      projectName: this.data.projectName || 'プロジェクト',
+      attachments: this.task.attachments || [],
+    };
+
     try {
       await this.taskService.deleteTask(
         this.task.id,
-        this.data.projectId,
-        this.data.projectName || ''
+        taskData,
+        this.data.projectId
       );
-      this.snackBar.open(
-        `タスク「${this.task.taskName}」を削除しました`,
-        '閉じる',
-        { duration: 3000 }
-      );
+      
+      let message = `タスク「${this.task.taskName}」を削除しました`;
+      if (childTasksCount > 0) {
+        message += `（${childTasksCount}件の子タスクも削除されました）`;
+      }
+      
+      this.snackBar.open(message, '閉じる', { duration: 3000 });
 
       // ダイアログを閉じて削除完了を通知
       this.dialogRef.close({ deleted: true });

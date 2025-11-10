@@ -11,6 +11,7 @@ import { MatIconModule } from '@angular/material/icon';
 export interface TaskDeleteConfirmDialogData {
   taskName: string;
   taskId: string;
+  childTasksCount?: number;
 }
 
 @Component({
@@ -28,6 +29,12 @@ export interface TaskDeleteConfirmDialogData {
         <p>以下のタスクを削除しますか？</p>
         <div class="task-info">
           <strong>{{ data.taskName }}</strong>
+        </div>
+        <div class="warning-message" *ngIf="data.childTasksCount && data.childTasksCount > 0">
+          <mat-icon>warning</mat-icon>
+          <span
+            >このタスクに紐づく{{ data.childTasksCount }}件の子タスクも一緒に削除されます。</span
+          >
         </div>
         <div class="warning-message">
           <mat-icon>info</mat-icon>

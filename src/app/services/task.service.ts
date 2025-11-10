@@ -20,6 +20,7 @@ import {
   DEFAULT_PROJECT_THEME_COLOR,
   resolveProjectThemeColor,
 } from '../constants/project-theme-colors';
+import { TaskAttachmentService } from './task-attachment.service';
 
 @Injectable({ providedIn: 'root' })
 export class TaskService {
@@ -27,7 +28,8 @@ export class TaskService {
     private firestore: Firestore,
     private editLogService: EditLogService,
     private authService: AuthService,
-    private memberManagementService: MemberManagementService
+    private memberManagementService: MemberManagementService,
+    private taskAttachmentService: TaskAttachmentService
   ) {}
 
   /** 🔹 Firestoreからタスク一覧を取得 */
@@ -457,17 +459,103 @@ export class TaskService {
     return result;
   }
 
-  /** ❌ タスク削除 */
+  /** ❌ タスク削除（親タスク削除時は子タスクも再帰的に削除） */
   async deleteTask(taskId: string, taskData: any, projectId?: string) {
     if (!projectId) throw new Error('プロジェクトIDが必要です');
+
+    // 子タスクを再帰的に削除
+    await this.deleteChildTasksRecursively(taskId, projectId, taskData.projectName || 'プロジェクト');
+
+    // 添付ファイルを削除
+    if (taskData.attachments && Array.isArray(taskData.attachments)) {
+      for (const attachment of taskData.attachments) {
+        if (attachment.type === 'file' && attachment.storagePath) {
+          try {
+            await this.taskAttachmentService.deleteAttachment(attachment);
+          } catch (error) {
+            console.error('添付ファイルの削除エラー:', error);
+            // エラーが発生してもタスク削除は続行
+          }
+        }
+      }
+    }
+
+    // タスク自体を削除
     const ref = doc(this.firestore, `projects/${projectId}/tasks/${taskId}`);
     await deleteDoc(ref);
+
+    // 削除ログを記録
     await this.editLogService.logEdit(
       projectId,
       taskData.projectName || 'プロジェクト',
       'delete',
       `タスク「${taskData.taskName}」を削除しました`,
-      taskId
+      taskId,
+      taskData.taskName
     );
+  }
+
+  /**
+   * 子タスクを再帰的に削除
+   * @param parentTaskId 親タスクID
+   * @param projectId プロジェクトID
+   * @param projectName プロジェクト名
+   */
+  private async deleteChildTasksRecursively(
+    parentTaskId: string,
+    projectId: string,
+    projectName: string
+  ): Promise<void> {
+    // 子タスクを取得
+    const tasksRef = collection(this.firestore, `projects/${projectId}/tasks`);
+    const childTasksQuery = query(
+      tasksRef,
+      where('parentTaskId', '==', parentTaskId)
+    );
+    const childTasksSnapshot = await getDocs(childTasksQuery);
+
+    // 各子タスクを再帰的に削除
+    const deletePromises = childTasksSnapshot.docs.map(async (childTaskDoc) => {
+      const childTaskData = childTaskDoc.data();
+      const childTaskId = childTaskDoc.id;
+
+      console.log(`子タスクを削除中: ${childTaskData['taskName']} (ID: ${childTaskId})`);
+
+      // 子タスクの子タスクも再帰的に削除
+      await this.deleteChildTasksRecursively(childTaskId, projectId, projectName);
+
+      // 子タスクの添付ファイルを削除
+      if (childTaskData['attachments'] && Array.isArray(childTaskData['attachments'])) {
+        for (const attachment of childTaskData['attachments']) {
+          if (attachment.type === 'file' && attachment.storagePath) {
+            try {
+              await this.taskAttachmentService.deleteAttachment(attachment);
+            } catch (error) {
+              console.error('子タスクの添付ファイル削除エラー:', error);
+              // エラーが発生してもタスク削除は続行
+            }
+          }
+        }
+      }
+
+      // 子タスクを削除
+      const childTaskRef = doc(
+        this.firestore,
+        `projects/${projectId}/tasks/${childTaskId}`
+      );
+      await deleteDoc(childTaskRef);
+
+      // 子タスクの削除ログを記録
+      await this.editLogService.logEdit(
+        projectId,
+        projectName,
+        'delete',
+        `子タスク「${childTaskData['taskName']}」を削除しました（親タスク削除に伴う）`,
+        childTaskId,
+        childTaskData['taskName']
+      );
+    });
+
+    await Promise.all(deletePromises);
   }
 }
