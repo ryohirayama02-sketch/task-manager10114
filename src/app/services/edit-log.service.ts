@@ -11,6 +11,8 @@ import {
   serverTimestamp,
   FieldValue,
   where,
+  doc,
+  deleteDoc,
 } from '@angular/fire/firestore';
 import { Firestore } from '@angular/fire/firestore';
 import { AuthService } from './auth.service';
@@ -330,5 +332,32 @@ export class EditLogService {
   /** ファイル名用の日付フォーマット */
   private formatDateForFilename(date: Date): string {
     return date.toISOString().split('T')[0].replace(/-/g, '');
+  }
+
+  /**
+   * ルーム内のすべての編集ログを削除
+   */
+  async deleteAllEditLogsInRoom(roomId: string): Promise<void> {
+    console.log('🔍 EditLogService.deleteAllEditLogsInRoom が呼び出されました');
+    console.log('ルームID:', roomId);
+
+    if (!roomId || roomId.trim() === '') {
+      throw new Error('ルームIDが指定されていません');
+    }
+
+    const logsRef = collection(this.firestore, this.EDIT_LOGS_COLLECTION);
+    const roomQuery = query(logsRef, where('roomId', '==', roomId));
+    const snapshot = await getDocs(roomQuery);
+
+    console.log(`削除対象の編集ログ数: ${snapshot.size}件`);
+
+    const deletePromises = snapshot.docs.map(async (logDoc) => {
+      const logRef = doc(this.firestore, `${this.EDIT_LOGS_COLLECTION}/${logDoc.id}`);
+      await deleteDoc(logRef);
+      console.log(`✅ 編集ログを削除しました: ${logDoc.id}`);
+    });
+
+    await Promise.all(deletePromises);
+    console.log(`✅ ルーム内のすべての編集ログを削除しました: ${snapshot.size}件`);
   }
 }

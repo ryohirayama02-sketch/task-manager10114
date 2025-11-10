@@ -145,4 +145,31 @@ export class MemberManagementService {
     const members = await firstValueFrom(this.getMembers());
     return members?.find((member) => member.email === email) || null;
   }
+
+  /**
+   * ルーム内のすべてのメンバーを削除
+   */
+  async deleteAllMembersInRoom(roomId: string): Promise<void> {
+    console.log('🔍 MemberManagementService.deleteAllMembersInRoom が呼び出されました');
+    console.log('ルームID:', roomId);
+
+    if (!roomId || roomId.trim() === '') {
+      throw new Error('ルームIDが指定されていません');
+    }
+
+    const membersRef = collection(this.firestore, this.MEMBERS_COLLECTION);
+    const roomQuery = query(membersRef, where('roomId', '==', roomId));
+    const snapshot = await getDocs(roomQuery);
+
+    console.log(`削除対象のメンバー数: ${snapshot.size}件`);
+
+    const deletePromises = snapshot.docs.map(async (memberDoc) => {
+      const memberRef = doc(this.firestore, `${this.MEMBERS_COLLECTION}/${memberDoc.id}`);
+      await deleteDoc(memberRef);
+      console.log(`✅ メンバーを削除しました: ${memberDoc.id}`);
+    });
+
+    await Promise.all(deletePromises);
+    console.log(`✅ ルーム内のすべてのメンバーを削除しました: ${snapshot.size}件`);
+  }
 }

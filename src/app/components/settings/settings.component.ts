@@ -22,6 +22,8 @@ import { Router } from '@angular/router';
 import { ProjectSelectionService } from '../../services/project-selection.service';
 import { RoomDeleteConfirmDialogComponent } from './room-delete-confirm-dialog.component';
 import { ProjectService } from '../../services/project.service';
+import { MemberManagementService } from '../../services/member-management.service';
+import { EditLogService } from '../../services/edit-log.service';
 import { NotificationSettings } from '../../models/notification.model';
 import {
   HomeScreenSettings,
@@ -121,6 +123,8 @@ export class SettingsComponent implements OnInit {
     private projectSelectionService: ProjectSelectionService,
     private dialog: MatDialog,
     private projectService: ProjectService,
+    private memberManagementService: MemberManagementService,
+    private editLogService: EditLogService,
   ) {}
 
   async ngOnInit() {
@@ -1072,6 +1076,24 @@ export class SettingsComponent implements OnInit {
                 }
               }
             }
+          }
+
+          // ルーム内のすべてのメンバーを削除
+          try {
+            await this.memberManagementService.deleteAllMembersInRoom(roomId);
+            console.log('✅ ルーム内のすべてのメンバーを削除しました');
+          } catch (error) {
+            console.error('メンバー削除エラー:', error);
+            // エラーが発生しても続行
+          }
+
+          // ルーム内のすべての編集ログを削除
+          try {
+            await this.editLogService.deleteAllEditLogsInRoom(roomId);
+            console.log('✅ ルーム内のすべての編集ログを削除しました');
+          } catch (error) {
+            console.error('編集ログ削除エラー:', error);
+            // エラーが発生しても続行
           }
 
           // ルームを削除
