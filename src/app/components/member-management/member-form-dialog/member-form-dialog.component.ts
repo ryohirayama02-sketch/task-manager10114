@@ -59,9 +59,24 @@ export class MemberFormDialogComponent implements OnInit {
     private authService: AuthService
   ) {
     this.memberForm = this.fb.group({
-      name: ['', [Validators.required, Validators.minLength(1), Validators.maxLength(20)]],
+      name: ['', [
+        Validators.required, 
+        Validators.minLength(1), 
+        Validators.maxLength(20),
+        this.noCommaValidator
+      ]],
       email: ['', [Validators.required, Validators.email]],
     });
+  }
+
+  /**
+   * カンマを含まないことを検証するカスタムバリデーター
+   */
+  private noCommaValidator(control: any) {
+    if (control.value && control.value.includes(',')) {
+      return { noComma: true };
+    }
+    return null;
   }
 
   ngOnInit(): void {
@@ -85,6 +100,14 @@ export class MemberFormDialogComponent implements OnInit {
     }
 
     const formData = this.memberForm.value;
+
+    // 名前にカンマが含まれているかチェック
+    if (formData.name && formData.name.includes(',')) {
+      this.snackBar.open('名前に「,」（カンマ）は使用できません', '閉じる', {
+        duration: 5000,
+      });
+      return;
+    }
 
     // メンバー数の制限をチェック（追加時のみ）
     if (this.data.mode === 'add') {
@@ -232,6 +255,9 @@ export class MemberFormDialogComponent implements OnInit {
     }
     if (field?.hasError('maxlength')) {
       return '名前は20文字以内で入力してください';
+    }
+    if (field?.hasError('noComma')) {
+      return '名前に「,」（カンマ）は使用できません';
     }
     return '';
   }
