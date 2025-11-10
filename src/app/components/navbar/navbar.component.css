@@ -7,22 +7,16 @@
   background-color: #fff;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   flex-wrap: wrap;
-  gap: 24px;
+  gap: 16px;
   row-gap: 12px;
   min-width: 0;
-}
-
-.nav-links {
-  display: flex;
-  gap: 16px;
-  align-items: center;
-  flex: 0 1 auto;
-  flex-wrap: wrap;
-  min-width: 0;
+  width: 100%;
   max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
-.nav-links a {
+.navbar > a {
   text-decoration: none;
   color: #333;
   padding: 8px 12px;
@@ -30,44 +24,22 @@
   transition: background-color 0.2s ease;
   font-size: 14px;
   white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.nav-links a:hover {
-  background-color: #f5f5f5;
-}
-
-.nav-right {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  flex: 0 1 auto;
-  flex-wrap: wrap;
+  flex-shrink: 1;
+  flex-basis: auto;
   min-width: 0;
-  max-width: 100%;
-  margin-left: auto;
+  box-sizing: border-box;
 }
 
-.nav-right a {
-  text-decoration: none;
-  color: #333;
-  padding: 8px 12px;
-  border-radius: 4px;
-  transition: background-color 0.2s ease;
-  font-size: 14px;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.nav-right a:hover {
+.navbar > a:hover {
   background-color: #f5f5f5;
 }
 
-.user-menu {
+.navbar > .user-menu {
   display: flex;
   align-items: center;
   min-width: 0;
   flex-shrink: 1;
+  flex-basis: auto;
   max-width: 100%;
 }
 
@@ -107,25 +79,14 @@
 }
 
 /* レスポンシブ対応 */
-/* 要素が重なりそうな場合に2段になるようにする（1600px以下） */
-@media (max-width: 1600px) {
-  .nav-links {
-    width: 100%;
-    margin-bottom: 4px;
-  }
-  
-  .nav-right {
-    width: 100%;
-    justify-content: flex-start;
-  }
-}
+/* ウィンドウ幅に合わせて自然に改行される */
 
 @media (max-width: 1200px) {
-  .nav-right {
-    gap: 4px;
+  .navbar {
+    gap: 12px;
   }
 
-  .nav-right a {
+  .navbar > a {
     font-size: 13px;
     padding: 8px 8px;
   }
@@ -140,20 +101,10 @@
   .navbar {
     padding: 12px;
     justify-content: flex-start;
-  }
-
-  .nav-links {
     gap: 8px;
-    width: 100%;
   }
 
-  .nav-right {
-    gap: 4px;
-    width: 100%;
-  }
-
-  .nav-links a,
-  .nav-right a {
+  .navbar > a {
     font-size: 12px;
     padding: 6px 8px;
   }
@@ -165,7 +116,11 @@
 }
 
 @media (max-width: 480px) {
-  .nav-right a {
+  .navbar {
+    gap: 6px;
+  }
+
+  .navbar > a {
     font-size: 11px;
     padding: 6px 6px;
   }

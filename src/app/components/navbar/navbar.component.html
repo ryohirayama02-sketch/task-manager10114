@@ -1,38 +1,33 @@
 <nav class="navbar">
-  <div class="nav-links">
-    <a routerLink="/kanban">{{ "nav.kanban" | translate }}</a>
-    <a routerLink="/gantt">{{ "nav.gantt" | translate }}</a>
-    <a routerLink="/calendar">{{ "nav.calendar" | translate }}</a>
-    <a routerLink="/progress/projects">{{
-      "nav.projectProgress" | translate
-    }}</a>
-    <a routerLink="/progress/members">{{ "nav.memberProgress" | translate }}</a>
-    <a routerLink="/quick">{{ "nav.quick" | translate }}</a>
-  </div>
+  <a routerLink="/kanban">{{ "nav.kanban" | translate }}</a>
+  <a routerLink="/gantt">{{ "nav.gantt" | translate }}</a>
+  <a routerLink="/calendar">{{ "nav.calendar" | translate }}</a>
+  <a routerLink="/progress/projects">{{
+    "nav.projectProgress" | translate
+  }}</a>
+  <a routerLink="/progress/members">{{ "nav.memberProgress" | translate }}</a>
+  <a routerLink="/quick">{{ "nav.quick" | translate }}</a>
+  <a routerLink="/search">{{ "nav.search" | translate }}</a>
+  <a routerLink="/members">{{ "nav.members" | translate }}</a>
+  <a routerLink="/logs">{{ "nav.logs" | translate }}</a>
+  <a routerLink="/offline-test">{{ "nav.offlineTest" | translate }}</a>
+  <a routerLink="/settings">{{ "nav.settings" | translate }}</a>
 
-  <div class="nav-right">
-    <a routerLink="/search">{{ "nav.search" | translate }}</a>
-    <a routerLink="/members">{{ "nav.members" | translate }}</a>
-    <a routerLink="/logs">{{ "nav.logs" | translate }}</a>
-    <a routerLink="/offline-test">{{ "nav.offlineTest" | translate }}</a>
-    <a routerLink="/settings">{{ "nav.settings" | translate }}</a>
-
-    <!-- ログイン状態に応じた表示 -->
-    <div *ngIf="user$ | async as user" class="user-menu">
-      <button mat-button [matMenuTriggerFor]="userMenu" class="user-button">
-        <mat-icon>account_circle</mat-icon>
-        <span class="mdc-button__label">{{ displayName$ | async }}</span>
+  <!-- ログイン状態に応じた表示 -->
+  <div *ngIf="user$ | async as user" class="user-menu">
+    <button mat-button [matMenuTriggerFor]="userMenu" class="user-button">
+      <mat-icon>account_circle</mat-icon>
+      <span class="mdc-button__label">{{ displayName$ | async }}</span>
+    </button>
+    <mat-menu #userMenu="matMenu">
+      <button mat-menu-item (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        {{ "nav.logout" | translate }}
       </button>
-      <mat-menu #userMenu="matMenu">
-        <button mat-menu-item (click)="logout()">
-          <mat-icon>logout</mat-icon>
-          {{ "nav.logout" | translate }}
-        </button>
-      </mat-menu>
-    </div>
-
-    <a *ngIf="!(user$ | async)" routerLink="/login">
-      {{ "nav.login" | translate }}
-    </a>
+    </mat-menu>
   </div>
+
+  <a *ngIf="!(user$ | async)" routerLink="/login">
+    {{ "nav.login" | translate }}
+  </a>
 </nav>
