@@ -186,7 +186,6 @@ export class TaskDetailComponent implements OnInit {
       if (this.taskData) {
         this.taskData.projectName = project.projectName;
       }
-      this.updateNotificationRecipientOptions();
       // プロジェクトメンバーを読み込み
       this.loadProjectMembers(projectId);
     });
@@ -242,7 +241,6 @@ export class TaskDetailComponent implements OnInit {
             (attachment) => ({ ...attachment })
           );
           this.initializeDetailSettings((this.task as any).detailSettings);
-          this.updateNotificationRecipientOptions();
           this.setupChildTasks(tasksWithProjectId, taskId);
           if (this.task.parentTaskId) {
             const parent = tasksWithProjectId.find(
@@ -297,7 +295,6 @@ export class TaskDetailComponent implements OnInit {
           }
         }
 
-        this.updateNotificationRecipientOptions();
       },
       error: (error) => {
         console.error('メンバー一覧の読み込みエラー:', error);
@@ -624,6 +621,13 @@ export class TaskDetailComponent implements OnInit {
       }
 
       console.log('タスクが更新されました');
+      
+      // 保存成功メッセージを表示
+      const message = this.task?.parentTaskId ? '子タスクを保存しました' : 'タスクを保存しました';
+      this.snackBar.open(message, '閉じる', {
+        duration: 3000,
+      });
+      
       this.isEditing = false;
       this.isSaving = false;
     } catch (error: Error | unknown) {
@@ -857,44 +861,12 @@ export class TaskDetailComponent implements OnInit {
     const nextValue = !current;
     this.detailSettings.notifications.beforeDeadline = nextValue;
 
+    // 通知先は常に担当者に設定（通知先フィールドは削除されたため）
     if (nextValue) {
-      this.ensureNotificationRecipients();
+      this.detailSettings.notifications.recipients = this.getDefaultNotificationRecipients();
     }
-
-    this.updateNotificationRecipientOptions();
   }
 
-  onNotificationRecipientsChange(): void {
-    if (!this.detailSettings.notifications.recipients) {
-      this.detailSettings.notifications.recipients = [];
-    }
-
-    // カンマ区切りの文字列を分割して個別のメンバー名に変換
-    const normalizedRecipients: string[] = [];
-    this.detailSettings.notifications.recipients.forEach((recipient: string) => {
-      if (recipient && (recipient.includes(',') || recipient.includes('、'))) {
-        // カンマ区切りの文字列を分割
-        const names = recipient
-          .split(/[,、]/)
-          .map((n) => n.trim())
-          .filter((n) => n.length > 0);
-        normalizedRecipients.push(...names);
-      } else if (recipient) {
-        // 個別のメンバー名はそのまま追加
-        normalizedRecipients.push(recipient.trim());
-      }
-    });
-
-    // 重複を除去して、プロジェクトメンバーに存在する名前のみを保持
-    const validRecipients = Array.from(new Set(normalizedRecipients)).filter(
-      (name) => {
-        return this.projectMembers.some((m) => m.name === name);
-      }
-    );
-
-    this.detailSettings.notifications.recipients = validRecipients;
-    this.updateNotificationRecipientOptions();
-  }
 
   onEstimatedTimeChange(): void {
     this.detailSettings.workTime.estimatedHours = `${this.estimatedHours.hour}:${this.estimatedHours.minute}`;
@@ -1006,32 +978,8 @@ export class TaskDetailComponent implements OnInit {
         this.detailSettings.notifications.beforeDeadline = true;
       }
 
-      if (this.detailSettings.notifications.recipients) {
-        // カンマ区切りの文字列を分割して個別のメンバー名に変換
-        const normalizedRecipients: string[] = [];
-        this.detailSettings.notifications.recipients.forEach((recipient: string) => {
-          if (recipient && (recipient.includes(',') || recipient.includes('、'))) {
-            // カンマ区切りの文字列を分割
-            const names = recipient
-              .split(/[,、]/)
-              .map((n) => n.trim())
-              .filter((n) => n.length > 0);
-            normalizedRecipients.push(...names);
-          } else if (recipient) {
-            // 個別のメンバー名はそのまま追加
-            normalizedRecipients.push(recipient.trim());
-          }
-        });
-        
-        // 重複を除去して、プロジェクトメンバーに存在する名前のみを保持
-        this.detailSettings.notifications.recipients = Array.from(
-          new Set(normalizedRecipients)
-        ).filter((name) => {
-          return this.projectMembers.some((m) => m.name === name);
-        });
-      }
-
-      this.updateNotificationRecipientOptions();
+      // 通知先は常に担当者に設定（通知先フィールドは削除されたため）
+      this.detailSettings.notifications.recipients = this.getDefaultNotificationRecipients();
 
       this.projectService
         .updateTask(this.task.projectId, this.task.id, {
@@ -1123,61 +1071,17 @@ export class TaskDetailComponent implements OnInit {
       this.detailSettings.notifications.beforeDeadline = true;
     }
 
-    const storedRecipients = storedSettings?.notifications?.recipients;
-    if (Array.isArray(storedRecipients)) {
-      // カンマ区切りの文字列を分割して個別のメンバー名に変換
-      const normalizedRecipients: string[] = [];
-      storedRecipients.forEach((rec: any) => {
-        const name =
-          typeof rec === 'string'
-            ? rec
-            : rec?.name || rec?.label || rec?.email || '';
-        if (name) {
-          if (name.includes(',') || name.includes('、')) {
-            // カンマ区切りの文字列を分割
-            const names = name
-              .split(/[,、]/)
-              .map((n: string) => n.trim())
-              .filter((n: string) => n.length > 0);
-            normalizedRecipients.push(...names);
-          } else {
-            // 個別のメンバー名はそのまま追加
-            normalizedRecipients.push(name);
-          }
-        }
-      });
-      
-      // 重複を除去して、プロジェクトメンバーに存在する名前のみを保持
-      this.detailSettings.notifications.recipients = Array.from(
-        new Set(normalizedRecipients)
-      ).filter((name) => {
-        return this.projectMembers.some((m) => m.name === name);
-      });
-    } else if (!this.detailSettings.notifications.recipients) {
-      this.detailSettings.notifications.recipients = [];
-    }
-
+    // 通知先は常に担当者に設定（通知先フィールドは削除されたため）
+    // 保存されたrecipientsは無視し、常に現在の担当者を使用
     if (this.detailSettings.notifications.beforeDeadline) {
       this.ensureNotificationRecipients();
     }
-    this.updateNotificationRecipientOptions();
     void this.reopenParentTaskIfNeeded(this.childTasks);
   }
 
   private ensureNotificationRecipients(): void {
-    if (!this.detailSettings.notifications.recipients) {
-      this.detailSettings.notifications.recipients = [];
-    }
-
-    if (
-      this.detailSettings.notifications.recipients.length === 0 &&
-      this.detailSettings.notifications.beforeDeadline
-    ) {
-      const defaults = this.getDefaultNotificationRecipients();
-      if (defaults.length > 0) {
-        this.detailSettings.notifications.recipients = defaults;
-      }
-    }
+    // 通知先は常に担当者に設定（通知先フィールドは削除されたため）
+    this.detailSettings.notifications.recipients = this.getDefaultNotificationRecipients();
   }
 
   private getDefaultNotificationRecipients(): string[] {
@@ -1468,74 +1372,6 @@ export class TaskDetailComponent implements OnInit {
       const dateB = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
       return dateA - dateB;
     });
-  }
-
-  updateNotificationRecipientOptions(): void {
-    const options = new Set<string>();
-
-    // assignee をカンマ区切りで分割して追加
-    if (this.taskData.assignee) {
-      const assignees = this.taskData.assignee
-        .split(',')
-        .map((name) => name.trim())
-        .filter((name) => name.length > 0);
-      assignees.forEach((assignee) => options.add(assignee));
-    }
-
-    // assignedMembers から名前を取得して追加
-    if (this.taskData.assignedMembers && this.taskData.assignedMembers.length > 0) {
-      const memberNames = getMemberNames(this.taskData.assignedMembers, this.projectMembers);
-      memberNames.forEach((name) => options.add(name));
-    }
-
-    if (this.project?.responsible) {
-      options.add(this.project.responsible);
-    }
-
-    // プロジェクトメンバーから個別のメンバー名を追加（編集モードと同様）
-    this.projectMembers.forEach((member) => {
-      if (member.name) {
-        options.add(member.name);
-      }
-    });
-
-    // 既存のrecipientsを処理（カンマ区切りの文字列を分割）
-    (this.detailSettings.notifications.recipients || []).forEach(
-      (name: string) => {
-        if (name) {
-          // カンマ区切りの文字列を分割して個別のメンバー名に変換
-          const names = name
-            .split(/[,、]/) // カンマ（,）と日本語カンマ（、）で分割
-            .map((n) => n.trim())
-            .filter((n) => n.length > 0);
-          
-          // 個別のメンバー名のみを追加（カンマ区切りの文字列自体は追加しない）
-          names.forEach((individualName) => {
-            // プロジェクトメンバーに存在する名前のみを追加
-            const memberExists = this.projectMembers.some(
-              (m) => m.name === individualName
-            );
-            if (memberExists) {
-              options.add(individualName);
-            }
-          });
-        }
-      }
-    );
-
-    // カンマ区切りの文字列を除外して、個別のメンバー名のみを選択肢として設定
-    this.notificationRecipientOptions = Array.from(options)
-      .filter((name) => {
-        // カンマや日本語カンマを含む文字列を除外
-        return !name.includes(',') && !name.includes('、');
-      })
-      .sort((a, b) => a.localeCompare(b, 'ja'));
-
-    if (this.detailSettings.notifications.beforeDeadline) {
-      this.ensureNotificationRecipients();
-    }
-
-    this.rebuildTimePickers();
   }
 
   private rebuildTimePickers(): void {

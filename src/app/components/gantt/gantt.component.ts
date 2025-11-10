@@ -32,7 +32,7 @@ import { MemberManagementService } from '../../services/member-management.servic
 import { Member } from '../../models/member.model';
 import { combineLatest, of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
-import { getMemberNamesAsString } from '../../utils/member-utils';
+import { getMemberNamesAsString, getMemberNames } from '../../utils/member-utils';
 
 @Component({
   selector: 'app-gantt',
@@ -348,26 +348,32 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
       );
     }
 
-    // 担当者フィルター（カンマ区切り対応）
+    // 担当者フィルター（カンマ区切り対応 + assignedMembers対応）
     if (this.filterAssignee.length > 0) {
       filteredTasks = filteredTasks.filter((task) => {
-        if (!task.assignee) {
+        const assignees: string[] = [];
+
+        // assignee をカンマで分割（メンバー名のカンマ区切り文字列）
+        if (task.assignee) {
+          const assigneeNames = task.assignee
+            .split(',')
+            .map((name) => name.trim())
+            .filter((name) => name.length > 0);
+          assignees.push(...assigneeNames);
+        }
+
+        // assignedMembers も含める（メンバーIDをメンバー名に変換）
+        if (Array.isArray(task.assignedMembers) && task.assignedMembers.length > 0) {
+          const memberNames = getMemberNames(task.assignedMembers, this.members);
+          assignees.push(...memberNames);
+        }
+
+        // 担当者がいない場合はフィルターにマッチしない
+        if (assignees.length === 0) {
           return false;
         }
-        // assignee をカンマで分割
-        const assignees = task.assignee
-          .split(',')
-          .map((name) => name.trim())
-          .filter((name) => name.length > 0);
-        
-        // assignedMembers も含める
-        if (Array.isArray((task as any).assignedMembers)) {
-          assignees.push(
-            ...(task as any).assignedMembers.map((m: string) => String(m).trim())
-          );
-        }
-        
-        // フィルター値とマッチするか確認
+
+        // フィルター値とマッチするか確認（いずれかの担当者がフィルターに含まれていればOK）
         return assignees.some((assignee) =>
           this.filterAssignee.includes(assignee)
         );

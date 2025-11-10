@@ -401,48 +401,52 @@ export class NotificationService {
             }
             // beforeDeadlineがundefinedの場合はデフォルトでONとみなす
 
-            // ユーザーが担当者に含まれるかチェック
+            // 担当者のメールアドレスを取得
             const assigneeEmail = taskData['assigneeEmail'];
             const assignee = taskData['assignee'];
             const assignedMembers = taskData['assignedMembers'] || [];
+            const assigneeEmails: string[] = [];
 
-            let isAssignedToUser = false;
-
-            // メールアドレスで一致
-            if (assigneeEmail === currentUser.email) {
-              isAssignedToUser = true;
+            // assigneeEmailがある場合は追加
+            if (assigneeEmail) {
+              assigneeEmails.push(assigneeEmail);
             }
 
-            // assignedMembersにユーザーが含まれるかチェック（assignedMembersはメンバーIDの配列）
-            if (!isAssignedToUser && assignedMembers.length > 0) {
+            // assignedMembersからメールアドレスを取得
+            if (assignedMembers.length > 0) {
               for (const memberId of assignedMembers) {
                 const memberEmail = memberEmailMap.get(memberId);
-                if (memberEmail === currentUser.email) {
-                  isAssignedToUser = true;
-                  break;
+                if (memberEmail && !assigneeEmails.includes(memberEmail)) {
+                  assigneeEmails.push(memberEmail);
                 }
               }
             }
 
-            // assigneeが名前の場合
-            if (!isAssignedToUser && assignee) {
+            // assigneeが名前の場合、メンバー一覧からメールアドレスを取得
+            if (assignee && assigneeEmails.length === 0) {
               const assigneeNames = assignee
                 .split(',')
                 .map((n: string) => n.trim());
-              if (
-                assigneeNames.includes(currentUser.displayName || '') ||
-                assigneeNames.includes(currentUser.email || '')
-              ) {
-                isAssignedToUser = true;
-              }
+              membersSnapshot.forEach((memberDoc) => {
+                const memberData = memberDoc.data();
+                const memberName = memberData['name'];
+                const memberEmail = memberData['email'];
+                if (memberEmail && assigneeNames.includes(memberName)) {
+                  if (!assigneeEmails.includes(memberEmail)) {
+                    assigneeEmails.push(memberEmail);
+                  }
+                }
+              });
             }
 
-            if (isAssignedToUser) {
+            // 担当者がいる場合のみタスクを追加
+            if (assigneeEmails.length > 0) {
               upcomingTasks.push({
                 taskId: doc.id,
                 taskName: taskData['taskName'],
                 projectName: projectData['projectName'] || 'プロジェクト',
-                assignee: taskData['assignee'],
+                assignee: taskData['assignee'] || '',
+                assigneeEmails: assigneeEmails,
                 dueDate: taskData['dueDate'],
                 status: taskData['status'],
                 priority: taskData['priority'],
@@ -477,6 +481,19 @@ export class NotificationService {
       const today = new Date().toISOString().split('T')[0];
       const overdueTasks: TaskNotificationData[] = [];
 
+      // メンバー一覧を取得（assignedMembersの確認用）
+      const membersRef = collection(this.firestore, 'members');
+      const membersSnapshot = await getDocs(
+        query(membersRef, where('roomId', '==', roomId))
+      );
+      const memberEmailMap = new Map<string, string>(); // memberId -> email
+      membersSnapshot.forEach((doc) => {
+        const memberData = doc.data();
+        if (memberData['email']) {
+          memberEmailMap.set(doc.id, memberData['email']);
+        }
+      });
+
       const projectsRef = collection(this.firestore, 'projects');
       let projectsSnapshot = await getDocs(
         query(projectsRef, where('roomDocId', '==', roomDocId))
@@ -503,17 +520,53 @@ export class NotificationService {
 
         querySnapshot.forEach((doc) => {
           const taskData = doc.data();
-          const isAssignedToUser =
-            taskData['assigneeEmail'] === currentUser.email ||
-            taskData['assignee'] === currentUser.displayName ||
-            taskData['assignee'] === currentUser.email;
 
-          if (isAssignedToUser) {
+          // 担当者のメールアドレスを取得
+          const assigneeEmail = taskData['assigneeEmail'];
+          const assignee = taskData['assignee'];
+          const assignedMembers = taskData['assignedMembers'] || [];
+          const assigneeEmails: string[] = [];
+
+          // assigneeEmailがある場合は追加
+          if (assigneeEmail) {
+            assigneeEmails.push(assigneeEmail);
+          }
+
+          // assignedMembersからメールアドレスを取得
+          if (assignedMembers.length > 0) {
+            for (const memberId of assignedMembers) {
+              const memberEmail = memberEmailMap.get(memberId);
+              if (memberEmail && !assigneeEmails.includes(memberEmail)) {
+                assigneeEmails.push(memberEmail);
+              }
+            }
+          }
+
+          // assigneeが名前の場合、メンバー一覧からメールアドレスを取得
+          if (assignee && assigneeEmails.length === 0) {
+            const assigneeNames = assignee
+              .split(',')
+              .map((n: string) => n.trim());
+            membersSnapshot.forEach((memberDoc) => {
+              const memberData = memberDoc.data();
+              const memberName = memberData['name'];
+              const memberEmail = memberData['email'];
+              if (memberEmail && assigneeNames.includes(memberName)) {
+                if (!assigneeEmails.includes(memberEmail)) {
+                  assigneeEmails.push(memberEmail);
+                }
+              }
+            });
+          }
+
+          // 担当者がいる場合のみタスクを追加
+          if (assigneeEmails.length > 0) {
             overdueTasks.push({
               taskId: doc.id,
               taskName: taskData['taskName'],
               projectName: projectData['projectName'] || 'プロジェクト',
-              assignee: taskData['assignee'],
+              assignee: taskData['assignee'] || '',
+              assigneeEmails: assigneeEmails,
               dueDate: taskData['dueDate'],
               status: taskData['status'],
               priority: taskData['priority'],

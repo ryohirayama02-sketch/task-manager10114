@@ -831,44 +831,6 @@
               }}
             </span>
           </div>
-          <div class="setting-item notification-select">
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>{{
-                "taskDetail.notificationRecipients" | translate
-              }}</mat-label>
-              <mat-select
-                [(ngModel)]="detailSettings.notifications.recipients"
-                name="notificationRecipients"
-                multiple
-                [disabled]="!detailSettings.notifications.beforeDeadline"
-                (selectionChange)="onNotificationRecipientsChange()"
-              >
-                <mat-option
-                  *ngFor="let option of notificationRecipientOptions"
-                  [value]="option"
-                >
-                  {{ option }}
-                </mat-option>
-              </mat-select>
-              <mat-icon matSuffix>group</mat-icon>
-            </mat-form-field>
-
-            <div
-              class="notification-recipient-chips"
-              *ngIf="detailSettings.notifications.recipients?.length"
-            >
-              <mat-chip-set>
-                <mat-chip
-                  *ngFor="
-                    let recipient of detailSettings.notifications.recipients
-                  "
-                >
-                  <mat-icon>person</mat-icon>
-                  {{ recipient }}
-                </mat-chip>
-              </mat-chip-set>
-            </div>
-          </div>
         </mat-expansion-panel>
 
         <!-- タスクの順番管理（親タスクのみ表示） -->

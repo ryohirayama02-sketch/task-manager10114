@@ -589,12 +589,12 @@ export class LanguageService {
       en: 'No child tasks matching the criteria.',
     },
     'taskDetail.notificationSettings': {
-      ja: '通知設定',
-      en: 'Notification Settings',
+      ja: '通知対象設定',
+      en: 'Notification Target Settings',
     },
     'taskDetail.taskDeadlineNotification': {
-      ja: 'タスク期限通知',
-      en: 'Task Deadline Notification',
+      ja: '通知を有効',
+      en: 'Enable Notification',
     },
     'taskDetail.notificationRecipients': {
       ja: '通知先',

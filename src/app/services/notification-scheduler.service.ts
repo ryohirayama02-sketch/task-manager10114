@@ -192,20 +192,13 @@ export class NotificationSchedulerService {
         await this.notificationService.checkUpcomingDeadlines();
       const overdueTasks = await this.notificationService.checkOverdueTasks();
 
-      if (upcomingTasks.length > 0 || overdueTasks.length > 0) {
-        const reminderTask: TaskNotificationData = {
-          taskId: 'daily_reminder',
-          taskName: '今日のタスク',
-          projectName: 'システム',
-          assignee: this.authService.getCurrentUser()?.email || '',
-          dueDate: new Date().toISOString().split('T')[0],
-          status: '未着手',
-          priority: '中',
-        };
-
+      // 各タスクの担当者に通知を送信（通知先フィールドは削除されたため）
+      const allTasks = [...upcomingTasks, ...overdueTasks];
+      for (const task of allTasks) {
+        // 各タスクの担当者に通知を送信
         await this.sendTaskNotification(
           settings,
-          reminderTask,
+          task,
           'daily_reminder'
         );
       }
@@ -235,25 +228,41 @@ export class NotificationSchedulerService {
         task
       );
 
-      // メール通知
+      // メール通知 - 担当者に送信（通知先フィールドは削除されたため）
       if (settings.notificationChannels.email.enabled) {
-        const emailSuccess =
-          await this.notificationService.sendEmailNotification(
-            settings.notificationChannels.email.address,
-            template.title,
-            template.message
-          );
+        // 担当者のメールアドレスを取得
+        const assigneeEmails = task.assigneeEmails || [];
+        
+        // 担当者がいない場合はスキップ
+        if (assigneeEmails.length === 0) {
+          console.log('担当者が設定されていないため、通知をスキップします:', task.taskId);
+          return;
+        }
 
-        await this.notificationService.logNotification({
-          userId: settings.userId,
-          taskId: task.taskId,
-          type: type,
-          channel: 'email',
-          status: emailSuccess ? 'sent' : 'failed',
-          message: template.message,
-          sentAt: emailSuccess ? new Date() : undefined,
-          errorMessage: emailSuccess ? undefined : 'メール送信に失敗しました',
-        });
+        // 各担当者にメールを送信
+        for (const email of assigneeEmails) {
+          try {
+            const emailSuccess =
+              await this.notificationService.sendEmailNotification(
+                email,
+                template.title,
+                template.message
+              );
+
+            await this.notificationService.logNotification({
+              userId: settings.userId,
+              taskId: task.taskId,
+              type: type,
+              channel: 'email',
+              status: emailSuccess ? 'sent' : 'failed',
+              message: template.message,
+              sentAt: emailSuccess ? new Date() : undefined,
+              errorMessage: emailSuccess ? undefined : 'メール送信に失敗しました',
+            });
+          } catch (error) {
+            console.error(`担当者 ${email} への通知送信エラー:`, error);
+          }
+        }
       }
     } catch (error) {
       console.error('通知送信エラー:', error);

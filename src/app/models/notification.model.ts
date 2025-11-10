@@ -77,6 +77,7 @@ export interface TaskNotificationData {
   taskName: string;
   projectName: string;
   assignee: string;
+  assigneeEmails?: string[]; // 担当者のメールアドレス配列
   dueDate: string;
   status: string;
   priority: string;
