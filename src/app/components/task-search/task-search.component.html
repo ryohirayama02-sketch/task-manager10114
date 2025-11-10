@@ -139,17 +139,17 @@
           <div class="task-details">
             <div class="task-main-info">
               <div class="task-detail-item task-detail-member">
-                <mat-icon>person</mat-icon>
+                <mat-icon class="assignee-icon">person</mat-icon>
                 <span class="task-member-name">{{ getTaskAssigneeDisplay(task) }}</span>
                 <div class="task-member-due" *ngIf="task.dueDate">
-                  <mat-icon>schedule</mat-icon>
+                  <mat-icon class="due-icon">schedule</mat-icon>
                   <span>{{ task.dueDate }}</span>
                 </div>
               </div>
             </div>
 
             <div class="task-detail-item project-name" *ngIf="task.projectName">
-              <mat-icon>widgets</mat-icon>
+              <mat-icon class="project-icon">folder</mat-icon>
               <span class="project-name-text"
                 >プロジェクト：{{ task.projectName }}</span
               >

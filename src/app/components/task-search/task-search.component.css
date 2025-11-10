@@ -208,7 +208,7 @@
   font-size: 14px;
   color: #666;
   min-width: 0;
-  flex-shrink: 0;
+  flex-shrink: 1;
 }
 
 .task-detail-item.project-name {
@@ -223,12 +223,16 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  margin-left: 0;
+  padding-left: 0;
 }
 
 .task-detail-item mat-icon {
   font-size: 18px;
   width: 18px;
   height: 18px;
+  flex-shrink: 0;
+  flex-grow: 0;
 }
 
 .task-main-info {
@@ -251,6 +255,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  margin-left: 0;
+  padding-left: 0;
 }
 
 .task-member-due {
@@ -282,6 +288,18 @@
   width: 18px;
   height: 18px;
   flex-shrink: 0;
+  flex-grow: 0;
+}
+
+.project-icon {
+  flex-shrink: 0;
+  flex-grow: 0;
+}
+
+.assignee-icon,
+.due-icon {
+  flex-shrink: 0;
+  flex-grow: 0;
 }
 
 .status-chip,
