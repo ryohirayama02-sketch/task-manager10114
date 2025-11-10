@@ -7,7 +7,7 @@
 }
 
 .settings-container h1 {
-  color: #333;
+  color: #1976d2;
   margin-bottom: 30px;
   font-size: 28px;
   font-weight: 600;
@@ -280,7 +280,7 @@ mat-card-actions button {
 /* ダークテーマ対応 */
 @media (prefers-color-scheme: dark) {
   .settings-container h1 {
-    color: #fff;
+    color: #1976d2;
   }
 
   .settings-card mat-card-title {

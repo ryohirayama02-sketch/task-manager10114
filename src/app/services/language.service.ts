@@ -13,7 +13,7 @@ export class LanguageService {
     string,
     Record<SupportedLanguage, string>
   > = {
-    'app.title': { ja: '課題管理アプリ 11/7', en: 'Task Manager 11/7' },
+    'app.title': { ja: '課題管理アプリ', en: 'Task Manager' },
     'nav.kanban': { ja: 'カンバン', en: 'Kanban' },
     'nav.gantt': { ja: 'ガント', en: 'Gantt' },
     'nav.calendar': { ja: 'カレンダー', en: 'Calendar' },
