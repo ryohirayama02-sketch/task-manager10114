@@ -61,7 +61,8 @@ export class TaskCreatePageComponent implements OnInit {
     taskName: '',
     status: '未着手',
     priority: '中',
-    assignee: '',
+    assignee: '', // 後方互換性のため残す
+    assignedMembers: [] as string[], // ID配列で個人識別
     startDate: '',
     dueDate: '',
     tags: [] as string[],
@@ -110,6 +111,9 @@ export class TaskCreatePageComponent implements OnInit {
         status: duplicateData.status || '未着手',
         priority: duplicateData.priority || '中',
         assignee: duplicateData.assignee || '',
+        assignedMembers: Array.isArray(duplicateData.assignedMembers) 
+          ? [...duplicateData.assignedMembers] 
+          : [],
         startDate: duplicateData.startDate || '',
         dueDate: duplicateData.dueDate || '',
         tags: Array.isArray(duplicateData.tags) 
@@ -286,10 +290,18 @@ export class TaskCreatePageComponent implements OnInit {
 
   onMembersSelectionChange(memberIds: string[]) {
     this.selectedMemberIds = memberIds;
-    this.taskForm.assignee = this.selectedMemberIds
-      .map((id) => this.projectMembers.find((m) => m.id === id)?.name)
-      .filter((name) => name) // undefinedを除外
-      .join(', ');
+    // assignedMembers（ID配列）を設定
+    this.taskForm.assignedMembers = memberIds || [];
+    
+    // 後方互換性のため、最初のメンバーを assignee にも設定
+    if (memberIds && memberIds.length > 0) {
+      const firstMember = this.projectMembers.find((m) => m.id === memberIds[0]);
+      if (firstMember) {
+        this.taskForm.assignee = firstMember.name;
+      }
+    } else {
+      this.taskForm.assignee = '';
+    }
   }
 
   onTagInputEnter(event: any, tagInput: HTMLInputElement) {
