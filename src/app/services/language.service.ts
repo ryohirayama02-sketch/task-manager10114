@@ -438,7 +438,7 @@ export class LanguageService {
     'progress.members.completedTasks': { ja: '完了タスク:', en: 'Completed Tasks:' },
     'progress.members.inProgress': { ja: '作業中:', en: 'In Progress:' },
     'progress.members.notStarted': { ja: '未着手:', en: 'Not Started:' },
-    'progress.members.count': { ja: '件', en: 'tasks' },
+    'progress.members.count': { ja: '件', en: '' },
     'progress.members.completionRate': { ja: '完了率', en: 'Completion Rate' },
     'progress.members.priority': { ja: '優先度', en: 'Priority' },
     'progress.priority.high': { ja: '高', en: 'High' },
@@ -492,6 +492,11 @@ export class LanguageService {
       en: 'All Tasks Status and Priority',
     },
     'progress.member.period': { ja: '期間', en: 'Period' },
+    'progress.member.periodDialog.title': { ja: '期間を選択', en: 'Select Period' },
+    'progress.member.periodDialog.startDate': { ja: '開始日', en: 'Start Date' },
+    'progress.member.periodDialog.endDate': { ja: '終了日', en: 'End Date' },
+    'progress.member.periodDialog.cancel': { ja: 'キャンセル', en: 'Cancel' },
+    'progress.member.periodDialog.confirm': { ja: '確定', en: 'Confirm' },
     // 素早いタスク
     'quickTasks.title': { ja: 'すぐやるタスク', en: 'Quick Tasks' },
     'quickTasks.dueDate': { ja: '期間設定', en: 'Period Setting' },
@@ -508,6 +513,35 @@ export class LanguageService {
       ja: '該当するタスクがありません',
       en: 'No matching tasks found',
     },
+    'quickTasks.noTasksFoundDesc': {
+      ja: '以内に期限が来る未完了のタスクはありません。',
+      en: 'There are no incomplete tasks with deadlines within the selected period.',
+    },
+    'quickTasks.debugInfo': { ja: '🔍 デバッグ情報', en: '🔍 Debug Information' },
+    'quickTasks.totalTasks': { ja: '全タスク数:', en: 'Total Tasks:' },
+    'quickTasks.userRelatedTasks': {
+      ja: '現在のユーザーに関連するタスク数:',
+      en: 'Tasks related to current user:',
+    },
+    'quickTasks.currentUser': { ja: '現在のユーザー:', en: 'Current User:' },
+    'quickTasks.userRelatedTasksList': {
+      ja: '現在のユーザーに関連するタスク一覧:',
+      en: 'Tasks related to current user:',
+    },
+    'quickTasks.projectName': { ja: 'プロジェクト名：', en: 'Project Name: ' },
+    'quickTasks.dueDateLabel': { ja: '期日：', en: 'Due Date: ' },
+    'quickTasks.daysAfter': { ja: '日後', en: ' days later' },
+    'quickTasks.daysOverdue': { ja: '日遅れ', en: ' days overdue' },
+    'quickTasks.noUserTasksFound': {
+      ja: '⚠️ 現在のユーザーに関連するタスクが見つかりません',
+      en: '⚠️ No tasks found for current user',
+    },
+    'quickTasks.checkAllTaskAssignees': {
+      ja: '全タスクの担当者情報を確認してください：',
+      en: 'Please check assignee information for all tasks:',
+    },
+    'quickTasks.assignee': { ja: '担当者:', en: 'Assignee:' },
+    'quickTasks.assigneeEmail': { ja: '担当者メール:', en: 'Assignee Email:' },
     // ガント チャート
     'gantt.title': { ja: 'ガントチャート式課題管理', en: 'Gantt Chart' },
     'gantt.projectSelector.title': {
@@ -1408,6 +1442,45 @@ export class LanguageService {
     'settings.roomInfo.roomId': { ja: 'ルームID', en: 'Room ID' },
     'settings.roomInfo.password': { ja: 'パスワード', en: 'Password' },
     'settings.roomInfo.copy': { ja: 'コピー', en: 'Copy' },
+    // タスク検索画面
+    'taskSearch.title': { ja: 'タスク検索', en: 'Task Search' },
+    'taskSearch.description': {
+      ja: 'アプリ内のタスクを検索できます',
+      en: 'Search for tasks in the app',
+    },
+    'taskSearch.filters': { ja: '検索条件', en: 'Search Filters' },
+    'taskSearch.assignee': { ja: '担当者', en: 'Assignee' },
+    'taskSearch.priority': { ja: '優先度', en: 'Priority' },
+    'taskSearch.status': { ja: 'ステータス', en: 'Status' },
+    'taskSearch.tags': { ja: 'タグ', en: 'Tags' },
+    'taskSearch.noTags': { ja: 'タグがありません', en: 'No tags available' },
+    'taskSearch.noTagsHint': {
+      ja: 'ルーム内にタグが設定されたタスクがありません',
+      en: 'No tasks with tags found in the room',
+    },
+    'taskSearch.freeWord': { ja: 'フリーワード', en: 'Free Word' },
+    'taskSearch.freeWordPlaceholder': {
+      ja: 'タスク名、説明、プロジェクト名で検索',
+      en: 'Search by task name, description, or project name',
+    },
+    'taskSearch.searching': { ja: '検索中...', en: 'Searching...' },
+    'taskSearch.search': { ja: '検索', en: 'Search' },
+    'taskSearch.clear': { ja: 'クリア', en: 'Clear' },
+    'taskSearch.results': { ja: '検索結果', en: 'Search Results' },
+    'taskSearch.resultsCount': {
+      ja: '件のタスクが見つかりました',
+      en: 'tasks found',
+    },
+    'taskSearch.noResults': {
+      ja: '検索結果が見つかりません',
+      en: 'No search results found',
+    },
+    'taskSearch.noResultsDesc': {
+      ja: '検索条件を変更して再度検索してください。',
+      en: 'Please modify your search criteria and try again.',
+    },
+    'taskSearch.project': { ja: 'プロジェクト：', en: 'Project: ' },
+    'taskSearch.parentTask': { ja: '親タスク：', en: 'Parent Task: ' },
   };
   private readonly languageSubject = new BehaviorSubject<SupportedLanguage>(
     this.loadInitialLanguage()

@@ -1,19 +1,19 @@
 <div class="task-search-container">
   <div class="header">
-    <h2>タスク検索</h2>
-    <p>アプリ内のタスクを検索できます</p>
+    <h2>{{ 'taskSearch.title' | translate }}</h2>
+    <p>{{ 'taskSearch.description' | translate }}</p>
   </div>
 
   <!-- 検索フィルター -->
   <mat-card class="search-filters-card">
     <mat-card-header>
-      <mat-card-title>検索条件</mat-card-title>
+      <mat-card-title>{{ 'taskSearch.filters' | translate }}</mat-card-title>
     </mat-card-header>
     <mat-card-content>
       <div class="filters-grid">
         <!-- 担当者 -->
         <mat-form-field appearance="outline" class="filter-field">
-          <mat-label>担当者</mat-label>
+          <mat-label>{{ 'taskSearch.assignee' | translate }}</mat-label>
           <mat-select [(ngModel)]="filters.assignee" multiple>
             <mat-option *ngFor="let assignee of assignees" [value]="assignee">
               {{ assignee }}
@@ -23,45 +23,45 @@
 
         <!-- 優先度 -->
         <mat-form-field appearance="outline" class="filter-field">
-          <mat-label>優先度</mat-label>
+          <mat-label>{{ 'taskSearch.priority' | translate }}</mat-label>
           <mat-select [(ngModel)]="filters.priority" multiple>
             <mat-option *ngFor="let priority of priorities" [value]="priority">
-              {{ priority }}
+              {{ getPriorityDisplay(priority) }}
             </mat-option>
           </mat-select>
         </mat-form-field>
 
         <!-- ステータス -->
         <mat-form-field appearance="outline" class="filter-field">
-          <mat-label>ステータス</mat-label>
+          <mat-label>{{ 'taskSearch.status' | translate }}</mat-label>
           <mat-select [(ngModel)]="filters.status" multiple>
             <mat-option *ngFor="let status of statuses" [value]="status">
-              {{ status }}
+              {{ getStatusDisplay(status) }}
             </mat-option>
           </mat-select>
         </mat-form-field>
 
         <!-- タグ -->
         <mat-form-field appearance="outline" class="filter-field">
-          <mat-label>タグ</mat-label>
+          <mat-label>{{ 'taskSearch.tags' | translate }}</mat-label>
           <mat-select [(ngModel)]="filters.tags" multiple [disabled]="allTags.length === 0">
             <mat-option *ngFor="let tag of allTags" [value]="tag">
               {{ tag }}
             </mat-option>
             <mat-option *ngIf="allTags.length === 0" disabled>
-              タグがありません
+              {{ 'taskSearch.noTags' | translate }}
             </mat-option>
           </mat-select>
-          <mat-hint *ngIf="allTags.length === 0">ルーム内にタグが設定されたタスクがありません</mat-hint>
+          <mat-hint *ngIf="allTags.length === 0">{{ 'taskSearch.noTagsHint' | translate }}</mat-hint>
         </mat-form-field>
 
         <!-- フリーワード -->
         <mat-form-field appearance="outline" class="filter-field full-width">
-          <mat-label>フリーワード</mat-label>
+          <mat-label>{{ 'taskSearch.freeWord' | translate }}</mat-label>
           <input
             matInput
             [(ngModel)]="filters.freeWord"
-            placeholder="タスク名、説明、プロジェクト名で検索"
+            [placeholder]="'taskSearch.freeWordPlaceholder' | translate"
             maxlength="50"
           />
           <mat-icon matSuffix>search</mat-icon>
@@ -80,11 +80,11 @@
         >
           <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
           <mat-icon *ngIf="!isLoading">search</mat-icon>
-          {{ isLoading ? "検索中..." : "検索" }}
+          {{ isLoading ? ('taskSearch.searching' | translate) : ('taskSearch.search' | translate) }}
         </button>
         <button mat-button (click)="clearFilters()" class="clear-button">
           <mat-icon>clear</mat-icon>
-          クリア
+          {{ 'taskSearch.clear' | translate }}
         </button>
       </div>
     </mat-card-content>
@@ -93,16 +93,16 @@
   <!-- 検索結果 -->
   <div *ngIf="hasSearched" class="search-results">
     <div class="results-header">
-      <h3>検索結果</h3>
+      <h3>{{ 'taskSearch.results' | translate }}</h3>
       <span class="results-count"
-        >{{ searchResults.length }}件のタスクが見つかりました</span
+        >{{ searchResults.length }} {{ 'taskSearch.resultsCount' | translate }}</span
       >
     </div>
 
     <!-- ローディング表示 -->
     <div *ngIf="isLoading" class="loading-container">
       <mat-spinner></mat-spinner>
-      <p>検索中...</p>
+      <p>{{ 'taskSearch.searching' | translate }}</p>
     </div>
 
     <!-- 検索結果一覧 -->
@@ -124,14 +124,14 @@
                 [ngClass]="'status-' + task.status"
                 selected
               >
-                {{ task.status }}
+                {{ getStatusDisplay(task.status) }}
               </mat-chip>
               <mat-chip
                 class="priority-chip"
                 [ngClass]="'priority-' + task.priority"
                 selected
               >
-                {{ task.priority }}
+                {{ getPriorityDisplay(task.priority) }}
               </mat-chip>
             </mat-chip-set>
           </div>
@@ -143,7 +143,7 @@
               <div class="task-detail-item project-name" *ngIf="task.projectName">
                 <mat-icon class="project-icon">folder</mat-icon>
                 <span class="project-name-text"
-                  >プロジェクト：{{ task.projectName }}</span
+                  >{{ 'taskSearch.project' | translate }}{{ task.projectName }}</span
                 >
               </div>
             </div>
@@ -160,7 +160,7 @@
             <div class="task-detail-item parent-task" *ngIf="task.parentTaskId && taskNameById[task.parentTaskId]">
               <mat-icon>subdirectory_arrow_right</mat-icon>
               <span class="task-parent-name"
-                >親タスク：{{ taskNameById[task.parentTaskId] }}</span
+                >{{ 'taskSearch.parentTask' | translate }}{{ taskNameById[task.parentTaskId] }}</span
               >
             </div>
           </div>
@@ -173,8 +173,8 @@
       <mat-card>
         <mat-card-content>
           <div class="no-results-content">
-            <h3>検索結果が見つかりません</h3>
-            <p>検索条件を変更して再度検索してください。</p>
+            <h3>{{ 'taskSearch.noResults' | translate }}</h3>
+            <p>{{ 'taskSearch.noResultsDesc' | translate }}</p>
           </div>
         </mat-card-content>
       </mat-card>

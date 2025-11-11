@@ -34,21 +34,23 @@
 
   <!-- 一時的にデバッグ情報を有効化 -->
   <div *ngIf="debugMode && !loading" class="debug-container">
-    <h3>🔍 デバッグ情報</h3>
+    <h3>{{ "quickTasks.debugInfo" | translate }}</h3>
     <div class="debug-info">
-      <p><strong>全タスク数:</strong> {{ allTasks.length }}件</p>
       <p>
-        <strong>現在のユーザーに関連するタスク数:</strong>
-        {{ filteredTasks.length }}件
+        <strong>{{ "quickTasks.totalTasks" | translate }}</strong>
+        {{ allTasks.length }}{{ "progress.members.count" | translate }}
+      </p>
+      <p>
+        <strong>{{ "quickTasks.userRelatedTasks" | translate }}</strong>
+        {{ filteredTasks.length }}{{ "progress.members.count" | translate }}
       </p>
       <p *ngIf="currentUser">
-        <strong>現在のユーザー:</strong> {{ currentUser.email }} ({{
-          currentUser.displayName
-        }})
+        <strong>{{ "quickTasks.currentUser" | translate }}</strong>
+        {{ currentUser.email }} ({{ currentUser.displayName }})
       </p>
 
       <div *ngIf="filteredTasks.length > 0" class="debug-tasks">
-        <h4>現在のユーザーに関連するタスク一覧:</h4>
+        <h4>{{ "quickTasks.userRelatedTasksList" | translate }}</h4>
         <div class="tasks-grid">
           <mat-card
             *ngFor="let task of filteredTasks; trackBy: trackByTaskId"
@@ -83,22 +85,22 @@
             <mat-card-content>
               <div class="task-info">
                 <div class="project-info">
-                  <span>プロジェクト名：</span>
+                  <span>{{ "quickTasks.projectName" | translate }}</span>
                   <span class="project-name-pill">
                     {{ formatProjectName(task.projectName) }}
                   </span>
                 </div>
 
                 <div class="due-date-info">
-                  <span>期日：</span>
+                  <span>{{ "quickTasks.dueDateLabel" | translate }}</span>
                   <span>{{ task.dueDate }}</span>
                   <span class="days-until" *ngIf="!isOverdue(task.dueDate)">
-                    ({{ getDaysUntilDue(task.dueDate) }}日後)
+                    ({{ getDaysUntilDue(task.dueDate)
+                    }}{{ "quickTasks.daysAfter" | translate }})
                   </span>
                   <span class="days-until" *ngIf="isOverdue(task.dueDate)">
-                    ({{
-                      getAbsoluteValue(getDaysUntilDue(task.dueDate))
-                    }}日遅れ)
+                    ({{ getAbsoluteValue(getDaysUntilDue(task.dueDate))
+                    }}{{ "quickTasks.daysOverdue" | translate }})
                   </span>
                 </div>
               </div>
@@ -111,12 +113,14 @@
         *ngIf="filteredTasks.length === 0 && allTasks.length > 0"
         class="debug-no-user-tasks"
       >
-        <h4>⚠️ 現在のユーザーに関連するタスクが見つかりません</h4>
-        <p>全タスクの担当者情報を確認してください：</p>
+        <h4>{{ "quickTasks.noUserTasksFound" | translate }}</h4>
+        <p>{{ "quickTasks.checkAllTaskAssignees" | translate }}</p>
         <div *ngFor="let task of allTasks; let i = index" class="debug-task">
           <strong>{{ i + 1 }}.</strong> {{ task.taskName }}
           <span class="debug-details">
-            (担当者: {{ getTaskAssigneeDisplay(task) }}, 担当者メール:
+            ({{ "quickTasks.assignee" | translate }}
+            {{ getTaskAssigneeDisplay(task) }},
+            {{ "quickTasks.assigneeEmail" | translate }}
             {{ task.assigneeEmail }})
           </span>
         </div>
@@ -131,10 +135,8 @@
       <mat-icon>task_alt</mat-icon>
       <h3>{{ "quickTasks.noTasksFound" | translate }}</h3>
       <p>
-        {{ daysFilter
-        }}{{
-          "quickTasks.daysSuffix" | translate
-        }}以内に期限が来る未完了のタスクはありません。
+        {{ daysFilter }}{{ "quickTasks.daysSuffix" | translate
+        }}{{ "quickTasks.noTasksFoundDesc" | translate }}
       </p>
     </div>
 
@@ -173,20 +175,22 @@
         <mat-card-content>
           <div class="task-info">
             <div class="project-info">
-              <span>プロジェクト名：</span>
+              <span>{{ "quickTasks.projectName" | translate }}</span>
               <span class="project-name-pill">
                 {{ formatProjectName(task.projectName) }}
               </span>
             </div>
 
             <div class="due-date-info">
-              <span>期日：</span>
+              <span>{{ "quickTasks.dueDateLabel" | translate }}</span>
               <span>{{ task.dueDate }}</span>
               <span class="days-until" *ngIf="!isOverdue(task.dueDate)">
-                ({{ getDaysUntilDue(task.dueDate) }}日後)
+                ({{ getDaysUntilDue(task.dueDate)
+                }}{{ "quickTasks.daysAfter" | translate }})
               </span>
               <span class="days-until" *ngIf="isOverdue(task.dueDate)">
-                ({{ getAbsoluteValue(getDaysUntilDue(task.dueDate)) }}日遅れ)
+                ({{ getAbsoluteValue(getDaysUntilDue(task.dueDate))
+                }}{{ "quickTasks.daysOverdue" | translate }})
               </span>
             </div>
           </div>

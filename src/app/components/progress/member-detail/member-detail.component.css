@@ -243,14 +243,15 @@
 
 .status-row {
   display: grid;
-  grid-template-columns: minmax(0, 72px) minmax(0, 52px) 1fr;
+  grid-template-columns: minmax(100px, auto) minmax(60px, auto) 1fr;
   align-items: center;
-  gap: 0 16px;
+  gap: 12px 16px;
   padding: 12px 0;
   border-bottom: 1px solid #d0d0d0;
   width: 100%;
   max-width: 520px;
   margin: 0 auto;
+  box-sizing: border-box;
 }
 
 .status-row:last-child {
@@ -262,6 +263,11 @@
   font-size: 18px;
   text-align: right;
   padding-right: 8px;
+  min-width: 0;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  line-height: 1.4;
 }
 
 .status-row.completed {
@@ -296,6 +302,11 @@
   font-weight: 600;
   font-size: 16px;
   color: #333;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
 }
 
 .priority-details {
@@ -303,6 +314,8 @@
   gap: 20px;
   flex: 1;
   justify-content: center;
+  min-width: 0;
+  flex-wrap: wrap;
 }
 
 .priority-row {
@@ -536,8 +549,23 @@
     gap: 10px;
   }
 
+  .status-row {
+    grid-template-columns: minmax(80px, auto) minmax(50px, auto) 1fr;
+    gap: 8px 12px;
+    max-width: 100%;
+  }
+
+  .status-label {
+    font-size: 16px;
+    padding-right: 4px;
+  }
+
+  .status-total {
+    font-size: 14px;
+  }
+
   .priority-details {
-    gap: 15px;
+    gap: 12px;
   }
 
   .priority-item {
@@ -546,11 +574,49 @@
     font-size: 12px;
   }
 
+  .priority-label {
+    font-size: 14px;
+    width: 35px;
+  }
+
   .header-actions {
     flex-wrap: wrap;
   }
 
   .table-container {
     font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .status-row {
+    grid-template-columns: minmax(70px, auto) minmax(45px, auto) 1fr;
+    gap: 6px 8px;
+    padding: 10px 0;
+  }
+
+  .status-label {
+    font-size: 14px;
+    text-align: left;
+    padding-right: 0;
+  }
+
+  .status-total {
+    font-size: 13px;
+  }
+
+  .priority-details {
+    gap: 8px;
+  }
+
+  .priority-item {
+    width: 30px;
+    height: 30px;
+    font-size: 11px;
+  }
+
+  .priority-label {
+    font-size: 12px;
+    width: 30px;
   }
 }

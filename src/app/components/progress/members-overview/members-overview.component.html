@@ -1,15 +1,19 @@
-<h2>{{ languageService.translate('progress.members.title') }}</h2>
+<div class="members-overview-container">
+  <h2>{{ languageService.translate('progress.members.title') }}</h2>
 
-<div
-  *ngFor="let member of members"
-  class="member-card"
-  [routerLink]="['/progress/members', member.id]"
-  style="cursor: pointer"
->
-  <h3>{{ member.name }}</h3>
-  <p>{{ languageService.translate('progress.members.role') }} {{ member.role }}</p>
-  <p>{{ languageService.translate('progress.members.email') }} {{ member.email }}</p>
-  <p>{{ languageService.translate('progress.members.completedTasks') }} {{ member.done }}{{ languageService.translate('progress.members.count') }}</p>
-  <p>{{ languageService.translate('progress.members.inProgress') }} {{ member.working }}{{ languageService.translate('progress.members.count') }}</p>
-  <p>{{ languageService.translate('progress.members.notStarted') }} {{ member.todo }}{{ languageService.translate('progress.members.count') }}</p>
+  <div class="members-grid">
+    <div
+      *ngFor="let member of members"
+      class="member-card"
+      [routerLink]="['/progress/members', member.id]"
+      style="cursor: pointer"
+    >
+      <h3>{{ member.name }}</h3>
+      <p>{{ languageService.translate('progress.members.role') }} {{ member.role }}</p>
+      <p>{{ languageService.translate('progress.members.email') }} {{ member.email }}</p>
+      <p>{{ languageService.translate('progress.members.completedTasks') }} {{ member.done }}{{ languageService.translate('progress.members.count') }}</p>
+      <p>{{ languageService.translate('progress.members.inProgress') }} {{ member.working }}{{ languageService.translate('progress.members.count') }}</p>
+      <p>{{ languageService.translate('progress.members.notStarted') }} {{ member.todo }}{{ languageService.translate('progress.members.count') }}</p>
+    </div>
+  </div>
 </div>

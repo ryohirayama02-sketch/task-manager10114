@@ -223,7 +223,7 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
   /** 📝 プロジェクト名を30文字に制限 */
   formatProjectName(projectName?: string | null): string {
     if (!projectName) {
-      return '（名称未設定）';
+      return `（${this.languageService.translate('common.nameNotSet')}）`;
     }
     const name = projectName.trim();
     if (name.length <= 30) {

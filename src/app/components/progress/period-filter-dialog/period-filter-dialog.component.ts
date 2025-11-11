@@ -7,7 +7,13 @@ import {
 } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatIconModule } from '@angular/material/icon';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 import { FormsModule } from '@angular/forms';
+import { LanguageService } from '../../../services/language.service';
+import { TranslatePipe } from '../../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-period-filter-dialog',
@@ -16,76 +22,40 @@ import { FormsModule } from '@angular/forms';
     CommonModule,
     MatButtonModule,
     MatFormFieldModule,
+    MatInputModule,
+    MatIconModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
     FormsModule,
     MatDialogModule,
+    TranslatePipe,
   ],
+  templateUrl: './period-filter-dialog.component.html',
   styleUrls: ['./period-filter-dialog.component.css'],
-  template: `
-    <h2 mat-dialog-title>期間を選択</h2>
-    <mat-dialog-content>
-      <div class="period-dialog-content">
-        <div class="date-field">
-          <label for="startDate">開始日</label>
-          <input
-            id="startDate"
-            type="date"
-            [(ngModel)]="startDate"
-            (ngModelChange)="onStartDateChange($event)"
-            [max]="endDate || '9999-12-31'"
-            max="9999-12-31"
-          />
-        </div>
-        <div class="date-field">
-          <label for="endDate">終了日</label>
-          <input
-            id="endDate"
-            type="date"
-            [(ngModel)]="endDate"
-            (ngModelChange)="onEndDateChange($event)"
-            [min]="startDate || undefined"
-            max="9999-12-31"
-          />
-        </div>
-      </div>
-    </mat-dialog-content>
-    <mat-dialog-actions>
-      <button mat-button (click)="onCancel()">キャンセル</button>
-      <button
-        mat-raised-button
-        color="primary"
-        (click)="onConfirm()"
-        [disabled]="isConfirmDisabled()"
-      >
-        確定
-      </button>
-    </mat-dialog-actions>
-  `,
 })
 export class PeriodFilterDialogComponent {
-  startDate: string | null = null;
-  endDate: string | null = null;
+  startDateObj: Date | null = null;
+  endDateObj: Date | null = null;
+  maxDate = new Date(9999, 11, 31); // 9999-12-31
 
   constructor(
     private dialogRef: MatDialogRef<PeriodFilterDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
     if (data) {
-      this.startDate = data.startDate
-        ? this.formatDateToString(data.startDate)
+      this.startDateObj = data.startDate
+        ? new Date(data.startDate)
         : null;
-      this.endDate = data.endDate
-        ? this.formatDateToString(data.endDate)
+      this.endDateObj = data.endDate
+        ? new Date(data.endDate)
         : null;
     }
   }
 
   onConfirm() {
-    const normalizedStartDate = this.normalizeDateInput(this.startDate);
-    const normalizedEndDate = this.normalizeDateInput(this.endDate);
-
     this.dialogRef.close({
-      startDate: normalizedStartDate ? new Date(normalizedStartDate) : null,
-      endDate: normalizedEndDate ? new Date(normalizedEndDate) : null,
+      startDate: this.startDateObj,
+      endDate: this.endDateObj,
     });
   }
 
@@ -93,47 +63,28 @@ export class PeriodFilterDialogComponent {
     this.dialogRef.close();
   }
 
-  onStartDateChange(value: string | null) {
-    this.startDate = value;
+  onStartDateChange() {
     // 開始日が終了日より後になった場合、終了日を開始日と同じにする
-    if (this.startDate && this.endDate) {
-      const start = new Date(this.startDate);
-      const end = new Date(this.endDate);
-      if (start > end) {
-        this.endDate = this.startDate;
+    if (this.startDateObj && this.endDateObj) {
+      if (this.startDateObj > this.endDateObj) {
+        this.endDateObj = new Date(this.startDateObj);
       }
     }
   }
 
-  onEndDateChange(value: string | null) {
-    this.endDate = value;
+  onEndDateChange() {
     // 終了日が開始日より前になった場合、開始日を終了日と同じにする
-    if (this.startDate && this.endDate) {
-      const start = new Date(this.startDate);
-      const end = new Date(this.endDate);
-      if (end < start) {
-        this.startDate = this.endDate;
+    if (this.startDateObj && this.endDateObj) {
+      if (this.endDateObj < this.startDateObj) {
+        this.startDateObj = new Date(this.endDateObj);
       }
     }
   }
 
   isConfirmDisabled(): boolean {
-    const normalizedStartDate = this.normalizeDateInput(this.startDate);
-    const normalizedEndDate = this.normalizeDateInput(this.endDate);
-    if (normalizedStartDate && normalizedEndDate) {
-      return new Date(normalizedStartDate) > new Date(normalizedEndDate);
+    if (this.startDateObj && this.endDateObj) {
+      return this.startDateObj > this.endDateObj;
     }
     return false;
-  }
-
-  private formatDateToString(date: Date): string {
-    if (!(date instanceof Date)) date = new Date(date);
-    return date.toISOString().split('T')[0];
-  }
-
-  private normalizeDateInput(value: string | null): string | null {
-    if (!value) return null;
-    const trimmed = value.trim();
-    return trimmed === '' ? null : trimmed;
   }
 }

@@ -24,24 +24,11 @@ mat-dialog-content {
 
 /* 日付フィールドのスタイル */
 .date-field {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.date-field label {
-  font-size: 16px;
-  font-weight: 500;
-  color: rgba(0, 0, 0, 0.87);
-}
-
-.date-field input[type="date"] {
-  font-size: 16px;
-  padding: 12px;
-  border: 1px solid rgba(0, 0, 0, 0.2);
-  border-radius: 4px;
   width: 100%;
-  box-sizing: border-box;
+}
+
+.date-field mat-form-field {
+  width: 100%;
 }
 
 /* ボタンの文字サイズを大きく */

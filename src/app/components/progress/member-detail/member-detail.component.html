@@ -25,7 +25,7 @@
               >{{ 'progress.member.completionRate' | translate }}: {{ memberDetail.completionRate }}%</span
             >
             <span class="total-tasks"
-              >{{ 'progress.member.totalTasks' | translate }}: {{ memberDetail.totalTasks }}件</span
+              >{{ 'progress.member.totalTasks' | translate }}: {{ memberDetail.totalTasks }}</span
             >
           </div>
           <div class="projects">
@@ -79,7 +79,7 @@
 
           <div class="status-row completed">
             <div class="status-label">{{ 'progress.status.completed' | translate }}</div>
-            <div class="status-total">{{ memberDetail.completedTasks }}件</div>
+            <div class="status-total">{{ memberDetail.completedTasks }}</div>
             <div class="priority-details">
               <span class="priority-item high">{{
                 memberDetail.completedByPriority.high
@@ -95,7 +95,7 @@
 
           <div class="status-row in-progress">
             <div class="status-label">{{ 'progress.status.inProgress' | translate }}</div>
-            <div class="status-total">{{ memberDetail.inProgressTasks }}件</div>
+            <div class="status-total">{{ memberDetail.inProgressTasks }}</div>
             <div class="priority-details">
               <span class="priority-item high">{{
                 memberDetail.inProgressByPriority.high
@@ -111,7 +111,7 @@
 
           <div class="status-row not-started">
             <div class="status-label">{{ 'progress.status.notStarted' | translate }}</div>
-            <div class="status-total">{{ memberDetail.notStartedTasks }}件</div>
+            <div class="status-total">{{ memberDetail.notStartedTasks }}</div>
             <div class="priority-details">
               <span class="priority-item high">{{
                 memberDetail.notStartedByPriority.high

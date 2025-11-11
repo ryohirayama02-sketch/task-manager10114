@@ -1,15 +1,94 @@
+.members-overview-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.members-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .member-card {
   background-color: #f8faff;
   padding: 12px;
-  margin: 10px 0;
   border-radius: 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  min-width: 0; /* フレックスアイテムの最小幅を0に */
+  word-wrap: break-word; /* 長い単語を折り返し */
+  overflow-wrap: break-word; /* 長い単語を折り返し */
+  box-sizing: border-box; /* パディングを含めた幅計算 */
+  width: 100%;
+  max-width: 100%;
 }
+
 .member-card h3 {
   margin-bottom: 5px;
   color: #333;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
+
 .member-card p {
   margin: 3px 0;
   font-size: 14px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap; /* 1行に制限 */
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .members-overview-container {
+    padding: 16px;
+  }
+  
+  .members-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 12px;
+  }
+  
+  .member-card {
+    padding: 10px;
+  }
+  
+  .member-card h3 {
+    font-size: 16px;
+  }
+  
+  .member-card p {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .members-overview-container {
+    padding: 12px;
+  }
+  
+  .members-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  
+  .member-card {
+    padding: 8px;
+  }
+  
+  .member-card h3 {
+    font-size: 14px;
+  }
+  
+  .member-card p {
+    font-size: 12px;
+  }
 }

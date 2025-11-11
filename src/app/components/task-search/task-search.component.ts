@@ -21,6 +21,8 @@ import {
   resolveProjectThemeColor,
 } from '../../constants/project-theme-colors';
 import { getMemberNamesAsString } from '../../utils/member-utils';
+import { TranslatePipe } from '../../pipes/translate.pipe';
+import { LanguageService } from '../../services/language.service';
 
 interface SearchFilters {
   assignee: string[];
@@ -45,6 +47,7 @@ interface SearchFilters {
     MatChipsModule,
     MatProgressSpinnerModule,
     MatExpansionModule,
+    TranslatePipe,
   ],
   templateUrl: './task-search.component.html',
   styleUrl: './task-search.component.css',
@@ -53,6 +56,7 @@ export class TaskSearchComponent implements OnInit {
   private projectService = inject(ProjectService);
   private router = inject(Router);
   private memberManagementService = inject(MemberManagementService);
+  private languageService = inject(LanguageService);
 
   // 検索フィルター
   filters: SearchFilters = {
@@ -524,6 +528,30 @@ export class TaskSearchComponent implements OnInit {
       .filter((name): name is string => name !== null);
 
     return updatedNames.length > 0 ? updatedNames.join(', ') : '—';
+  }
+
+  /**
+   * 優先度の表示用テキストを取得
+   */
+  getPriorityDisplay(priority: string): string {
+    const priorityMap: Record<string, string> = {
+      '高': 'progress.priority.high',
+      '中': 'progress.priority.medium',
+      '低': 'progress.priority.low',
+    };
+    return this.languageService.translate(priorityMap[priority] || priority);
+  }
+
+  /**
+   * ステータスの表示用テキストを取得
+   */
+  getStatusDisplay(status: string): string {
+    const statusMap: Record<string, string> = {
+      '完了': 'progress.status.completed',
+      '作業中': 'progress.status.inProgress',
+      '未着手': 'progress.status.notStarted',
+    };
+    return this.languageService.translate(statusMap[status] || status);
   }
 }
 
