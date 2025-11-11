@@ -534,6 +534,7 @@ export class LanguageService {
       ja: '本当にこのプロジェクトを削除しますか？',
       en: 'Are you sure you want to delete this project?',
     },
+    'projectDetail.required': { ja: '（入力必須）', en: '(Required)' },
     'projectDetail.status.notStarted': { ja: '未着手', en: 'Not Started' },
     'projectDetail.status.inProgress': { ja: '作業中', en: 'In Progress' },
     'projectDetail.status.completed': { ja: '完了', en: 'Completed' },

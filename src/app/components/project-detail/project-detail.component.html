@@ -69,7 +69,7 @@
       <ng-template #inlineEditForm>
         <form class="project-inline-edit-form" novalidate>
           <mat-form-field appearance="outline" class="full-width-field">
-            <mat-label>{{ 'projectDetail.projectName' | translate }} * <span class="required-hint">（入力必須）</span></mat-label>
+            <mat-label>{{ 'projectDetail.projectName' | translate }} * <span class="required-hint">{{ 'projectDetail.required' | translate }}</span></mat-label>
             <input
               matInput
               [(ngModel)]="editableProject!.projectName"
@@ -94,7 +94,7 @@
 
           <div class="inline-date-row" [attr.lang]="getCurrentLang()">
             <div class="date-field">
-              <label for="inlineStartDate">{{ 'projectDetail.startDate' | translate }} * <span class="required-hint">（入力必須）</span></label>
+              <label for="inlineStartDate">{{ 'projectDetail.startDate' | translate }} * <span class="required-hint">{{ 'projectDetail.required' | translate }}</span></label>
               <div class="date-input-wrapper">
                 <input
                   id="inlineStartDate"
@@ -112,7 +112,7 @@
             </div>
 
             <div class="date-field">
-              <label for="inlineEndDate">{{ 'projectDetail.endDate' | translate }} * <span class="required-hint">（入力必須）</span></label>
+              <label for="inlineEndDate">{{ 'projectDetail.endDate' | translate }} * <span class="required-hint">{{ 'projectDetail.required' | translate }}</span></label>
               <div class="date-input-wrapper">
                 <input
                   id="inlineEndDate"
@@ -132,7 +132,7 @@
           </div>
 
           <mat-form-field appearance="outline" class="full-width-field">
-            <mat-label>{{ 'projectDetail.responsible' | translate }} * <span class="required-hint">（入力必須）</span></mat-label>
+            <mat-label>{{ 'projectDetail.responsible' | translate }} * <span class="required-hint">{{ 'projectDetail.required' | translate }}</span></mat-label>
             <mat-select
               multiple
               [(ngModel)]="selectedResponsibleIds"
@@ -163,7 +163,7 @@
           </div>
 
           <mat-form-field appearance="outline" class="full-width-field">
-            <mat-label>{{ 'projectDetail.assignee' | translate }} * <span class="required-hint">（入力必須）</span></mat-label>
+            <mat-label>{{ 'projectDetail.assignee' | translate }} * <span class="required-hint">{{ 'projectDetail.required' | translate }}</span></mat-label>
             <mat-select
               multiple
               [(ngModel)]="selectedMemberIds"
