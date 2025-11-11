@@ -100,7 +100,7 @@ export class LanguageService {
       en: 'When to notify (days before due date)',
     },
     'settings.deadline.daysSuffix': { ja: '日前', en: 'days before' },
-    'settings.common.notifyTime': { ja: '通知時間', en: 'Notification Time' },
+    'settings.common.notifyTime': { ja: '通知時刻', en: 'Notification Time' },
     'settings.quiet.title': { ja: '通知オフ期間', en: 'Quiet Hours' },
     'settings.quiet.enable': {
       ja: '通知オフ期間を設定する',
