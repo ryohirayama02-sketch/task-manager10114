@@ -311,6 +311,7 @@ export class LanguageService {
     },
     'common.close': { ja: '閉じる', en: 'Close' },
     'common.save': { ja: '保存', en: 'Save' },
+    'common.user': { ja: 'ユーザー', en: 'User' },
     'common.update': { ja: '更新', en: 'Update' },
     'common.saving': { ja: '保存中...', en: 'Saving...' },
     'common.updating': { ja: '更新中...', en: 'Updating...' },

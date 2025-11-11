@@ -9,6 +9,7 @@ import { User } from '@angular/fire/auth';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { TranslatePipe } from '../../pipes/translate.pipe';
+import { LanguageService } from '../../services/language.service';
 
 @Component({
   selector: 'app-navbar',
@@ -29,12 +30,15 @@ export class NavbarComponent implements OnInit {
   memberName$: Observable<string | null>;
   displayName$: Observable<string>;
 
-  constructor(private authService: AuthService) {
+  constructor(
+    private authService: AuthService,
+    private languageService: LanguageService
+  ) {
     this.user$ = this.authService.user$;
     this.memberName$ = this.authService.currentMemberName$;
     // memberName$ が null の場合は「ユーザー」を表示
     this.displayName$ = this.memberName$.pipe(
-      map(name => name || 'ユーザー')
+      map(name => name || this.languageService.translate('common.user'))
     );
   }
 
