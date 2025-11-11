@@ -66,7 +66,7 @@ export class CalendarComponent implements OnInit, OnDestroy {
   // カレンダー表示用
   currentDate: Date = new Date();
   calendarDays: Date[] = [];
-  weekDays = ['日', '月', '火', '水', '木', '金', '土']; // 日本語用（後でgetWeekDays()で上書き）
+  weekDays = ['日', '月', '火', '水', '木', '金', '土']; // 初期値（後でgetWeekDays()で上書き）
 
   // 表示モード
   viewMode: 'day' | 'week' | 'month' = 'month';
@@ -82,7 +82,7 @@ export class CalendarComponent implements OnInit, OnDestroy {
   filterStatus: string[] = [];
   members: Member[] = []; // メンバー一覧
 
-  // ステータス色
+  // ステータス色（日本語キーを保持して後方互換性を維持）
   statusColors: { [key: string]: string } = {
     未着手: '#fdd6d5',
     作業中: '#fef6c3',
@@ -94,6 +94,26 @@ export class CalendarComponent implements OnInit, OnDestroy {
     作業中: '#000000',
     完了: '#000000',
   };
+
+  /** ステータスの値を取得（日本語キーを返す） */
+  getStatusValue(key: 'notStarted' | 'inProgress' | 'completed'): string {
+    const statusMap: Record<string, string> = {
+      notStarted: '未着手',
+      inProgress: '作業中',
+      completed: '完了',
+    };
+    return statusMap[key] || key;
+  }
+
+  /** 優先度の値を取得（日本語キーを返す） */
+  getPriorityValue(key: 'high' | 'medium' | 'low'): string {
+    const priorityMap: Record<string, string> = {
+      high: '高',
+      medium: '中',
+      low: '低',
+    };
+    return priorityMap[key] || key;
+  }
 
   // マイルストーン
   allMilestones: any[] = [];
@@ -120,10 +140,10 @@ export class CalendarComponent implements OnInit, OnDestroy {
     this.memberManagementService.getMembers().subscribe({
       next: (members) => {
         this.members = members;
-        console.log('メンバー一覧を読み込みました:', members.length, '件');
+        console.log('Members loaded:', members.length);
       },
       error: (error) => {
-        console.error('メンバー一覧の読み込みエラー:', error);
+        console.error('Failed to load members:', error);
       },
     });
 
@@ -197,7 +217,7 @@ export class CalendarComponent implements OnInit, OnDestroy {
     this.authService.currentUserEmail$
       .pipe(
         switchMap((userEmail) => {
-          console.log('🔑 現在のユーザー情報(カレンダー):', { userEmail });
+          console.log('🔑 Current user info (Calendar):', { userEmail });
           if (!userEmail) {
             this.resetProjectState(true);
             return of([]);
@@ -207,7 +227,7 @@ export class CalendarComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$)
       )
       .subscribe((projects) => {
-        console.log('🎯 カレンダー用ルーム内全プロジェクト一覧:', projects);
+        console.log('🎯 All projects for calendar:', projects);
         if (projects.length === 0) {
           this.resetProjectState();
           this.projectSelectionService.clearSelection();
@@ -612,15 +632,18 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
   /** タスク詳細画面に遷移 */
   openTaskDetail(task: Task) {
-    console.log('タスク詳細画面に遷移:', task);
+    console.log('Navigating to task detail:', task);
     if (task.projectId && task.id) {
       this.router.navigate(['/project', task.projectId, 'task', task.id]);
     } else {
-      console.error('タスクのprojectIdまたはidが不足しています:', {
-        projectId: task.projectId,
-        id: task.id,
-        task: task,
-      });
+      console.error(
+        this.languageService.translate('calendar.error.taskProjectIdMissing'),
+        {
+          projectId: task.projectId,
+          id: task.id,
+          task: task,
+        }
+      );
     }
   }
 
@@ -748,8 +771,8 @@ export class CalendarComponent implements OnInit, OnDestroy {
   /** オフライン時のタスク追加ダイアログを開く */
   openOfflineTaskDialog() {
     this.snackBar.open(
-      'オフライン時は簡易的なタスク追加のみ可能です。オンライン復帰後に詳細な編集ができます。',
-      '閉じる',
+      this.languageService.translate('calendar.offline.simpleTaskOnly'),
+      this.languageService.translate('calendar.close'),
       {
         duration: 5000,
         panelClass: ['info-snackbar'],
@@ -757,9 +780,13 @@ export class CalendarComponent implements OnInit, OnDestroy {
     );
 
     // 簡易的なタスク追加フォームを表示
-    const taskName = prompt('タスク名を入力してください:');
+    const taskName = prompt(
+      this.languageService.translate('calendar.offline.enterTaskName')
+    );
     if (taskName) {
-      const dueDate = prompt('期日を入力してください (YYYY-MM-DD):');
+      const dueDate = prompt(
+        this.languageService.translate('calendar.offline.enterDueDate')
+      );
       if (dueDate) {
         // ローカルストレージに保存（オフライン時の一時保存）
         this.saveOfflineTask(taskName, dueDate);
@@ -778,8 +805,8 @@ export class CalendarComponent implements OnInit, OnDestroy {
       dueDate: dueDate,
       status: '未着手',
       priority: '中',
-      assignee: '未設定',
-      projectName: 'オフラインタスク',
+      assignee: this.languageService.translate('common.notSet'),
+      projectName: this.languageService.translate('calendar.offline.taskName'),
       createdAt: new Date().toISOString(),
       isOffline: true,
     };
@@ -788,8 +815,8 @@ export class CalendarComponent implements OnInit, OnDestroy {
     localStorage.setItem('offlineTasks', JSON.stringify(offlineTasks));
 
     this.snackBar.open(
-      'タスクをオフラインで保存しました。オンライン復帰後に同期されます。',
-      '閉じる',
+      this.languageService.translate('calendar.offline.taskSaved'),
+      this.languageService.translate('calendar.close'),
       { duration: 3000 }
     );
   }
@@ -799,10 +826,7 @@ export class CalendarComponent implements OnInit, OnDestroy {
     // assignedMembers がある場合はそれを使用
     if (task.assignedMembers && task.assignedMembers.length > 0) {
       // デバッグ: assignedMembersとmembersの内容を確認
-      console.log(
-        '🔍 [Calendar getTaskAssigneeDisplay] タスク:',
-        task.taskName
-      );
+      console.log('🔍 [Calendar getTaskAssigneeDisplay] Task:', task.taskName);
       console.log('   - assignedMembers:', task.assignedMembers);
       console.log('   - this.members:', this.members);
       console.log('   - this.members.length:', this.members.length);
@@ -812,7 +836,7 @@ export class CalendarComponent implements OnInit, OnDestroy {
         const member = this.members.find((m) => m.id === memberId);
         console.log(
           `   - assignedMembers[${index}]: ${memberId} → ${
-            member ? member.name : '(見つからない)'
+            member ? member.name : '(not found)'
           }`
         );
       });
@@ -822,8 +846,9 @@ export class CalendarComponent implements OnInit, OnDestroy {
         this.members,
         ', '
       );
-      console.log('   - 表示結果:', display);
-      return display === '未設定' ? '—' : display;
+      console.log('   - Display result:', display);
+      const notSetText = this.languageService.translate('common.notSet');
+      return display === notSetText ? '—' : display;
     }
 
     // assignedMembers がない場合は assignee から最新のメンバー名を取得
@@ -953,6 +978,9 @@ export class CalendarComponent implements OnInit, OnDestroy {
       未着手: { ja: '未着手', en: 'Not Started' },
       作業中: { ja: '作業中', en: 'In Progress' },
       完了: { ja: '完了', en: 'Completed' },
+      notStarted: { ja: '未着手', en: 'Not Started' },
+      inProgress: { ja: '作業中', en: 'In Progress' },
+      completed: { ja: '完了', en: 'Completed' },
     };
     return statusMap[status]?.[currentLanguage] || status;
   }
@@ -964,6 +992,9 @@ export class CalendarComponent implements OnInit, OnDestroy {
       高: { ja: '高', en: 'High' },
       中: { ja: '中', en: 'Medium' },
       低: { ja: '低', en: 'Low' },
+      high: { ja: '高', en: 'High' },
+      medium: { ja: '中', en: 'Medium' },
+      low: { ja: '低', en: 'Low' },
     };
     return priorityMap[priority]?.[currentLanguage] || priority;
   }
@@ -995,5 +1026,15 @@ export class CalendarComponent implements OnInit, OnDestroy {
       return `+${count} more`;
     }
     return `他${count}件`;
+  }
+
+  /** タスクのツールチップテキストを取得 */
+  getTaskTooltip(task: Task): string {
+    const statusDisplay = this.getStatusDisplay(task.status);
+    const dueDateLabel = this.languageService.translate(
+      'calendar.taskTooltip.dueDate'
+    );
+    const dueDate = task.dueDate || '';
+    return `${task.taskName} (${statusDisplay}) - ${dueDateLabel}${dueDate}`;
   }
 }

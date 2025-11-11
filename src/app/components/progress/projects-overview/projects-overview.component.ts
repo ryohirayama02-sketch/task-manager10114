@@ -121,8 +121,9 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
 
   getMemberDisplay(project: IProject): string {
     const members: any = (project as any).members;
+    const notSetText = this.languageService.translate('progress.projects.membersNotSet');
     if (!members) {
-      return '（メンバー情報未設定）';
+      return notSetText;
     }
     if (Array.isArray(members)) {
       const names = members
@@ -132,7 +133,7 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
           // メンバー管理画面に存在する名前のみを表示
           return this.members.some((m) => m.name === name);
         });
-      return names.length > 0 ? names.join(', ') : '（メンバー情報未設定）';
+      return names.length > 0 ? names.join(', ') : notSetText;
     }
     if (typeof members === 'string') {
       // カンマ区切りの文字列の場合
@@ -144,17 +145,18 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
           // メンバー管理画面に存在する名前のみを表示
           return this.members.some((m) => m.name === name);
         });
-      return memberNames.length > 0 ? memberNames.join(', ') : '（メンバー情報未設定）';
+      return memberNames.length > 0 ? memberNames.join(', ') : notSetText;
     }
-    return '（メンバー情報未設定）';
+    return notSetText;
   }
 
   /**
    * プロジェクトの責任者を表示（メンバー管理画面に存在しない名前は除外）
    */
   getResponsiblesDisplay(project: IProject): string {
+    const notSetText = this.languageService.translate('progress.projects.responsibleNotSet');
     if (!project) {
-      return '（責任者未設定）';
+      return notSetText;
     }
     
     // responsibles が配列で、memberId が含まれている場合は、それを使って最新のメンバー名を取得
@@ -182,7 +184,7 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
           // メンバー管理画面に存在しない名前は表示しない
         }
       });
-      return names.length > 0 ? names.join(', ') : '（責任者未設定）';
+      return names.length > 0 ? names.join(', ') : notSetText;
     }
     
     // responsibles がない場合は、responsible フィールドから取得
@@ -195,10 +197,10 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
           // メンバー管理画面に存在する名前のみを表示
           return this.members.some((m) => m.name === name);
         });
-      return names.length > 0 ? names.join(', ') : '（責任者未設定）';
+      return names.length > 0 ? names.join(', ') : notSetText;
     }
     
-    return '（責任者未設定）';
+    return notSetText;
   }
 
   getProjectThemeColor(project?: IProject | null): string {
@@ -207,7 +209,7 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
 
   formatProjectName(projectName?: string | null): string {
     const name = (projectName ?? '').trim();
-    const fallback = '（名称未設定）';
+    const fallback = this.languageService.translate('common.nameNotSet');
     const displayName = name.length > 0 ? name : fallback;
 
     if (displayName.length <= this.projectNameMaxLength) {
@@ -220,9 +222,11 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
 
   toDateDisplay(date?: string): string {
     if (!date) {
-      return '（未設定）';
+      return this.languageService.translate('common.notSet');
     }
-    return new Date(date).toLocaleDateString('ja-JP', {
+    const currentLanguage = this.languageService.getCurrentLanguage();
+    const locale = currentLanguage === 'en' ? 'en-US' : 'ja-JP';
+    return new Date(date).toLocaleDateString(locale, {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',

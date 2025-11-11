@@ -406,6 +406,9 @@ export class LanguageService {
     'progress.projects.members': { ja: 'メンバー', en: 'Members' },
     'progress.projects.completed': { ja: '完了', en: 'Completed' },
     'progress.projects.overviewNotSet': { ja: '（説明未設定）', en: '(Not Set)' },
+    'progress.projects.membersNotSet': { ja: '（メンバー情報未設定）', en: '(Members Not Set)' },
+    'progress.projects.responsibleNotSet': { ja: '（責任者未設定）', en: '(Responsible Not Set)' },
+    'progress.projects.noProjectsFound': { ja: 'プロジェクトが見つかりません', en: 'No projects found' },
     // 進捗画面（メンバー概要）
     'progress.members.title': {
       ja: '全メンバーの進捗',
@@ -583,6 +586,41 @@ export class LanguageService {
       ja: 'マイルストーン',
       en: 'Milestone',
     },
+    'calendar.status.notStarted': { ja: '未着手', en: 'Not Started' },
+    'calendar.status.inProgress': { ja: '作業中', en: 'In Progress' },
+    'calendar.status.completed': { ja: '完了', en: 'Completed' },
+    'calendar.priority.high': { ja: '高', en: 'High' },
+    'calendar.priority.medium': { ja: '中', en: 'Medium' },
+    'calendar.priority.low': { ja: '低', en: 'Low' },
+    'calendar.offline.simpleTaskOnly': {
+      ja: 'オフライン時は簡易的なタスク追加のみ可能です。オンライン復帰後に詳細な編集ができます。',
+      en: 'Only simple task addition is available offline. Detailed editing will be available after coming back online.',
+    },
+    'calendar.offline.enterTaskName': {
+      ja: 'タスク名を入力してください:',
+      en: 'Enter task name:',
+    },
+    'calendar.offline.enterDueDate': {
+      ja: '期日を入力してください (YYYY-MM-DD):',
+      en: 'Enter due date (YYYY-MM-DD):',
+    },
+    'calendar.offline.taskSaved': {
+      ja: 'タスクをオフラインで保存しました。オンライン復帰後に同期されます。',
+      en: 'Task saved offline. It will sync when you come back online.',
+    },
+    'calendar.offline.taskName': {
+      ja: 'オフラインタスク',
+      en: 'Offline Task',
+    },
+    'calendar.taskTooltip.dueDate': {
+      ja: '期限: ',
+      en: 'Due: ',
+    },
+    'calendar.error.taskProjectIdMissing': {
+      ja: 'タスクのprojectIdまたはidが不足しています',
+      en: 'Task projectId or id is missing',
+    },
+    'calendar.close': { ja: '閉じる', en: 'Close' },
     // プロジェクト詳細
     'projectDetail.title': { ja: 'プロジェクト詳細', en: 'Project Details' },
     'projectDetail.back': { ja: '戻る', en: 'Back' },
