@@ -1,8 +1,10 @@
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { TranslatePipe } from '../../pipes/translate.pipe';
+import { LanguageService } from '../../services/language.service';
 
 export interface RoomDeleteConfirmDialogData {
   roomName: string;
@@ -17,20 +19,19 @@ export interface RoomDeleteConfirmDialogData {
     MatDialogModule,
     MatButtonModule,
     MatIconModule,
+    TranslatePipe,
   ],
   template: `
     <div class="room-delete-confirm-dialog">
       <div class="dialog-header">
         <mat-icon class="warning-icon">warning</mat-icon>
-        <h2>ルームを削除</h2>
+        <h2>{{ 'settings.deleteRoomTitle' | translate }}</h2>
       </div>
 
       <div class="dialog-content">
-        <p class="warning-message">
-          本当にルーム「<strong>{{ data.roomName }}</strong>」を削除しますか？
-        </p>
+        <p class="warning-message" [innerHTML]="getDeleteConfirmMessage()"></p>
         <p class="warning-detail">
-          この操作は取り消せません。ルームに関連するすべてのデータ（プロジェクト、タスク、メンバーなど）が削除されます。
+          {{ 'settings.deleteRoomWarning' | translate }}
         </p>
       </div>
 
@@ -41,7 +42,7 @@ export interface RoomDeleteConfirmDialogData {
           (click)="onCancel()"
           class="cancel-button"
         >
-          キャンセル
+          {{ 'settings.cancel' | translate }}
         </button>
         <button
           mat-raised-button
@@ -51,7 +52,7 @@ export interface RoomDeleteConfirmDialogData {
           class="confirm-button"
         >
           <mat-icon>delete</mat-icon>
-          削除
+          {{ 'settings.delete' | translate }}
         </button>
       </div>
     </div>
@@ -136,10 +137,23 @@ export interface RoomDeleteConfirmDialogData {
   ],
 })
 export class RoomDeleteConfirmDialogComponent {
+  languageService = inject(LanguageService);
+
   constructor(
     private dialogRef: MatDialogRef<RoomDeleteConfirmDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: RoomDeleteConfirmDialogData
   ) {}
+
+  getDeleteConfirmMessage(): string {
+    const message = this.languageService.translateWithParams('settings.deleteRoomConfirm', {
+      roomName: this.data.roomName,
+    });
+    // ルーム名を強調表示
+    return message.replace(
+      `"${this.data.roomName}"`,
+      `<strong>"${this.data.roomName}"</strong>`
+    );
+  }
 
   onCancel(): void {
     this.dialogRef.close(false);

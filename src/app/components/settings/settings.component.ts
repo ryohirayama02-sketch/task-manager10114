@@ -134,9 +134,13 @@ export class SettingsComponent implements OnInit {
     const roomId = this.authService.getCurrentRoomId();
     const roomDocId = this.authService.getCurrentRoomDocId();
     if (!roomId || !roomDocId) {
-      this.snackBar.open('ルームに入室してください', this.getCloseLabel(), {
-        duration: 3000,
-      });
+      this.snackBar.open(
+        this.languageService.translate('settings.roomEnterRequired'),
+        this.getCloseLabel(),
+        {
+          duration: 3000,
+        }
+      );
       return;
     }
     // デフォルト設定を初期化
@@ -226,7 +230,9 @@ export class SettingsComponent implements OnInit {
       console.error('通知設定の読み込みエラー:', error);
       console.error('エラーの詳細:', error);
       this.snackBar.open(
-        `設定の読み込みに失敗しました: ${error}`,
+        this.languageService.translateWithParams('settings.loadFailed', {
+          error: String(error),
+        }),
         this.getCloseLabel(),
         {
           duration: 5000,
@@ -415,7 +421,7 @@ export class SettingsComponent implements OnInit {
           this.notificationSettings.notificationChannels.email.address;
         if (!emailAddress) {
           this.snackBar.open(
-            'メールアドレスを入力してください',
+            this.languageService.translate('settings.emailRequired'),
             this.getCloseLabel(),
             {
               duration: 3000,
@@ -430,7 +436,7 @@ export class SettingsComponent implements OnInit {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(emailAddress)) {
           this.snackBar.open(
-            '有効なメールアドレスを入力してください',
+            this.languageService.translate('settings.validEmailRequired'),
             this.getCloseLabel(),
             {
               duration: 3000,
@@ -446,7 +452,7 @@ export class SettingsComponent implements OnInit {
 
         if (result) {
           this.snackBar.open(
-            'テスト通知を送信しました ✅',
+            this.languageService.translate('settings.testNotificationSent'),
             this.getCloseLabel(),
             {
               duration: 3000,
@@ -454,7 +460,7 @@ export class SettingsComponent implements OnInit {
           );
         } else {
           this.snackBar.open(
-            'テスト通知の送信に失敗しました',
+            this.languageService.translate('settings.testNotificationFailed'),
             this.getCloseLabel(),
             {
               duration: 3000,
@@ -463,7 +469,7 @@ export class SettingsComponent implements OnInit {
         }
       } else {
         this.snackBar.open(
-          'メール通知を有効にしてください',
+          this.languageService.translate('settings.enableEmailNotification'),
           this.getCloseLabel(),
           {
             duration: 3000,
@@ -474,7 +480,9 @@ export class SettingsComponent implements OnInit {
       console.error('テスト通知エラー:', error);
       const errorMessage = error?.message || error?.code || '不明なエラー';
       this.snackBar.open(
-        `テスト通知の送信に失敗しました: ${errorMessage}`,
+        this.languageService.translateWithParams('settings.testNotificationFailedWithError', {
+          error: errorMessage,
+        }),
         this.getCloseLabel(),
         {
           duration: 3000,
@@ -492,9 +500,13 @@ export class SettingsComponent implements OnInit {
     const roomId = this.authService.getCurrentRoomId();
     const roomDocId = this.authService.getCurrentRoomDocId();
     if (!roomId || !roomDocId) {
-      this.snackBar.open('ルームに入室してください', this.getCloseLabel(), {
-        duration: 3000,
-      });
+      this.snackBar.open(
+        this.languageService.translate('settings.roomEnterRequired'),
+        this.getCloseLabel(),
+        {
+          duration: 3000,
+        }
+      );
       return;
     }
 
@@ -507,13 +519,16 @@ export class SettingsComponent implements OnInit {
 
       if (result.success) {
         this.snackBar.open(
-          `期限が近いタスクのメール通知を送信しました (${result.taskCount}件のタスク、${result.userCount}人のユーザー)`,
+          this.languageService.translateWithParams('settings.deadlineNotificationSent', {
+            taskCount: String(result.taskCount),
+            userCount: String(result.userCount),
+          }),
           this.getCloseLabel(),
           { duration: 5000 }
         );
       } else {
         this.snackBar.open(
-          'メール通知の送信に失敗しました',
+          this.languageService.translate('settings.emailNotificationFailed'),
           this.getCloseLabel(),
           {
             duration: 3000,
@@ -523,7 +538,7 @@ export class SettingsComponent implements OnInit {
     } catch (error) {
       console.error('期限が近いタスクのメール通知テストエラー:', error);
       this.snackBar.open(
-        'メール通知の送信に失敗しました',
+        this.languageService.translate('settings.emailNotificationFailed'),
         this.getCloseLabel(),
         {
           duration: 3000,
@@ -540,18 +555,26 @@ export class SettingsComponent implements OnInit {
   async sendTaskDeadlineNotificationsTest(): Promise<void> {
     const currentUser = this.authService.getCurrentUser();
     if (!currentUser) {
-      this.snackBar.open('ログインしてください', this.getCloseLabel(), {
-        duration: 3000,
-      });
+      this.snackBar.open(
+        this.languageService.translate('settings.loginRequired'),
+        this.getCloseLabel(),
+        {
+          duration: 3000,
+        }
+      );
       return;
     }
 
     const roomId = this.authService.getCurrentRoomId();
     const roomDocId = this.authService.getCurrentRoomDocId();
     if (!roomId || !roomDocId) {
-      this.snackBar.open('ルームに入室してください', this.getCloseLabel(), {
-        duration: 3000,
-      });
+      this.snackBar.open(
+        this.languageService.translate('settings.roomEnterRequired'),
+        this.getCloseLabel(),
+        {
+          duration: 3000,
+        }
+      );
       return;
     }
 
@@ -606,17 +629,22 @@ export class SettingsComponent implements OnInit {
           0
         );
 
-        let message = `タスク期限通知のテスト実行が完了しました\n`;
-        message += `成功: ${successCount}件、スキップ: ${skippedCount}件、エラー: ${errorCount}件\n`;
-        message += `対象タスク: ${taskCount}件\n`;
-        message += `詳細はコンソールを確認してください`;
+        const message = this.languageService.translateWithParams(
+          'settings.deadlineTestCompleted',
+          {
+            successCount: String(successCount),
+            skippedCount: String(skippedCount),
+            errorCount: String(errorCount),
+            taskCount: String(taskCount),
+          }
+        );
 
         this.snackBar.open(message, this.getCloseLabel(), {
           duration: 10000,
         });
       } else {
         this.snackBar.open(
-          'タスク期限通知のテスト実行に失敗しました',
+          this.languageService.translate('settings.deadlineTestFailed'),
           this.getCloseLabel(),
           {
             duration: 3000,
@@ -626,7 +654,9 @@ export class SettingsComponent implements OnInit {
     } catch (error: any) {
       console.error('タスク期限通知テストエラー:', error);
       this.snackBar.open(
-        `エラー: ${error.message || '不明なエラー'}`,
+        this.languageService.translateWithParams('settings.error', {
+          error: error.message || '不明なエラー',
+        }),
         this.getCloseLabel(),
         {
           duration: 5000,
@@ -770,11 +800,16 @@ export class SettingsComponent implements OnInit {
           notificationCount,
         });
 
-        let message = `作業時間オーバー通知のテスト実行が完了しました\n`;
-        message += `成功: ${successCount}件、スキップ: ${skippedCount}件、エラー: ${errorCount}件\n`;
-        message += `作業時間オーバーユーザー: ${overflowUserCount}人\n`;
-        message += `送信通知数: ${notificationCount}件\n`;
-        message += `詳細はコンソールを確認してください`;
+        const message = this.languageService.translateWithParams(
+          'settings.workTimeTestCompleted',
+          {
+            successCount: String(successCount),
+            skippedCount: String(skippedCount),
+            errorCount: String(errorCount),
+            overflowUserCount: String(overflowUserCount),
+            notificationCount: String(notificationCount),
+          }
+        );
 
         if (notificationCount === 0 && overflowUserCount > 0) {
           console.warn(
@@ -792,7 +827,7 @@ export class SettingsComponent implements OnInit {
       } else {
         console.error('❌ [7/7] 実行失敗:', result.data);
         this.snackBar.open(
-          '作業時間オーバー通知のテスト実行に失敗しました',
+          this.languageService.translate('settings.workTimeTestFailed'),
           this.getCloseLabel(),
           {
             duration: 3000,
@@ -806,7 +841,9 @@ export class SettingsComponent implements OnInit {
       console.error('❌ [エラー] エラーコード:', error.code);
       console.error('❌ [エラー] エラー詳細:', error);
       this.snackBar.open(
-        `エラー: ${error.message || '不明なエラー'}`,
+        this.languageService.translateWithParams('settings.error', {
+          error: error.message || '不明なエラー',
+        }),
         this.getCloseLabel(),
         {
           duration: 5000,
@@ -824,18 +861,26 @@ export class SettingsComponent implements OnInit {
   async sendDailyTaskRemindersTest(): Promise<void> {
     const currentUser = this.authService.getCurrentUser();
     if (!currentUser) {
-      this.snackBar.open('ログインしてください', this.getCloseLabel(), {
-        duration: 3000,
-      });
+      this.snackBar.open(
+        this.languageService.translate('settings.loginRequired'),
+        this.getCloseLabel(),
+        {
+          duration: 3000,
+        }
+      );
       return;
     }
 
     const roomId = this.authService.getCurrentRoomId();
     const roomDocId = this.authService.getCurrentRoomDocId();
     if (!roomId || !roomDocId) {
-      this.snackBar.open('ルームに入室してください', this.getCloseLabel(), {
-        duration: 3000,
-      });
+      this.snackBar.open(
+        this.languageService.translate('settings.roomEnterRequired'),
+        this.getCloseLabel(),
+        {
+          duration: 3000,
+        }
+      );
       return;
     }
 
@@ -901,17 +946,22 @@ export class SettingsComponent implements OnInit {
           0
         );
 
-        let message = `今日のタスク通知のテスト実行が完了しました\n`;
-        message += `成功: ${successCount}件、スキップ: ${skippedCount}件、エラー: ${errorCount}件\n`;
-        message += `通知タスク数: ${taskCount}件\n`;
-        message += `詳細はコンソールを確認してください`;
+        const message = this.languageService.translateWithParams(
+          'settings.dailyTestCompleted',
+          {
+            successCount: String(successCount),
+            skippedCount: String(skippedCount),
+            errorCount: String(errorCount),
+            taskCount: String(taskCount),
+          }
+        );
 
         this.snackBar.open(message, this.getCloseLabel(), {
           duration: 10000,
         });
       } else {
         this.snackBar.open(
-          '今日のタスク通知のテスト実行に失敗しました',
+          this.languageService.translate('settings.dailyTestFailed'),
           this.getCloseLabel(),
           {
             duration: 3000,
@@ -921,7 +971,9 @@ export class SettingsComponent implements OnInit {
     } catch (error: any) {
       console.error('今日のタスク通知テストエラー:', error);
       this.snackBar.open(
-        `エラー: ${error.message || '不明なエラー'}`,
+        this.languageService.translateWithParams('settings.error', {
+          error: error.message || '不明なエラー',
+        }),
         this.getCloseLabel(),
         {
           duration: 5000,
@@ -939,9 +991,13 @@ export class SettingsComponent implements OnInit {
     const roomId = this.authService.getCurrentRoomId();
     const roomDocId = this.authService.getCurrentRoomDocId();
     if (!roomId || !roomDocId) {
-      this.snackBar.open('ルームに入室してください', this.getCloseLabel(), {
-        duration: 3000,
-      });
+      this.snackBar.open(
+        this.languageService.translate('settings.roomEnterRequired'),
+        this.getCloseLabel(),
+        {
+          duration: 3000,
+        }
+      );
       return;
     }
 
@@ -964,13 +1020,16 @@ export class SettingsComponent implements OnInit {
 
       if (result.data?.success) {
         this.snackBar.open(
-          `ユーザー個別のタスク通知を送信しました (${result.data.taskCount}件のタスク、${result.data.userCount}人のユーザー)`,
+          this.languageService.translateWithParams('settings.userNotificationSent', {
+            taskCount: String(result.data.taskCount),
+            userCount: String(result.data.userCount),
+          }),
           this.getCloseLabel(),
           { duration: 5000 }
         );
       } else {
         this.snackBar.open(
-          'ユーザー個別のタスク通知の送信に失敗しました',
+          this.languageService.translate('settings.userNotificationFailed'),
           this.getCloseLabel(),
           {
             duration: 3000,
@@ -980,7 +1039,7 @@ export class SettingsComponent implements OnInit {
     } catch (error) {
       console.error('ユーザー個別のタスク通知テストエラー:', error);
       this.snackBar.open(
-        'ユーザー個別のタスク通知の送信に失敗しました',
+        this.languageService.translate('settings.userNotificationFailed'),
         this.getCloseLabel(),
         {
           duration: 3000,
@@ -1024,13 +1083,17 @@ export class SettingsComponent implements OnInit {
       await this.homeScreenSettingsService.saveHomeScreenSettings(
         this.selectedHomeScreen
       );
-      this.snackBar.open('ホーム画面設定を保存しました', this.getCloseLabel(), {
-        duration: 3000,
-      });
+      this.snackBar.open(
+        this.languageService.translate('settings.homeScreenSaved'),
+        this.getCloseLabel(),
+        {
+          duration: 3000,
+        }
+      );
     } catch (error) {
       console.error('ホーム画面設定の保存エラー:', error);
       this.snackBar.open(
-        'ホーム画面設定の保存に失敗しました',
+        this.languageService.translate('settings.homeScreenSaveFailed'),
         this.getCloseLabel(),
         {
           duration: 3000,
@@ -1095,9 +1158,13 @@ export class SettingsComponent implements OnInit {
         try {
           const roomId = this.authService.getCurrentRoomId();
           if (!roomId) {
-            this.snackBar.open('ルームIDが取得できませんでした', '閉じる', {
-              duration: 3000,
-            });
+            this.snackBar.open(
+              this.languageService.translate('settings.roomIdNotAvailable'),
+              this.getCloseLabel(),
+              {
+                duration: 3000,
+              }
+            );
             return;
           }
 
@@ -1146,17 +1213,25 @@ export class SettingsComponent implements OnInit {
           this.authService.clearRoomId();
           this.projectSelectionService.clearSelection();
 
-          this.snackBar.open('ルームを削除しました', '閉じる', {
-            duration: 3000,
-          });
+          this.snackBar.open(
+            this.languageService.translate('settings.roomDeleted'),
+            this.getCloseLabel(),
+            {
+              duration: 3000,
+            }
+          );
 
           // ルーム入室画面に遷移
           this.router.navigate(['/room-login']);
         } catch (error) {
           console.error('ルーム削除エラー:', error);
-          this.snackBar.open('ルームの削除に失敗しました', '閉じる', {
-            duration: 5000,
-          });
+          this.snackBar.open(
+            this.languageService.translate('settings.roomDeleteFailed'),
+            this.getCloseLabel(),
+            {
+              duration: 5000,
+            }
+          );
         }
       }
     });

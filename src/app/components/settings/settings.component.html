@@ -510,7 +510,7 @@
                 class="quiet-hours-validation-error"
               >
                 <mat-icon>warning</mat-icon>
-                <span>開始時間と終了時間を同じにすることはできません</span>
+                <span>{{ 'settings.quietHoursTimeSameError' | translate }}</span>
               </div>
             </div>
           </div>
@@ -687,7 +687,7 @@
             class="change-room-button"
           >
             <mat-icon>swap_horiz</mat-icon>
-            ルームを変更
+            {{ 'settings.changeRoom' | translate }}
           </button>
         </div>
       </mat-card-header>
@@ -719,7 +719,7 @@
           class="delete-room-button"
         >
           <mat-icon>delete</mat-icon>
-          ルームを削除
+          {{ 'settings.deleteRoom' | translate }}
         </button>
       </mat-card-actions>
     </mat-card>

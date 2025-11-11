@@ -22,6 +22,7 @@ import { Subject, Observable, of } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { IProject } from '../../models/project.model';
 import { ProjectThemeColor } from '../../constants/project-theme-colors';
+import { LanguageService } from '../../services/language.service';
 
 @Component({
   selector: 'app-logs',
@@ -46,6 +47,7 @@ export class LogsComponent implements OnInit, OnDestroy {
   private readonly auth = inject(Auth);
   private readonly router = inject(Router);
   private readonly firestore = inject(Firestore);
+  private readonly languageService = inject(LanguageService);
   private readonly destroy$ = new Subject<void>();
 
   editLogs: EditLog[] = [];
@@ -67,30 +69,33 @@ export class LogsComponent implements OnInit, OnDestroy {
   private currentTaskNames = new Set<string>(); // 現在存在するタスク名のセット
   
   // プロジェクトテーマカラーの16進表記から色名へのマッピング
-  private readonly themeColorLabelMap: Record<string, string> = {
-    // 現在のカラー
-    '#fde4ec': 'ピンク',
-    '#ffe6dc': 'ピーチ',
-    '#ffedd6': 'アプリコット',
-    '#fff8e4': 'イエロー',
-    '#eef6da': 'ライム',
-    '#e4f4e8': 'ミント',
-    '#dcf3f0': 'ブルーグリーン',
-    '#def3ff': 'スカイブルー',
-    '#e6e9f9': 'ラベンダーブルー',
-    '#ece6f8': 'パープル',
-    // レガシーカラー（古いカラーコードも対応）
-    '#f8bbd0': 'ピンク',
-    '#ffccbc': 'ピーチ',
-    '#ffe0b2': 'アプリコット',
-    '#fff9c4': 'イエロー',
-    '#dcedc8': 'ライム',
-    '#c8e6c9': 'ミント',
-    '#b2dfdb': 'ブルーグリーン',
-    '#b3e5fc': 'スカイブルー',
-    '#c5cae9': 'ラベンダーブルー',
-    '#d1c4e9': 'パープル',
-  };
+  private getThemeColorLabelMap(): Record<string, string> {
+    const isEnglish = this.languageService.getCurrentLanguage() === 'en';
+    return {
+      // 現在のカラー
+      '#fde4ec': isEnglish ? 'Pink' : 'ピンク',
+      '#ffe6dc': isEnglish ? 'Peach' : 'ピーチ',
+      '#ffedd6': isEnglish ? 'Apricot' : 'アプリコット',
+      '#fff8e4': isEnglish ? 'Yellow' : 'イエロー',
+      '#eef6da': isEnglish ? 'Lime' : 'ライム',
+      '#e4f4e8': isEnglish ? 'Mint' : 'ミント',
+      '#dcf3f0': isEnglish ? 'Blue Green' : 'ブルーグリーン',
+      '#def3ff': isEnglish ? 'Sky Blue' : 'スカイブルー',
+      '#e6e9f9': isEnglish ? 'Lavender Blue' : 'ラベンダーブルー',
+      '#ece6f8': isEnglish ? 'Purple' : 'パープル',
+      // レガシーカラー（古いカラーコードも対応）
+      '#f8bbd0': isEnglish ? 'Pink' : 'ピンク',
+      '#ffccbc': isEnglish ? 'Peach' : 'ピーチ',
+      '#ffe0b2': isEnglish ? 'Apricot' : 'アプリコット',
+      '#fff9c4': isEnglish ? 'Yellow' : 'イエロー',
+      '#dcedc8': isEnglish ? 'Lime' : 'ライム',
+      '#c8e6c9': isEnglish ? 'Mint' : 'ミント',
+      '#b2dfdb': isEnglish ? 'Blue Green' : 'ブルーグリーン',
+      '#b3e5fc': isEnglish ? 'Sky Blue' : 'スカイブルー',
+      '#c5cae9': isEnglish ? 'Lavender Blue' : 'ラベンダーブルー',
+      '#d1c4e9': isEnglish ? 'Purple' : 'パープル',
+    };
+  }
 
   ngOnInit() {
     // メンバー一覧を読み込み
@@ -205,16 +210,23 @@ export class LogsComponent implements OnInit, OnDestroy {
         let actionLabel = '';
         if (log.action === 'update') {
           // タスク名がある場合は「タスクを更新しました」、ない場合は「プロジェクトを更新しました」
-          actionLabel = log.taskName ? 'タスクを更新しました' : 'プロジェクトを更新しました';
+          actionLabel = log.taskName
+            ? this.languageService.translate('logs.taskUpdated')
+            : this.languageService.translate('logs.projectUpdated');
         } else if (log.action === 'create') {
-          actionLabel = log.taskName ? 'タスクを作成しました' : 'プロジェクトを作成しました';
+          actionLabel = log.taskName
+            ? this.languageService.translate('logs.taskCreated')
+            : this.languageService.translate('logs.projectCreated');
         } else if (log.action === 'delete') {
-          actionLabel = log.taskName ? 'タスクを削除しました' : 'プロジェクトを削除しました';
+          actionLabel = log.taskName
+            ? this.languageService.translate('logs.taskDeleted')
+            : this.languageService.translate('logs.projectDeleted');
         } else {
           actionLabel = this.getActionLabel(log.action);
         }
         // 変更内容を括弧で囲む
-        return `${actionLabel} 。(${changeDescriptions.join(', ')})`;
+        const period = this.languageService.getCurrentLanguage() === 'ja' ? '。' : '.';
+        return `${actionLabel}${period} (${changeDescriptions.join(', ')})`;
       }
     }
 
@@ -236,14 +248,16 @@ export class LogsComponent implements OnInit, OnDestroy {
     }
 
     if (hasNew) {
+      const addedText = this.languageService.translate('logs.added');
       return baseLabel
-        ? `${baseLabel} (${newValue}が追加)`
-        : `${newValue}が追加`;
+        ? `${baseLabel} (${newValue}${addedText})`
+        : `${newValue}${addedText}`;
     }
 
+    const deletedText = this.languageService.translate('logs.deleted');
     return baseLabel
-      ? `${baseLabel} (${oldValue}が削除)`
-      : `${oldValue}が削除`;
+      ? `${baseLabel} (${oldValue}${deletedText})`
+      : `${oldValue}${deletedText}`;
   }
 
   /** 個別の変更詳細を整形 */
@@ -255,7 +269,8 @@ export class LogsComponent implements OnInit, OnDestroy {
     const hasNew = !!newValue;
 
     // プロジェクトテーマ色の場合は16進表記を色名に変換
-    if (field === 'テーマ色' || field === 'themeColor') {
+    const themeColorKey = this.languageService.translate('logs.themeColor');
+    if (field === 'テーマ色' || field === 'themeColor' || field === themeColorKey) {
       if (oldValue) {
         oldValue = this.getThemeColorLabel(oldValue);
       }
@@ -272,28 +287,32 @@ export class LogsComponent implements OnInit, OnDestroy {
       return `${field}: ${oldValue}→${newValue}`;
     }
 
+    const addedText = this.languageService.translate('logs.added');
+    const deletedText = this.languageService.translate('logs.deleted');
     if (hasNew) {
-      return `${field}: ${newValue}が追加`;
+      return `${field}: ${newValue}${addedText}`;
     }
 
-    return `${field}: ${oldValue}が削除`;
+    return `${field}: ${oldValue}${deletedText}`;
   }
 
   /** プロジェクトテーマカラーの16進表記を色名に変換 */
   private getThemeColorLabel(color: string): string {
     // #ffffffの場合は「なし」に変換
     if (color.toLowerCase() === '#ffffff') {
-      return 'なし';
+      return this.languageService.translate('logs.none');
     }
     // 大文字小文字を区別しないように、小文字に変換してから検索
     const normalizedColor = color.toLowerCase();
-    return this.themeColorLabelMap[normalizedColor] ?? color;
+    const labelMap = this.getThemeColorLabelMap();
+    return labelMap[normalizedColor] ?? color;
   }
 
   /** 日付をフォーマット */
   formatDate(date: Date | string): string {
     const d = typeof date === 'string' ? new Date(date) : date;
-    return d.toLocaleString('ja-JP', {
+    const locale = this.languageService.getCurrentLanguage() === 'ja' ? 'ja-JP' : 'en-US';
+    return d.toLocaleString(locale, {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
@@ -313,14 +332,15 @@ export class LogsComponent implements OnInit, OnDestroy {
     console.log('currentTaskNames:', Array.from(this.currentTaskNames));
     
     // プロジェクト名：現在存在するすべてのプロジェクト名を選択肢に表示
+    const locale = this.languageService.getCurrentLanguage() === 'ja' ? 'ja' : 'en';
     this.projectOptions = Array.from(this.currentProjectNames).sort((a, b) =>
-      a.localeCompare(b, 'ja')
+      a.localeCompare(b, locale)
     );
     console.log('projectOptions:', this.projectOptions);
 
     // タスク名：現在存在するすべてのタスク名を選択肢に表示
     this.taskOptions = Array.from(this.currentTaskNames).sort((a, b) =>
-      a.localeCompare(b, 'ja')
+      a.localeCompare(b, locale)
     );
     console.log('taskOptions:', this.taskOptions);
 
@@ -344,8 +364,9 @@ export class LogsComponent implements OnInit, OnDestroy {
       }
     });
 
+    const locale = this.languageService.getCurrentLanguage() === 'ja' ? 'ja' : 'en';
     this.memberOptions = Array.from(memberSet).sort((a, b) =>
-      a.localeCompare(b, 'ja')
+      a.localeCompare(b, locale)
     );
   }
 
@@ -424,7 +445,8 @@ export class LogsComponent implements OnInit, OnDestroy {
   }
 
   periodLabel(): string {
-    const formatter = new Intl.DateTimeFormat('ja-JP', {
+    const locale = this.languageService.getCurrentLanguage() === 'ja' ? 'ja-JP' : 'en-US';
+    const formatter = new Intl.DateTimeFormat(locale, {
       month: '2-digit',
       day: '2-digit',
     });
@@ -435,12 +457,14 @@ export class LogsComponent implements OnInit, OnDestroy {
       )}`;
     }
     if (this.periodStartDate) {
-      return `${formatter.format(this.periodStartDate)} 以降`;
+      const afterText = this.languageService.translate('logs.after');
+      return `${formatter.format(this.periodStartDate)} ${afterText}`;
     }
     if (this.periodEndDate) {
-      return `${formatter.format(this.periodEndDate)} 以前`;
+      const beforeText = this.languageService.translate('logs.before');
+      return `${formatter.format(this.periodEndDate)} ${beforeText}`;
     }
-    return '期間';
+    return this.languageService.translate('logs.period');
   }
 
   resetFilters(): void {
@@ -575,9 +599,10 @@ export class LogsComponent implements OnInit, OnDestroy {
     }
     this.allLogs.forEach((log) => {
       const resolved = this.projectNameMap.get(log.projectId);
+      const projectFallback = this.languageService.translate('logs.projectFallback');
       if (
         resolved &&
-        (!log.projectName || log.projectName === 'プロジェクト')
+        (!log.projectName || log.projectName === 'プロジェクト' || log.projectName === projectFallback)
       ) {
         log.projectName = resolved;
       }
@@ -585,7 +610,8 @@ export class LogsComponent implements OnInit, OnDestroy {
   }
 
   private resolveProjectName(log: EditLog): string {
-    if (log.projectName && log.projectName !== 'プロジェクト') {
+    const projectFallback = this.languageService.translate('logs.projectFallback');
+    if (log.projectName && log.projectName !== 'プロジェクト' && log.projectName !== projectFallback) {
       return log.projectName;
     }
     const resolved = this.projectNameMap.get(log.projectId);

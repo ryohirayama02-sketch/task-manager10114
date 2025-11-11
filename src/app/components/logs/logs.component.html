@@ -70,14 +70,14 @@
         (click)="resetFilters()"
         [disabled]="!isFilterActive()"
       >
-        リセット
+        {{ 'logs.reset' | translate }}
       </button>
     </div>
   </div>
 
   <!-- ローディング表示 -->
   <div *ngIf="loading" class="loading">
-    <p>読み込み中...</p>
+    <p>{{ 'logs.loadingText' | translate }}</p>
   </div>
 
   <!-- ログ一覧 -->
@@ -96,15 +96,15 @@
         </div>
 
         <div class="log-project">
-          <strong>📁 プロジェクト:</strong> {{ log.projectName }}
+          <strong>📁 {{ 'logs.project' | translate }}</strong>{{ log.projectName }}
         </div>
 
         <div *ngIf="log.taskName" class="log-task">
-          <strong>📝 タスク:</strong> {{ log.taskName }}
+          <strong>📝 {{ 'logs.task' | translate }}</strong>{{ log.taskName }}
         </div>
 
         <div class="log-description">
-          <strong>📋 変更内容:</strong>{{ formatChangeDescription(log) }}
+          <strong>📋 {{ 'logs.changeDescription' | translate }}</strong>{{ formatChangeDescription(log) }}
         </div>
 
       </div>
@@ -113,13 +113,13 @@
 
   <!-- ログが無い場合 -->
   <div *ngIf="!loading && editLogs.length === 0" class="no-logs">
-    <p>編集ログがありません</p>
+    <p>{{ 'logs.noEditLogs' | translate }}</p>
   </div>
 
   <!-- さらに読み込みボタン -->
   <div *ngIf="!loading && hasMoreLogs && editLogs.length > 0" class="load-more">
     <button class="load-more-btn" (click)="loadMoreLogs()">
-      📄 さらに読み込む
+      📄 {{ 'logs.loadMore' | translate }}
     </button>
   </div>
 </div>
