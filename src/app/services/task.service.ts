@@ -54,8 +54,9 @@ export class TaskService {
     memberNames?: string | string[]
   ): Observable<Task[]> {
     const today = new Date();
+    const startDate = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000); // 30日前
     const targetDate = new Date(today.getTime() + days * 24 * 60 * 60 * 1000);
-    const todayStr = today.toISOString().split('T')[0];
+    const startDateStr = startDate.toISOString().split('T')[0];
     const targetDateStr = targetDate.toISOString().split('T')[0];
 
     return this.authService.currentRoomId$.pipe(
@@ -152,7 +153,7 @@ export class TaskService {
                       const filtered = allTasks.filter((task) => {
                         const due = task.dueDate;
                         const isWithin =
-                          due >= todayStr &&
+                          due >= startDateStr &&
                           due <= targetDateStr &&
                           (task.status === '未着手' || task.status === '作業中');
 
