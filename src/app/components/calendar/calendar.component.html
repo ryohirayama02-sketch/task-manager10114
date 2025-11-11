@@ -47,9 +47,9 @@
     <mat-form-field appearance="outline">
       <mat-label>{{ 'calendar.filter.status' | translate }}</mat-label>
       <mat-select [(ngModel)]="filterStatus" (selectionChange)="applyFilters()" multiple>
-        <mat-option value="未着手">未着手</mat-option>
-        <mat-option value="作業中">作業中</mat-option>
-        <mat-option value="完了">完了</mat-option>
+        <mat-option value="未着手">{{ getStatusDisplay('未着手') }}</mat-option>
+        <mat-option value="作業中">{{ getStatusDisplay('作業中') }}</mat-option>
+        <mat-option value="完了">{{ getStatusDisplay('完了') }}</mat-option>
       </mat-select>
     </mat-form-field>
 
@@ -60,9 +60,9 @@
         (selectionChange)="applyFilters()"
         multiple
       >
-        <mat-option value="高">高</mat-option>
-        <mat-option value="中">中</mat-option>
-        <mat-option value="低">低</mat-option>
+        <mat-option value="高">{{ getPriorityDisplay('高') }}</mat-option>
+        <mat-option value="中">{{ getPriorityDisplay('中') }}</mat-option>
+        <mat-option value="低">{{ getPriorityDisplay('低') }}</mat-option>
       </mat-select>
     </mat-form-field>
 
@@ -94,9 +94,9 @@
       [(ngModel)]="viewMode"
       (change)="changeViewMode($event.value)"
     >
-      <mat-button-toggle value="day">日</mat-button-toggle>
-      <mat-button-toggle value="week">週</mat-button-toggle>
-      <mat-button-toggle value="month">月</mat-button-toggle>
+      <mat-button-toggle value="day">{{ getViewModeLabel('day') }}</mat-button-toggle>
+      <mat-button-toggle value="week">{{ getViewModeLabel('week') }}</mat-button-toggle>
+      <mat-button-toggle value="month">{{ getViewModeLabel('month') }}</mat-button-toggle>
     </mat-button-toggle-group>
   </div>
 </div>
@@ -149,13 +149,13 @@
     *ngIf="viewMode !== 'month'"
   >
     <div *ngFor="let date of calendarDays" class="week-day">
-      {{ weekDays[date.getDay()] }}
+      {{ getWeekDays()[date.getDay()] }}
     </div>
   </div>
   <div class="calendar-grid" [ngClass]="'view-' + viewMode">
     <!-- 曜日ヘッダー（月表示のみ） -->
     <ng-container *ngIf="viewMode === 'month'">
-      <div *ngFor="let day of weekDays" class="week-day">{{ day }}</div>
+      <div *ngFor="let day of getWeekDays()" class="week-day">{{ day }}</div>
     </ng-container>
 
     <div
@@ -209,7 +209,7 @@
           [style.border-left]="'4px solid #ccc'"
           [style.color]="'#666'"
         >
-          <div class="task-name">他{{ getRemainingTasksCount(date) }}件</div>
+          <div class="task-name">{{ getRemainingTasksText(getRemainingTasksCount(date)) }}</div>
         </div>
       </div>
     </div>

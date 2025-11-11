@@ -23,6 +23,7 @@ import { AuthService } from '../../services/auth.service';
 import { MemberManagementService } from '../../services/member-management.service';
 import { Member } from '../../models/member.model';
 import { getMemberNamesAsString, getMemberNames } from '../../utils/member-utils';
+import { LanguageService } from '../../services/language.service';
 
 @Component({
   selector: 'app-calendar',
@@ -56,7 +57,7 @@ export class CalendarComponent implements OnInit, OnDestroy {
   // カレンダー表示用
   currentDate: Date = new Date();
   calendarDays: Date[] = [];
-  weekDays = ['日', '月', '火', '水', '木', '金', '土'];
+  weekDays = ['日', '月', '火', '水', '木', '金', '土']; // 日本語用（後でgetWeekDays()で上書き）
 
   // 表示モード
   viewMode: 'day' | 'week' | 'month' = 'month';
@@ -101,7 +102,8 @@ export class CalendarComponent implements OnInit, OnDestroy {
     private offlineService: OfflineService,
     private snackBar: MatSnackBar,
     private authService: AuthService,
-    private memberManagementService: MemberManagementService
+    private memberManagementService: MemberManagementService,
+    private languageService: LanguageService
   ) {}
 
   ngOnInit(): void {
@@ -925,5 +927,56 @@ export class CalendarComponent implements OnInit, OnDestroy {
     const nextDate = new Date(this.currentDate);
     nextDate.setMonth(nextDate.getMonth() + 1);
     return this.isDateInAvailableRange(nextDate);
+  }
+
+  /** ステータスを表示（言語設定に応じて） */
+  getStatusDisplay(status: string): string {
+    const currentLanguage = this.languageService.getCurrentLanguage();
+    const statusMap: Record<string, Record<'ja' | 'en', string>> = {
+      '未着手': { ja: '未着手', en: 'Not Started' },
+      '作業中': { ja: '作業中', en: 'In Progress' },
+      '完了': { ja: '完了', en: 'Completed' },
+    };
+    return statusMap[status]?.[currentLanguage] || status;
+  }
+
+  /** 優先度を表示（言語設定に応じて） */
+  getPriorityDisplay(priority: string): string {
+    const currentLanguage = this.languageService.getCurrentLanguage();
+    const priorityMap: Record<string, Record<'ja' | 'en', string>> = {
+      '高': { ja: '高', en: 'High' },
+      '中': { ja: '中', en: 'Medium' },
+      '低': { ja: '低', en: 'Low' },
+    };
+    return priorityMap[priority]?.[currentLanguage] || priority;
+  }
+
+  /** 曜日を取得（言語設定に応じて） */
+  getWeekDays(): string[] {
+    const currentLanguage = this.languageService.getCurrentLanguage();
+    if (currentLanguage === 'en') {
+      return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    }
+    return ['日', '月', '火', '水', '木', '金', '土'];
+  }
+
+  /** 表示モードのラベルを取得（言語設定に応じて） */
+  getViewModeLabel(mode: 'day' | 'week' | 'month'): string {
+    const currentLanguage = this.languageService.getCurrentLanguage();
+    const labelMap: Record<string, Record<'ja' | 'en', string>> = {
+      'day': { ja: '日', en: 'Day' },
+      'week': { ja: '週', en: 'Week' },
+      'month': { ja: '月', en: 'Month' },
+    };
+    return labelMap[mode]?.[currentLanguage] || mode;
+  }
+
+  /** 残りのタスク数の表示テキストを取得（言語設定に応じて） */
+  getRemainingTasksText(count: number): string {
+    const currentLanguage = this.languageService.getCurrentLanguage();
+    if (currentLanguage === 'en') {
+      return `+${count} more`;
+    }
+    return `他${count}件`;
   }
 }
