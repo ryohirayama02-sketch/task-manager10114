@@ -59,8 +59,7 @@
   border: 1px solid rgba(15, 23, 42, 0.06);
   box-shadow: 0 14px 32px rgba(15, 23, 42, 0.16),
     0 4px 10px rgba(15, 23, 42, 0.12);
-  transition: transform 0.25s ease, box-shadow 0.25s ease,
-    filter 0.25s ease;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
   color: #1f2933;
   width: 100%;
   max-width: 100%;
@@ -178,8 +177,7 @@
 }
 
 /* 完了バッジ */
-.project-card.completed::after {
-  content: "完了";
+.completed-badge {
   position: absolute;
   top: 14px;
   right: 14px;
@@ -189,6 +187,7 @@
   border-radius: 16px;
   font-size: 16px;
   font-weight: bold;
+  z-index: 1;
 }
 
 /* プロジェクトが見つからない場合 */

@@ -281,6 +281,7 @@ export class LanguageService {
     'progress.projects.period': { ja: '期間', en: 'Period' },
     'progress.projects.responsible': { ja: '責任者', en: 'Responsible' },
     'progress.projects.members': { ja: 'メンバー', en: 'Members' },
+    'progress.projects.completed': { ja: '完了', en: 'Completed' },
     // 進捗画面（メンバー概要）
     'progress.members.title': {
       ja: '全メンバーの進捗',

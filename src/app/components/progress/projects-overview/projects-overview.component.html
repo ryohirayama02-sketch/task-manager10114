@@ -33,6 +33,17 @@
         projectProgress[project.id].progressPercentage === 100
       "
     >
+      <!-- 完了バッジ -->
+      <div
+        *ngIf="
+          project.id &&
+          projectProgress[project.id] &&
+          projectProgress[project.id].progressPercentage === 100
+        "
+        class="completed-badge"
+      >
+        {{ 'progress.projects.completed' | translate }}
+      </div>
       <div class="project-info">
         <!-- ▼ プロジェクト名クリックで詳細へ -->
         <h3 class="project-title">
