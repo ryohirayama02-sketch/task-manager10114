@@ -75,7 +75,9 @@
               [(ngModel)]="editableProject!.projectName"
               name="inlineProjectName"
               required
+              maxlength="30"
             />
+            <mat-hint align="end">{{ (editableProject!.projectName || '').length }}/30</mat-hint>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width-field">

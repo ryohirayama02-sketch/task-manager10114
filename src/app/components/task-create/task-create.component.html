@@ -32,8 +32,9 @@
             [(ngModel)]="taskForm.taskName"
             name="taskName"
             required
-            maxlength="50"
+            maxlength="30"
           />
+          <mat-hint align="end">{{ (taskForm.taskName || '').length }}/30</mat-hint>
         </mat-form-field>
 
         <!-- 説明 -->
