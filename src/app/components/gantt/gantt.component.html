@@ -38,23 +38,23 @@
     <mat-form-field appearance="outline">
       <mat-label>{{ 'gantt.filter.status' | translate }}</mat-label>
       <mat-select [(ngModel)]="filterStatus" (selectionChange)="applyFilters()" multiple>
-        <mat-option value="未着手">{{ getStatusDisplay('未着手') }}</mat-option>
-        <mat-option value="作業中">{{ getStatusDisplay('作業中') }}</mat-option>
-        <mat-option value="完了">{{ getStatusDisplay('完了') }}</mat-option>
+        <mat-option [value]="getStatusValue('notStarted')">{{ getStatusDisplay('notStarted') }}</mat-option>
+        <mat-option [value]="getStatusValue('inProgress')">{{ getStatusDisplay('inProgress') }}</mat-option>
+        <mat-option [value]="getStatusValue('completed')">{{ getStatusDisplay('completed') }}</mat-option>
       </mat-select>
     </mat-form-field>
 
     <mat-form-field appearance="outline">
       <mat-label>{{ 'gantt.filter.priority' | translate }}</mat-label>
-      <mat-select
-        [(ngModel)]="filterPriority"
-        (selectionChange)="applyFilters()"
-        multiple
-      >
-        <mat-option value="高">{{ getPriorityDisplay('高') }}</mat-option>
-        <mat-option value="中">{{ getPriorityDisplay('中') }}</mat-option>
-        <mat-option value="低">{{ getPriorityDisplay('低') }}</mat-option>
-      </mat-select>
+        <mat-select
+          [(ngModel)]="filterPriority"
+          (selectionChange)="applyFilters()"
+          multiple
+        >
+          <mat-option [value]="getPriorityValue('high')">{{ getPriorityDisplay('high') }}</mat-option>
+          <mat-option [value]="getPriorityValue('medium')">{{ getPriorityDisplay('medium') }}</mat-option>
+          <mat-option [value]="getPriorityValue('low')">{{ getPriorityDisplay('low') }}</mat-option>
+        </mat-select>
     </mat-form-field>
 
     <mat-form-field appearance="outline">
@@ -86,21 +86,21 @@
       <div class="legend-item status-not-started">
         <div
           class="legend-color"
-          [style.background-color]="statusColors['未着手']"
+          [style.background-color]="statusColors[getStatusValue('notStarted')]"
         ></div>
         <span>{{ 'gantt.legend.notStarted' | translate }}</span>
       </div>
       <div class="legend-item status-in-progress">
         <div
           class="legend-color"
-          [style.background-color]="statusColors['作業中']"
+          [style.background-color]="statusColors[getStatusValue('inProgress')]"
         ></div>
         <span>{{ 'gantt.legend.inProgress' | translate }}</span>
       </div>
       <div class="legend-item status-completed">
         <div
           class="legend-color"
-          [style.background-color]="statusColors['完了']"
+          [style.background-color]="statusColors[getStatusValue('completed')]"
         ></div>
         <span>{{ 'gantt.legend.completed' | translate }}</span>
       </div>
@@ -240,15 +240,7 @@
               [style.left]="getTaskBarStartPosition(task) + 'px'"
               [style.width]="getTaskBarWidth(task) + 'px'"
               [style.top]="i * 40 + 4 + 'px'"
-              [title]="
-                task.taskName +
-                ' (' +
-                task.status +
-                ') - ' +
-                task.startDate +
-                ' ～ ' +
-                task.dueDate
-              "
+              [title]="getTaskBarTooltip(task)"
               (click)="openTaskDetail(task)"
             >
               <span

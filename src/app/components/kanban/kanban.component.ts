@@ -368,7 +368,7 @@ export class KanbanComponent implements OnInit {
           this.languageService.translateWithParams(
             'kanban.alert.parentTaskStatusChange',
             {
-              taskName: parentTask.taskName || '名称未設定',
+              taskName: parentTask.taskName || this.languageService.translate('common.nameNotSet'),
             }
           )
         );
@@ -400,7 +400,7 @@ export class KanbanComponent implements OnInit {
       );
 
       if (incompleteChild) {
-        const childName = incompleteChild.taskName || '名称未設定';
+        const childName = incompleteChild.taskName || this.languageService.translate('common.nameNotSet');
         alert(
           this.languageService.translateWithParams(
             'kanban.alert.incompleteSubtask',
@@ -510,10 +510,12 @@ export class KanbanComponent implements OnInit {
       const display = getMemberNamesAsString(
         task.assignedMembers,
         this.members,
-        ', '
+        ', ',
+        this.languageService
       );
       console.log('   - 表示結果:', display);
-      return display === '未設定' ? '—' : display;
+      const notSetText = this.languageService.translate('common.notSet');
+      return display === notSetText ? '—' : display;
     }
 
     // assignedMembers がない場合は assignee から最新のメンバー名を取得

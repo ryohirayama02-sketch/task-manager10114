@@ -61,13 +61,23 @@ export function getMemberNames(uids: string[] | undefined, members: Member[] | u
  * @param uids UIDの配列
  * @param members メンバー配列
  * @param separator 区切り文字（デフォルト: ', '）
- * @returns カンマ区切りの表示名、該当者なしの場合は '未設定' を返す
+ * @param languageService 言語サービス（オプション、翻訳用）
+ * @returns カンマ区切りの表示名、該当者なしの場合は翻訳された'未設定'を返す
  */
 export function getMemberNamesAsString(
   uids: string[] | undefined,
   members: Member[] | undefined,
-  separator: string = ', '
+  separator: string = ', ',
+  languageService?: { translate: (key: string) => string }
 ): string {
   const names = getMemberNames(uids, members);
-  return names.length > 0 ? names.join(separator) : '未設定';
+  if (names.length > 0) {
+    return names.join(separator);
+  }
+  // 言語サービスが提供されている場合は翻訳を使用
+  if (languageService) {
+    return languageService.translate('common.notSet');
+  }
+  // フォールバック: 日本語の'未設定'
+  return '未設定';
 }

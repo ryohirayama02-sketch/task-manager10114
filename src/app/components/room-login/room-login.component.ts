@@ -5,17 +5,19 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { RoomService } from '../../services/room.service';
 import { HomeScreenSettingsService } from '../../services/home-screen-settings.service';
+import { LanguageService } from '../../services/language.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-room-login',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslatePipe],
   template: `
     <div class="room-login">
       <form (ngSubmit)="enterRoom()" #roomForm="ngForm">
         <label>
-          Room ID
+          {{ "roomLogin.roomId" | translate }}
           <input
             type="text"
             name="roomId"
@@ -24,7 +26,7 @@ import { firstValueFrom } from 'rxjs';
           />
         </label>
         <label>
-          Password
+          {{ "roomLogin.password" | translate }}
           <input
             type="password"
             name="password"
@@ -33,12 +35,12 @@ import { firstValueFrom } from 'rxjs';
           />
         </label>
         <button type="submit" [disabled]="roomForm.invalid || isLoading">
-          入室
+          {{ "roomLogin.enter" | translate }}
         </button>
       </form>
       <p *ngIf="error" class="error">{{ error }}</p>
       <button type="button" (click)="showCreateRoom = !showCreateRoom">
-        新規ルーム作成
+        {{ "roomLogin.createRoom" | translate }}
       </button>
       <form
         *ngIf="showCreateRoom"
@@ -46,7 +48,7 @@ import { firstValueFrom } from 'rxjs';
         #createRoomForm="ngForm"
       >
         <label>
-          Room ID
+          {{ "roomLogin.roomId" | translate }}
           <input
             type="text"
             name="newRoomId"
@@ -55,42 +57,42 @@ import { firstValueFrom } from 'rxjs';
             (input)="checkRoomIdExists()"
             [class.error]="roomIdExistsError"
             maxlength="20"
-            placeholder="最大20文字"
+            [placeholder]="'roomLogin.maxLength' | translate"
           />
           <span *ngIf="roomIdExistsError" class="error-message">
             {{ roomIdExistsError }}
           </span>
-          <span class="hint-text">最大20文字</span>
+          <span class="hint-text">{{ "roomLogin.maxLength" | translate }}</span>
         </label>
         <label>
-          表示名
+          {{ "roomLogin.displayName" | translate }}
           <input
             type="text"
             name="newRoomName"
             required
             [(ngModel)]="newRoomName"
             maxlength="20"
-            placeholder="最大20文字"
+            [placeholder]="'roomLogin.maxLength' | translate"
           />
-          <span class="hint-text">最大20文字</span>
+          <span class="hint-text">{{ "roomLogin.maxLength" | translate }}</span>
         </label>
         <label>
-          Password
+          {{ "roomLogin.password" | translate }}
           <input
             type="password"
             name="newRoomPassword"
             required
             [(ngModel)]="newRoomPassword"
             maxlength="20"
-            placeholder="最大20文字"
+            [placeholder]="'roomLogin.maxLength' | translate"
           />
-          <span class="hint-text">最大20文字</span>
+          <span class="hint-text">{{ "roomLogin.maxLength" | translate }}</span>
         </label>
         <button
           type="submit"
           [disabled]="createRoomForm.invalid || isCreating || !!roomIdExistsError || isCheckingRoomId"
         >
-          作成
+          {{ "roomLogin.create" | translate }}
         </button>
       </form>
     </div>
@@ -163,7 +165,8 @@ export class RoomLoginComponent {
     private roomService: RoomService,
     private authService: AuthService,
     private router: Router,
-    private homeScreenSettingsService: HomeScreenSettingsService
+    private homeScreenSettingsService: HomeScreenSettingsService,
+    private languageService: LanguageService
   ) {}
 
   async enterRoom() {
@@ -179,14 +182,14 @@ export class RoomLoginComponent {
         this.password
       );
       if (!roomDoc) {
-        this.error = '入力内容が正しくありません';
+        this.error = this.languageService.translate('roomLogin.error.invalidInput');
         return;
       }
       this.authService.setRoomId(this.roomId, roomDoc.id);
       await this.navigateToHomeScreen();
     } catch (err) {
       console.error('Failed to join room', err);
-      this.error = '入力内容が正しくありません';
+      this.error = this.languageService.translate('roomLogin.error.invalidInput');
     } finally {
       this.isLoading = false;
     }
@@ -204,7 +207,7 @@ export class RoomLoginComponent {
     try {
       const exists = await this.roomService.roomIdExists(this.newRoomId.trim());
       if (exists) {
-        this.roomIdExistsError = 'このroomIDはすでに作られています。別のroomIDにしてください。';
+        this.roomIdExistsError = this.languageService.translate('roomLogin.error.roomIdExists');
       }
     } catch (err) {
       console.error('Failed to check room ID', err);
@@ -227,7 +230,7 @@ export class RoomLoginComponent {
     // 念のため再度チェック
     const exists = await this.roomService.roomIdExists(this.newRoomId.trim());
     if (exists) {
-      this.roomIdExistsError = 'このroomIDはすでに作られています。別のroomIDにしてください。';
+      this.roomIdExistsError = this.languageService.translate('roomLogin.error.roomIdExists');
       return;
     }
 
@@ -246,7 +249,7 @@ export class RoomLoginComponent {
       await this.navigateToHomeScreen();
     } catch (err) {
       console.error('Failed to create room', err);
-      this.error = 'ルームを作成できませんでした。';
+      this.error = this.languageService.translate('roomLogin.error.createFailed');
     } finally {
       this.isCreating = false;
     }

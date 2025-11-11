@@ -92,7 +92,7 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
   tooltipMilestones: any[] = [];
   @ViewChild('tooltip', { static: false }) tooltipElement?: ElementRef;
 
-  // ステータス色
+  // ステータス色（日本語キーを保持して後方互換性を維持）
   statusColors: { [key: string]: string } = {
     未着手: '#fdd6d5',
     作業中: '#fef6c3',
@@ -104,6 +104,26 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
     作業中: '#000000',
     完了: '#000000',
   };
+
+  /** ステータスの値を取得（日本語キーを返す） */
+  getStatusValue(key: 'notStarted' | 'inProgress' | 'completed'): string {
+    const statusMap: Record<string, string> = {
+      notStarted: '未着手',
+      inProgress: '作業中',
+      completed: '完了',
+    };
+    return statusMap[key] || key;
+  }
+
+  /** 優先度の値を取得（日本語キーを返す） */
+  getPriorityValue(key: 'high' | 'medium' | 'low'): string {
+    const priorityMap: Record<string, string> = {
+      high: '高',
+      medium: '中',
+      low: '低',
+    };
+    return priorityMap[key] || key;
+  }
 
   // 年月ヘッダー用
   currentYearMonthGroup: any = null;
@@ -134,10 +154,10 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
     this.memberManagementService.getMembers().subscribe({
       next: (members) => {
         this.members = members;
-        console.log('メンバー一覧を読み込みました:', members.length, '件');
+        console.log('Members loaded:', members.length);
       },
       error: (error) => {
-        console.error('メンバー一覧の読み込みエラー:', error);
+        console.error('Failed to load members:', error);
       },
     });
 
@@ -975,11 +995,11 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** タスク詳細画面に遷移 */
   openTaskDetail(task: Task) {
-    console.log('タスク詳細画面に遷移:', task);
+    console.log('Navigating to task detail:', task);
     if (task.projectId && task.id) {
       this.router.navigate(['/project', task.projectId, 'task', task.id]);
     } else {
-      console.error('タスクのprojectIdまたはidが不足しています:', {
+      console.error(this.languageService.translate('gantt.error.taskProjectIdMissing'), {
         projectId: task.projectId,
         id: task.id,
         task: task,
@@ -1027,7 +1047,7 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
     if (projectId) {
       this.router.navigate(['/project', projectId]);
     } else {
-      console.error('プロジェクトIDが不足しています');
+      console.error(this.languageService.translate('gantt.error.projectIdMissing'));
     }
   }
 
@@ -1065,6 +1085,9 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
       '未着手': { ja: '未着手', en: 'Not Started' },
       '作業中': { ja: '作業中', en: 'In Progress' },
       '完了': { ja: '完了', en: 'Completed' },
+      'notStarted': { ja: '未着手', en: 'Not Started' },
+      'inProgress': { ja: '作業中', en: 'In Progress' },
+      'completed': { ja: '完了', en: 'Completed' },
     };
     return statusMap[status]?.[currentLanguage] || status;
   }
@@ -1076,6 +1099,9 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
       '高': { ja: '高', en: 'High' },
       '中': { ja: '中', en: 'Medium' },
       '低': { ja: '低', en: 'Low' },
+      'high': { ja: '高', en: 'High' },
+      'medium': { ja: '中', en: 'Medium' },
+      'low': { ja: '低', en: 'Low' },
     };
     return priorityMap[priority]?.[currentLanguage] || priority;
   }
@@ -1087,6 +1113,9 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
       '高': { ja: '高', en: 'H' },
       '中': { ja: '中', en: 'M' },
       '低': { ja: '低', en: 'L' },
+      'high': { ja: '高', en: 'H' },
+      'medium': { ja: '中', en: 'M' },
+      'low': { ja: '低', en: 'L' },
     };
     return priorityShortMap[priority]?.[currentLanguage] || priority;
   }
@@ -1116,8 +1145,9 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
         this.members,
         ', '
       );
-      console.log('   - 表示結果:', display);
-      return display === '未設定' ? '—' : display;
+      console.log('   - Display result:', display);
+      const notSetText = this.languageService.translate('gantt.notSet');
+      return display === notSetText ? '—' : display;
     }
 
     // assignedMembers がない場合は assignee から最新のメンバー名を取得
@@ -1135,5 +1165,15 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
       .filter((name): name is string => name !== null);
     
     return updatedNames.length > 0 ? updatedNames.join(', ') : '—';
+  }
+
+  /** タスクバーのツールチップテキストを取得 */
+  getTaskBarTooltip(task: Task): string {
+    const statusDisplay = this.getStatusDisplay(task.status);
+    const startDate = task.startDate || '';
+    const dueDate = task.dueDate || '';
+    const currentLanguage = this.languageService.getCurrentLanguage();
+    const separator = currentLanguage === 'ja' ? ' ～ ' : ' - ';
+    return `${task.taskName} (${statusDisplay}) - ${startDate}${separator}${dueDate}`;
   }
 }
