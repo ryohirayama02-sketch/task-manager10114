@@ -150,9 +150,22 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
             }
           });
 
-          this.tasks = tasks.sort((a, b) =>
-            a.dueDate < b.dueDate ? -1 : a.dueDate > b.dueDate ? 1 : 0
-          );
+          this.tasks = tasks.sort((a, b) => {
+            // まず期日でソート
+            if (a.dueDate < b.dueDate) return -1;
+            if (a.dueDate > b.dueDate) return 1;
+            
+            // 期日が同じ場合は優先度でソート（高、中、低の順）
+            const priorityOrder: { [key: string]: number } = {
+              '高': 1,
+              '中': 2,
+              '低': 3,
+            };
+            const priorityA = priorityOrder[a.priority] || 999;
+            const priorityB = priorityOrder[b.priority] || 999;
+            
+            return priorityA - priorityB;
+          });
           this.filteredTasks = [...this.tasks];
           this.loading = false;
           console.log(`✅ すぐやるタスク取得完了: ${tasks.length}件`);
