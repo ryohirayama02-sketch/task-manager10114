@@ -23,6 +23,8 @@ import { MatSlideToggleChange } from '@angular/material/slide-toggle';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 import { MemberManagementService } from '../../services/member-management.service';
 import { Member } from '../../models/member.model';
 import { ProjectAttachmentService } from '../../services/project-attachment.service';
@@ -58,6 +60,8 @@ import { LanguageService } from '../../services/language.service';
     MatProgressSpinnerModule,
     MatSnackBarModule,
     MatTooltipModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
     ProgressCircleComponent,
     ProjectChatComponent,
     TranslatePipe,
@@ -124,6 +128,8 @@ export class ProjectDetailComponent implements OnInit {
   filterPriority: string = '';
   filterAssignee: string = '';
   filterDueDate: string = '';
+  filterDueDateObj: Date | null = null; // Material date picker用
+  maxDate = new Date(9999, 11, 31); // 9999-12-31
   assigneeOptions: string[] = [];
 
   // フィルターオプション（表示用の翻訳済み配列）
@@ -1516,12 +1522,27 @@ export class ProjectDetailComponent implements OnInit {
     this.filteredTasks = this.sortTasks(filtered);
   }
 
+  /** 期日フィルター変更時の処理 */
+  onDueDateChange(): void {
+    if (this.filterDueDateObj) {
+      // DateオブジェクトをYYYY-MM-DD形式の文字列に変換
+      const year = this.filterDueDateObj.getFullYear();
+      const month = String(this.filterDueDateObj.getMonth() + 1).padStart(2, '0');
+      const day = String(this.filterDueDateObj.getDate()).padStart(2, '0');
+      this.filterDueDate = `${year}-${month}-${day}`;
+    } else {
+      this.filterDueDate = '';
+    }
+    this.applyFilter();
+  }
+
   /** フィルターをリセット */
   resetFilter() {
     this.filterStatus = '';
     this.filterPriority = '';
     this.filterAssignee = '';
     this.filterDueDate = '';
+    this.filterDueDateObj = null;
     this.filteredTasks = [...this.sortTasks(this.tasks)];
   }
 

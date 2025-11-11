@@ -815,6 +815,26 @@ textarea {
   max-width: 200px;
 }
 
+/* 期日フィルターのdate pickerは幅を広げる */
+.filter-section .due-date-filter-field {
+  width: 180px;
+  min-width: 160px;
+  max-width: 220px;
+}
+
+/* Material date pickerの入力フィールドのテキストが見切れないように */
+.filter-section .due-date-filter-field .mat-mdc-form-field-infix {
+  min-width: 140px;
+}
+
+.filter-section .due-date-filter-field input {
+  width: 100%;
+  min-width: 0;
+  overflow: visible;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* タスク一覧 */
 .tasks-grid {
   display: grid;
