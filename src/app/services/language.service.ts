@@ -277,7 +277,7 @@ export class LanguageService {
     'progress.projects.sortBy.later': { ja: '遠い順', en: 'Later' },
     'progress.projects.sortBy.high': { ja: '高い順', en: 'High' },
     'progress.projects.sortBy.low': { ja: '低い順', en: 'Low' },
-    'progress.projects.overview': { ja: '概要', en: 'Overview' },
+    'progress.projects.overview': { ja: '説明', en: 'Description' },
     'progress.projects.period': { ja: '期間', en: 'Period' },
     'progress.projects.responsible': { ja: '責任者', en: 'Responsible' },
     'progress.projects.members': { ja: 'メンバー', en: 'Members' },
