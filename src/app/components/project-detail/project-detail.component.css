@@ -949,8 +949,10 @@ textarea {
 .priority-chip {
   --mdc-chip-label-text-color: #000;
   --mdc-chip-selected-label-text-color: #000;
+  --mdc-chip-outline-width: 0;
+  --mdc-chip-container-shape: 9999px;
   font-weight: 500;
-  border: 1px solid transparent;
+  border: none !important;
   color: #000 !important;
 }
 
@@ -959,8 +961,10 @@ textarea {
   --mdc-chip-elevated-container-color: #fdd6d5;
   --mdc-chip-hover-state-layer-color: #fdd6d5;
   --mdc-chip-disabled-container-color: #fdd6d5;
+  --mdc-chip-outline-width: 0;
+  --mdc-chip-outline-color: transparent;
   background-color: #fdd6d5 !important;
-  border-color: #fdd6d5;
+  border: none !important;
 }
 
 .status-chip.status-作業中,
@@ -968,8 +972,10 @@ textarea {
   --mdc-chip-elevated-container-color: #fef6c3;
   --mdc-chip-hover-state-layer-color: #fef6c3;
   --mdc-chip-disabled-container-color: #fef6c3;
+  --mdc-chip-outline-width: 0;
+  --mdc-chip-outline-color: transparent;
   background-color: #fef6c3 !important;
-  border-color: #fef6c3;
+  border: none !important;
 }
 
 .status-chip.status-完了,
@@ -977,8 +983,49 @@ textarea {
   --mdc-chip-elevated-container-color: #b2e9cb;
   --mdc-chip-hover-state-layer-color: #b2e9cb;
   --mdc-chip-disabled-container-color: #b2e9cb;
+  --mdc-chip-outline-width: 0;
+  --mdc-chip-outline-color: transparent;
   background-color: #b2e9cb !important;
-  border-color: #b2e9cb;
+  border: none !important;
+}
+
+/* Material Designチップの内部要素の枠線を削除 */
+.status-chip ::ng-deep .mdc-evolution-chip__cell,
+.priority-chip ::ng-deep .mdc-evolution-chip__cell,
+.status-chip ::ng-deep .mdc-evolution-chip__cell--primary,
+.priority-chip ::ng-deep .mdc-evolution-chip__cell--primary,
+.status-chip ::ng-deep .mdc-evolution-chip__action,
+.priority-chip ::ng-deep .mdc-evolution-chip__action,
+.status-chip ::ng-deep .mdc-evolution-chip__action--primary,
+.priority-chip ::ng-deep .mdc-evolution-chip__action--primary,
+.status-chip ::ng-deep .mdc-evolution-chip__action--presentational,
+.priority-chip ::ng-deep .mdc-evolution-chip__action--presentational,
+.status-chip ::ng-deep .mdc-evolution-chip__text-label,
+.priority-chip ::ng-deep .mdc-evolution-chip__text-label,
+.status-chip ::ng-deep .mat-mdc-chip-action-label,
+.priority-chip ::ng-deep .mat-mdc-chip-action-label,
+.status-chip ::ng-deep span,
+.priority-chip ::ng-deep span {
+  border: none !important;
+  border-width: 0 !important;
+  outline: none !important;
+}
+
+.status-chip ::ng-deep .mdc-evolution-chip__surface,
+.priority-chip ::ng-deep .mdc-evolution-chip__surface {
+  border: none !important;
+  border-width: 0 !important;
+  outline: none !important;
+}
+
+/* Material Designチップ全体のボーダーを削除 */
+.status-chip.mat-mdc-chip,
+.priority-chip.mat-mdc-chip,
+.status-chip.mdc-evolution-chip,
+.priority-chip.mdc-evolution-chip {
+  border: none !important;
+  border-width: 0 !important;
+  outline: none !important;
 }
 
 /* タスクが存在しない場合 */
