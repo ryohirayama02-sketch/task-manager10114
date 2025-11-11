@@ -473,12 +473,25 @@ export class LogsComponent implements OnInit, OnDestroy {
     if (Number.isNaN(targetDate.getTime())) {
       return false;
     }
+    
+    // 日付のみで比較するため、時刻を00:00:00にリセット
+    const normalizeDate = (date: Date): Date => {
+      const normalized = new Date(date);
+      normalized.setHours(0, 0, 0, 0);
+      return normalized;
+    };
+    
+    const normalizedTargetDate = normalizeDate(targetDate);
+    
     const afterStart = this.periodStartDate
-      ? targetDate >= this.periodStartDate
+      ? normalizedTargetDate >= normalizeDate(this.periodStartDate)
       : true;
+    
+    // 終了日の場合は、その日の23:59:59.999までを含める
     const beforeEnd = this.periodEndDate
-      ? targetDate <= this.periodEndDate
+      ? normalizedTargetDate <= normalizeDate(this.periodEndDate)
       : true;
+    
     return afterStart && beforeEnd;
   }
 
