@@ -138,21 +138,21 @@
         <mat-card-content>
           <div class="task-details">
             <div class="task-main-info">
-              <div class="task-detail-item task-detail-member">
-                <mat-icon class="assignee-icon">person</mat-icon>
-                <span class="task-member-name">{{ getTaskAssigneeDisplay(task) }}</span>
-                <div class="task-member-due" *ngIf="task.dueDate">
-                  <mat-icon class="due-icon">schedule</mat-icon>
-                  <span>{{ task.dueDate }}</span>
-                </div>
+              <div class="task-detail-item project-name" *ngIf="task.projectName">
+                <mat-icon class="project-icon">folder</mat-icon>
+                <span class="project-name-text"
+                  >プロジェクト：{{ task.projectName }}</span
+                >
               </div>
             </div>
 
-            <div class="task-detail-item project-name" *ngIf="task.projectName">
-              <mat-icon class="project-icon">folder</mat-icon>
-              <span class="project-name-text"
-                >プロジェクト：{{ task.projectName }}</span
-              >
+            <div class="task-detail-item task-detail-member">
+              <mat-icon class="assignee-icon">person</mat-icon>
+              <span class="task-member-name">{{ getTaskAssigneeDisplay(task) }}</span>
+              <div class="task-member-due" *ngIf="task.dueDate">
+                <mat-icon class="due-icon">schedule</mat-icon>
+                <span>{{ task.dueDate }}</span>
+              </div>
             </div>
             
             <div class="task-detail-item parent-task" *ngIf="task.parentTaskId && taskNameById[task.parentTaskId]">

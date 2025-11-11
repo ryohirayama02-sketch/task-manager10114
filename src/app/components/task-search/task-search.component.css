@@ -246,10 +246,10 @@
 
 .task-main-info {
   display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: nowrap;
+  flex-direction: column;
+  gap: 8px;
   min-width: 0;
+  margin-bottom: 8px;
 }
 
 .task-detail-member {
