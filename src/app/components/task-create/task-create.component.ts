@@ -443,6 +443,13 @@ export class TaskCreatePageComponent implements OnInit {
       return;
     }
 
+    if (!this.taskForm.startDate || !this.taskForm.dueDate) {
+      this.snackBar.open('開始日と終了日は必須です', '閉じる', {
+        duration: 3000,
+      });
+      return;
+    }
+
     if (!this.projectId) {
       alert('プロジェクトが指定されていません');
       return;

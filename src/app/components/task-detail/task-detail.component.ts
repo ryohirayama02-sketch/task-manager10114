@@ -540,6 +540,14 @@ export class TaskDetailComponent implements OnInit {
       return;
     }
 
+    // 開始日と終了日の必須チェック
+    if (!this.taskData.startDate || !this.taskData.dueDate) {
+      this.snackBar.open('開始日と終了日は必須です', '閉じる', {
+        duration: 3000,
+      });
+      return;
+    }
+
     // タスク名の重複チェック
     const taskName = this.taskData.taskName?.trim();
     if (taskName) {

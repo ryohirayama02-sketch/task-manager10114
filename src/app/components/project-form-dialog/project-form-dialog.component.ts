@@ -338,6 +338,34 @@ export class ProjectFormDialogComponent implements OnInit {
       return;
     }
 
+    // 開始日と終了日の必須チェック
+    if (!this.project.startDate || !this.project.endDate) {
+      this.snackBar.open('開始日と終了日は必須です', '閉じる', {
+        duration: 3000,
+      });
+      return;
+    }
+
+    // 責任者の必須チェック
+    if (!this.selectedResponsibleId || !this.selectedResponsible) {
+      this.snackBar.open('責任者は必須です', '閉じる', {
+        duration: 3000,
+      });
+      return;
+    }
+
+    // プロジェクトメンバーの必須チェック
+    if (!this.selectedMembers || this.selectedMembers.length === 0) {
+      this.snackBar.open(
+        'プロジェクトメンバーは1人以上選択してください',
+        '閉じる',
+        {
+          duration: 3000,
+        }
+      );
+      return;
+    }
+
     // プロジェクト数の制限をチェック（新規作成時のみ）
     if (!this.isEditMode) {
       try {

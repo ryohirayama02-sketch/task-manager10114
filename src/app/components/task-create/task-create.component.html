@@ -54,7 +54,7 @@
         <!-- 日付範囲 -->
         <div class="date-row">
           <div class="date-field">
-            <label for="startDate">{{ 'taskCreate.startDate' | translate }}</label>
+            <label for="startDate">{{ 'taskCreate.startDate' | translate }} *</label>
             <div class="date-input-wrapper">
               <input
                 id="startDate"
@@ -63,12 +63,13 @@
                 [(ngModel)]="taskForm.startDate"
                 name="startDate"
                 max="9999-12-31"
+                required
               />
             </div>
           </div>
 
           <div class="date-field">
-            <label for="dueDate">{{ 'taskCreate.dueDate' | translate }}</label>
+            <label for="dueDate">{{ 'taskCreate.dueDate' | translate }} *</label>
             <div class="date-input-wrapper">
               <input
                 id="dueDate"
@@ -78,6 +79,7 @@
                 name="dueDate"
                 [min]="taskForm.startDate || ''"
                 max="9999-12-31"
+                required
               />
             </div>
           </div>

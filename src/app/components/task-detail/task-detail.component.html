@@ -213,7 +213,7 @@
             <div class="date-field">
               <label for="startDate">{{
                 "taskDetail.startDate" | translate
-              }}</label>
+              }} *</label>
               <div class="date-input-wrapper">
                 <input
                   id="startDate"
@@ -222,6 +222,7 @@
                   [(ngModel)]="taskData.startDate"
                   name="startDate"
                   max="9999-12-31"
+                  required
                 />
               </div>
             </div>
@@ -229,7 +230,7 @@
             <div class="date-field">
               <label for="dueDate">{{
                 "taskDetail.dueDate" | translate
-              }}</label>
+              }} *</label>
               <div class="date-input-wrapper">
                 <input
                   id="dueDate"
@@ -239,6 +240,7 @@
                   name="dueDate"
                   [min]="taskData.startDate || ''"
                   max="9999-12-31"
+                  required
                 />
               </div>
             </div>

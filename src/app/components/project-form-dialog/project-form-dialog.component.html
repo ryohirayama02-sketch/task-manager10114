@@ -42,7 +42,7 @@
       <div class="date-field-group">
         <!-- 開始日 -->
         <div class="date-field">
-          <label for="startDate">{{ 'projectForm.startDate' | translate }}</label>
+          <label for="startDate">{{ 'projectForm.startDate' | translate }} *</label>
           <div class="date-input-wrapper">
             <input
               id="startDate"
@@ -52,6 +52,7 @@
               [placeholder]="'projectForm.startDateLabel' | translate"
               class="date-input"
               max="9999-12-31"
+              required
             />
             <mat-icon class="date-icon">event</mat-icon>
           </div>
@@ -59,7 +60,7 @@
 
         <!-- 終了日 -->
         <div class="date-field">
-          <label for="endDate">{{ 'projectForm.endDate' | translate }}</label>
+          <label for="endDate">{{ 'projectForm.endDate' | translate }} *</label>
           <div class="date-input-wrapper">
             <input
               id="endDate"
@@ -70,6 +71,7 @@
               [min]="project.startDate || ''"
               class="date-input"
               max="9999-12-31"
+              required
             />
             <mat-icon class="date-icon">event</mat-icon>
           </div>
@@ -118,7 +120,7 @@
       <!-- 責任者 -->
       <div class="member-selection responsible-selection">
         <div class="member-selection-header">
-          <h3>{{ 'projectForm.responsible' | translate }}</h3>
+          <h3>{{ 'projectForm.responsible' | translate }} *</h3>
         </div>
 
         <!-- ローディング表示 -->
@@ -135,8 +137,8 @@
               name="responsible"
               (selectionChange)="onResponsibleSelectionChange($event.value)"
               [placeholder]="'projectForm.selectResponsible' | translate"
+              required
             >
-              <mat-option value="">{{ 'common.noSelection' | translate }}</mat-option>
               <mat-option *ngFor="let member of members" [value]="member.id">
                 {{ member.name }}
               </mat-option>
@@ -177,7 +179,7 @@
       <div class="member-selection">
         <div class="member-selection-header">
           <h3>
-            {{ 'projectForm.projectMembers' | translate }}
+            {{ 'projectForm.projectMembers' | translate }} *
             <span class="member-count" *ngIf="selectedMembers.length > 0">
               ({{ selectedMembers.length }})
             </span>
@@ -200,6 +202,7 @@
               multiple
               (selectionChange)="onMemberSelectionChange($event.value)"
               [placeholder]="'projectForm.selectMembers' | translate"
+              required
             >
               <mat-option *ngFor="let member of members" [value]="member.id">
                 {{ member.name }}
@@ -464,7 +467,7 @@
             type="submit"
             color="primary"
             class="save-button"
-            [disabled]="!project.projectName?.trim() || isSubmitting || isUploading"
+            [disabled]="!form.valid || !project.projectName?.trim() || !project.startDate || !project.endDate || !selectedResponsibleId || selectedMembers.length === 0 || isSubmitting || isUploading"
           >
             <ng-container *ngIf="!isSubmitting; else submitting">
               <mat-icon>{{ isEditMode ? "edit" : "add" }}</mat-icon>
