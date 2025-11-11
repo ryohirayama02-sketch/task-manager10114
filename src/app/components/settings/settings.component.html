@@ -315,6 +315,15 @@
                   {{ "settings.quiet.weekend" | translate }}
                 </mat-checkbox>
               </div>
+
+              <!-- 開始時間と終了時間が同じ場合の警告 -->
+              <div
+                *ngIf="!isQuietHoursTimeValid()"
+                class="quiet-hours-validation-error"
+              >
+                <mat-icon>warning</mat-icon>
+                <span>開始時間と終了時間を同じにすることはできません</span>
+              </div>
             </div>
           </div>
         </mat-expansion-panel>
@@ -548,7 +557,8 @@
           mat-raised-button
           color="primary"
           (click)="saveNotificationSettings()"
-          [disabled]="isSaving"
+          [disabled]="isSaving || !isQuietHoursTimeValid()"
+          [matTooltip]="!isQuietHoursTimeValid() ? '開始時間と終了時間を同じにすることはできません' : ''"
         >
           <mat-icon>save</mat-icon>
           {{ (isSaving ? "settings.saving" : "settings.save") | translate }}

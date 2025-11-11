@@ -129,7 +129,8 @@ export class TaskDetailComponent implements OnInit {
 
   // 詳細設定
   detailSettings = this.createDefaultDetailSettings();
-  hourOptions = Array.from({ length: 24 }, (_, i) => ({
+  // 作業予定時間入力用の時間オプション（0〜49時間）
+  hourOptions = Array.from({ length: 50 }, (_, i) => ({
     value: i.toString().padStart(2, '0'),
     label: i.toString().padStart(2, '0'),
   }));

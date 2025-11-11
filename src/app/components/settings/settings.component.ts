@@ -13,6 +13,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { NotificationService } from '../../services/notification.service';
 import { AuthService } from '../../services/auth.service';
 import { TaskReminderService } from '../../services/task-reminder.service';
@@ -55,6 +56,7 @@ import { firstValueFrom } from 'rxjs';
     MatSnackBarModule,
     MatProgressSpinnerModule,
     MatDialogModule,
+    MatTooltipModule,
     TranslatePipe,
   ],
   templateUrl: './settings.component.html',
@@ -287,9 +289,31 @@ export class SettingsComponent implements OnInit {
     return `${time.hour.padStart(2, '0')}:${time.minute.padStart(2, '0')}`;
   }
 
+  /** 通知オフ期間の時間が有効かチェック（開始時間と終了時間が同じでないか） */
+  isQuietHoursTimeValid(): boolean {
+    if (!this.notificationSettings?.quietHours.enabled) {
+      return true; // 通知オフ期間が無効な場合は常に有効
+    }
+    const startTime = this.formatTimeString(this.quietStartTime);
+    const endTime = this.formatTimeString(this.quietEndTime);
+    return startTime !== endTime;
+  }
+
   /** 通知設定を保存 */
   async saveNotificationSettings() {
     if (!this.notificationSettings) return;
+
+    // 通知オフ期間の時間バリデーション
+    if (!this.isQuietHoursTimeValid()) {
+      this.snackBar.open(
+        '開始時間と終了時間を同じにすることはできません',
+        this.getCloseLabel(),
+        {
+          duration: 5000,
+        }
+      );
+      return;
+    }
 
     this.isSaving = true;
     try {
