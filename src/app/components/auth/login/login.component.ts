@@ -9,6 +9,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
+import { LanguageService } from '../../../services/language.service';
+import { TranslatePipe } from '../../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-login',
@@ -22,6 +24,7 @@ import { AuthService } from '../../../services/auth.service';
     MatCardModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    TranslatePipe,
   ],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
@@ -32,12 +35,16 @@ export class LoginComponent {
   isLoading: boolean = false;
   errorMessage: string = '';
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private languageService: LanguageService
+  ) {}
 
   /** メール・パスワードでログイン */
   async signInWithEmail() {
     if (!this.email || !this.password) {
-      this.errorMessage = 'メールアドレスとパスワードを入力してください';
+      this.errorMessage = this.languageService.translate('login.error.emailPasswordRequiredNoPeriod');
       return;
     }
 
@@ -57,12 +64,12 @@ export class LoginComponent {
   /** メール・パスワードでサインアップ */
   async signUpWithEmail() {
     if (!this.email || !this.password) {
-      this.errorMessage = 'メールアドレスとパスワードを入力してください';
+      this.errorMessage = this.languageService.translate('login.error.emailPasswordRequiredNoPeriod');
       return;
     }
 
     if (this.password.length < 6) {
-      this.errorMessage = 'パスワードは6文字以上で入力してください';
+      this.errorMessage = this.languageService.translate('login.error.passwordMinLengthNoPeriod');
       return;
     }
 
@@ -100,21 +107,21 @@ export class LoginComponent {
   private getErrorMessage(errorCode: string): string {
     switch (errorCode) {
       case 'auth/user-not-found':
-        return 'このメールアドレスは登録されていません';
+        return this.languageService.translate('login.error.userNotFoundNoPeriod');
       case 'auth/wrong-password':
-        return 'パスワードが間違っています';
+        return this.languageService.translate('login.error.wrongPasswordAlt');
       case 'auth/email-already-in-use':
-        return 'このメールアドレスは既に使用されています';
+        return this.languageService.translate('login.error.emailAlreadyInUseNoPeriod');
       case 'auth/weak-password':
-        return 'パスワードが弱すぎます';
+        return this.languageService.translate('login.error.weakPasswordNoPeriod');
       case 'auth/invalid-email':
-        return 'メールアドレスの形式が正しくありません';
+        return this.languageService.translate('login.error.invalidEmailNoPeriod');
       case 'auth/too-many-requests':
-        return 'リクエストが多すぎます。しばらく待ってから再試行してください';
+        return this.languageService.translate('login.error.tooManyRequests');
       case 'auth/popup-closed-by-user':
-        return 'ログインがキャンセルされました';
+        return this.languageService.translate('login.error.popupClosedByUser');
       default:
-        return 'ログインに失敗しました。もう一度お試しください';
+        return this.languageService.translate('login.error.loginFailedNoPeriod');
     }
   }
 }

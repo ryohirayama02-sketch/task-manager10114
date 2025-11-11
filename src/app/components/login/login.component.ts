@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
+import { LanguageService } from '../../services/language.service';
 
 @Component({
   selector: 'app-login',
@@ -24,7 +25,11 @@ export class LoginComponent implements OnInit {
 
   private readonly EMAIL_STORAGE_KEY = 'saved_email';
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private languageService: LanguageService
+  ) {}
 
   ngOnInit() {
     // 保存されたメールアドレスを読み込む
@@ -43,7 +48,7 @@ export class LoginComponent implements OnInit {
       await this.authService.signInWithGoogle();
     } catch (error) {
       console.error('[UI] Googleログインエラー:', error);
-      this.errorMessage = 'Googleログインに失敗しました。';
+      this.errorMessage = this.languageService.translate('login.error.googleLoginFailed');
     } finally {
       this.isLoading = false;
     }
@@ -52,7 +57,7 @@ export class LoginComponent implements OnInit {
   /** メールログイン */
   async onEmailLogin(email: string, password: string) {
     if (!email || !password) {
-      this.errorMessage = 'メールアドレスとパスワードを入力してください。';
+      this.errorMessage = this.languageService.translate('login.error.emailPasswordRequired');
       return;
     }
 
@@ -77,17 +82,17 @@ export class LoginComponent implements OnInit {
   /** メール登録 */
   async onEmailSignUp(email: string, password: string, confirmPassword: string) {
     if (!email || !password || !confirmPassword) {
-      this.errorMessage = 'すべての項目を入力してください。';
+      this.errorMessage = this.languageService.translate('login.error.allFieldsRequired');
       return;
     }
 
     if (password !== confirmPassword) {
-      this.errorMessage = 'パスワードが一致しません。';
+      this.errorMessage = this.languageService.translate('login.error.passwordMismatch');
       return;
     }
 
     if (password.length < 6) {
-      this.errorMessage = 'パスワードは6文字以上で入力してください。';
+      this.errorMessage = this.languageService.translate('login.error.passwordMinLength');
       return;
     }
 
@@ -121,21 +126,21 @@ export class LoginComponent implements OnInit {
   private getErrorMessage(errorCode: string): string {
     switch (errorCode) {
       case 'auth/invalid-email':
-        return 'メールアドレスの形式が正しくありません。';
+        return this.languageService.translate('login.error.invalidEmail');
       case 'auth/user-disabled':
-        return 'このアカウントは無効化されています。';
+        return this.languageService.translate('login.error.userDisabled');
       case 'auth/user-not-found':
-        return 'このメールアドレスは登録されていません。';
+        return this.languageService.translate('login.error.userNotFound');
       case 'auth/wrong-password':
-        return 'パスワードが正しくありません。';
+        return this.languageService.translate('login.error.wrongPassword');
       case 'auth/email-already-in-use':
-        return 'このメールアドレスは既に使用されています。';
+        return this.languageService.translate('login.error.emailAlreadyInUse');
       case 'auth/weak-password':
-        return 'パスワードが弱すぎます。';
+        return this.languageService.translate('login.error.weakPassword');
       case 'auth/operation-not-allowed':
-        return 'この操作は許可されていません。';
+        return this.languageService.translate('login.error.operationNotAllowed');
       default:
-        return 'ログインに失敗しました。もう一度お試しください。';
+        return this.languageService.translate('login.error.loginFailed');
     }
   }
 }

@@ -53,6 +53,107 @@ export class LanguageService {
     },
     'login.signUp': { ja: '登録する', en: 'Sign up' },
     'login.login': { ja: 'ログイン', en: 'Login' },
+    'login.error.googleLoginFailed': {
+      ja: 'Googleログインに失敗しました。',
+      en: 'Google sign-in failed.',
+    },
+    'login.error.emailPasswordRequired': {
+      ja: 'メールアドレスとパスワードを入力してください。',
+      en: 'Please enter your email address and password.',
+    },
+    'login.error.emailPasswordRequiredNoPeriod': {
+      ja: 'メールアドレスとパスワードを入力してください',
+      en: 'Please enter your email address and password',
+    },
+    'login.error.allFieldsRequired': {
+      ja: 'すべての項目を入力してください。',
+      en: 'Please fill in all fields.',
+    },
+    'login.error.passwordMismatch': {
+      ja: 'パスワードが一致しません。',
+      en: 'Passwords do not match.',
+    },
+    'login.error.passwordMinLength': {
+      ja: 'パスワードは6文字以上で入力してください。',
+      en: 'Password must be at least 6 characters.',
+    },
+    'login.error.passwordMinLengthNoPeriod': {
+      ja: 'パスワードは6文字以上で入力してください',
+      en: 'Password must be at least 6 characters',
+    },
+    'login.error.invalidEmail': {
+      ja: 'メールアドレスの形式が正しくありません。',
+      en: 'Invalid email format.',
+    },
+    'login.error.invalidEmailNoPeriod': {
+      ja: 'メールアドレスの形式が正しくありません',
+      en: 'Invalid email format',
+    },
+    'login.error.userDisabled': {
+      ja: 'このアカウントは無効化されています。',
+      en: 'This account has been disabled.',
+    },
+    'login.error.userNotFound': {
+      ja: 'このメールアドレスは登録されていません。',
+      en: 'This email address is not registered.',
+    },
+    'login.error.userNotFoundNoPeriod': {
+      ja: 'このメールアドレスは登録されていません',
+      en: 'This email address is not registered',
+    },
+    'login.error.wrongPassword': {
+      ja: 'パスワードが正しくありません。',
+      en: 'Incorrect password.',
+    },
+    'login.error.wrongPasswordAlt': {
+      ja: 'パスワードが間違っています',
+      en: 'Incorrect password',
+    },
+    'login.error.emailAlreadyInUse': {
+      ja: 'このメールアドレスは既に使用されています。',
+      en: 'This email address is already in use.',
+    },
+    'login.error.emailAlreadyInUseNoPeriod': {
+      ja: 'このメールアドレスは既に使用されています',
+      en: 'This email address is already in use',
+    },
+    'login.error.weakPassword': {
+      ja: 'パスワードが弱すぎます。',
+      en: 'Password is too weak.',
+    },
+    'login.error.weakPasswordNoPeriod': {
+      ja: 'パスワードが弱すぎます',
+      en: 'Password is too weak',
+    },
+    'login.error.operationNotAllowed': {
+      ja: 'この操作は許可されていません。',
+      en: 'This operation is not allowed.',
+    },
+    'login.error.tooManyRequests': {
+      ja: 'リクエストが多すぎます。しばらく待ってから再試行してください',
+      en: 'Too many requests. Please wait a while and try again',
+    },
+    'login.error.popupClosedByUser': {
+      ja: 'ログインがキャンセルされました',
+      en: 'Sign-in was cancelled',
+    },
+    'login.error.loginFailed': {
+      ja: 'ログインに失敗しました。もう一度お試しください。',
+      en: 'Sign-in failed. Please try again.',
+    },
+    'login.error.loginFailedNoPeriod': {
+      ja: 'ログインに失敗しました。もう一度お試しください',
+      en: 'Sign-in failed. Please try again',
+    },
+    'login.cardTitle': { ja: 'タスク管理アプリ', en: 'Task Manager' },
+    'login.cardSubtitle': { ja: 'ログイン', en: 'Sign In' },
+    'login.emailLabel': { ja: 'メールアドレス', en: 'Email Address' },
+    'login.passwordLabel': { ja: 'パスワード', en: 'Password' },
+    'login.passwordPlaceholderInput': { ja: 'パスワードを入力', en: 'Enter password' },
+    'login.signInButton': { ja: 'ログイン', en: 'Sign In' },
+    'login.signUpButton': { ja: '新規登録', en: 'Sign Up' },
+    'login.orDivider': { ja: 'または', en: 'or' },
+    'login.googleSignIn': { ja: 'Googleでログイン', en: 'Sign in with Google' },
     'settings.title': { ja: '設定', en: 'Settings' },
     'settings.menu.title': { ja: '設定メニュー', en: 'Settings Menu' },
     'settings.menu.notifications': { ja: '通知設定', en: 'Notifications' },
