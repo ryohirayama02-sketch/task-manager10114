@@ -465,6 +465,17 @@ export class KanbanComponent implements OnInit {
     return statusMap[status]?.[currentLanguage] || status;
   }
 
+  /** ステータスの短縮形を表示（言語設定に応じて） */
+  getStatusShortDisplay(status: string): string {
+    const currentLanguage = this.languageService.getCurrentLanguage();
+    const statusShortMap: Record<string, Record<'ja' | 'en', string>> = {
+      '未着手': { ja: '未', en: 'NS' },
+      '作業中': { ja: '作', en: 'IP' },
+      '完了': { ja: '完', en: 'C' },
+    };
+    return statusShortMap[status]?.[currentLanguage] || status.charAt(0);
+  }
+
   /** タスクの担当者を表示（カンマ区切り対応） */
   getTaskAssigneeDisplay(task: Task): string {
     // assignedMembers がある場合はそれを使用

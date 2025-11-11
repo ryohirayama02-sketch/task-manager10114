@@ -98,7 +98,7 @@
               [disabled]="task.status === status"
               class="status-button"
             >
-              {{ status.charAt(0) }}
+              {{ getStatusShortDisplay(status) }}
             </button>
           </div>
         </div>
