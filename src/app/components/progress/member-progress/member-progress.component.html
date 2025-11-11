@@ -39,25 +39,25 @@
         <div class="member-header">
           <h3 class="member-name">{{ member.name }}</h3>
           <span class="completion-rate"
-            >完了率: {{ member.completionRate }}%</span
+            >{{ 'progress.members.completionRate' | translate }}: {{ member.completionRate }}%</span
           >
         </div>
 
         <!-- 優先度別タスク詳細 -->
         <div class="priority-breakdown">
           <div class="status-row priority-row">
-            <div class="status-label">優先度</div>
+            <div class="status-label">{{ 'progress.members.priority' | translate }}</div>
             <div class="status-total">&nbsp;</div>
             <div class="priority-details">
-              <span class="priority-label high">高</span>
-              <span class="priority-label medium">中</span>
-              <span class="priority-label low">低</span>
+              <span class="priority-label high">{{ 'progress.priority.high' | translate }}</span>
+              <span class="priority-label medium">{{ 'progress.priority.medium' | translate }}</span>
+              <span class="priority-label low">{{ 'progress.priority.low' | translate }}</span>
             </div>
           </div>
 
           <div class="status-row completed">
             <div class="status-label">{{ 'progress.status.completed' | translate }}</div>
-            <div class="status-total">{{ member.completedTasks }}件</div>
+            <div class="status-total">{{ member.completedTasks }}{{ 'progress.members.count' | translate }}</div>
             <div class="priority-details">
               <div class="priority-item high">
                 {{ member.completedByPriority.high }}
@@ -73,7 +73,7 @@
 
           <div class="status-row in-progress">
             <div class="status-label">{{ 'progress.status.inProgress' | translate }}</div>
-            <div class="status-total">{{ member.inProgressTasks }}件</div>
+            <div class="status-total">{{ member.inProgressTasks }}{{ 'progress.members.count' | translate }}</div>
             <div class="priority-details">
               <div class="priority-item high">
                 {{ member.inProgressByPriority.high }}
@@ -89,7 +89,7 @@
 
           <div class="status-row not-started">
             <div class="status-label">{{ 'progress.status.notStarted' | translate }}</div>
-            <div class="status-total">{{ member.notStartedTasks }}件</div>
+            <div class="status-total">{{ member.notStartedTasks }}{{ 'progress.members.count' | translate }}</div>
             <div class="priority-details">
               <div class="priority-item high">
                 {{ member.notStartedByPriority.high }}

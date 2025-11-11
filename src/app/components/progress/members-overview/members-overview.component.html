@@ -1,4 +1,4 @@
-<h2>全メンバーの進捗</h2>
+<h2>{{ languageService.translate('progress.members.title') }}</h2>
 
 <div
   *ngFor="let member of members"
@@ -7,9 +7,9 @@
   style="cursor: pointer"
 >
   <h3>{{ member.name }}</h3>
-  <p>役職: {{ member.role }}</p>
-  <p>メール: {{ member.email }}</p>
-  <p>完了タスク: {{ member.done }}件</p>
-  <p>作業中: {{ member.working }}件</p>
-  <p>未着手: {{ member.todo }}件</p>
+  <p>{{ languageService.translate('progress.members.role') }} {{ member.role }}</p>
+  <p>{{ languageService.translate('progress.members.email') }} {{ member.email }}</p>
+  <p>{{ languageService.translate('progress.members.completedTasks') }} {{ member.done }}{{ languageService.translate('progress.members.count') }}</p>
+  <p>{{ languageService.translate('progress.members.inProgress') }} {{ member.working }}{{ languageService.translate('progress.members.count') }}</p>
+  <p>{{ languageService.translate('progress.members.notStarted') }} {{ member.todo }}{{ languageService.translate('progress.members.count') }}</p>
 </div>

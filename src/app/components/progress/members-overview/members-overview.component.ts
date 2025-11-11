@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MemberService, Member } from '../../../services/member.service';
+import { LanguageService } from '../../../services/language.service';
 
 @Component({
   selector: 'app-members-overview',
@@ -13,7 +14,10 @@ import { MemberService, Member } from '../../../services/member.service';
 export class MembersOverviewComponent implements OnInit {
   members: Member[] = [];
 
-  constructor(private memberService: MemberService) {}
+  constructor(
+    private memberService: MemberService,
+    public languageService: LanguageService
+  ) {}
 
   ngOnInit() {
     this.memberService.getMembers().subscribe((data) => {
