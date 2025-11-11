@@ -51,9 +51,9 @@
         (selectionChange)="applyFilters()"
         multiple
       >
-        <mat-option value="高">高</mat-option>
-        <mat-option value="中">中</mat-option>
-        <mat-option value="低">低</mat-option>
+        <mat-option value="高">{{ getPriorityDisplay('高') }}</mat-option>
+        <mat-option value="中">{{ getPriorityDisplay('中') }}</mat-option>
+        <mat-option value="低">{{ getPriorityDisplay('低') }}</mat-option>
       </mat-select>
     </mat-form-field>
 
@@ -150,7 +150,7 @@
               class="info-cell priority"
               [ngClass]="'priority-' + task.priority"
             >
-              {{ task.priority }}
+              {{ getPriorityShortDisplay(task.priority) }}
             </div>
             <div
               class="info-cell assignee"
