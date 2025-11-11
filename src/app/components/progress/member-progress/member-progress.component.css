@@ -56,6 +56,10 @@
   gap: 20px;
 }
 
+.members-list.single-column {
+  grid-template-columns: 1fr;
+}
+
 .member-card {
   border-radius: 16px;
   padding: 22px;
@@ -120,6 +124,13 @@
   width: 100%;
   max-width: 520px;
   margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.members-list.single-column .status-row {
+  grid-template-columns: minmax(120px, auto) minmax(60px, auto) 1fr;
+  gap: 12px 16px;
+  max-width: 100%;
 }
 
 .status-row:last-child {
@@ -131,6 +142,16 @@
   font-size: 18px;
   text-align: right;
   padding-right: 8px;
+  min-width: 0;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  line-height: 1.4;
+}
+
+.members-list.single-column .status-label {
+  text-align: left;
+  padding-right: 0;
 }
 
 .status-row.completed {

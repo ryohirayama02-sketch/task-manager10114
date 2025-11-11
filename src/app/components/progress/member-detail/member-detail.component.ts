@@ -431,6 +431,32 @@ export class MemberDetailComponent implements OnInit {
     }
   }
 
+  translateStatus(status: string): string {
+    switch (status) {
+      case '完了':
+        return this.languageService.translate('progress.status.completed');
+      case '作業中':
+        return this.languageService.translate('progress.status.inProgress');
+      case '未着手':
+        return this.languageService.translate('progress.status.notStarted');
+      default:
+        return status;
+    }
+  }
+
+  translatePriority(priority: string): string {
+    switch (priority) {
+      case '高':
+        return this.languageService.translate('progress.priority.high');
+      case '中':
+        return this.languageService.translate('progress.priority.medium');
+      case '低':
+        return this.languageService.translate('progress.priority.low');
+      default:
+        return priority;
+    }
+  }
+
   getProjectNameStyle(task: Task) {
     const themeColor = task.projectThemeColor || this.defaultThemeColor;
 
@@ -468,16 +494,16 @@ export class MemberDetailComponent implements OnInit {
       : this.memberDetail.tasks;
 
     if (!tasks.length) {
-      alert('出力できるタスクがありません。');
+      alert(this.languageService.translate('progress.member.filter.noTasksToExport'));
       return;
     }
 
     const header = [
-      'プロジェクト名',
-      'タスク名',
-      'ステータス',
-      '優先度',
-      '期日',
+      this.languageService.translate('progress.member.table.projectName'),
+      this.languageService.translate('progress.member.table.taskName'),
+      this.languageService.translate('progress.member.table.status'),
+      this.languageService.translate('progress.member.table.priority'),
+      this.languageService.translate('progress.member.table.dueDate'),
     ];
     const csvRows = tasks.map((task) => [
       `"${task.projectName || ''}"`,

@@ -29,7 +29,7 @@
   </div>
 
   <!-- メンバー一覧 -->
-  <div *ngIf="!isLoading && members.length > 0" class="members-list">
+  <div *ngIf="!isLoading && members.length > 0" class="members-list" [class.single-column]="languageService.getCurrentLanguage() === 'en'">
     <mat-card
       *ngFor="let member of members"
       class="member-card"

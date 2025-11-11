@@ -420,6 +420,14 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.tasks-table td .status-chip,
+.tasks-table td .priority-chip {
+  max-width: 100%;
+  width: auto;
 }
 
 .tasks-table td:last-child {
@@ -460,11 +468,15 @@
 /* Specific status column styling */
 .mat-column-status {
   width: 10% !important;
+  min-width: 80px;
+  max-width: 120px;
 }
 
 /* Specific priority column styling */
 .mat-column-priority {
   width: 10% !important;
+  min-width: 80px;
+  max-width: 120px;
 }
 
 /* Specific projectName column styling */
@@ -500,7 +512,14 @@
   font-weight: 600;
   text-align: center;
   min-width: 60px;
+  max-width: 100%;
   display: inline-block;
+  box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .no-member {
@@ -586,6 +605,25 @@
   .table-container {
     font-size: 12px;
   }
+
+  .status-chip,
+  .priority-chip {
+    font-size: 10px;
+    padding: 3px 8px;
+    min-width: 50px;
+    max-width: 100%;
+  }
+
+  .tasks-table th,
+  .tasks-table td {
+    padding: 8px 4px;
+  }
+
+  .mat-column-status,
+  .mat-column-priority {
+    min-width: 60px !important;
+    max-width: 100px !important;
+  }
 }
 
 @media (max-width: 480px) {
@@ -618,5 +656,29 @@
   .priority-label {
     font-size: 12px;
     width: 30px;
+  }
+
+  .status-chip,
+  .priority-chip {
+    font-size: 9px;
+    padding: 2px 6px;
+    min-width: 40px;
+    max-width: 100%;
+  }
+
+  .tasks-table th,
+  .tasks-table td {
+    padding: 6px 2px;
+    font-size: 11px;
+  }
+
+  .tasks-table th {
+    font-size: 10px;
+  }
+
+  .mat-column-status,
+  .mat-column-priority {
+    min-width: 50px !important;
+    max-width: 80px !important;
   }
 }

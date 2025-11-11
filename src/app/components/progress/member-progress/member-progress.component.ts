@@ -46,7 +46,7 @@ export class MemberProgressComponent implements OnInit {
   private projectService = inject(ProjectService);
   private router = inject(Router);
   private dialog = inject(MatDialog);
-  private languageService = inject(LanguageService);
+  public languageService = inject(LanguageService);
   private memberManagementService = inject(MemberManagementService);
 
   members: MemberProgress[] = [];

@@ -68,18 +68,18 @@
         </div>
         <div class="priority-breakdown">
           <div class="status-row priority-row">
-            <div class="status-label">優先度</div>
+            <div class="status-label">{{ 'progress.members.priority' | translate }}</div>
             <div class="status-total">&nbsp;</div>
             <div class="priority-details">
-              <span class="priority-label high">高</span>
-              <span class="priority-label medium">中</span>
-              <span class="priority-label low">低</span>
+              <span class="priority-label high">{{ 'progress.priority.high' | translate }}</span>
+              <span class="priority-label medium">{{ 'progress.priority.medium' | translate }}</span>
+              <span class="priority-label low">{{ 'progress.priority.low' | translate }}</span>
             </div>
           </div>
 
           <div class="status-row completed">
             <div class="status-label">{{ 'progress.status.completed' | translate }}</div>
-            <div class="status-total">{{ memberDetail.completedTasks }}</div>
+            <div class="status-total">{{ memberDetail.completedTasks }}{{ 'progress.members.count' | translate }}</div>
             <div class="priority-details">
               <span class="priority-item high">{{
                 memberDetail.completedByPriority.high
@@ -95,7 +95,7 @@
 
           <div class="status-row in-progress">
             <div class="status-label">{{ 'progress.status.inProgress' | translate }}</div>
-            <div class="status-total">{{ memberDetail.inProgressTasks }}</div>
+            <div class="status-total">{{ memberDetail.inProgressTasks }}{{ 'progress.members.count' | translate }}</div>
             <div class="priority-details">
               <span class="priority-item high">{{
                 memberDetail.inProgressByPriority.high
@@ -111,7 +111,7 @@
 
           <div class="status-row not-started">
             <div class="status-label">{{ 'progress.status.notStarted' | translate }}</div>
-            <div class="status-total">{{ memberDetail.notStartedTasks }}</div>
+            <div class="status-total">{{ memberDetail.notStartedTasks }}{{ 'progress.members.count' | translate }}</div>
             <div class="priority-details">
               <span class="priority-item high">{{
                 memberDetail.notStartedByPriority.high
@@ -131,10 +131,10 @@
     <!-- タスク一覧 -->
     <mat-card class="tasks-card">
       <mat-card-header>
-        <mat-card-title>タスク一覧</mat-card-title>
+        <mat-card-title>{{ 'progress.member.taskList' | translate }}</mat-card-title>
         <div class="header-actions">
           <mat-form-field appearance="outline" class="filter-field">
-            <mat-label>プロジェクト</mat-label>
+            <mat-label>{{ 'progress.member.filter.project' | translate }}</mat-label>
             <mat-select
               [(ngModel)]="filterProjects"
               (selectionChange)="applyTaskFilters()"
@@ -150,40 +150,40 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="filter-field">
-            <mat-label>期日</mat-label>
+            <mat-label>{{ 'progress.member.filter.dueDate' | translate }}</mat-label>
             <mat-select [(ngModel)]="filterDueDateSort" (selectionChange)="applyTaskFilters()">
-              <mat-option value="">ソートなし</mat-option>
-              <mat-option value="near">近い順</mat-option>
-              <mat-option value="far">遠い順</mat-option>
+              <mat-option value="">{{ 'progress.member.filter.sortNone' | translate }}</mat-option>
+              <mat-option value="near">{{ 'progress.member.filter.sortNear' | translate }}</mat-option>
+              <mat-option value="far">{{ 'progress.member.filter.sortFar' | translate }}</mat-option>
             </mat-select>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="filter-field">
-            <mat-label>ステータス</mat-label>
+            <mat-label>{{ 'progress.member.filter.status' | translate }}</mat-label>
             <mat-select [(ngModel)]="filterStatus" (selectionChange)="applyTaskFilters()" multiple>
-              <mat-option value="未着手">未着手</mat-option>
-              <mat-option value="作業中">作業中</mat-option>
-              <mat-option value="完了">完了</mat-option>
+              <mat-option value="未着手">{{ 'progress.status.notStarted' | translate }}</mat-option>
+              <mat-option value="作業中">{{ 'progress.status.inProgress' | translate }}</mat-option>
+              <mat-option value="完了">{{ 'progress.status.completed' | translate }}</mat-option>
             </mat-select>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="filter-field">
-            <mat-label>優先度</mat-label>
+            <mat-label>{{ 'progress.member.filter.priority' | translate }}</mat-label>
             <mat-select [(ngModel)]="filterPriority" (selectionChange)="applyTaskFilters()" multiple>
-              <mat-option value="高">高</mat-option>
-              <mat-option value="中">中</mat-option>
-              <mat-option value="低">低</mat-option>
+              <mat-option value="高">{{ 'progress.priority.high' | translate }}</mat-option>
+              <mat-option value="中">{{ 'progress.priority.medium' | translate }}</mat-option>
+              <mat-option value="低">{{ 'progress.priority.low' | translate }}</mat-option>
             </mat-select>
           </mat-form-field>
 
           <button mat-button (click)="resetTaskFilters()">
             <mat-icon>clear</mat-icon>
-            リセット
+            {{ 'progress.member.filter.reset' | translate }}
           </button>
 
           <button mat-button class="export-button" (click)="exportToCSV()">
             <mat-icon>download</mat-icon>
-            出力
+            {{ 'progress.member.filter.export' | translate }}
           </button>
         </div>
       </mat-card-header>
@@ -196,7 +196,7 @@
           >
             <!-- プロジェクト名列 -->
             <ng-container matColumnDef="projectName">
-              <th mat-header-cell *matHeaderCellDef>プロジェクト名</th>
+              <th mat-header-cell *matHeaderCellDef>{{ 'progress.member.table.projectName' | translate }}</th>
               <td mat-cell *matCellDef="let task">
                 <div
                   class="table-clickable project-cell clickable"
@@ -214,7 +214,7 @@
 
             <!-- タスク名列 -->
             <ng-container matColumnDef="taskName">
-              <th mat-header-cell *matHeaderCellDef>タスク名</th>
+              <th mat-header-cell *matHeaderCellDef>{{ 'progress.member.table.taskName' | translate }}</th>
               <td mat-cell *matCellDef="let task">
                 <div
                   class="table-clickable task-cell clickable"
@@ -231,32 +231,32 @@
 
             <!-- ステータス列 -->
             <ng-container matColumnDef="status">
-              <th mat-header-cell *matHeaderCellDef>ステータス</th>
+              <th mat-header-cell *matHeaderCellDef>{{ 'progress.member.table.status' | translate }}</th>
               <td mat-cell *matCellDef="let task">
                 <span
                   class="status-chip"
                   [style.background-color]="getStatusColor(task.status)"
                 >
-                  {{ task.status }}
+                  {{ translateStatus(task.status) }}
                 </span>
               </td>
             </ng-container>
 
             <!-- 期日列 -->
             <ng-container matColumnDef="dueDate">
-              <th mat-header-cell *matHeaderCellDef>期日</th>
+              <th mat-header-cell *matHeaderCellDef>{{ 'progress.member.table.dueDate' | translate }}</th>
               <td mat-cell *matCellDef="let task">{{ task.dueDate }}</td>
             </ng-container>
 
             <!-- 優先度列 -->
             <ng-container matColumnDef="priority">
-              <th mat-header-cell *matHeaderCellDef>優先度</th>
+              <th mat-header-cell *matHeaderCellDef>{{ 'progress.member.table.priority' | translate }}</th>
               <td mat-cell *matCellDef="let task">
                 <span
                   class="priority-chip"
                   [style.background-color]="getPriorityColor(task.priority)"
                 >
-                  {{ task.priority }}
+                  {{ translatePriority(task.priority) }}
                 </span>
               </td>
             </ng-container>
@@ -274,9 +274,9 @@
     <mat-card>
       <mat-card-content>
         <div class="no-member-content">
-          <h3>メンバーが見つかりません</h3>
-          <p>指定されたメンバーのタスクが見つかりません。</p>
-          <button mat-button (click)="goBack()" color="primary">戻る</button>
+          <h3>{{ 'progress.member.noMemberFound' | translate }}</h3>
+          <p>{{ 'progress.member.noMemberFoundDesc' | translate }}</p>
+          <button mat-button (click)="goBack()" color="primary">{{ 'progress.member.back' | translate }}</button>
         </div>
       </mat-card-content>
     </mat-card>
