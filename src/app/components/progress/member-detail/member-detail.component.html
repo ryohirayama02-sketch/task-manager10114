@@ -60,6 +60,12 @@
         </div>
       </mat-card-header>
       <mat-card-content>
+        <!-- 期間内タスク完了率の表示 -->
+        <div class="period-completion-rate">
+          <span class="completion-rate">
+            {{ 'progress.member.periodCompletionRate' | translate }}: {{ getPeriodCompletionRate() }}%
+          </span>
+        </div>
         <div class="priority-breakdown">
           <div class="status-row priority-row">
             <div class="status-label">優先度</div>

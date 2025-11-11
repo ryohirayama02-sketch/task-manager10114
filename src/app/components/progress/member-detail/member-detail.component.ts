@@ -189,13 +189,13 @@ export class MemberDetailComponent implements OnInit {
           // メンバーIDからメンバー名を取得
           const member = this.allMembers.find((m) => m.id === memberId);
           const memberName = member ? member.name : memberId;
-          
+
           // メンバー名がカンマ区切りの場合も分割
           const names = memberName
             .split(',')
             .map((n) => n.trim())
             .filter((n) => n.length > 0);
-          
+
           assignees.push(...names);
         });
       }
@@ -357,6 +357,34 @@ export class MemberDetailComponent implements OnInit {
       this.calculatePriorityBreakdown(inProgressTasks);
     this.memberDetail.notStartedByPriority =
       this.calculatePriorityBreakdown(notStartedTasks);
+  }
+
+  /** 期間内完了率を計算 */
+  getPeriodCompletionRate(): number {
+    if (!this.memberDetail) return 0;
+
+    let targetTasks: Task[];
+
+    // 期間が設定されている場合は期間内のタスクをフィルタリング
+    if (this.periodStartDate && this.periodEndDate) {
+      targetTasks = this.memberDetail.tasks.filter((task) => {
+        const dueDate = task.dueDate ? new Date(task.dueDate) : null;
+        if (!dueDate) return false;
+        const afterStart = dueDate >= this.periodStartDate!;
+        const beforeEnd = dueDate <= this.periodEndDate!;
+        return afterStart && beforeEnd;
+      });
+    } else {
+      // 期間が設定されていない場合は全タスクを対象
+      targetTasks = this.memberDetail.tasks;
+    }
+
+    if (targetTasks.length === 0) return 0;
+
+    const completedTasks = targetTasks.filter(
+      (t) => t.status === '完了'
+    ).length;
+    return Math.round((completedTasks / targetTasks.length) * 100);
   }
 
   resetPeriodFilter() {

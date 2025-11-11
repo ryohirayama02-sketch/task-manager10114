@@ -342,6 +342,10 @@ export class LanguageService {
       ja: '総タスクの完了率',
       en: 'Total Tasks Completion Rate',
     },
+    'progress.member.periodCompletionRate': {
+      ja: '期間内タスク完了率',
+      en: 'Period Task Completion Rate',
+    },
     'progress.member.totalTasks': { ja: '総タスク数', en: 'Total Tasks' },
     'progress.member.projects': { ja: '所属プロジェクト', en: 'Projects' },
     'progress.member.allTasksStatus': {

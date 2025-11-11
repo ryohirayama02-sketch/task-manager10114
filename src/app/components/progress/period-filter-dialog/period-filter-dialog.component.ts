@@ -26,11 +26,25 @@ import { FormsModule } from '@angular/forms';
       <div class="period-dialog-content">
         <div class="date-field">
           <label for="startDate">開始日</label>
-          <input id="startDate" type="date" [(ngModel)]="startDate" max="9999-12-31" />
+          <input
+            id="startDate"
+            type="date"
+            [(ngModel)]="startDate"
+            (ngModelChange)="onStartDateChange($event)"
+            [max]="endDate || '9999-12-31'"
+            max="9999-12-31"
+          />
         </div>
         <div class="date-field">
           <label for="endDate">終了日</label>
-          <input id="endDate" type="date" [(ngModel)]="endDate" max="9999-12-31" />
+          <input
+            id="endDate"
+            type="date"
+            [(ngModel)]="endDate"
+            (ngModelChange)="onEndDateChange($event)"
+            [min]="startDate || undefined"
+            max="9999-12-31"
+          />
         </div>
       </div>
     </mat-dialog-content>
@@ -77,6 +91,30 @@ export class PeriodFilterDialogComponent {
 
   onCancel() {
     this.dialogRef.close();
+  }
+
+  onStartDateChange(value: string | null) {
+    this.startDate = value;
+    // 開始日が終了日より後になった場合、終了日を開始日と同じにする
+    if (this.startDate && this.endDate) {
+      const start = new Date(this.startDate);
+      const end = new Date(this.endDate);
+      if (start > end) {
+        this.endDate = this.startDate;
+      }
+    }
+  }
+
+  onEndDateChange(value: string | null) {
+    this.endDate = value;
+    // 終了日が開始日より前になった場合、開始日を終了日と同じにする
+    if (this.startDate && this.endDate) {
+      const start = new Date(this.startDate);
+      const end = new Date(this.endDate);
+      if (end < start) {
+        this.startDate = this.endDate;
+      }
+    }
   }
 
   isConfirmDisabled(): boolean {
