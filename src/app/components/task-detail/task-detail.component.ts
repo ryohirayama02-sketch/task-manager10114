@@ -488,12 +488,45 @@ export class TaskDetailComponent implements OnInit {
       return false;
     }
 
+    // 開始日と終了日の逆転チェック
+    if (this.taskData.startDate && this.taskData.dueDate) {
+      const startDate = new Date(this.taskData.startDate);
+      const dueDate = new Date(this.taskData.dueDate);
+      if (startDate > dueDate) {
+        return false;
+      }
+    }
+
     // 担当者の必須チェック
     if (!this.selectedAssignedMemberIds || this.selectedAssignedMemberIds.length === 0) {
       return false;
     }
 
     return true;
+  }
+
+  /** 開始日変更時の処理 */
+  onStartDateChange(): void {
+    if (this.taskData.startDate && this.taskData.dueDate) {
+      const startDate = new Date(this.taskData.startDate);
+      const dueDate = new Date(this.taskData.dueDate);
+      // 開始日が期限日より後の場合は、期限日を開始日に合わせる
+      if (startDate > dueDate) {
+        this.taskData.dueDate = this.taskData.startDate;
+      }
+    }
+  }
+
+  /** 期限日変更時の処理 */
+  onDueDateChange(): void {
+    if (this.taskData.startDate && this.taskData.dueDate) {
+      const startDate = new Date(this.taskData.startDate);
+      const dueDate = new Date(this.taskData.dueDate);
+      // 期限日が開始日より前の場合は、開始日を期限日に合わせる
+      if (dueDate < startDate) {
+        this.taskData.startDate = this.taskData.dueDate;
+      }
+    }
   }
 
   /** 編集モード用に担当者を初期化 */
@@ -577,6 +610,18 @@ export class TaskDetailComponent implements OnInit {
         duration: 3000,
       });
       return;
+    }
+
+    // 開始日と終了日の逆転チェック
+    if (this.taskData.startDate && this.taskData.dueDate) {
+      const startDate = new Date(this.taskData.startDate);
+      const dueDate = new Date(this.taskData.dueDate);
+      if (startDate > dueDate) {
+        this.snackBar.open('開始日は期限日より前の日付を設定してください', '閉じる', {
+          duration: 3000,
+        });
+        return;
+      }
     }
 
     // 担当者の必須チェック

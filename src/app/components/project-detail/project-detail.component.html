@@ -101,8 +101,9 @@
                   class="date-input"
                   type="date"
                   [(ngModel)]="editableProject!.startDate"
+                  (change)="onStartDateChange()"
                   name="inlineStartDate"
-                  max="9999-12-31"
+                  [max]="editableProject!.endDate || '9999-12-31'"
                   required
                 />
                 <mat-icon class="date-icon">event</mat-icon>
@@ -117,6 +118,7 @@
                   class="date-input"
                   type="date"
                   [(ngModel)]="editableProject!.endDate"
+                  (change)="onEndDateChange()"
                   name="inlineEndDate"
                   [min]="editableProject!.startDate || ''"
                   max="9999-12-31"

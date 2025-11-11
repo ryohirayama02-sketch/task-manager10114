@@ -315,6 +315,19 @@ export class ProjectDetailComponent implements OnInit {
       return;
     }
 
+    // 開始日と終了日の逆転チェック
+    if (this.editableProject.startDate && this.editableProject.endDate) {
+      const startDate = new Date(this.editableProject.startDate);
+      const endDate = new Date(this.editableProject.endDate);
+      if (startDate > endDate) {
+        this.snackBar.open('開始日は終了日より前の日付を設定してください', '閉じる', {
+          duration: 3000,
+        });
+        this.isInlineEditMode = true;
+        return;
+      }
+    }
+
     if (!this.selectedResponsibles || this.selectedResponsibles.length === 0) {
       this.snackBar.open('責任者は1人以上選択してください', '閉じる', {
         duration: 3000,
@@ -1449,6 +1462,30 @@ export class ProjectDetailComponent implements OnInit {
   }
 
   /** タスクの担当者を表示（カンマ区切り対応） */
+  /** 開始日変更時の処理 */
+  onStartDateChange(): void {
+    if (this.editableProject && this.editableProject.startDate && this.editableProject.endDate) {
+      const startDate = new Date(this.editableProject.startDate);
+      const endDate = new Date(this.editableProject.endDate);
+      // 開始日が終了日より後の場合は、終了日を開始日に合わせる
+      if (startDate > endDate) {
+        this.editableProject.endDate = this.editableProject.startDate;
+      }
+    }
+  }
+
+  /** 終了日変更時の処理 */
+  onEndDateChange(): void {
+    if (this.editableProject && this.editableProject.startDate && this.editableProject.endDate) {
+      const startDate = new Date(this.editableProject.startDate);
+      const endDate = new Date(this.editableProject.endDate);
+      // 終了日が開始日より前の場合は、開始日を終了日に合わせる
+      if (endDate < startDate) {
+        this.editableProject.startDate = this.editableProject.endDate;
+      }
+    }
+  }
+
   /** プロジェクトテーマカラーの16進表記を色名に変換 */
   getThemeColorLabel(color: string): string {
     return this.themeColorLabelMap[color] ?? color;
