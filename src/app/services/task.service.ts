@@ -486,7 +486,19 @@ export class TaskService {
     const oldTagsStr = JSON.stringify(oldTags.sort());
     const newTagsStr = JSON.stringify(newTags.sort());
     
+    console.log('[TaskService.updateTask] タグ比較デバッグ:', {
+      oldTags,
+      newTags,
+      oldTagsStr,
+      newTagsStr,
+      oldTagsType: typeof oldTaskData?.tags,
+      newTagsType: typeof taskData.tags,
+      oldTaskDataKeys: oldTaskData ? Object.keys(oldTaskData) : [],
+      taskDataKeys: Object.keys(taskData),
+    });
+    
     if (oldTagsStr !== newTagsStr) {
+      console.log('[TaskService.updateTask] タグの変更を検出しました');
       // 追加されたタグ
       const addedTags = newTags.filter((tag: string) => !oldTags.includes(tag));
       addedTags.forEach((tag: string) => {

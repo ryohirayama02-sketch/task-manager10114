@@ -500,17 +500,27 @@ export class TaskDetailComponent implements OnInit {
         this.originalTaskSnapshot = null; // スナップショットをクリア
         return;
       }
-      this.saveTask();
-      this.originalTaskSnapshot = null; // 保存後にスナップショットをクリア
+      // originalTaskSnapshotを保存（saveTask()で使用するため、nullに設定される前に保持）
+      const snapshotToUse = this.originalTaskSnapshot 
+        ? { ...this.originalTaskSnapshot, tags: this.originalTaskSnapshot.tags ? [...this.originalTaskSnapshot.tags] : [] }
+        : null;
+      this.saveTask(snapshotToUse);
+      // 保存後にスナップショットをクリア
+      this.originalTaskSnapshot = null;
     } else {
       // 読み取りモードから編集中へ
       this.isEditing = true;
 
       // 編集モードON時にタスクのスナップショットを保持（リアルタイム更新でthis.taskが変更される前に）
       if (this.task) {
+        // 深いコピーを作成（tagsは特に重要）
+        const tagsCopy = this.task.tags && Array.isArray(this.task.tags) 
+          ? JSON.parse(JSON.stringify(this.task.tags)) 
+          : [];
+        
         this.originalTaskSnapshot = {
           ...this.task,
-          tags: this.task.tags ? [...this.task.tags] : [],
+          tags: tagsCopy,
           assignedMembers: this.task.assignedMembers
             ? [...this.task.assignedMembers]
             : [],
@@ -521,7 +531,11 @@ export class TaskDetailComponent implements OnInit {
         };
         console.log(
           '編集モードON: タスクのスナップショットを保持:',
-          this.originalTaskSnapshot
+          {
+            originalTaskSnapshot: this.originalTaskSnapshot,
+            originalTaskSnapshotTags: this.originalTaskSnapshot.tags,
+            taskTags: this.task.tags,
+          }
         );
       }
 
@@ -759,7 +773,7 @@ export class TaskDetailComponent implements OnInit {
   }
 
   /** タスクを保存 */
-  async saveTask() {
+  async saveTask(snapshotToUse?: Task | null) {
     if (!this.task || !this.task.projectId || !this.task.id) {
       return;
     }
@@ -869,17 +883,47 @@ export class TaskDetailComponent implements OnInit {
         this.taskData.tags = [];
       }
 
-      console.log('保存するタスクデータ:', {
-        ...this.taskData,
-        tags: this.taskData.tags,
-        tagsLength: this.taskData.tags.length,
+      // スナップショットが存在する場合はそれを使用、なければthis.taskを使用（oldTaskDataとして）
+      // 引数として渡されたsnapshotToUseを優先使用（toggleEdit()でnullに設定される前に保持されたもの）
+      // 次にthis.originalTaskSnapshotを使用（まだ存在する場合）
+      // 最後にthis.taskを使用（リアルタイム更新で変更されている可能性があるため、最後の手段）
+      const oldTaskData = snapshotToUse 
+        ? snapshotToUse
+        : this.originalTaskSnapshot 
+        ? { ...this.originalTaskSnapshot, tags: this.originalTaskSnapshot.tags ? [...this.originalTaskSnapshot.tags] : [] } // 深いコピーを作成
+        : this.task;
+      
+      console.log('[saveTask] タグ比較デバッグ:', {
+        snapshotToUseExists: !!snapshotToUse,
+        snapshotToUseTags: snapshotToUse?.tags,
+        originalTaskSnapshotExists: !!this.originalTaskSnapshot,
+        originalTaskSnapshotTags: this.originalTaskSnapshot?.tags,
+        originalTaskSnapshotTagsType: typeof this.originalTaskSnapshot?.tags,
+        originalTaskSnapshotTagsIsArray: Array.isArray(this.originalTaskSnapshot?.tags),
+        taskTags: this.task?.tags,
+        taskDataTags: this.taskData.tags,
+        oldTaskDataTags: oldTaskData?.tags,
+        oldTaskDataTagsType: typeof oldTaskData?.tags,
+        oldTaskDataTagsIsArray: Array.isArray(oldTaskData?.tags),
+        oldTaskDataKeys: oldTaskData ? Object.keys(oldTaskData) : [],
+        taskDataKeys: Object.keys(this.taskData),
       });
 
-      // スナップショットが存在する場合はそれを使用、なければthis.taskを使用（oldTaskDataとして）
-      const oldTaskData = this.originalTaskSnapshot || this.task;
+      // taskData.tagsを明示的に設定（saveTagsOnly()で保存された値を使用）
+      const taskDataToSave = {
+        ...this.taskData,
+        tags: this.taskData.tags || [],
+      };
+
+      console.log('保存するタスクデータ:', {
+        ...taskDataToSave,
+        tags: taskDataToSave.tags,
+        tagsLength: taskDataToSave.tags.length,
+      });
+
       await this.taskService.updateTask(
         this.task.id,
-        this.taskData,
+        taskDataToSave,
         oldTaskData,
         this.task.projectId
       );
