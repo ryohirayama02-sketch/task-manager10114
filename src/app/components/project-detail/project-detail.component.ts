@@ -22,6 +22,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSlideToggleChange } from '@angular/material/slide-toggle';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MemberManagementService } from '../../services/member-management.service';
 import { Member } from '../../models/member.model';
 import { ProjectAttachmentService } from '../../services/project-attachment.service';
@@ -55,6 +56,7 @@ import { getMemberNamesAsString, getMemberNames } from '../../utils/member-utils
     MatSlideToggleModule,
     MatProgressSpinnerModule,
     MatSnackBarModule,
+    MatTooltipModule,
     ProgressCircleComponent,
     ProjectChatComponent,
     TranslatePipe,
@@ -84,8 +86,22 @@ export class ProjectDetailComponent implements OnInit {
   isDeletingProject = false;
   editableTags: string[] = [];
   tagInputValue = '';
-  editableThemeColor: string = DEFAULT_PROJECT_THEME_COLOR;
+  editableThemeColor: string | null = DEFAULT_PROJECT_THEME_COLOR;
   readonly themeColors = PROJECT_THEME_COLORS;
+  
+  // プロジェクトテーマカラーの16進表記から色名へのマッピング
+  private readonly themeColorLabelMap: Record<string, string> = {
+    '#fde4ec': 'ピンク',
+    '#ffe6dc': 'ピーチ',
+    '#ffedd6': 'アプリコット',
+    '#fff8e4': 'イエロー',
+    '#eef6da': 'ライム',
+    '#e4f4e8': 'ミント',
+    '#dcf3f0': 'ブルーグリーン',
+    '#def3ff': 'スカイブルー',
+    '#e6e9f9': 'ラベンダーブルー',
+    '#ece6f8': 'パープル',
+  };
   editableMilestones: Milestone[] = [];
   editableAttachments: ProjectAttachment[] = [];
   pendingFiles: { id: string; file: File }[] = [];
@@ -269,7 +285,9 @@ export class ProjectDetailComponent implements OnInit {
     this.attachmentsToRemove = [];
     this.newUrlInput = '';
     this.tagInputValue = '';
-    this.editableThemeColor = resolveProjectThemeColor(this.project);
+    // プロジェクトのテーマ色が#ffffffまたはnullの場合はnullに設定（「なし」を選択）
+    const resolvedColor = resolveProjectThemeColor(this.project);
+    this.editableThemeColor = resolvedColor === '#ffffff' ? null : resolvedColor;
     this.syncSelectionsFromProject();
   }
 
@@ -387,7 +405,8 @@ export class ProjectDetailComponent implements OnInit {
       responsibles: responsiblesPayload,
       members: membersString,
       tags: tagsString,
-      themeColor: this.editableThemeColor,
+      // テーマ色が「なし」（null）の場合は白（#ffffff）に設定
+      themeColor: this.editableThemeColor === null ? '#ffffff' : this.editableThemeColor,
       milestones: milestonesPayload,
       attachments,
       updatedAt: new Date(),
@@ -406,7 +425,8 @@ export class ProjectDetailComponent implements OnInit {
         ...payload,
       } as IProject;
       this.project.responsibles = responsiblesPayload;
-      this.project.themeColor = this.editableThemeColor;
+      // テーマ色が「なし」（null）の場合は白（#ffffff）に設定
+      this.project.themeColor = this.editableThemeColor === null ? '#ffffff' : this.editableThemeColor;
       this.projectThemeColor = resolveProjectThemeColor(this.project);
       this.project.attachments = attachments;
       this.project.milestones = milestonesPayload;
@@ -556,7 +576,8 @@ export class ProjectDetailComponent implements OnInit {
       responsibles: responsiblesPayload,
       members: membersString,
       tags: tagsString,
-      themeColor: this.editableThemeColor,
+      // テーマ色が「なし」（null）の場合は白（#ffffff）に設定
+      themeColor: this.editableThemeColor === null ? '#ffffff' : this.editableThemeColor,
       milestones: milestonesPayload,
       attachments,
       updatedAt: new Date(),
@@ -576,7 +597,8 @@ export class ProjectDetailComponent implements OnInit {
         ...payload,
       } as IProject;
       this.project.responsibles = responsiblesPayload;
-      this.project.themeColor = this.editableThemeColor;
+      // テーマ色が「なし」（null）の場合は白（#ffffff）に設定
+      this.project.themeColor = this.editableThemeColor === null ? '#ffffff' : this.editableThemeColor;
       this.projectThemeColor = resolveProjectThemeColor(this.project);
       this.project.attachments = attachments;
       this.project.milestones = milestonesPayload;
@@ -1427,6 +1449,26 @@ export class ProjectDetailComponent implements OnInit {
   }
 
   /** タスクの担当者を表示（カンマ区切り対応） */
+  /** プロジェクトテーマカラーの16進表記を色名に変換 */
+  getThemeColorLabel(color: string): string {
+    return this.themeColorLabelMap[color] ?? color;
+  }
+
+  /** テーマ色を選択 */
+  selectThemeColor(color: string | null): void {
+    this.editableThemeColor = color;
+  }
+
+  /** テーマ色が選択済みか判定 */
+  isThemeColorSelected(color: string | null): boolean {
+    return this.editableThemeColor === color;
+  }
+
+  /** テーマ色をクリア（「なし」を選択） */
+  clearThemeColor(): void {
+    this.editableThemeColor = null;
+  }
+
   getTaskAssigneeDisplay(task: Task): string {
     // assignedMembers がある場合はそれを使用
     if (task.assignedMembers && task.assignedMembers.length > 0) {

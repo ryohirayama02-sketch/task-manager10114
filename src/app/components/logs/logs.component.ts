@@ -281,6 +281,10 @@ export class LogsComponent implements OnInit, OnDestroy {
 
   /** プロジェクトテーマカラーの16進表記を色名に変換 */
   private getThemeColorLabel(color: string): string {
+    // #ffffffの場合は「なし」に変換
+    if (color.toLowerCase() === '#ffffff') {
+      return 'なし';
+    }
     // 大文字小文字を区別しないように、小文字に変換してから検索
     const normalizedColor = color.toLowerCase();
     return this.themeColorLabelMap[normalizedColor] ?? color;

@@ -443,6 +443,31 @@
   color: #263238;
 }
 
+.theme-color-option.no-color-option {
+  background: repeating-linear-gradient(
+      135deg,
+      #f5f5f5,
+      #f5f5f5 6px,
+      #e0e0e0 6px,
+      #e0e0e0 12px
+    );
+  color: #424242;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.theme-color-option.no-color-option span {
+  pointer-events: none;
+}
+
+.theme-color-option:not(.no-color-option) {
+  border: 1px solid rgba(0, 0, 0, 0.25);
+}
+
+.theme-color-option:not(.no-color-option):hover {
+  border-color: rgba(0, 0, 0, 0.5);
+}
+
 .inline-milestones {
   display: flex;
   flex-direction: column;

@@ -371,15 +371,28 @@
     <h4>{{ 'projectDetail.themeColor' | translate }}</h4>
     <div class="theme-color-selector">
       <button
+        type="button"
+        class="theme-color-option no-color-option"
+        (click)="clearThemeColor()"
+        [class.selected]="isThemeColorSelected(null)"
+        matTooltip="色を選択しない"
+        [attr.aria-pressed]="isThemeColorSelected(null)"
+        aria-label="テーマ色 なし"
+      >
+        <span>{{ "projectForm.noColor" | translate }}</span>
+      </button>
+      <button
         *ngFor="let color of themeColors"
         type="button"
         class="theme-color-option"
-        [class.selected]="editableThemeColor === color"
+        [class.selected]="isThemeColorSelected(color)"
         [style.background-color]="color"
-        (click)="editableThemeColor = color"
-        [attr.aria-label]="('projectDetail.themeColor' | translate) + ': ' + color"
+        (click)="selectThemeColor(color)"
+        [matTooltip]="getThemeColorLabel(color)"
+        [attr.aria-pressed]="isThemeColorSelected(color)"
+        [attr.aria-label]="'テーマ色 ' + getThemeColorLabel(color)"
       >
-        <mat-icon *ngIf="editableThemeColor === color">check</mat-icon>
+        <mat-icon *ngIf="isThemeColorSelected(color)">check</mat-icon>
       </button>
     </div>
   </div>
