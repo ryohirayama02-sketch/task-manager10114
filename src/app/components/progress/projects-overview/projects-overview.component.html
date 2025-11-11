@@ -5,7 +5,7 @@
       <mat-form-field appearance="outline" class="sort-filter">
         <mat-label>{{ 'progress.projects.sortBy' | translate }}</mat-label>
         <mat-select
-          [(value)]="sortOption"
+          [value]="sortOption"
           (selectionChange)="onSortChange($event.value)"
         >
           <mat-option *ngFor="let option of sortOptions" [value]="option.value">
