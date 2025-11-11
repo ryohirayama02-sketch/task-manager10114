@@ -481,13 +481,12 @@ export class TaskService {
     }
 
     // タグの変更（追加・削除）
-    if (
-      taskData.tags &&
-      JSON.stringify(oldTaskData?.tags) !== JSON.stringify(taskData.tags)
-    ) {
-      const oldTags = oldTaskData?.tags || [];
-      const newTags = taskData.tags || [];
-
+    const oldTags = oldTaskData?.tags || [];
+    const newTags = taskData.tags || [];
+    const oldTagsStr = JSON.stringify(oldTags.sort());
+    const newTagsStr = JSON.stringify(newTags.sort());
+    
+    if (oldTagsStr !== newTagsStr) {
       // 追加されたタグ
       const addedTags = newTags.filter((tag: string) => !oldTags.includes(tag));
       addedTags.forEach((tag: string) => {
