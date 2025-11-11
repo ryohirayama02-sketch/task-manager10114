@@ -97,6 +97,7 @@ export class TaskDetailComponent implements OnInit {
   parentTaskName: string | null = null;
   projectMembers: Member[] = [];
   selectedAssignedMemberIds: string[] = [];
+  private isReopeningParentTask = false; // 親タスクを再オープン中かどうかのフラグ
 
   // 添付ファイル関連
   editableAttachments: TaskAttachment[] = [];
@@ -1186,7 +1187,7 @@ export class TaskDetailComponent implements OnInit {
     // 作業予定時間を読み込んで、estimatedHoursプロパティを初期化
     this.rebuildTimePickers();
     
-    void this.reopenParentTaskIfNeeded(this.childTasks);
+    // reopenParentTaskIfNeededはsetupChildTasksで呼び出されるため、ここでは呼び出さない
   }
 
   private ensureNotificationRecipients(): void {
@@ -1216,6 +1217,12 @@ export class TaskDetailComponent implements OnInit {
   }
 
   private async reopenParentTaskIfNeeded(children: Task[]): Promise<void> {
+    // 既に実行中の場合はスキップ（重複実行を防ぐ）
+    if (this.isReopeningParentTask) {
+      console.log('親タスクの再オープン処理は既に実行中です。スキップします。');
+      return;
+    }
+
     if (!this.task || !this.task.id || !this.task.projectId) {
       return;
     }
@@ -1235,17 +1242,21 @@ export class TaskDetailComponent implements OnInit {
       return;
     }
 
-    alert(
-      `「親タスク：${
-        this.task.taskName || '名称未設定'
-      }」のステータスを作業中に変更します`
-    );
-
-    const previousStatus = this.task.status;
-    this.task.status = '作業中';
-    this.taskData.status = '作業中';
+    // フラグを立てて重複実行を防ぐ
+    this.isReopeningParentTask = true;
 
     try {
+      // alertの代わりにsnackBarを使用（ブロッキングしない）
+      this.snackBar.open(
+        `「親タスク：${this.task.taskName || '名称未設定'}」のステータスを作業中に変更します`,
+        '閉じる',
+        { duration: 3000 }
+      );
+
+      const previousStatus = this.task.status;
+      this.task.status = '作業中';
+      this.taskData.status = '作業中';
+
       await this.taskService.updateTaskStatus(
         this.task.id,
         '作業中',
@@ -1256,6 +1267,12 @@ export class TaskDetailComponent implements OnInit {
       console.log('親タスクを作業中に戻しました');
     } catch (error) {
       console.error('親タスクのステータス更新に失敗しました', error);
+      this.snackBar.open('親タスクのステータス更新に失敗しました', '閉じる', {
+        duration: 3000,
+      });
+    } finally {
+      // 処理完了後にフラグをリセット
+      this.isReopeningParentTask = false;
     }
   }
 
