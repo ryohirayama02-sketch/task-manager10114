@@ -53,7 +53,7 @@
           task.parentTaskId
             ? ("taskDetail.childTaskName" | translate)
             : ("taskDetail.taskName" | translate)
-        }} * <span class="required-hint">（入力必須）</span></mat-label>
+        }} * <span class="required-hint">{{ 'taskDetail.required' | translate }}</span></mat-label>
         <input matInput [(ngModel)]="taskData.taskName" name="taskName" maxlength="30" required />
         <mat-hint align="end">{{ (taskData.taskName || '').length }}/30</mat-hint>
       </mat-form-field>
@@ -75,20 +75,14 @@
 
         <p>
           <strong>{{ "taskDetail.description" | translate }}:</strong>
-          {{ taskData.description || "説明なし" }}
+          {{ taskData.description || ('taskDetail.noDescription' | translate) }}
         </p>
 
         <p>
           <strong>{{ "taskDetail.period" | translate }}:</strong>
-          {{
-            taskData.startDate
-              ? (taskData.startDate | date : "yyyy/MM/dd")
-              : "—"
-          }}
-          ～
-          {{
-            taskData.dueDate ? (taskData.dueDate | date : "yyyy/MM/dd") : "—"
-          }}
+          {{ formatDateForDisplay(taskData.startDate) }}
+          {{ 'taskDetail.periodSeparator' | translate }}
+          {{ formatDateForDisplay(taskData.dueDate) }}
         </p>
 
         <p>
@@ -103,12 +97,12 @@
 
         <p>
           <strong>{{ "taskDetail.status" | translate }}:</strong>
-          {{ taskData.status }}
+          {{ getStatusDisplay(taskData.status) }}
         </p>
 
         <p>
           <strong>{{ "taskDetail.priority" | translate }}:</strong>
-          {{ taskData.priority }}
+          {{ getPriorityDisplay(taskData.priority) }}
         </p>
 
         <!-- 資料セクション（読み取りモード）-->
@@ -203,7 +197,7 @@
               rows="3"
               [(ngModel)]="taskData.description"
               name="description"
-              placeholder="タスクの詳細説明を入力してください（200文字以内）"
+              [placeholder]="'taskDetail.descriptionPlaceholder' | translate"
               maxlength="200"
             ></textarea>
             <mat-hint align="end">{{ (taskData.description || '').length }}/200</mat-hint>
@@ -213,7 +207,7 @@
             <div class="date-field">
               <label for="startDate">{{
                 "taskDetail.startDate" | translate
-              }} * <span class="required-hint">（入力必須）</span></label>
+              }} * <span class="required-hint">{{ 'taskDetail.required' | translate }}</span></label>
               <div class="date-input-wrapper">
                 <input
                   id="startDate"
@@ -231,7 +225,7 @@
             <div class="date-field">
               <label for="dueDate">{{
                 "taskDetail.dueDate" | translate
-              }} * <span class="required-hint">（入力必須）</span></label>
+              }} * <span class="required-hint">{{ 'taskDetail.required' | translate }}</span></label>
               <div class="date-input-wrapper">
                 <input
                   id="dueDate"
@@ -249,7 +243,7 @@
           </div>
 
           <mat-form-field appearance="outline" class="full-width-field">
-            <mat-label>{{ "taskDetail.assignee" | translate }} * <span class="required-hint">（入力必須）</span></mat-label>
+            <mat-label>{{ "taskDetail.assignee" | translate }} * <span class="required-hint">{{ 'taskDetail.required' | translate }}</span></mat-label>
             <mat-select
               [(ngModel)]="selectedAssignedMemberIds"
               name="assignedMembers"
@@ -449,7 +443,7 @@
                 <input
                   matInput
                   #tagInput
-                  placeholder="{{ 'taskDetail.enterTag' | translate }}（20文字以内）"
+                  [placeholder]="('taskDetail.enterTag' | translate) + ' ' + ('taskDetail.tagPlaceholder' | translate)"
                   (keyup.enter)="addTag(tagInput.value); tagInput.value = ''"
                   maxlength="20"
                 />
@@ -571,7 +565,7 @@
       <app-project-chat
         *ngIf="task?.id"
         [projectId]="task.id!"
-        [chatTitle]="'タスクチャット'"
+        [chatTitle]="'taskDetail.taskChat' | translate"
       >
       </app-project-chat>
     </div>
@@ -663,7 +657,7 @@
           >
             <mat-option value="">{{ "taskDetail.all" | translate }}</mat-option>
             <mat-option *ngFor="let status of statusOptions" [value]="status">
-              {{ status }}
+              {{ getStatusDisplay(status) }}
             </mat-option>
           </mat-select>
         </mat-form-field>
@@ -679,7 +673,7 @@
               *ngFor="let priority of priorityOptions"
               [value]="priority"
             >
-              {{ priority }}
+              {{ getPriorityDisplay(priority) }}
             </mat-option>
           </mat-select>
         </mat-form-field>
@@ -750,14 +744,14 @@
                   [ngClass]="'status-' + child.status"
                   selected
                 >
-                  {{ child.status }}
+                  {{ getStatusDisplay(child.status, true) }}
                 </mat-chip>
                 <mat-chip
                   class="child-priority-chip"
                   [ngClass]="'priority-' + child.priority"
                   selected
                 >
-                  {{ child.priority }}
+                  {{ getPriorityDisplay(child.priority, true) }}
                 </mat-chip>
               </mat-chip-set>
             </div>
@@ -768,11 +762,11 @@
                 <div class="child-task-detail-item child-task-detail-member">
                   <mat-icon>person</mat-icon>
                   <span class="child-task-member-name">{{
-                    getChildTaskAssigneeDisplay(child) || "未割当"
+                    getChildTaskAssigneeDisplay(child) || ('taskDetail.unassigned' | translate)
                   }}</span>
                   <div class="child-task-member-due">
                     <mat-icon>schedule</mat-icon>
-                    <span>{{ child.dueDate || "未設定" }}</span>
+                    <span>{{ child.dueDate || ('taskDetail.notSet' | translate) }}</span>
                   </div>
                 </div>
               </div>

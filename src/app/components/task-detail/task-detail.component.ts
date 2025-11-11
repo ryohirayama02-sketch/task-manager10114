@@ -41,6 +41,7 @@ import {
   getMemberNamesAsString,
   getMemberNames,
 } from '../../utils/member-utils';
+import { LanguageService } from '../../services/language.service';
 
 @Component({
   selector: 'app-task-detail',
@@ -80,6 +81,7 @@ export class TaskDetailComponent implements OnInit {
   private attachmentService = inject(TaskAttachmentService);
   private navigationHistory = inject(NavigationHistoryService);
   private firestore = inject(Firestore);
+  private languageService = inject(LanguageService);
 
   @Output() taskUpdated = new EventEmitter<any>();
 
@@ -155,6 +157,59 @@ export class TaskDetailComponent implements OnInit {
   // ステータスと優先度のオプション
   statusOptions = ['未着手', '作業中', '完了'];
   priorityOptions = ['高', '中', '低'];
+  
+  // ステータスの表示テキストを取得（タスクカード用：英語時は短縮形）
+  getStatusDisplay(status: string, short: boolean = false): string {
+    const currentLanguage = this.languageService.getCurrentLanguage();
+    const useShort = short && currentLanguage === 'en';
+    
+    const statusMap: Record<string, string> = {
+      '未着手': useShort
+        ? this.languageService.translate('taskDetail.status.notStarted.short')
+        : this.languageService.translate('taskDetail.status.notStarted'),
+      '作業中': useShort
+        ? this.languageService.translate('taskDetail.status.inProgress.short')
+        : this.languageService.translate('taskDetail.status.inProgress'),
+      '完了': useShort
+        ? this.languageService.translate('taskDetail.status.completed.short')
+        : this.languageService.translate('taskDetail.status.completed'),
+    };
+    return statusMap[status] || status;
+  }
+  
+  // 優先度の表示テキストを取得（タスクカード用：英語時は短縮形）
+  getPriorityDisplay(priority: string, short: boolean = false): string {
+    const currentLanguage = this.languageService.getCurrentLanguage();
+    const useShort = short && currentLanguage === 'en';
+    
+    const priorityMap: Record<string, string> = {
+      '高': useShort
+        ? this.languageService.translate('taskDetail.priority.high.short')
+        : this.languageService.translate('taskDetail.priority.high'),
+      '中': useShort
+        ? this.languageService.translate('taskDetail.priority.medium.short')
+        : this.languageService.translate('taskDetail.priority.medium'),
+      '低': useShort
+        ? this.languageService.translate('taskDetail.priority.low.short')
+        : this.languageService.translate('taskDetail.priority.low'),
+    };
+    return priorityMap[priority] || priority;
+  }
+  
+  // 期間表示用の日付フォーマット
+  formatDateForDisplay(date: string | null | undefined): string {
+    if (!date) {
+      return this.languageService.translate('taskDetail.notSet');
+    }
+    const currentLanguage = this.languageService.getCurrentLanguage();
+    const locale = currentLanguage === 'en' ? 'en-US' : 'ja-JP';
+    const dateObj = new Date(date);
+    return dateObj.toLocaleDateString(locale, {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+  }
 
   ngOnInit() {
     this.route.paramMap.subscribe((params) => {

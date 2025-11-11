@@ -520,14 +520,14 @@
               [ngClass]="'status-' + task.status"
               selected
             >
-              {{ getStatusDisplay(task.status) }}
+              {{ getStatusDisplay(task.status, true) }}
             </mat-chip>
             <mat-chip
               class="priority-chip"
               [ngClass]="'priority-' + task.priority"
               selected
             >
-              {{ getPriorityDisplay(task.priority) }}
+              {{ getPriorityDisplay(task.priority, true) }}
             </mat-chip>
           </mat-chip-set>
         </div>

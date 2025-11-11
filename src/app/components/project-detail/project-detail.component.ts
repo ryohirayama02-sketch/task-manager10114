@@ -140,22 +140,40 @@ export class ProjectDetailComponent implements OnInit {
     return ['高', '中', '低'];
   }
   
-  // ステータスの表示テキストを取得
-  getStatusDisplay(status: string): string {
+  // ステータスの表示テキストを取得（タスクカード用：英語時は短縮形）
+  getStatusDisplay(status: string, short: boolean = false): string {
+    const currentLanguage = this.languageService.getCurrentLanguage();
+    const useShort = short && currentLanguage === 'en';
+    
     const statusMap: Record<string, string> = {
-      '未着手': this.languageService.translate('projectDetail.status.notStarted'),
-      '作業中': this.languageService.translate('projectDetail.status.inProgress'),
-      '完了': this.languageService.translate('projectDetail.status.completed'),
+      '未着手': useShort 
+        ? this.languageService.translate('projectDetail.status.notStarted.short')
+        : this.languageService.translate('projectDetail.status.notStarted'),
+      '作業中': useShort
+        ? this.languageService.translate('projectDetail.status.inProgress.short')
+        : this.languageService.translate('projectDetail.status.inProgress'),
+      '完了': useShort
+        ? this.languageService.translate('projectDetail.status.completed.short')
+        : this.languageService.translate('projectDetail.status.completed'),
     };
     return statusMap[status] || status;
   }
   
-  // 優先度の表示テキストを取得
-  getPriorityDisplay(priority: string): string {
+  // 優先度の表示テキストを取得（タスクカード用：英語時は短縮形）
+  getPriorityDisplay(priority: string, short: boolean = false): string {
+    const currentLanguage = this.languageService.getCurrentLanguage();
+    const useShort = short && currentLanguage === 'en';
+    
     const priorityMap: Record<string, string> = {
-      '高': this.languageService.translate('projectDetail.priority.high'),
-      '中': this.languageService.translate('projectDetail.priority.medium'),
-      '低': this.languageService.translate('projectDetail.priority.low'),
+      '高': useShort
+        ? this.languageService.translate('projectDetail.priority.high.short')
+        : this.languageService.translate('projectDetail.priority.high'),
+      '中': useShort
+        ? this.languageService.translate('projectDetail.priority.medium.short')
+        : this.languageService.translate('projectDetail.priority.medium'),
+      '低': useShort
+        ? this.languageService.translate('projectDetail.priority.low.short')
+        : this.languageService.translate('projectDetail.priority.low'),
     };
     return priorityMap[priority] || priority;
   }
