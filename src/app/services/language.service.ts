@@ -707,8 +707,10 @@ export class LanguageService {
     },
     'projectForm.startDate': { ja: '開始日', en: 'Start Date' },
     'projectForm.startDateLabel': { ja: '年 / 月 / 日', en: 'YYYY / MM / DD' },
+    'projectForm.startDatePlaceholder': { ja: 'YYYY/MM/DD', en: 'MM/DD/YYYY' },
     'projectForm.endDate': { ja: '終了日', en: 'End Date' },
     'projectForm.endDateLabel': { ja: '年 / 月 / 日', en: 'YYYY / MM / DD' },
+    'projectForm.endDatePlaceholder': { ja: 'YYYY/MM/DD', en: 'MM/DD/YYYY' },
     'projectForm.responsible': { ja: '責任者', en: 'Project Owner' },
     'projectForm.loadingMembers': {
       ja: 'メンバーを読み込み中...',
@@ -742,6 +744,15 @@ export class LanguageService {
     },
     'projectForm.milestones': { ja: 'マイルストーン', en: 'Milestones' },
     'projectForm.date': { ja: '日付', en: 'Date' },
+    'projectForm.openCalendar': { ja: 'カレンダーを開く', en: 'Open Calendar' },
+    'projectForm.milestoneNamePlaceholder': {
+      ja: 'マイルストーン名（30文字以内）',
+      en: 'Milestone name (max 30 characters)',
+    },
+    'projectForm.removeMilestone': {
+      ja: 'このマイルストーンを削除',
+      en: 'Remove this milestone',
+    },
     'projectForm.milestoneName': {
       ja: 'マイルストーン名',
       en: 'Milestone Name',
@@ -781,6 +792,130 @@ export class LanguageService {
       en: 'Applies to project cards and tasks',
     },
     'projectForm.noColor': { ja: 'なし', en: 'None' },
+    'projectForm.required': { ja: '（入力必須）', en: '(Required)' },
+    'projectForm.register': { ja: '登録', en: 'Register' },
+    'projectForm.creating': { ja: '作成中...', en: 'Creating...' },
+    'projectForm.maxProjectLimit': {
+      ja: 'プロジェクトは最大{{count}}個作成できます',
+      en: 'You can create up to {{count}} projects',
+    },
+    'projectForm.registerMember': { ja: 'でメンバーを登録してください。', en: ' to register members.' },
+    'projectForm.selectResponsiblePlaceholder': {
+      ja: '責任者を選択してください（複数選択可）',
+      en: 'Select project owners (multiple selection)',
+    },
+    'projectForm.selectMembersPlaceholder': {
+      ja: 'メンバーを選択してください（複数選択可）',
+      en: 'Select members (multiple selection)',
+    },
+    'projectForm.membersSelected': {
+      ja: '人選択中',
+      en: ' selected',
+    },
+    'projectForm.cancel': { ja: 'キャンセル', en: 'Cancel' },
+    'projectForm.delete': { ja: '削除', en: 'Delete' },
+    'projectForm.dontSelectColor': { ja: '色を選択しない', en: 'Don\'t select color' },
+    'projectForm.themeColorNone': { ja: 'テーマ色 なし', en: 'Theme Color None' },
+    'projectForm.themeColorLabel': { ja: 'テーマ色 ', en: 'Theme Color ' },
+    'projectForm.projectNamePlaceholderFull': {
+      ja: '例: 新商品開発プロジェクト',
+      en: 'e.g.: New Product Development Project',
+    },
+    'projectForm.overviewPlaceholderFull': {
+      ja: 'プロジェクトの詳細説明を入力してください（200文字以内）',
+      en: 'Enter project details (max 200 characters)',
+    },
+    'projectForm.error.projectCountFetch': {
+      ja: 'プロジェクト数の取得エラー',
+      en: 'Error fetching project count',
+    },
+    'projectForm.error.membersLoad': {
+      ja: 'メンバー一覧の読み込みに失敗しました',
+      en: 'Failed to load members',
+    },
+    'projectForm.error.fileSizeExceeded': {
+      ja: 'は5MBを超えています。別のファイルを選択してください。',
+      en: ' exceeds 5MB. Please select another file.',
+    },
+    'projectForm.error.enterUrl': {
+      ja: 'URLを入力してください',
+      en: 'Please enter a URL',
+    },
+    'projectForm.error.invalidUrl': {
+      ja: 'URLの形式が正しくありません',
+      en: 'Invalid URL format',
+    },
+    'projectForm.error.urlAlreadyAdded': {
+      ja: 'このURLは既に追加されています',
+      en: 'This URL has already been added',
+    },
+    'projectForm.error.datesRequired': {
+      ja: '開始日と終了日は必須です',
+      en: 'Start date and end date are required',
+    },
+    'projectForm.error.responsibleRequired': {
+      ja: '責任者は1人以上選択してください',
+      en: 'Please select at least one project owner',
+    },
+    'projectForm.error.membersRequired': {
+      ja: 'プロジェクトメンバーは1人以上選択してください',
+      en: 'Please select at least one project member',
+    },
+    'projectForm.error.checkInput': {
+      ja: '入力内容を確認してください',
+      en: 'Please check your input',
+    },
+    'projectForm.error.projectNameExists': {
+      ja: 'このプロジェクト名は既に使用されています',
+      en: 'This project name is already in use',
+    },
+    'projectForm.success.created': {
+      ja: 'プロジェクトを作成しました',
+      en: 'Project created successfully',
+    },
+    'projectForm.error.createFailed': {
+      ja: 'プロジェクトの作成に失敗しました',
+      en: 'Failed to create project',
+    },
+    'projectForm.error.membersLoadFailed': {
+      ja: 'メンバー一覧の読み込みエラー',
+      en: 'Error loading members',
+    },
+    'projectForm.error.uploadFailed': {
+      ja: 'のアップロードに失敗しました',
+      en: ' failed to upload',
+    },
+    'projectForm.error.attachmentUploadFailed': {
+      ja: '添付ファイルのアップロードに失敗しました',
+      en: 'Failed to upload attachment',
+    },
+    'projectForm.error.required': {
+      ja: '必須項目です',
+      en: 'This field is required',
+    },
+    'projectForm.error.minLength': {
+      ja: '1文字以上入力してください',
+      en: 'Please enter at least 1 character',
+    },
+    'projectForm.error.projectNameMaxLength': {
+      ja: 'プロジェクト名は30文字以内で入力してください',
+      en: 'Project name must be 30 characters or less',
+    },
+    'projectForm.error.yearMustBe4Digits': {
+      ja: '年は4桁で入力してください',
+      en: 'Year must be 4 digits',
+    },
+    'projectForm.close': { ja: '閉じる', en: 'Close' },
+    'projectForm.themeColor.pink': { ja: 'ピンク', en: 'Pink' },
+    'projectForm.themeColor.peach': { ja: 'ピーチ', en: 'Peach' },
+    'projectForm.themeColor.apricot': { ja: 'アプリコット', en: 'Apricot' },
+    'projectForm.themeColor.yellow': { ja: 'イエロー', en: 'Yellow' },
+    'projectForm.themeColor.lime': { ja: 'ライム', en: 'Lime' },
+    'projectForm.themeColor.mint': { ja: 'ミント', en: 'Mint' },
+    'projectForm.themeColor.blueGreen': { ja: 'ブルーグリーン', en: 'Blue Green' },
+    'projectForm.themeColor.skyBlue': { ja: 'スカイブルー', en: 'Sky Blue' },
+    'projectForm.themeColor.lavenderBlue': { ja: 'ラベンダーブルー', en: 'Lavender Blue' },
+    'projectForm.themeColor.purple': { ja: 'パープル', en: 'Purple' },
     // タスク作成画面
     'taskCreate.title': { ja: 'タスク作成', en: 'Create Task' },
     'taskCreate.back': { ja: '戻る', en: 'Back' },

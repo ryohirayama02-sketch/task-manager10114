@@ -18,6 +18,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 import { Router } from '@angular/router';
 import { ProjectService } from '../../services/project.service';
 import { MemberManagementService } from '../../services/member-management.service';
@@ -29,6 +31,7 @@ import {
   ProjectThemeColor,
 } from '../../constants/project-theme-colors';
 import { TranslatePipe } from '../../pipes/translate.pipe';
+import { LanguageService } from '../../services/language.service';
 
 @Component({
   selector: 'app-project-form',
@@ -47,6 +50,8 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
     MatTooltipModule,
     MatSnackBarModule,
     MatProgressSpinnerModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
     TranslatePipe,
   ],
   templateUrl: './project-form.component.html',
@@ -67,6 +72,11 @@ export class ProjectFormComponent implements OnInit {
   currentLanguage: 'ja' | 'en' = 'ja';
   projectCountLimitReached = false;
   projectCountLimitMessage = '';
+  startDateObj: Date | null = null; // Material date picker用
+  endDateObj: Date | null = null; // Material date picker用
+  maxDate = new Date(9999, 11, 31); // 9999-12-31
+  startDateError: string | null = null; // 開始日のエラーメッセージ
+  endDateError: string | null = null; // 終了日のエラーメッセージ
   readonly fileAccept =
     '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.bmp,.heic,.webp,.svg,.txt,.csv,.zip';
 
@@ -74,16 +84,16 @@ export class ProjectFormComponent implements OnInit {
   readonly themeColorOptions = PROJECT_THEME_COLORS;
   private returnUrl: string | null = null;
   private readonly themeColorLabelMap: Record<ProjectThemeColor, string> = {
-    '#fde4ec': 'ピンク',
-    '#ffe6dc': 'ピーチ',
-    '#ffedd6': 'アプリコット',
-    '#fff8e4': 'イエロー',
-    '#eef6da': 'ライム',
-    '#e4f4e8': 'ミント',
-    '#dcf3f0': 'ブルーグリーン',
-    '#def3ff': 'スカイブルー',
-    '#e6e9f9': 'ラベンダーブルー',
-    '#ece6f8': 'パープル',
+    '#fde4ec': 'projectForm.themeColor.pink',
+    '#ffe6dc': 'projectForm.themeColor.peach',
+    '#ffedd6': 'projectForm.themeColor.apricot',
+    '#fff8e4': 'projectForm.themeColor.yellow',
+    '#eef6da': 'projectForm.themeColor.lime',
+    '#e4f4e8': 'projectForm.themeColor.mint',
+    '#dcf3f0': 'projectForm.themeColor.blueGreen',
+    '#def3ff': 'projectForm.themeColor.skyBlue',
+    '#e6e9f9': 'projectForm.themeColor.lavenderBlue',
+    '#ece6f8': 'projectForm.themeColor.purple',
   };
 
   constructor(
@@ -93,7 +103,8 @@ export class ProjectFormComponent implements OnInit {
     private snackBar: MatSnackBar,
     private router: Router,
     private attachmentService: ProjectAttachmentService,
-    private location: Location
+    private location: Location,
+    private languageService: LanguageService
   ) {
     this.projectForm = this.fb.group({
       projectName: ['', [Validators.required, Validators.minLength(1), Validators.maxLength(30)]],
@@ -137,14 +148,308 @@ export class ProjectFormComponent implements OnInit {
       const maxCount = 10;
       if (currentCount >= maxCount) {
         this.projectCountLimitReached = true;
-        this.projectCountLimitMessage = `プロジェクトは最大${maxCount}個作成できます`;
+        const message = this.languageService.translate('projectForm.maxProjectLimit');
+        this.projectCountLimitMessage = message.replace('{{count}}', maxCount.toString());
       } else {
         this.projectCountLimitReached = false;
         this.projectCountLimitMessage = '';
       }
     } catch (error) {
-      console.error('プロジェクト数の取得エラー:', error);
+      console.error(this.languageService.translate('projectForm.error.projectCountFetch'), error);
     }
+  }
+  
+  // 開始日変更時の処理（カレンダー選択時）
+  onStartDateChange(): void {
+    if (this.startDateObj) {
+      const year = this.startDateObj.getFullYear();
+      // 年が4桁であることをチェック
+      if (year < 1000 || year > 9999) {
+        this.startDateError = this.languageService.translate('projectForm.error.yearMustBe4Digits');
+        this.startDateObj = null;
+        this.projectForm.patchValue({ startDate: '' });
+        return;
+      }
+      this.startDateError = null;
+      const month = String(this.startDateObj.getMonth() + 1).padStart(2, '0');
+      const day = String(this.startDateObj.getDate()).padStart(2, '0');
+      this.projectForm.patchValue({ startDate: `${year}-${month}-${day}` });
+    } else {
+      this.startDateError = null;
+      this.projectForm.patchValue({ startDate: '' });
+    }
+  }
+
+  // 開始日手入力時の処理
+  onStartDateInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const value = input.value.trim();
+    
+    // 空の場合はクリア
+    if (!value) {
+      this.startDateObj = null;
+      this.startDateError = null;
+      this.projectForm.patchValue({ startDate: '' });
+      return;
+    }
+
+    // 年が4桁であることをチェック
+    const yearValidation = this.validateYearFormat(value);
+    if (!yearValidation.isValid) {
+      this.startDateError = yearValidation.errorMessage;
+      this.startDateObj = null;
+      this.projectForm.patchValue({ startDate: '' });
+      return;
+    }
+
+    // Material Datepickerが自動的に処理する場合があるため、
+    // 日付が完全に入力されている場合のみパースを試みる
+    // 日付文字列をパース
+    const parsedDate = this.parseDateString(value);
+    if (parsedDate && this.isValidDate(parsedDate)) {
+      // 年が4桁であることを再確認
+      const year = parsedDate.getFullYear();
+      if (year < 1000 || year > 9999) {
+        this.startDateError = this.languageService.translate('projectForm.error.yearMustBe4Digits');
+        this.startDateObj = null;
+        this.projectForm.patchValue({ startDate: '' });
+        return;
+      }
+      
+      // 日付が有効な場合のみ更新
+      this.startDateObj = parsedDate;
+      this.startDateError = null;
+      const month = String(parsedDate.getMonth() + 1).padStart(2, '0');
+      const day = String(parsedDate.getDate()).padStart(2, '0');
+      this.projectForm.patchValue({ startDate: `${year}-${month}-${day}` });
+    } else {
+      // パースできない場合、エラーをクリア（Material Datepickerのエラーハンドリングに任せる）
+      this.startDateError = null;
+    }
+  }
+  
+  // 終了日変更時の処理（カレンダー選択時）
+  onEndDateChange(): void {
+    if (this.endDateObj) {
+      const year = this.endDateObj.getFullYear();
+      // 年が4桁であることをチェック
+      if (year < 1000 || year > 9999) {
+        this.endDateError = this.languageService.translate('projectForm.error.yearMustBe4Digits');
+        this.endDateObj = null;
+        this.projectForm.patchValue({ endDate: '' });
+        return;
+      }
+      this.endDateError = null;
+      const month = String(this.endDateObj.getMonth() + 1).padStart(2, '0');
+      const day = String(this.endDateObj.getDate()).padStart(2, '0');
+      this.projectForm.patchValue({ endDate: `${year}-${month}-${day}` });
+    } else {
+      this.endDateError = null;
+      this.projectForm.patchValue({ endDate: '' });
+    }
+  }
+
+  // 終了日手入力時の処理
+  onEndDateInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const value = input.value.trim();
+    
+    // 空の場合はクリア
+    if (!value) {
+      this.endDateObj = null;
+      this.endDateError = null;
+      this.projectForm.patchValue({ endDate: '' });
+      return;
+    }
+
+    // 年が4桁であることをチェック
+    const yearValidation = this.validateYearFormat(value);
+    if (!yearValidation.isValid) {
+      this.endDateError = yearValidation.errorMessage;
+      this.endDateObj = null;
+      this.projectForm.patchValue({ endDate: '' });
+      return;
+    }
+
+    // Material Datepickerが自動的に処理する場合があるため、
+    // 日付が完全に入力されている場合のみパースを試みる
+    // 日付文字列をパース
+    const parsedDate = this.parseDateString(value);
+    if (parsedDate && this.isValidDate(parsedDate)) {
+      // 年が4桁であることを再確認
+      const year = parsedDate.getFullYear();
+      if (year < 1000 || year > 9999) {
+        this.endDateError = this.languageService.translate('projectForm.error.yearMustBe4Digits');
+        this.endDateObj = null;
+        this.projectForm.patchValue({ endDate: '' });
+        return;
+      }
+      
+      // 日付が有効な場合のみ更新
+      this.endDateObj = parsedDate;
+      this.endDateError = null;
+      const month = String(parsedDate.getMonth() + 1).padStart(2, '0');
+      const day = String(parsedDate.getDate()).padStart(2, '0');
+      this.projectForm.patchValue({ endDate: `${year}-${month}-${day}` });
+    } else {
+      // パースできない場合、エラーをクリア（Material Datepickerのエラーハンドリングに任せる）
+      this.endDateError = null;
+    }
+  }
+
+  /**
+   * 日付文字列をパースしてDateオブジェクトに変換
+   * 複数の形式に対応: YYYY-MM-DD, MM/DD/YYYY, DD/MM/YYYY など
+   */
+  private parseDateString(dateString: string): Date | null {
+    if (!dateString || !dateString.trim()) {
+      return null;
+    }
+
+    const trimmed = dateString.trim();
+
+    // YYYY-MM-DD形式
+    const isoMatch = trimmed.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    if (isoMatch) {
+      const year = parseInt(isoMatch[1], 10);
+      const month = parseInt(isoMatch[2], 10) - 1;
+      const day = parseInt(isoMatch[3], 10);
+      if (month >= 0 && month <= 11 && day >= 1 && day <= 31) {
+        const date = new Date(year, month, day);
+        if (this.isValidDate(date) && date.getFullYear() === year && date.getMonth() === month && date.getDate() === day) {
+          return date;
+        }
+      }
+    }
+
+    // YYYY/MM/DD形式（日本語形式）
+    const jpMatch = trimmed.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
+    if (jpMatch) {
+      const year = parseInt(jpMatch[1], 10);
+      const month = parseInt(jpMatch[2], 10) - 1;
+      const day = parseInt(jpMatch[3], 10);
+      if (month >= 0 && month <= 11 && day >= 1 && day <= 31) {
+        const date = new Date(year, month, day);
+        if (this.isValidDate(date) && date.getFullYear() === year && date.getMonth() === month && date.getDate() === day) {
+          return date;
+        }
+      }
+    }
+
+    // MM/DD/YYYY形式（英語形式）
+    const usMatch = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (usMatch) {
+      const month = parseInt(usMatch[1], 10) - 1;
+      const day = parseInt(usMatch[2], 10);
+      const year = parseInt(usMatch[3], 10);
+      if (month >= 0 && month <= 11 && day >= 1 && day <= 31) {
+        const date = new Date(year, month, day);
+        if (this.isValidDate(date) && date.getFullYear() === year && date.getMonth() === month && date.getDate() === day) {
+          return date;
+        }
+      }
+    }
+
+    // DD/MM/YYYY形式（ヨーロッパ形式）
+    const euMatch = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (euMatch) {
+      const day = parseInt(euMatch[1], 10);
+      const month = parseInt(euMatch[2], 10) - 1;
+      const year = parseInt(euMatch[3], 10);
+      // MM/DD/YYYYとして既に試した場合はスキップ
+      if (!(month >= 0 && month <= 11 && day >= 1 && day <= 31 && parseInt(euMatch[1], 10) <= 12)) {
+        if (month >= 0 && month <= 11 && day >= 1 && day <= 31) {
+          const date = new Date(year, month, day);
+          if (this.isValidDate(date) && date.getFullYear() === year && date.getMonth() === month && date.getDate() === day) {
+            return date;
+          }
+        }
+      }
+    }
+
+    // その他の形式はブラウザのDate.parseに任せる（最後の手段）
+    try {
+      const parsed = new Date(trimmed);
+      if (this.isValidDate(parsed) && !isNaN(parsed.getTime())) {
+        // 日付が妥当な範囲内かチェック
+        const year = parsed.getFullYear();
+        if (year >= 1900 && year <= 9999) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      // パースエラーは無視
+    }
+
+    return null;
+  }
+
+  /**
+   * 有効な日付かどうかをチェック
+   */
+  private isValidDate(date: Date): boolean {
+    return date instanceof Date && !isNaN(date.getTime());
+  }
+
+  /**
+   * 日付文字列の年が4桁であることをバリデーション
+   */
+  private validateYearFormat(dateString: string): { isValid: boolean; errorMessage: string | null } {
+    if (!dateString || !dateString.trim()) {
+      return { isValid: true, errorMessage: null };
+    }
+
+    const trimmed = dateString.trim();
+
+    // YYYY-MM-DD形式
+    const isoMatch = trimmed.match(/^(\d{1,4})-(\d{1,2})-(\d{1,2})$/);
+    if (isoMatch) {
+      const year = isoMatch[1];
+      if (year.length !== 4) {
+        return {
+          isValid: false,
+          errorMessage: this.languageService.translate('projectForm.error.yearMustBe4Digits'),
+        };
+      }
+    }
+
+    // YYYY/MM/DD形式（日本語形式）
+    const jpMatch = trimmed.match(/^(\d{1,4})\/(\d{1,2})\/(\d{1,2})$/);
+    if (jpMatch) {
+      const year = jpMatch[1];
+      if (year.length !== 4) {
+        return {
+          isValid: false,
+          errorMessage: this.languageService.translate('projectForm.error.yearMustBe4Digits'),
+        };
+      }
+    }
+
+    // MM/DD/YYYY形式（英語形式）
+    const usMatch = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{1,4})$/);
+    if (usMatch) {
+      const year = usMatch[3];
+      if (year.length !== 4) {
+        return {
+          isValid: false,
+          errorMessage: this.languageService.translate('projectForm.error.yearMustBe4Digits'),
+        };
+      }
+    }
+
+    // DD/MM/YYYY形式（ヨーロッパ形式）
+    const euMatch = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{1,4})$/);
+    if (euMatch) {
+      const year = euMatch[3];
+      if (year.length !== 4) {
+        return {
+          isValid: false,
+          errorMessage: this.languageService.translate('projectForm.error.yearMustBe4Digits'),
+        };
+      }
+    }
+
+    return { isValid: true, errorMessage: null };
   }
 
   /**
@@ -159,10 +464,14 @@ export class ProjectFormComponent implements OnInit {
         console.log('メンバー一覧を読み込みました:', members.length, '件');
       },
       error: (error) => {
-        console.error('メンバー一覧の読み込みエラー:', error);
-        this.snackBar.open('メンバー一覧の読み込みに失敗しました', '閉じる', {
-          duration: 3000,
-        });
+        console.error(this.languageService.translate('projectForm.error.membersLoadFailed'), error);
+        this.snackBar.open(
+          this.languageService.translate('projectForm.error.membersLoad'),
+          this.languageService.translate('projectForm.close'),
+          {
+            duration: 3000,
+          }
+        );
         this.loading = false;
       },
     });
@@ -241,7 +550,11 @@ export class ProjectFormComponent implements OnInit {
   }
 
   getThemeColorLabel(color: ProjectThemeColor | string): string {
-    return this.themeColorLabelMap[color as ProjectThemeColor] ?? color;
+    const translationKey = this.themeColorLabelMap[color as ProjectThemeColor];
+    if (translationKey) {
+      return this.languageService.translate(translationKey);
+    }
+    return color;
   }
 
   /**
@@ -257,8 +570,8 @@ export class ProjectFormComponent implements OnInit {
     Array.from(files).forEach((file) => {
       if (file.size > this.MAX_FILE_SIZE) {
         this.snackBar.open(
-          `${file.name} は5MBを超えています。別のファイルを選択してください。`,
-          '閉じる',
+          file.name + this.languageService.translate('projectForm.error.fileSizeExceeded'),
+          this.languageService.translate('projectForm.close'),
           { duration: 4000 }
         );
         return;
@@ -281,7 +594,11 @@ export class ProjectFormComponent implements OnInit {
    */
   addLinkAttachment(): void {
     if (!this.linkUrl || !this.linkUrl.trim()) {
-      this.snackBar.open('URLを入力してください', '閉じる', { duration: 3000 });
+      this.snackBar.open(
+        this.languageService.translate('projectForm.error.enterUrl'),
+        this.languageService.translate('projectForm.close'),
+        { duration: 3000 }
+      );
       return;
     }
 
@@ -294,7 +611,11 @@ export class ProjectFormComponent implements OnInit {
     }
 
     if (!this.isValidUrl(trimmedUrl)) {
-      this.snackBar.open('URLの形式が正しくありません', '閉じる', { duration: 3000 });
+      this.snackBar.open(
+        this.languageService.translate('projectForm.error.invalidUrl'),
+        this.languageService.translate('projectForm.close'),
+        { duration: 3000 }
+      );
       return;
     }
 
@@ -304,7 +625,11 @@ export class ProjectFormComponent implements OnInit {
     );
     
     if (exists) {
-      this.snackBar.open('このURLは既に追加されています', '閉じる', { duration: 3000 });
+      this.snackBar.open(
+        this.languageService.translate('projectForm.error.urlAlreadyAdded'),
+        this.languageService.translate('projectForm.close'),
+        { duration: 3000 }
+      );
       return;
     }
 
@@ -335,43 +660,77 @@ export class ProjectFormComponent implements OnInit {
       return;
     }
 
+    // 日付オブジェクトからフォームに値を設定
+    if (this.startDateObj) {
+      const year = this.startDateObj.getFullYear();
+      const month = String(this.startDateObj.getMonth() + 1).padStart(2, '0');
+      const day = String(this.startDateObj.getDate()).padStart(2, '0');
+      this.projectForm.patchValue({ startDate: `${year}-${month}-${day}` });
+    }
+    if (this.endDateObj) {
+      const year = this.endDateObj.getFullYear();
+      const month = String(this.endDateObj.getMonth() + 1).padStart(2, '0');
+      const day = String(this.endDateObj.getDate()).padStart(2, '0');
+      this.projectForm.patchValue({ endDate: `${year}-${month}-${day}` });
+    }
+
     // 開始日と終了日の必須チェック
     if (!this.projectForm.get('startDate')?.value || !this.projectForm.get('endDate')?.value) {
-      this.snackBar.open('開始日と終了日は必須です', '閉じる', {
-        duration: 3000,
-      });
+      this.snackBar.open(
+        this.languageService.translate('projectForm.error.datesRequired'),
+        this.languageService.translate('projectForm.close'),
+        {
+          duration: 3000,
+        }
+      );
       return;
     }
 
     // 責任者の必須チェック
     if (!this.selectedResponsibles || this.selectedResponsibles.length === 0) {
-      this.snackBar.open('責任者は1人以上選択してください', '閉じる', {
-        duration: 3000,
-      });
+      this.snackBar.open(
+        this.languageService.translate('projectForm.error.responsibleRequired'),
+        this.languageService.translate('projectForm.close'),
+        {
+          duration: 3000,
+        }
+      );
       return;
     }
 
     // プロジェクトメンバーの必須チェック
     if (!this.selectedMembers || this.selectedMembers.length === 0) {
-      this.snackBar.open('プロジェクトメンバーは1人以上選択してください', '閉じる', {
-        duration: 3000,
-      });
+      this.snackBar.open(
+        this.languageService.translate('projectForm.error.membersRequired'),
+        this.languageService.translate('projectForm.close'),
+        {
+          duration: 3000,
+        }
+      );
       return;
     }
 
     if (this.projectForm.invalid) {
-      this.snackBar.open('入力内容を確認してください', '閉じる', {
-        duration: 3000,
-      });
+      this.snackBar.open(
+        this.languageService.translate('projectForm.error.checkInput'),
+        this.languageService.translate('projectForm.close'),
+        {
+          duration: 3000,
+        }
+      );
       return;
     }
 
     // プロジェクト数の制限をチェック
     await this.checkProjectCountLimit();
     if (this.projectCountLimitReached) {
-      this.snackBar.open(this.projectCountLimitMessage, '閉じる', {
-        duration: 5000,
-      });
+      this.snackBar.open(
+        this.projectCountLimitMessage,
+        this.languageService.translate('projectForm.close'),
+        {
+          duration: 5000,
+        }
+      );
       return;
     }
 
@@ -380,9 +739,13 @@ export class ProjectFormComponent implements OnInit {
     if (projectName) {
       const exists = await this.projectService.projectNameExists(projectName);
       if (exists) {
-        this.snackBar.open('このプロジェクト名は既に使用されています', '閉じる', {
-          duration: 5000,
-        });
+        this.snackBar.open(
+          this.languageService.translate('projectForm.error.projectNameExists'),
+          this.languageService.translate('projectForm.close'),
+          {
+            duration: 5000,
+          }
+        );
         return;
       }
     }
@@ -451,9 +814,13 @@ export class ProjectFormComponent implements OnInit {
         }
       }
 
-      this.snackBar.open('プロジェクトを作成しました', '閉じる', {
-        duration: 3000,
-      });
+      this.snackBar.open(
+        this.languageService.translate('projectForm.success.created'),
+        this.languageService.translate('projectForm.close'),
+        {
+          duration: 3000,
+        }
+      );
 
       // 作成したプロジェクトの詳細画面へ遷移
       if (docRef?.id) {
@@ -470,9 +837,13 @@ export class ProjectFormComponent implements OnInit {
       }
     } catch (error) {
       console.error('プロジェクト作成エラー:', error);
-      this.snackBar.open('プロジェクトの作成に失敗しました', '閉じる', {
-        duration: 3000,
-      });
+      this.snackBar.open(
+        this.languageService.translate('projectForm.error.createFailed'),
+        this.languageService.translate('projectForm.close'),
+        {
+          duration: 3000,
+        }
+      );
     } finally {
       this.isSubmitting = false;
     }
@@ -495,14 +866,14 @@ export class ProjectFormComponent implements OnInit {
   getErrorMessage(fieldName: string): string {
     const field = this.projectForm.get(fieldName);
     if (field?.hasError('required')) {
-      return '必須項目です';
+      return this.languageService.translate('projectForm.error.required');
     }
     if (field?.hasError('minlength')) {
-      return '1文字以上入力してください';
+      return this.languageService.translate('projectForm.error.minLength');
     }
     if (field?.hasError('maxlength')) {
       if (fieldName === 'projectName') {
-        return 'プロジェクト名は30文字以内で入力してください';
+        return this.languageService.translate('projectForm.error.projectNameMaxLength');
       }
     }
     return '';
@@ -573,18 +944,36 @@ export class ProjectFormComponent implements OnInit {
   }
 
   /**
-   * ネイティブ日付ピッカーを開く
+   * マイルストーンの日付をDateオブジェクトに変換して取得
    */
-  openDatePicker(input: HTMLInputElement): void {
-    if (!input) {
+  getMilestoneDate(index: number): Date | null {
+    const milestone = this.milestones.at(index);
+    if (!milestone) {
+      return null;
+    }
+    const dateValue = milestone.get('date')?.value;
+    if (!dateValue) {
+      return null;
+    }
+    return new Date(dateValue);
+  }
+
+  /**
+   * マイルストーンの日付変更時の処理
+   */
+  onMilestoneDateChange(index: number, event: any): void {
+    const milestone = this.milestones.at(index);
+    if (!milestone) {
       return;
     }
-
-    if (typeof (input as any).showPicker === 'function') {
-      (input as any).showPicker();
+    const date = event.value;
+    if (date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      milestone.patchValue({ date: `${year}-${month}-${day}` });
     } else {
-      input.focus();
-      input.click();
+      milestone.patchValue({ date: '' });
     }
   }
 
@@ -603,10 +992,10 @@ export class ProjectFormComponent implements OnInit {
             await this.attachmentService.uploadAttachment(projectId, pending.file);
           uploaded.push(attachment);
         } catch (error) {
-          console.error('添付ファイルのアップロードに失敗しました:', error);
+          console.error(this.languageService.translate('projectForm.error.attachmentUploadFailed'), error);
           this.snackBar.open(
-            `${pending.file.name} のアップロードに失敗しました`,
-            '閉じる',
+            pending.file.name + this.languageService.translate('projectForm.error.uploadFailed'),
+            this.languageService.translate('projectForm.close'),
             { duration: 4000 }
           );
         }

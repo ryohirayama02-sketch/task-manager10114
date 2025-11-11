@@ -12,11 +12,11 @@
       <form [formGroup]="projectForm" (ngSubmit)="onSubmit()">
         <!-- プロジェクト名 -->
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>{{ "projectForm.projectName" | translate }} * <span class="required-hint">（入力必須）</span></mat-label>
+          <mat-label>{{ "projectForm.projectName" | translate }} * <span class="required-hint">{{ 'projectForm.required' | translate }}</span></mat-label>
           <input
             matInput
             formControlName="projectName"
-            placeholder="例: 新商品開発プロジェクト"
+            [placeholder]="'projectForm.projectNamePlaceholderFull' | translate"
             autocomplete="off"
             maxlength="30"
           />
@@ -37,7 +37,7 @@
           <textarea
             matInput
             formControlName="overview"
-            placeholder="プロジェクトの詳細説明を入力してください（200文字以内）"
+            [placeholder]="'projectForm.overviewPlaceholderFull' | translate"
             rows="3"
             maxlength="200"
           ></textarea>
@@ -47,46 +47,46 @@
 
         <!-- 開始日・終了日 -->
         <div class="date-fields">
-          <div class="date-field half-width">
-            <label for="startDate">{{
-              "projectForm.startDate" | translate
-            }} * <span class="required-hint">（入力必須）</span></label>
-            <div class="date-input-wrapper">
-              <input
-                id="startDate"
-                type="date"
-                formControlName="startDate"
-                placeholder="開始日を選択"
-                class="date-input"
-                max="9999-12-31"
-                required
-              />
-              <mat-icon class="date-icon">event</mat-icon>
-            </div>
-          </div>
+          <mat-form-field appearance="outline" class="date-field half-width">
+            <mat-label>{{ "projectForm.startDate" | translate }} * <span class="required-hint">{{ 'projectForm.required' | translate }}</span></mat-label>
+            <input
+              matInput
+              [matDatepicker]="startDatePicker"
+              [(ngModel)]="startDateObj"
+              (dateChange)="onStartDateChange()"
+              (input)="onStartDateInput($event)"
+              [max]="maxDate"
+              [ngModelOptions]="{standalone: true}"
+              [placeholder]="'projectForm.startDatePlaceholder' | translate"
+            />
+            <mat-datepicker-toggle matIconSuffix [for]="startDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #startDatePicker></mat-datepicker>
+            <mat-error *ngIf="startDateError">{{ startDateError }}</mat-error>
+          </mat-form-field>
 
-          <div class="date-field half-width">
-            <label for="endDate">{{ "projectForm.endDate" | translate }} * <span class="required-hint">（入力必須）</span></label>
-            <div class="date-input-wrapper">
-              <input
-                id="endDate"
-                type="date"
-                formControlName="endDate"
-                [min]="projectForm.get('startDate')?.value || ''"
-                placeholder="終了日を選択"
-                class="date-input"
-                max="9999-12-31"
-                required
-              />
-              <mat-icon class="date-icon">event</mat-icon>
-            </div>
-          </div>
+          <mat-form-field appearance="outline" class="date-field half-width">
+            <mat-label>{{ "projectForm.endDate" | translate }} * <span class="required-hint">{{ 'projectForm.required' | translate }}</span></mat-label>
+            <input
+              matInput
+              [matDatepicker]="endDatePicker"
+              [(ngModel)]="endDateObj"
+              (dateChange)="onEndDateChange()"
+              (input)="onEndDateInput($event)"
+              [min]="startDateObj || undefined"
+              [max]="maxDate"
+              [ngModelOptions]="{standalone: true}"
+              [placeholder]="'projectForm.endDatePlaceholder' | translate"
+            />
+            <mat-datepicker-toggle matIconSuffix [for]="endDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #endDatePicker></mat-datepicker>
+            <mat-error *ngIf="endDateError">{{ endDateError }}</mat-error>
+          </mat-form-field>
         </div>
 
         <!-- 責任者選択 -->
         <div class="member-selection responsible-selection">
           <div class="member-selection-header">
-            <h3>{{ "projectForm.responsible" | translate }} * <span class="required-hint">（入力必須）</span></h3>
+            <h3>{{ "projectForm.responsible" | translate }} * <span class="required-hint">{{ 'projectForm.required' | translate }}</span></h3>
           </div>
 
           <!-- ローディング表示 -->
@@ -105,7 +105,7 @@
                 formControlName="responsible"
                 multiple
                 (selectionChange)="onResponsibleSelectionChange($event.value)"
-                placeholder="責任者を選択してください（複数選択可）"
+                [placeholder]="'projectForm.selectResponsiblePlaceholder' | translate"
                 required
               >
                 <mat-option *ngFor="let member of members" [value]="member.id">
@@ -121,7 +121,7 @@
             >
               <div class="selected-members-header">
                 <span class="member-count-text"
-                  >{{ selectedResponsibles.length }}人選択中</span
+                  >{{ selectedResponsibles.length }}{{ 'projectForm.membersSelected' | translate }}</span
                 >
               </div>
               <div class="member-chips-inline">
@@ -148,9 +148,9 @@
             <mat-icon class="no-members-icon">people_outline</mat-icon>
             <p>{{ "projectForm.noMembers" | translate }}</p>
             <p>
-              先に<button mat-button color="primary" routerLink="/members">
+              <button mat-button color="primary" routerLink="/members">
                 {{ "projectForm.manageMembers" | translate }}</button
-              >でメンバーを登録してください。
+              >{{ 'projectForm.registerMember' | translate }}
             </p>
           </div>
         </div>
@@ -159,9 +159,9 @@
         <div class="member-selection">
           <div class="member-selection-header">
             <h3>
-              {{ "projectForm.projectMembers" | translate }} * <span class="required-hint">（入力必須）</span>
+              {{ "projectForm.projectMembers" | translate }} * <span class="required-hint">{{ 'projectForm.required' | translate }}</span>
               <span class="member-count" *ngIf="selectedMembers.length > 0">
-                ({{ selectedMembers.length }}人選択中)
+                ({{ selectedMembers.length }}{{ 'projectForm.membersSelected' | translate }})
               </span>
             </h3>
           </div>
@@ -182,7 +182,7 @@
                 formControlName="members"
                 multiple
                 (selectionChange)="onMemberSelectionChange($event.value)"
-                placeholder="メンバーを選択してください（複数選択可）"
+                [placeholder]="'projectForm.selectMembersPlaceholder' | translate"
                 required
               >
                 <mat-option *ngFor="let member of members" [value]="member.id">
@@ -196,7 +196,7 @@
             <div *ngIf="selectedMembers.length > 0" class="selected-members">
               <div class="selected-members-header">
                 <span class="member-count-text"
-                  >{{ selectedMembers.length }}人選択中</span
+                  >{{ selectedMembers.length }}{{ 'projectForm.membersSelected' | translate }}</span
                 >
               </div>
               <div class="member-chips-inline">
@@ -223,9 +223,9 @@
             <mat-icon class="no-members-icon">people_outline</mat-icon>
             <p>{{ "projectForm.noMembers" | translate }}</p>
             <p>
-              先に<button mat-button color="primary" routerLink="/members">
+              <button mat-button color="primary" routerLink="/members">
                 {{ "projectForm.manageMembers" | translate }}</button
-              >でメンバーを登録してください。
+              >{{ 'projectForm.registerMember' | translate }}
             </p>
           </div>
         </div>
@@ -247,19 +247,14 @@
                 <mat-label>{{ "projectForm.date" | translate }}</mat-label>
                 <input
                   matInput
-                  type="date"
-                  formControlName="date"
-                  #milestoneDateInput
+                  [matDatepicker]="milestoneDatePicker"
+                  [value]="getMilestoneDate(i)"
+                  (dateChange)="onMilestoneDateChange(i, $event)"
+                  [max]="maxDate"
+                  readonly
                 />
-                <button
-                  mat-icon-button
-                  matSuffix
-                  type="button"
-                  (click)="openDatePicker(milestoneDateInput)"
-                  matTooltip="カレンダーを開く"
-                >
-                  <mat-icon>event</mat-icon>
-                </button>
+                <mat-datepicker-toggle matIconSuffix [for]="milestoneDatePicker" [matTooltip]="'projectForm.openCalendar' | translate"></mat-datepicker-toggle>
+                <mat-datepicker #milestoneDatePicker></mat-datepicker>
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="milestone-name">
@@ -270,7 +265,7 @@
                   matInput
                   type="text"
                   formControlName="name"
-                  placeholder="マイルストーン名（30文字以内）"
+                  [placeholder]="'projectForm.milestoneNamePlaceholder' | translate"
                   maxlength="30"
                 />
                 <mat-hint align="end">{{ (milestone.get('name')?.value || '').length }}/30</mat-hint>
@@ -282,7 +277,7 @@
                 type="button"
                 (click)="removeMilestone(i)"
                 class="remove-milestone"
-                matTooltip="このマイルストーンを削除"
+                [matTooltip]="'projectForm.removeMilestone' | translate"
               >
                 <mat-icon>delete</mat-icon>
               </button>
@@ -349,7 +344,7 @@
                 mat-icon-button
                 type="button"
                 (click)="removePendingFile(pending.id)"
-                matTooltip="削除"
+                [matTooltip]="'projectForm.delete' | translate"
               >
                 <mat-icon>close</mat-icon>
               </button>
@@ -401,7 +396,7 @@
                 mat-icon-button
                 type="button"
                 (click)="removeAttachment(attachment)"
-                matTooltip="削除"
+                [matTooltip]="'projectForm.delete' | translate"
               >
                 <mat-icon>close</mat-icon>
               </button>
@@ -428,9 +423,9 @@
               class="theme-color-option no-color-option"
               (click)="clearThemeColor()"
               [class.selected]="isThemeColorSelected(null)"
-              matTooltip="色を選択しない"
+              [matTooltip]="'projectForm.dontSelectColor' | translate"
               [attr.aria-pressed]="isThemeColorSelected(null)"
-              aria-label="テーマ色 なし"
+              [attr.aria-label]="'projectForm.themeColorNone' | translate"
             >
               <span>{{ "projectForm.noColor" | translate }}</span>
             </button>
@@ -441,9 +436,9 @@
               [style.backgroundColor]="color"
               [class.selected]="isThemeColorSelected(color)"
               (click)="selectThemeColor(color)"
-              matTooltip="{{ getThemeColorLabel(color) }}"
+              [matTooltip]="getThemeColorLabel(color)"
               [attr.aria-pressed]="isThemeColorSelected(color)"
-              [attr.aria-label]="'テーマ色 ' + getThemeColorLabel(color)"
+              [attr.aria-label]="('projectForm.themeColorLabel' | translate) + getThemeColorLabel(color)"
             >
               <mat-icon *ngIf="isThemeColorSelected(color)">check</mat-icon>
             </button>
@@ -454,18 +449,18 @@
 
     <mat-card-actions align="end">
       <button mat-button (click)="onCancel()" [disabled]="isSubmitting">
-        {{ currentLanguage === "ja" ? "キャンセル" : "Cancel" }}
+        {{ "projectForm.cancel" | translate }}
       </button>
       <button
         mat-raised-button
         color="primary"
         (click)="onSubmit()"
-        [disabled]="projectForm.invalid || isSubmitting || isUploading || projectCountLimitReached || !projectForm.get('startDate')?.value || !projectForm.get('endDate')?.value || selectedResponsibles.length === 0 || selectedMembers.length === 0"
+        [disabled]="projectForm.invalid || isSubmitting || isUploading || projectCountLimitReached || !startDateObj || !endDateObj || selectedResponsibles.length === 0 || selectedMembers.length === 0"
         [matTooltip]="projectCountLimitMessage"
       >
         <mat-icon *ngIf="!isSubmitting">add</mat-icon>
         <mat-spinner *ngIf="isSubmitting" diameter="20"></mat-spinner>
-        {{ isSubmitting ? "作成中..." : "登録" }}
+        {{ isSubmitting ? ('projectForm.creating' | translate) : ('projectForm.register' | translate) }}
       </button>
       <div *ngIf="projectCountLimitReached" class="limit-warning">
         {{ projectCountLimitMessage }}

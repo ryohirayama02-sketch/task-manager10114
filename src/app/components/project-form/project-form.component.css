@@ -67,6 +67,19 @@
   margin-bottom: 16px;
 }
 
+/* Material date pickerの入力フィールドのテキストが見切れないように */
+.date-field .mat-mdc-form-field-infix {
+  min-width: 140px;
+}
+
+.date-field input {
+  width: 100%;
+  min-width: 0;
+  overflow: visible;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .date-field label {
   display: block;
   margin-bottom: 8px;
