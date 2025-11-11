@@ -220,6 +220,18 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
     };
   }
 
+  /** 📝 プロジェクト名を30文字に制限 */
+  formatProjectName(projectName?: string | null): string {
+    if (!projectName) {
+      return '（名称未設定）';
+    }
+    const name = projectName.trim();
+    if (name.length <= 30) {
+      return name;
+    }
+    return name.slice(0, 27) + '...';
+  }
+
   /** 📂 タスククリック時の遷移 */
   onTaskClick(task: Task) {
     if (task.id && task.projectId) {

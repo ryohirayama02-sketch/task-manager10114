@@ -283,6 +283,8 @@
   gap: 8px;
   font-size: 0.9rem;
   color: #666;
+  min-width: 0;
+  overflow: hidden;
 }
 
 /* プロジェクト名と期日のラベルを同じスタイルに */
@@ -291,6 +293,7 @@
   font-size: 0.9rem;
   color: #666;
   font-weight: normal;
+  flex-shrink: 0;
 }
 
 .project-info mat-icon,
@@ -303,13 +306,15 @@
 }
 
 .project-name-pill {
-  display: inline;
+  display: inline-block;
   font-weight: normal;
   font-size: 0.9rem;
-  max-width: 220px;
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
+  flex-shrink: 1;
 }
 
 .days-until {
