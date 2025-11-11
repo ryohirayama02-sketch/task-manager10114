@@ -437,6 +437,25 @@ export class TaskCreatePageComponent implements OnInit {
     return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
   }
 
+  canSaveTask(): boolean {
+    // タスク名の必須チェック
+    if (!this.taskForm.taskName?.trim()) {
+      return false;
+    }
+
+    // 開始日と終了日の必須チェック
+    if (!this.taskForm.startDate || !this.taskForm.dueDate) {
+      return false;
+    }
+
+    // 担当者の必須チェック
+    if (!this.selectedMemberIds || this.selectedMemberIds.length === 0) {
+      return false;
+    }
+
+    return true;
+  }
+
   async save() {
     if (!this.taskForm.taskName.trim()) {
       alert('タスク名を入力してください');
@@ -445,6 +464,13 @@ export class TaskCreatePageComponent implements OnInit {
 
     if (!this.taskForm.startDate || !this.taskForm.dueDate) {
       this.snackBar.open('開始日と終了日は必須です', '閉じる', {
+        duration: 3000,
+      });
+      return;
+    }
+
+    if (!this.selectedMemberIds || this.selectedMemberIds.length === 0) {
+      this.snackBar.open('担当者は1人以上選択してください', '閉じる', {
         duration: 3000,
       });
       return;

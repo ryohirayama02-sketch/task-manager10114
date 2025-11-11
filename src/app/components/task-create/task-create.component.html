@@ -26,7 +26,7 @@
 
         <!-- タスク名 -->
         <mat-form-field appearance="outline" class="full-width-field">
-          <mat-label>{{ isSubtaskCreation ? '子タスク名' : ('taskCreate.taskName' | translate) }}</mat-label>
+          <mat-label>{{ isSubtaskCreation ? '子タスク名' : ('taskCreate.taskName' | translate) }} * <span class="required-hint">（入力必須）</span></mat-label>
           <input
             matInput
             [(ngModel)]="taskForm.taskName"
@@ -54,7 +54,7 @@
         <!-- 日付範囲 -->
         <div class="date-row">
           <div class="date-field">
-            <label for="startDate">{{ 'taskCreate.startDate' | translate }} *</label>
+            <label for="startDate">{{ 'taskCreate.startDate' | translate }} * <span class="required-hint">（入力必須）</span></label>
             <div class="date-input-wrapper">
               <input
                 id="startDate"
@@ -69,7 +69,7 @@
           </div>
 
           <div class="date-field">
-            <label for="dueDate">{{ 'taskCreate.dueDate' | translate }} *</label>
+            <label for="dueDate">{{ 'taskCreate.dueDate' | translate }} * <span class="required-hint">（入力必須）</span></label>
             <div class="date-input-wrapper">
               <input
                 id="dueDate"
@@ -87,12 +87,13 @@
 
         <!-- 担当者 -->
         <mat-form-field appearance="outline" class="full-width-field">
-          <mat-label>{{ 'taskCreate.assignee' | translate }}</mat-label>
+          <mat-label>{{ 'taskCreate.assignee' | translate }} * <span class="required-hint">（入力必須）</span></mat-label>
           <mat-select
             [(ngModel)]="selectedMemberIds"
             name="assignee"
             multiple
             (ngModelChange)="onMembersSelectionChange($event)"
+            required
           >
             <mat-option *ngFor="let member of projectMembers" [value]="member.id">
               {{ member.name }}
@@ -282,7 +283,7 @@
             mat-raised-button
             color="primary"
             type="submit"
-            [disabled]="isSaving"
+            [disabled]="isSaving || !canSaveTask()"
           >
             <mat-icon *ngIf="isSaving">schedule</mat-icon>
             {{ isSaving ? ('taskCreate.saving' | translate) : (isSubtaskCreation ? '保存' : ('taskCreate.createTask' | translate)) }}

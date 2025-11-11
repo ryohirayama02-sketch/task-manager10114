@@ -745,7 +745,7 @@ export class LanguageService {
     'taskCreate.taskName': { ja: 'タスク名', en: 'Task Name' },
     'taskCreate.description': { ja: '説明', en: 'Description' },
     'taskCreate.startDate': { ja: '開始日', en: 'Start Date' },
-    'taskCreate.dueDate': { ja: '期限', en: 'Due Date' },
+    'taskCreate.dueDate': { ja: '終了日', en: 'Due Date' },
     'taskCreate.assignee': { ja: '担当者', en: 'Assignee' },
     'taskCreate.status': { ja: 'ステータス', en: 'Status' },
     'taskCreate.priority': { ja: '優先度', en: 'Priority' },
