@@ -66,8 +66,9 @@
         (change)="onMessageInputChange($event)"
         (input)="onMessageInputChange($event)"
         (keydown)="onMentionKeyDown($event)"
-        placeholder="メッセージを入力"
+        placeholder="メッセージを入力（最大100文字）"
         rows="3"
+        maxlength="100"
       ></textarea>
       <button
         mat-raised-button

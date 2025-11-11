@@ -169,6 +169,12 @@ export class ProjectChatComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // 文字数制限チェック（最大100文字）
+    if (this.newMessage.length > 100) {
+      console.warn('メッセージが100文字を超えています');
+      return;
+    }
+
     try {
       // メンションを解析
       const mentions = this.extractMentions(this.newMessage);

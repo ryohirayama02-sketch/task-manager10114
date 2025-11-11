@@ -54,10 +54,13 @@ import { firstValueFrom } from 'rxjs';
             [(ngModel)]="newRoomId"
             (input)="checkRoomIdExists()"
             [class.error]="roomIdExistsError"
+            maxlength="20"
+            placeholder="最大20文字"
           />
           <span *ngIf="roomIdExistsError" class="error-message">
             {{ roomIdExistsError }}
           </span>
+          <span class="hint-text">最大20文字</span>
         </label>
         <label>
           表示名
@@ -66,7 +69,10 @@ import { firstValueFrom } from 'rxjs';
             name="newRoomName"
             required
             [(ngModel)]="newRoomName"
+            maxlength="20"
+            placeholder="最大20文字"
           />
+          <span class="hint-text">最大20文字</span>
         </label>
         <label>
           Password
@@ -75,7 +81,10 @@ import { firstValueFrom } from 'rxjs';
             name="newRoomPassword"
             required
             [(ngModel)]="newRoomPassword"
+            maxlength="20"
+            placeholder="最大20文字"
           />
+          <span class="hint-text">最大20文字</span>
         </label>
         <button
           type="submit"
@@ -124,6 +133,15 @@ import { firstValueFrom } from 'rxjs';
         color: #d32f2f;
         font-size: 12px;
         margin-top: 4px;
+      }
+      .hint-text {
+        color: #999;
+        font-size: 11px;
+        margin-top: 2px;
+      }
+      input::placeholder {
+        color: #999;
+        opacity: 0.6;
       }
     `,
   ],

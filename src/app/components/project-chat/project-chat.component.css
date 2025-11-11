@@ -43,7 +43,8 @@
   background-color: #fff;
   border-left: 3px solid #e0e0e0;
   border-radius: 4px;
-  word-wrap: break-word;
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 .message-item.own-message {
@@ -72,6 +73,9 @@
 .message-content {
   color: #333;
   line-height: 1.4;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
 }
 
 .mention {
