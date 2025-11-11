@@ -287,8 +287,8 @@ export class LanguageService {
       en: 'All Members Progress',
     },
     'progress.members.description': {
-      ja: '自身が所属するプロジェクトに属している全メンバーの進捗概要を一覧で確認',
-      en: 'View progress overview of all members in your projects',
+      ja: '全メンバーの進捗を一覧で確認',
+      en: 'View progress overview of all members',
     },
     'progress.members.period': { ja: '期間', en: 'Period' },
     'progress.members.loading': {
@@ -338,7 +338,10 @@ export class LanguageService {
       ja: 'メンバー詳細を読み込み中...',
       en: 'Loading member details...',
     },
-    'progress.member.completionRate': { ja: '完了率', en: 'Completion Rate' },
+    'progress.member.completionRate': {
+      ja: '総タスクの完了率',
+      en: 'Total Tasks Completion Rate',
+    },
     'progress.member.totalTasks': { ja: '総タスク数', en: 'Total Tasks' },
     'progress.member.projects': { ja: '所属プロジェクト', en: 'Projects' },
     'progress.member.allTasksStatus': {
