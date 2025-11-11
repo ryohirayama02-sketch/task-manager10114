@@ -177,6 +177,13 @@
   font-size: 14px;
 }
 
+.log-description {
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
 /* 変更詳細のスタイル */
 .change-details {
   margin-top: 8px;
