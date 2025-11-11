@@ -26,7 +26,6 @@ import { MemberManagementService } from '../../services/member-management.servic
 import { Member } from '../../models/member.model';
 import { ProjectAttachmentService } from '../../services/project-attachment.service';
 import { NavigationHistoryService } from '../../services/navigation-history.service';
-import { ProjectFormDialogComponent } from '../project-form-dialog/project-form-dialog.component';
 import { ProjectDeleteConfirmDialogComponent } from './project-delete-confirm-dialog.component';
 import { ProgressCircleComponent } from '../progress/projects-overview/progress-circle.component';
 import { ProjectChatComponent } from '../project-chat/project-chat.component';
@@ -1056,42 +1055,6 @@ export class ProjectDetailComponent implements OnInit {
     }
   }
 
-  /** プロジェクト編集ダイアログを開く */
-  openEditProjectDialog() {
-    if (!this.project) return;
-
-    const dialogRef = this.dialog.open(ProjectFormDialogComponent, {
-      width: '90vw',
-      maxWidth: '800px',
-      maxHeight: '90vh',
-      disableClose: false,
-      autoFocus: true,
-      data: { project: this.project },
-    });
-
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result?.deleted) {
-        // プロジェクトが削除された場合、一覧画面にリダイレクト
-        this.router.navigate(['/projects-overview']);
-      } else if (result === 'success') {
-        console.log('プロジェクトが更新されました');
-        // プロジェクト情報を再読み込み
-        if (this.projectId) {
-          this.projectService
-            .getProjectById(this.projectId)
-            .subscribe((data) => {
-              if (!data) {
-                this.router.navigate(['/projects']);
-                return;
-              }
-              this.project = data;
-              this.projectThemeColor = resolveProjectThemeColor(data);
-              console.log('更新されたプロジェクト:', data);
-            });
-        }
-      }
-    });
-  }
 
   /** ✅ 「＋タスク」ボタン押下でフォームを開く */
   async openAddTaskDialog() {
