@@ -21,6 +21,7 @@ import { filter, switchMap } from 'rxjs/operators';
 import { Subject, Observable, of } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { IProject } from '../../models/project.model';
+import { ProjectThemeColor } from '../../constants/project-theme-colors';
 
 @Component({
   selector: 'app-logs',
@@ -64,6 +65,32 @@ export class LogsComponent implements OnInit, OnDestroy {
   private allMembers: Member[] = []; // メンバー一覧
   private currentProjectNames = new Set<string>(); // 現在存在するプロジェクト名のセット
   private currentTaskNames = new Set<string>(); // 現在存在するタスク名のセット
+  
+  // プロジェクトテーマカラーの16進表記から色名へのマッピング
+  private readonly themeColorLabelMap: Record<string, string> = {
+    // 現在のカラー
+    '#fde4ec': 'ピンク',
+    '#ffe6dc': 'ピーチ',
+    '#ffedd6': 'アプリコット',
+    '#fff8e4': 'イエロー',
+    '#eef6da': 'ライム',
+    '#e4f4e8': 'ミント',
+    '#dcf3f0': 'ブルーグリーン',
+    '#def3ff': 'スカイブルー',
+    '#e6e9f9': 'ラベンダーブルー',
+    '#ece6f8': 'パープル',
+    // レガシーカラー（古いカラーコードも対応）
+    '#f8bbd0': 'ピンク',
+    '#ffccbc': 'ピーチ',
+    '#ffe0b2': 'アプリコット',
+    '#fff9c4': 'イエロー',
+    '#dcedc8': 'ライム',
+    '#c8e6c9': 'ミント',
+    '#b2dfdb': 'ブルーグリーン',
+    '#b3e5fc': 'スカイブルー',
+    '#c5cae9': 'ラベンダーブルー',
+    '#d1c4e9': 'パープル',
+  };
 
   ngOnInit() {
     // メンバー一覧を読み込み
@@ -222,10 +249,20 @@ export class LogsComponent implements OnInit, OnDestroy {
   /** 個別の変更詳細を整形 */
   formatChangeDetail(change: any): string {
     const field = change.field || '';
-    const oldValue = change.oldValue?.toString().trim();
-    const newValue = change.newValue?.toString().trim();
+    let oldValue = change.oldValue?.toString().trim();
+    let newValue = change.newValue?.toString().trim();
     const hasOld = !!oldValue;
     const hasNew = !!newValue;
+
+    // プロジェクトテーマ色の場合は16進表記を色名に変換
+    if (field === 'テーマ色' || field === 'themeColor') {
+      if (oldValue) {
+        oldValue = this.getThemeColorLabel(oldValue);
+      }
+      if (newValue) {
+        newValue = this.getThemeColorLabel(newValue);
+      }
+    }
 
     if (!hasOld && !hasNew) {
       return '';
@@ -240,6 +277,13 @@ export class LogsComponent implements OnInit, OnDestroy {
     }
 
     return `${field}: ${oldValue}が削除`;
+  }
+
+  /** プロジェクトテーマカラーの16進表記を色名に変換 */
+  private getThemeColorLabel(color: string): string {
+    // 大文字小文字を区別しないように、小文字に変換してから検索
+    const normalizedColor = color.toLowerCase();
+    return this.themeColorLabelMap[normalizedColor] ?? color;
   }
 
   /** 日付をフォーマット */
