@@ -210,6 +210,21 @@ export class ProjectDetailComponent implements OnInit {
       if (!this.canSaveProject()) {
         return;
       }
+      // 変更がない場合は保存処理をスキップ
+      if (!this.hasProjectChanges()) {
+        this.isInlineEditMode = false;
+        this.editableProject = null;
+        this.editableTags = [];
+        this.editableMilestones = [];
+        this.editableAttachments = [];
+        this.pendingFiles = [];
+        this.attachmentsToRemove = [];
+        this.selectedMemberIds = [];
+        this.selectedMembers = [];
+        this.selectedResponsibleIds = [];
+        this.selectedResponsibles = [];
+        return;
+      }
       await this.saveInlineEditChangesClick();
     } else {
       // 通常モードから編集モードに切り替え
@@ -244,6 +259,116 @@ export class ProjectDetailComponent implements OnInit {
     }
 
     return true;
+  }
+
+  /** プロジェクトに変更があるかどうかをチェック */
+  private hasProjectChanges(): boolean {
+    if (!this.project || !this.editableProject) {
+      return false;
+    }
+
+    // プロジェクト名の変更チェック
+    if (this.project.projectName !== this.editableProject.projectName?.trim()) {
+      return true;
+    }
+
+    // 概要の変更チェック
+    if ((this.project.overview || '') !== (this.editableProject.overview || '')) {
+      return true;
+    }
+
+    // 開始日の変更チェック
+    if ((this.project.startDate || '') !== (this.editableProject.startDate || '')) {
+      return true;
+    }
+
+    // 終了日の変更チェック
+    if ((this.project.endDate || '') !== (this.editableProject.endDate || '')) {
+      return true;
+    }
+
+    // 責任者の変更チェック
+    const oldResponsibleIds = (this.project.responsibles || [])
+      .map(r => r.memberId)
+      .filter((id): id is string => !!id)
+      .sort();
+    const newResponsibleIds = (this.selectedResponsibles || [])
+      .map(m => m.id)
+      .filter((id): id is string => !!id)
+      .sort();
+    if (JSON.stringify(oldResponsibleIds) !== JSON.stringify(newResponsibleIds)) {
+      return true;
+    }
+
+    // プロジェクトメンバーの変更チェック
+    const oldMemberNames = this.normalizeMembersField(this.project.members)
+      .split(',')
+      .map(name => name.trim())
+      .filter(name => name.length > 0)
+      .sort();
+    const newMemberNames = (this.selectedMembers || [])
+      .map(m => m.name)
+      .filter((name): name is string => !!name)
+      .sort();
+    if (JSON.stringify(oldMemberNames) !== JSON.stringify(newMemberNames)) {
+      return true;
+    }
+
+    // タグの変更チェック
+    const oldTags = this.parseTags(this.project.tags).sort();
+    const newTags = (this.editableTags || []).sort();
+    if (JSON.stringify(oldTags) !== JSON.stringify(newTags)) {
+      return true;
+    }
+
+    // マイルストーンの変更チェック
+    const oldMilestones = (this.project.milestones || []).map(m => ({
+      name: m.name || '',
+      date: m.date || '',
+      description: m.description || '',
+    })).sort((a, b) => {
+      if (a.date !== b.date) return a.date.localeCompare(b.date);
+      if (a.name !== b.name) return a.name.localeCompare(b.name);
+      return a.description.localeCompare(b.description);
+    });
+    const newMilestones = (this.editableMilestones || []).map(m => ({
+      name: m.name || '',
+      date: m.date || '',
+      description: m.description || '',
+    })).sort((a, b) => {
+      if (a.date !== b.date) return a.date.localeCompare(b.date);
+      if (a.name !== b.name) return a.name.localeCompare(b.name);
+      return a.description.localeCompare(b.description);
+    });
+    if (JSON.stringify(oldMilestones) !== JSON.stringify(newMilestones)) {
+      return true;
+    }
+
+    // テーマ色の変更チェック
+    const oldThemeColor = resolveProjectThemeColor(this.project);
+    const oldThemeColorNormalized = oldThemeColor === '#ffffff' ? null : oldThemeColor;
+    if (oldThemeColorNormalized !== this.editableThemeColor) {
+      return true;
+    }
+
+    // 添付ファイルの変更チェック（追加・削除されたファイルがあるか）
+    const oldAttachmentIds = (this.project.attachments || []).map(a => a.id).sort();
+    const newAttachmentIds = this.editableAttachments.map(a => a.id).sort();
+    if (JSON.stringify(oldAttachmentIds) !== JSON.stringify(newAttachmentIds)) {
+      return true;
+    }
+
+    // 保留中のファイルがあるか
+    if (this.pendingFiles.length > 0) {
+      return true;
+    }
+
+    // 削除予定のファイルがあるか
+    if (this.attachmentsToRemove.length > 0) {
+      return true;
+    }
+
+    return false;
   }
 
   private enterInlineEditMode(): void {
@@ -474,6 +599,25 @@ export class ProjectDetailComponent implements OnInit {
     if (!this.project || !this.editableProject) {
       event.source.checked = false;
       this.isInlineEditMode = false;
+      return;
+    }
+
+    // 変更がない場合は保存処理をスキップ
+    if (!this.hasProjectChanges()) {
+      this.isInlineEditMode = false;
+      this.editableProject = null;
+      this.editableTags = [];
+      this.editableMilestones = [];
+      this.editableAttachments = [];
+      this.pendingFiles = [];
+      this.attachmentsToRemove = [];
+      this.selectedMemberIds = [];
+      this.selectedMembers = [];
+      this.selectedResponsibleIds = [];
+      this.selectedResponsibles = [];
+      this.tagInputValue = '';
+      this.newUrlInput = '';
+      event.source.checked = false;
       return;
     }
 

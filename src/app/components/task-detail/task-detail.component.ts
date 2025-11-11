@@ -469,6 +469,11 @@ export class TaskDetailComponent implements OnInit {
       if (!this.canSaveTask()) {
         return;
       }
+      // 変更がない場合は保存処理をスキップ
+      if (!this.hasTaskChanges()) {
+        this.isEditing = false;
+        return;
+      }
       this.saveTask();
     } else {
       // 読み取りモードから編集中へ
@@ -505,6 +510,83 @@ export class TaskDetailComponent implements OnInit {
     }
 
     return true;
+  }
+
+  /** タスクに変更があるかどうかをチェック */
+  private hasTaskChanges(): boolean {
+    if (!this.task) {
+      return false;
+    }
+
+    // タスク名の変更チェック
+    if (this.task.taskName !== this.taskData.taskName?.trim()) {
+      return true;
+    }
+
+    // 説明の変更チェック
+    if ((this.task.description || '') !== (this.taskData.description || '')) {
+      return true;
+    }
+
+    // 開始日の変更チェック
+    if ((this.task.startDate || '') !== (this.taskData.startDate || '')) {
+      return true;
+    }
+
+    // 期限日の変更チェック
+    if ((this.task.dueDate || '') !== (this.taskData.dueDate || '')) {
+      return true;
+    }
+
+    // ステータスの変更チェック
+    if ((this.task.status || '未着手') !== (this.taskData.status || '未着手')) {
+      return true;
+    }
+
+    // 優先度の変更チェック
+    if ((this.task.priority || '中') !== (this.taskData.priority || '中')) {
+      return true;
+    }
+
+    // 担当者の変更チェック（assignedMembersを比較）
+    const oldAssignedMembers = (this.task.assignedMembers || []).sort();
+    const newAssignedMembers = (this.taskData.assignedMembers || []).sort();
+    if (JSON.stringify(oldAssignedMembers) !== JSON.stringify(newAssignedMembers)) {
+      return true;
+    }
+
+    // タグの変更チェック
+    const oldTags = (this.task.tags || []).sort();
+    const newTags = (this.taskData.tags || []).sort();
+    if (JSON.stringify(oldTags) !== JSON.stringify(newTags)) {
+      return true;
+    }
+
+    // URLの変更チェック
+    const oldUrls = (this.task.urls || []).sort();
+    const newUrls = (this.taskData.urls || []).sort();
+    if (JSON.stringify(oldUrls) !== JSON.stringify(newUrls)) {
+      return true;
+    }
+
+    // 添付ファイルの変更チェック（追加・削除されたファイルがあるか）
+    const oldAttachments = (this.task.attachments || []).map(a => a.id).sort();
+    const newAttachments = this.editableAttachments.map(a => a.id).sort();
+    if (JSON.stringify(oldAttachments) !== JSON.stringify(newAttachments)) {
+      return true;
+    }
+
+    // 保留中のファイルがあるか
+    if (this.pendingFiles.length > 0) {
+      return true;
+    }
+
+    // 削除予定のファイルがあるか
+    if (this.attachmentsToRemove.length > 0) {
+      return true;
+    }
+
+    return false;
   }
 
   /** 開始日変更時の処理 */
