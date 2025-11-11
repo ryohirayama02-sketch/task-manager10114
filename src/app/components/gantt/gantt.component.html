@@ -38,9 +38,9 @@
     <mat-form-field appearance="outline">
       <mat-label>{{ 'gantt.filter.status' | translate }}</mat-label>
       <mat-select [(ngModel)]="filterStatus" (selectionChange)="applyFilters()" multiple>
-        <mat-option value="未着手">未着手</mat-option>
-        <mat-option value="作業中">作業中</mat-option>
-        <mat-option value="完了">完了</mat-option>
+        <mat-option value="未着手">{{ getStatusDisplay('未着手') }}</mat-option>
+        <mat-option value="作業中">{{ getStatusDisplay('作業中') }}</mat-option>
+        <mat-option value="完了">{{ getStatusDisplay('完了') }}</mat-option>
       </mat-select>
     </mat-form-field>
 
