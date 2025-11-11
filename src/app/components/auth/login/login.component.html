@@ -2,7 +2,9 @@
   <mat-card class="login-card">
     <mat-card-header>
       <mat-card-title>{{ "login.cardTitle" | translate }}</mat-card-title>
-      <mat-card-subtitle>{{ "login.cardSubtitle" | translate }}</mat-card-subtitle>
+      <mat-card-subtitle>{{
+        "login.cardSubtitle" | translate
+      }}</mat-card-subtitle>
     </mat-card-header>
 
     <mat-card-content>
@@ -49,7 +51,9 @@
             class="full-width"
           >
             <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
-            <span *ngIf="!isLoading">{{ "login.signInButton" | translate }}</span>
+            <span *ngIf="!isLoading">{{
+              "login.signInButton" | translate
+            }}</span>
           </button>
 
           <button

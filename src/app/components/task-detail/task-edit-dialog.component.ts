@@ -16,6 +16,8 @@ import { MemberManagementService } from '../../services/member-management.servic
 import { Task } from '../../models/task.model';
 import { Member } from '../../models/member.model';
 import { TaskDeleteConfirmDialogComponent } from './task-delete-confirm-dialog.component';
+import { LanguageService } from '../../services/language.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-task-edit-dialog',
@@ -30,23 +32,24 @@ import { TaskDeleteConfirmDialogComponent } from './task-delete-confirm-dialog.c
     MatIconModule,
     MatSnackBarModule,
     MatProgressSpinnerModule,
+    TranslatePipe,
   ],
   template: `
     <div class="task-edit-dialog">
       <div class="dialog-header">
-        <h2>タスク編集</h2>
+        <h2>{{ "taskEditDialog.title" | translate }}</h2>
       </div>
 
       <div class="dialog-content">
         <form (ngSubmit)="onSubmit()" #form="ngForm" class="form-container">
           <!-- タスク名 -->
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>タスク名 *</mat-label>
+            <mat-label>{{ "taskEditDialog.taskName" | translate }} *</mat-label>
             <input
               matInput
               [(ngModel)]="task.taskName"
               name="taskName"
-              placeholder="タスク名を入力してください"
+              [placeholder]="'taskEditDialog.taskNamePlaceholder' | translate"
               required
             />
             <mat-icon matSuffix>assignment</mat-icon>
@@ -54,12 +57,12 @@ import { TaskDeleteConfirmDialogComponent } from './task-delete-confirm-dialog.c
 
           <!-- 説明 -->
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>説明</mat-label>
+            <mat-label>{{ "taskEditDialog.description" | translate }}</mat-label>
             <textarea
               matInput
               [(ngModel)]="task.description"
               name="description"
-              placeholder="タスクの詳細説明を入力してください（200文字以内）"
+              [placeholder]="'taskEditDialog.descriptionPlaceholder' | translate"
               rows="3"
               maxlength="200"
             ></textarea>
@@ -70,7 +73,7 @@ import { TaskDeleteConfirmDialogComponent } from './task-delete-confirm-dialog.c
           <!-- タグ -->
           <div class="tag-section full-width">
             <mat-form-field appearance="outline" class="tag-input-field">
-              <mat-label>タグ</mat-label>
+              <mat-label>{{ "taskEditDialog.tags" | translate }}</mat-label>
               <span matPrefix>#&nbsp;</span>
               <input
                 id="tagInputField"
@@ -78,7 +81,7 @@ import { TaskDeleteConfirmDialogComponent } from './task-delete-confirm-dialog.c
                 name="tagInput"
                 [(ngModel)]="tagInputValue"
                 [ngModelOptions]="{ standalone: true }"
-                placeholder="タグ名を入力してEnter（20文字以内）"
+                [placeholder]="'taskEditDialog.tagPlaceholder' | translate"
                 (keydown.enter)="onTagInputEnter($event)"
                 maxlength="20"
               />
@@ -91,7 +94,7 @@ import { TaskDeleteConfirmDialogComponent } from './task-delete-confirm-dialog.c
                   type="button"
                   class="tag-remove-button"
                   (click)="removeTag(tag)"
-                  [attr.aria-label]="'#' + tag + ' を削除'"
+                  [attr.aria-label]="('taskEditDialog.removeTag' | translate).replace('{tag}', tag)"
                 >
                   <mat-icon>close</mat-icon>
                 </button>
@@ -102,13 +105,13 @@ import { TaskDeleteConfirmDialogComponent } from './task-delete-confirm-dialog.c
           <!-- 担当者選択 -->
           <div class="assignee-selection">
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>担当者</mat-label>
+              <mat-label>{{ "taskEditDialog.assignee" | translate }}</mat-label>
               <mat-select
                 [(ngModel)]="selectedMemberId"
                 (selectionChange)="onMemberSelectionChange($event.value)"
                 name="assignee"
               >
-                <mat-option value="">担当者なし</mat-option>
+                <mat-option value="">{{ "taskEditDialog.noAssignee" | translate }}</mat-option>
                 <mat-option *ngFor="let member of members" [value]="member.id">
                   {{ member.name }}
                 </mat-option>
@@ -118,7 +121,7 @@ import { TaskDeleteConfirmDialogComponent } from './task-delete-confirm-dialog.c
 
             <div *ngIf="membersLoading" class="loading-members">
               <mat-spinner diameter="20"></mat-spinner>
-              <span>メンバーを読み込み中...</span>
+              <span>{{ "taskEditDialog.loadingMembers" | translate }}</span>
             </div>
 
             <div
@@ -126,56 +129,56 @@ import { TaskDeleteConfirmDialogComponent } from './task-delete-confirm-dialog.c
               class="no-members"
             >
               <p>
-                メンバーが登録されていません。先にメンバー管理画面でメンバーを登録してください。
+                {{ "taskEditDialog.noMembers" | translate }}
               </p>
             </div>
           </div>
 
           <!-- ステータス -->
           <mat-form-field appearance="outline" class="half-width">
-            <mat-label>ステータス</mat-label>
+            <mat-label>{{ "taskEditDialog.status" | translate }}</mat-label>
             <mat-select [(ngModel)]="task.status" name="status">
-              <mat-option value="未着手">未着手</mat-option>
-              <mat-option value="作業中">作業中</mat-option>
-              <mat-option value="完了">完了</mat-option>
+              <mat-option value="未着手">{{ "taskDetail.status.notStarted" | translate }}</mat-option>
+              <mat-option value="作業中">{{ "taskDetail.status.inProgress" | translate }}</mat-option>
+              <mat-option value="完了">{{ "taskDetail.status.completed" | translate }}</mat-option>
             </mat-select>
             <mat-icon matSuffix>flag</mat-icon>
           </mat-form-field>
 
           <!-- 優先度 -->
           <mat-form-field appearance="outline" class="half-width">
-            <mat-label>優先度</mat-label>
+            <mat-label>{{ "taskEditDialog.priority" | translate }}</mat-label>
             <mat-select [(ngModel)]="task.priority" name="priority">
-              <mat-option value="高">高</mat-option>
-              <mat-option value="中">中</mat-option>
-              <mat-option value="低">低</mat-option>
+              <mat-option value="高">{{ "taskDetail.priority.high" | translate }}</mat-option>
+              <mat-option value="中">{{ "taskDetail.priority.medium" | translate }}</mat-option>
+              <mat-option value="低">{{ "taskDetail.priority.low" | translate }}</mat-option>
             </mat-select>
             <mat-icon matSuffix>priority_high</mat-icon>
           </mat-form-field>
 
           <!-- 開始日 -->
           <div class="date-field">
-            <label for="startDate">開始日</label>
+            <label for="startDate">{{ "taskEditDialog.startDate" | translate }}</label>
             <input
               id="startDate"
               type="date"
               [(ngModel)]="task.startDate"
               name="startDate"
-              placeholder="開始日を選択"
+              [placeholder]="'taskEditDialog.startDatePlaceholder' | translate"
               class="date-input"
             />
           </div>
 
           <!-- 期日 -->
           <div class="date-field">
-            <label for="dueDate">期日</label>
+            <label for="dueDate">{{ "taskEditDialog.dueDate" | translate }}</label>
             <input
               id="dueDate"
               type="date"
               [(ngModel)]="task.dueDate"
               name="dueDate"
               [min]="task.startDate || ''"
-              placeholder="期日を選択"
+              [placeholder]="'taskEditDialog.dueDatePlaceholder' | translate"
               class="date-input"
             />
           </div>
@@ -192,7 +195,7 @@ import { TaskDeleteConfirmDialogComponent } from './task-delete-confirm-dialog.c
           (click)="confirmDeleteTask()"
         >
           <mat-icon>delete</mat-icon>
-          タスク削除
+          {{ "taskEditDialog.deleteTask" | translate }}
         </button>
 
         <button
@@ -201,7 +204,7 @@ import { TaskDeleteConfirmDialogComponent } from './task-delete-confirm-dialog.c
           (click)="onCancel()"
           class="cancel-button"
         >
-          キャンセル
+          {{ "taskEditDialog.cancel" | translate }}
         </button>
 
         <button
@@ -213,7 +216,7 @@ import { TaskDeleteConfirmDialogComponent } from './task-delete-confirm-dialog.c
         >
           <mat-spinner *ngIf="isSaving" diameter="20"></mat-spinner>
           <mat-icon *ngIf="!isSaving">save</mat-icon>
-          {{ isSaving ? '保存中...' : '保存' }}
+          {{ isSaving ? ("taskEditDialog.saving" | translate) : ("taskEditDialog.save" | translate) }}
         </button>
       </div>
     </div>
@@ -479,6 +482,7 @@ export class TaskEditDialogComponent implements OnInit {
     private snackBar: MatSnackBar,
     private dialogRef: MatDialogRef<TaskEditDialogComponent>,
     private dialog: MatDialog,
+    private languageService: LanguageService,
     @Inject(MAT_DIALOG_DATA)
     public data: {
       task: Task;
@@ -533,9 +537,13 @@ export class TaskEditDialogComponent implements OnInit {
       }
     } catch (error) {
       console.error('メンバー読み込みエラー:', error);
-      this.snackBar.open('メンバーの読み込みに失敗しました', '閉じる', {
-        duration: 3000,
-      });
+      this.snackBar.open(
+        this.languageService.translate('taskEditDialog.error.membersLoadFailed'),
+        this.languageService.translate('common.close'),
+        {
+          duration: 3000,
+        }
+      );
     } finally {
       this.membersLoading = false;
     }
@@ -621,7 +629,7 @@ export class TaskEditDialogComponent implements OnInit {
     const childTasksCount = this.childTasksForValidation?.length || 0;
     const taskData = {
       taskName: this.task.taskName,
-      projectName: this.data.projectName || 'プロジェクト',
+      projectName: this.data.projectName || this.languageService.translate('common.project'),
       attachments: this.task.attachments || [],
     };
 
@@ -632,29 +640,49 @@ export class TaskEditDialogComponent implements OnInit {
         this.data.projectId
       );
       
-      let message = `タスク「${this.task.taskName}」を削除しました`;
+      let message: string;
       if (childTasksCount > 0) {
-        message += `（${childTasksCount}件の子タスクも削除されました）`;
+        message = this.languageService.translateWithParams(
+          'taskEditDialog.success.deletedWithChildren',
+          { taskName: this.task.taskName, count: childTasksCount.toString() }
+        );
+      } else {
+        message = this.languageService.translateWithParams(
+          'taskEditDialog.success.deleted',
+          { taskName: this.task.taskName }
+        );
       }
       
-      this.snackBar.open(message, '閉じる', { duration: 3000 });
+      this.snackBar.open(
+        message,
+        this.languageService.translate('common.close'),
+        { duration: 3000 }
+      );
 
       // ダイアログを閉じて削除完了を通知
       this.dialogRef.close({ deleted: true });
     } catch (error) {
       console.error('タスク削除エラー:', error);
-      this.snackBar.open('タスクの削除に失敗しました', '閉じる', {
-        duration: 3000,
-      });
+      this.snackBar.open(
+        this.languageService.translate('taskEditDialog.error.deleteFailed'),
+        this.languageService.translate('common.close'),
+        {
+          duration: 3000,
+        }
+      );
     }
   }
 
   /** 保存 */
   async onSubmit(): Promise<void> {
     if (!this.task.taskName) {
-      this.snackBar.open('タスク名を入力してください', '閉じる', {
-        duration: 3000,
-      });
+      this.snackBar.open(
+        this.languageService.translate('taskEditDialog.error.taskNameRequired'),
+        this.languageService.translate('common.close'),
+        {
+          duration: 3000,
+        }
+      );
       return;
     }
 
@@ -680,9 +708,13 @@ export class TaskEditDialogComponent implements OnInit {
             this.task.id
           );
           if (exists) {
-            this.snackBar.open('この子タスク名は既に使用されています', '閉じる', {
-              duration: 5000,
-            });
+            this.snackBar.open(
+              this.languageService.translate('taskEditDialog.error.childTaskNameExists'),
+              this.languageService.translate('common.close'),
+              {
+                duration: 5000,
+              }
+            );
             return;
           }
         } else {
@@ -693,9 +725,13 @@ export class TaskEditDialogComponent implements OnInit {
             this.task.id
           );
           if (exists) {
-            this.snackBar.open('このタスク名は既に使用されています', '閉じる', {
-              duration: 5000,
-            });
+            this.snackBar.open(
+              this.languageService.translate('taskEditDialog.error.taskNameExists'),
+              this.languageService.translate('common.close'),
+              {
+                duration: 5000,
+              }
+            );
             return;
           }
         }
@@ -720,10 +756,17 @@ export class TaskEditDialogComponent implements OnInit {
       if (incompleteChild) {
         const previousStatus = this.data.oldTaskData?.status || '作業中';
         this.task.status = previousStatus;
-        const message = `「子タスク：${incompleteChild.taskName || '名称未設定'}」が完了していません`;
-        this.snackBar.open(message, '閉じる', {
-          duration: 4000,
-        });
+        const message = this.languageService.translateWithParams(
+          'taskEditDialog.error.incompleteChildTask',
+          { taskName: incompleteChild.taskName || this.languageService.translate('common.nameNotSet') }
+        );
+        this.snackBar.open(
+          message,
+          this.languageService.translate('common.close'),
+          {
+            duration: 4000,
+          }
+        );
         return;
       }
     }
@@ -737,13 +780,21 @@ export class TaskEditDialogComponent implements OnInit {
         this.data.projectId // プロジェクトID
       );
 
-      this.snackBar.open('タスクを更新しました', '閉じる', { duration: 3000 });
+      this.snackBar.open(
+        this.languageService.translate('taskEditDialog.success.updated'),
+        this.languageService.translate('common.close'),
+        { duration: 3000 }
+      );
       this.dialogRef.close({ success: true });
     } catch (error) {
       console.error('タスク更新エラー:', error);
-      this.snackBar.open('タスクの更新に失敗しました', '閉じる', {
-        duration: 3000,
-      });
+      this.snackBar.open(
+        this.languageService.translate('taskEditDialog.error.updateFailed'),
+        this.languageService.translate('common.close'),
+        {
+          duration: 3000,
+        }
+      );
     } finally {
       this.isSaving = false;
     }

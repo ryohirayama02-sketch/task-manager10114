@@ -7,6 +7,8 @@ import {
 } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { TranslatePipe } from '../../pipes/translate.pipe';
+import { LanguageService } from '../../services/language.service';
 
 export interface TaskDeleteConfirmDialogData {
   taskName: string;
@@ -17,36 +19,32 @@ export interface TaskDeleteConfirmDialogData {
 @Component({
   selector: 'app-task-delete-confirm-dialog',
   standalone: true,
-  imports: [CommonModule, MatDialogModule, MatButtonModule, MatIconModule],
+  imports: [CommonModule, MatDialogModule, MatButtonModule, MatIconModule, TranslatePipe],
   template: `
     <div class="delete-confirm-dialog">
       <div class="dialog-header">
         <mat-icon class="warning-icon">warning</mat-icon>
-        <h2>タスク削除の確認</h2>
+        <h2>{{ "taskDeleteConfirmDialog.title" | translate }}</h2>
       </div>
 
       <div class="dialog-content">
-        <p>以下のタスクを削除しますか？</p>
+        <p>{{ "taskDeleteConfirmDialog.message" | translate }}</p>
         <div class="task-info">
           <strong>{{ data.taskName }}</strong>
         </div>
         <div class="warning-message" *ngIf="data.childTasksCount && data.childTasksCount > 0">
           <mat-icon>warning</mat-icon>
-          <span
-            >このタスクに紐づく{{ data.childTasksCount }}件の子タスクも一緒に削除されます。</span
-          >
+          <span>{{ getChildTasksWarning() }}</span>
         </div>
         <div class="warning-message">
           <mat-icon>info</mat-icon>
-          <span
-            >この操作は取り消せません。タスクに関連するすべてのデータが削除されます。</span
-          >
+          <span>{{ "taskDeleteConfirmDialog.irreversibleWarning" | translate }}</span>
         </div>
       </div>
 
       <div class="dialog-actions">
         <button mat-button (click)="onCancel()" class="cancel-button">
-          キャンセル
+          {{ "taskDeleteConfirmDialog.cancel" | translate }}
         </button>
         <button
           mat-raised-button
@@ -55,7 +53,7 @@ export interface TaskDeleteConfirmDialogData {
           class="confirm-button"
         >
           <mat-icon>delete</mat-icon>
-          削除する
+          {{ "taskDeleteConfirmDialog.delete" | translate }}
         </button>
       </div>
     </div>
@@ -189,8 +187,16 @@ export interface TaskDeleteConfirmDialogData {
 export class TaskDeleteConfirmDialogComponent {
   constructor(
     public dialogRef: MatDialogRef<TaskDeleteConfirmDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: TaskDeleteConfirmDialogData
+    @Inject(MAT_DIALOG_DATA) public data: TaskDeleteConfirmDialogData,
+    private languageService: LanguageService
   ) {}
+
+  getChildTasksWarning(): string {
+    return this.languageService.translateWithParams(
+      'taskDeleteConfirmDialog.childTasksWarning',
+      { count: (this.data.childTasksCount || 0).toString() }
+    );
+  }
 
   onCancel(): void {
     this.dialogRef.close(false);
