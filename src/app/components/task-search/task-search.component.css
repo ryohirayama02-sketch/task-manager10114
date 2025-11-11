@@ -132,7 +132,7 @@
 
 .tasks-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 15px;
   margin-bottom: 20px;
   width: 100%;
@@ -172,13 +172,24 @@
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: flex-start;
   gap: 12px;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .task-card-header .mat-mdc-card-title {
   font-size: 18px;
   line-height: 1.4;
   min-width: 0;
+  max-width: 100%;
+  width: 100%;
   margin: 0;
+  padding: 0;
+  overflow: hidden;
+  display: block;
+  box-sizing: border-box;
 }
 
 .task-card-meta {
@@ -198,6 +209,24 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Material Designカードタイトルの内部要素にも幅制限を適用 */
+.task-card-header .mat-mdc-card-title > * {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.task-card .mat-mdc-card-content {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .task-details {
@@ -208,6 +237,8 @@
   word-wrap: break-word;
   word-break: break-word;
   min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .task-detail-item {

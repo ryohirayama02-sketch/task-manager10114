@@ -62,8 +62,10 @@
             matInput
             [(ngModel)]="filters.freeWord"
             placeholder="タスク名、説明、プロジェクト名で検索"
+            maxlength="50"
           />
           <mat-icon matSuffix>search</mat-icon>
+          <mat-hint align="end">{{ (filters.freeWord || '').length }}/50</mat-hint>
         </mat-form-field>
       </div>
 
