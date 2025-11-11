@@ -297,6 +297,34 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
     };
   }
 
+  /** ステータスを翻訳 */
+  translateStatus(status: string): string {
+    switch (status) {
+      case '完了':
+        return this.languageService.translate('progress.status.completed');
+      case '作業中':
+        return this.languageService.translate('progress.status.inProgress');
+      case '未着手':
+        return this.languageService.translate('progress.status.notStarted');
+      default:
+        return status;
+    }
+  }
+
+  /** 優先度を翻訳 */
+  translatePriority(priority: string): string {
+    switch (priority) {
+      case '高':
+        return this.languageService.translate('progress.priority.high');
+      case '中':
+        return this.languageService.translate('progress.priority.medium');
+      case '低':
+        return this.languageService.translate('progress.priority.low');
+      default:
+        return priority;
+    }
+  }
+
   /** タスクの担当者を表示（カンマ区切り対応） */
   getTaskAssigneeDisplay(task: Task): string {
     const displayNames: string[] = [];

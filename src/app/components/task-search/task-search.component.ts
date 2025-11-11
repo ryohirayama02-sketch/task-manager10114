@@ -508,9 +508,11 @@ export class TaskSearchComponent implements OnInit {
       const display = getMemberNamesAsString(
         task.assignedMembers,
         this.allMembers,
-        ', '
+        ', ',
+        this.languageService
       );
-      return display === '未設定' ? '—' : display;
+      const notSetText = this.languageService.translate('common.notSet');
+      return display === notSetText ? '—' : display;
     }
 
     // assignedMembers がない場合は assignee から最新のメンバー名を取得

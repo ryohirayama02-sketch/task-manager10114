@@ -15,6 +15,7 @@
         </mat-select>
       </mat-form-field>
       <!-- 一時的にデバッグボタンを有効化 -->
+      <!--
       <button mat-button color="accent" (click)="toggleDebugMode()">
         <mat-icon>bug_report</mat-icon>
         {{
@@ -23,6 +24,7 @@
             : ("quickTasks.debugOn" | translate)
         }}
       </button>
+      -->
     </div>
   </div>
 
@@ -68,14 +70,14 @@
                     [ngClass]="'status-' + task.status"
                     selected
                   >
-                    {{ task.status }}
+                    {{ translateStatus(task.status) }}
                   </mat-chip>
                   <mat-chip
                     class="priority-chip"
                     [ngClass]="'priority-' + task.priority"
                     selected
                   >
-                    {{ task.priority }}
+                    {{ translatePriority(task.priority) }}
                   </mat-chip>
                 </div>
               </div>
@@ -158,14 +160,14 @@
                 [ngClass]="'status-' + task.status"
                 selected
               >
-                {{ task.status }}
+                {{ translateStatus(task.status) }}
               </mat-chip>
               <mat-chip
                 class="priority-chip"
                 [ngClass]="'priority-' + task.priority"
                 selected
               >
-                {{ task.priority }}
+                {{ translatePriority(task.priority) }}
               </mat-chip>
             </div>
           </div>
