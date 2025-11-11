@@ -242,9 +242,13 @@ export class TaskDetailComponent implements OnInit {
     this.projectService.getProjectById(projectId).subscribe((project) => {
       console.log('プロジェクト情報:', project);
       if (!project) {
-        this.snackBar.open('プロジェクトが見つかりませんでした', '閉じる', {
-          duration: 3000,
-        });
+        this.snackBar.open(
+          this.languageService.translate('taskDetail.error.projectNotFound'),
+          this.languageService.translate('common.close'),
+          {
+            duration: 3000,
+          }
+        );
         this.router.navigate(['/projects']);
         return;
       }
@@ -329,9 +333,13 @@ export class TaskDetailComponent implements OnInit {
           this.filteredChildTasks = [];
           this.parentTaskName = null;
           this.editableAttachments = [];
-          this.snackBar.open('タスクが見つかりませんでした', '閉じる', {
-            duration: 3000,
-          });
+          this.snackBar.open(
+            this.languageService.translate('taskDetail.error.taskNotFound'),
+            this.languageService.translate('common.close'),
+            {
+              duration: 3000,
+            }
+          );
           this.router.navigate(['/projects']);
         }
         this.isLoading = false;
@@ -535,11 +543,13 @@ export class TaskDetailComponent implements OnInit {
     const display = getMemberNamesAsString(
       this.taskData.assignedMembers,
       this.projectMembers,
-      ', '
+      ', ',
+      this.languageService
     );
 
     // '未設定' の場合は '—' に変換
-    return display === '未設定' ? '—' : display;
+    const notSetText = this.languageService.translate('common.notSet');
+    return display === notSetText ? '—' : display;
   }
 
   /** 編集モードを切り替え */
@@ -836,17 +846,25 @@ export class TaskDetailComponent implements OnInit {
     // タスク名の必須チェック
     const taskName = this.taskData.taskName?.trim();
     if (!taskName) {
-      this.snackBar.open('タスク名を入力してください', '閉じる', {
-        duration: 3000,
-      });
+      this.snackBar.open(
+        this.languageService.translate('taskDetail.error.taskNameRequired'),
+        this.languageService.translate('common.close'),
+        {
+          duration: 3000,
+        }
+      );
       return;
     }
 
     // 開始日と終了日の必須チェック
     if (!this.taskData.startDate || !this.taskData.dueDate) {
-      this.snackBar.open('開始日と終了日は必須です', '閉じる', {
-        duration: 3000,
-      });
+      this.snackBar.open(
+        this.languageService.translate('taskDetail.error.datesRequired'),
+        this.languageService.translate('common.close'),
+        {
+          duration: 3000,
+        }
+      );
       return;
     }
 
@@ -856,8 +874,8 @@ export class TaskDetailComponent implements OnInit {
       const dueDate = new Date(this.taskData.dueDate);
       if (startDate > dueDate) {
         this.snackBar.open(
-          '開始日は期限日より前の日付を設定してください',
-          '閉じる',
+          this.languageService.translate('taskDetail.error.startDateAfterDueDate'),
+          this.languageService.translate('common.close'),
           {
             duration: 3000,
           }
@@ -871,9 +889,13 @@ export class TaskDetailComponent implements OnInit {
       !this.selectedAssignedMemberIds ||
       this.selectedAssignedMemberIds.length === 0
     ) {
-      this.snackBar.open('担当者は1人以上選択してください', '閉じる', {
-        duration: 3000,
-      });
+      this.snackBar.open(
+        this.languageService.translate('taskDetail.error.assigneeRequired'),
+        this.languageService.translate('common.close'),
+        {
+          duration: 3000,
+        }
+      );
       return;
     }
 
@@ -891,8 +913,8 @@ export class TaskDetailComponent implements OnInit {
           );
           if (exists) {
             this.snackBar.open(
-              'この子タスク名は既に使用されています',
-              '閉じる',
+              this.languageService.translate('taskDetail.error.childTaskNameExists'),
+              this.languageService.translate('common.close'),
               {
                 duration: 5000,
               }
@@ -907,9 +929,13 @@ export class TaskDetailComponent implements OnInit {
             this.task.id
           );
           if (exists) {
-            this.snackBar.open('このタスク名は既に使用されています', '閉じる', {
-              duration: 5000,
-            });
+            this.snackBar.open(
+              this.languageService.translate('taskDetail.error.taskNameExists'),
+              this.languageService.translate('common.close'),
+              {
+                duration: 5000,
+              }
+            );
             return;
           }
         }
@@ -996,19 +1022,29 @@ export class TaskDetailComponent implements OnInit {
 
       // 保存成功メッセージを表示
       const message = this.task?.parentTaskId
-        ? '子タスクを保存しました'
-        : 'タスクを保存しました';
-      this.snackBar.open(message, '閉じる', {
-        duration: 3000,
-      });
+        ? this.languageService.translate('taskDetail.success.childTaskSaved')
+        : this.languageService.translate('taskDetail.success.saved');
+      this.snackBar.open(
+        message,
+        this.languageService.translate('common.close'),
+        {
+          duration: 3000,
+        }
+      );
 
       this.isEditing = false;
       this.isSaving = false;
     } catch (error: Error | unknown) {
       console.error('タスク更新エラー:', error);
       const errorMessage =
-        error instanceof Error ? error.message : '不明なエラーが発生しました';
-      alert(`タスクの保存に失敗しました: ${errorMessage}`);
+        error instanceof Error
+          ? error.message
+          : this.languageService.translate('taskDetail.error.unknownError');
+      const alertMessage = this.languageService.translateWithParams(
+        'taskDetail.error.saveFailed',
+        { errorMessage }
+      );
+      alert(alertMessage);
       this.isSaving = false;
     }
   }
@@ -1082,17 +1118,23 @@ export class TaskDetailComponent implements OnInit {
       const maxChildTasks = 5;
       if (childTaskCount >= maxChildTasks) {
         this.snackBar.open(
-          `子タスクは最大${maxChildTasks}個作成できます`,
-          '閉じる',
+          this.languageService.translateWithParams('taskDetail.error.maxChildTasks', {
+            count: maxChildTasks.toString(),
+          }),
+          this.languageService.translate('common.close'),
           { duration: 5000 }
         );
         return;
       }
     } catch (error) {
       console.error('子タスク数チェックエラー:', error);
-      this.snackBar.open('子タスク数の確認に失敗しました', '閉じる', {
-        duration: 3000,
-      });
+      this.snackBar.open(
+        this.languageService.translate('taskDetail.error.childTaskCountCheckFailed'),
+        this.languageService.translate('common.close'),
+        {
+          duration: 3000,
+        }
+      );
       return;
     }
     if (this.task?.parentTaskId) {
@@ -1142,10 +1184,16 @@ export class TaskDetailComponent implements OnInit {
   /** タスクを削除 */
   deleteTask() {
     const childTasksCount = this.childTasks?.length || 0;
-    let confirmMessage = `タスク「${this.taskData.taskName}」を削除してもよろしいですか？この操作は元に戻せません。`;
+    let confirmMessage = this.languageService.translateWithParams(
+      'taskDetail.deleteConfirm.message',
+      { taskName: this.taskData.taskName || '' }
+    );
 
     if (childTasksCount > 0) {
-      confirmMessage += `\n\n注意: このタスクに紐づく${childTasksCount}件の子タスクも一緒に削除されます。`;
+      confirmMessage += '\n\n' + this.languageService.translateWithParams(
+        'taskDetail.deleteConfirm.childTasksWarning',
+        { count: childTasksCount.toString() }
+      );
     }
 
     if (confirm(confirmMessage)) {
@@ -1161,7 +1209,7 @@ export class TaskDetailComponent implements OnInit {
           })
           .catch((error: Error) => {
             console.error('タスク削除エラー:', error);
-            alert('タスクの削除に失敗しました');
+            alert(this.languageService.translate('taskDetail.error.deleteFailed'));
           });
       }
     }
@@ -1227,8 +1275,12 @@ export class TaskDetailComponent implements OnInit {
     } catch (error: any) {
       console.error('カレンダー連携の更新に失敗しました', error);
 
-      const errorMsg = error?.message || 'エラーが発生しました';
-      alert(`カレンダー連携に失敗しました: ${errorMsg}`);
+      const errorMsg = error?.message || this.languageService.translate('taskDetail.error.unknownErrorOccurred');
+      const alertMessage = this.languageService.translateWithParams(
+        'taskDetail.error.calendarSyncFailed',
+        { errorMessage: errorMsg }
+      );
+      alert(alertMessage);
       this.taskData.calendarSyncEnabled = !nextValue;
       this.task.calendarSyncEnabled = this.taskData.calendarSyncEnabled;
     } finally {
@@ -1418,16 +1470,24 @@ export class TaskDetailComponent implements OnInit {
             ...this.task,
             detailSettings: { ...this.detailSettings },
           } as Task;
-          this.snackBar.open('詳細設定を保存しました', '閉じる', {
-            duration: 3000,
-          });
+          this.snackBar.open(
+            this.languageService.translate('taskDetail.success.detailSettingsSaved'),
+            this.languageService.translate('common.close'),
+            {
+              duration: 3000,
+            }
+          );
           this.closeDetailSettings();
         })
         .catch((error) => {
           console.error('詳細設定の保存エラー:', error);
-          this.snackBar.open('詳細設定の保存に失敗しました', '閉じる', {
-            duration: 3000,
-          });
+          this.snackBar.open(
+            this.languageService.translate('taskDetail.error.detailSettingsSaveFailed'),
+            this.languageService.translate('common.close'),
+            {
+              duration: 3000,
+            }
+          );
         });
     }
   }
@@ -1584,10 +1644,10 @@ export class TaskDetailComponent implements OnInit {
     try {
       // alertの代わりにsnackBarを使用（ブロッキングしない）
       this.snackBar.open(
-        `「親タスク：${
-          this.task.taskName || '名称未設定'
-        }」のステータスを作業中に変更します`,
-        '閉じる',
+        this.languageService.translateWithParams('taskDetail.alert.parentTaskStatusChange', {
+          taskName: this.task.taskName || this.languageService.translate('common.nameNotSet'),
+        }),
+        this.languageService.translate('common.close'),
         { duration: 3000 }
       );
 
@@ -1605,9 +1665,13 @@ export class TaskDetailComponent implements OnInit {
       console.log('親タスクを作業中に戻しました');
     } catch (error) {
       console.error('親タスクのステータス更新に失敗しました', error);
-      this.snackBar.open('親タスクのステータス更新に失敗しました', '閉じる', {
-        duration: 3000,
-      });
+      this.snackBar.open(
+        this.languageService.translate('taskDetail.error.parentTaskStatusUpdateFailed'),
+        this.languageService.translate('common.close'),
+        {
+          duration: 3000,
+        }
+      );
     } finally {
       // 処理完了後にフラグをリセット
       this.isReopeningParentTask = false;
@@ -1728,18 +1792,21 @@ export class TaskDetailComponent implements OnInit {
 
   /** 子タスクの担当者をカンマ区切りで表示 */
   getChildTaskAssigneeDisplay(child: Task): string {
+    const unassignedText = this.languageService.translate('taskDetail.unassigned');
     if (child.assignedMembers && child.assignedMembers.length > 0) {
       const display = getMemberNamesAsString(
         child.assignedMembers,
         this.projectMembers,
-        ', '
+        ', ',
+        this.languageService
       );
-      return display === '未設定' ? '未割当' : display;
+      const notSetText = this.languageService.translate('common.notSet');
+      return display === notSetText ? unassignedText : display;
     }
 
     // assignedMembers がない場合は assignee から最新のメンバー名を取得
     if (!child.assignee) {
-      return '未割当';
+      return unassignedText;
     }
 
     // assignee がカンマ区切りの場合を考慮
@@ -1753,7 +1820,7 @@ export class TaskDetailComponent implements OnInit {
       })
       .filter((name): name is string => name !== null);
 
-    return updatedNames.length > 0 ? updatedNames.join(', ') : '未割当';
+    return updatedNames.length > 0 ? updatedNames.join(', ') : unassignedText;
   }
 
   openChildTaskDetail(task: Task): void {
@@ -1779,7 +1846,7 @@ export class TaskDetailComponent implements OnInit {
 
   exportChildTasksToCSV(): void {
     if (!this.filteredChildTasks.length) {
-      alert('出力する子タスクがありません');
+      alert(this.languageService.translate('taskDetail.error.noChildTasksToExport'));
       return;
     }
 
@@ -1790,13 +1857,13 @@ export class TaskDetailComponent implements OnInit {
 
   private generateChildCSVData(): string {
     const headers = [
-      'タスク名',
-      'ステータス',
-      '期日',
-      '優先度',
-      '担当者',
-      '開始日',
-      '説明',
+      this.languageService.translate('projectDetail.csv.header.taskName'),
+      this.languageService.translate('projectDetail.csv.header.status'),
+      this.languageService.translate('projectDetail.csv.header.dueDate'),
+      this.languageService.translate('projectDetail.csv.header.priority'),
+      this.languageService.translate('projectDetail.csv.header.assignee'),
+      this.languageService.translate('projectDetail.csv.header.startDate'),
+      this.languageService.translate('projectDetail.csv.header.description'),
     ];
     const rows = this.filteredChildTasks.map((task) => [
       task.taskName,

@@ -19,6 +19,7 @@ import { CalendarService } from '../../services/calendar.service';
 import { TaskService } from '../../services/task.service';
 import { Member } from '../../models/member.model';
 import { TranslatePipe } from '../../pipes/translate.pipe';
+import { LanguageService } from '../../services/language.service';
 import {
   DEFAULT_PROJECT_THEME_COLOR,
   resolveProjectThemeColor,
@@ -59,8 +60,8 @@ export class TaskCreatePageComponent implements OnInit {
 
   taskForm = {
     taskName: '',
-    status: '未着手',
-    priority: '中',
+    status: '',
+    priority: '',
     assignee: '', // 後方互換性のため残す
     assignedMembers: [] as string[], // ID配列で個人識別
     startDate: '',
@@ -81,8 +82,8 @@ export class TaskCreatePageComponent implements OnInit {
     '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.bmp,.heic,.webp,.svg,.txt,.csv,.zip';
 
   selectedMemberIds: string[] = [];
-  statusOptions = ['未着手', '作業中', '完了'];
-  priorityOptions = ['高', '中', '低'];
+  statusOptions: string[] = [];
+  priorityOptions: string[] = [];
   projectThemeColor = DEFAULT_PROJECT_THEME_COLOR;
 
   constructor(
@@ -94,10 +95,27 @@ export class TaskCreatePageComponent implements OnInit {
     private attachmentService: TaskAttachmentService,
     private calendarService: CalendarService,
     private taskService: TaskService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private languageService: LanguageService
   ) {}
 
   ngOnInit() {
+    // ステータスと優先度のオプションを言語設定に応じて初期化
+    const currentLanguage = this.languageService.getCurrentLanguage();
+    this.statusOptions = [
+      this.languageService.translate('taskCreate.status.notStarted'),
+      this.languageService.translate('taskCreate.status.inProgress'),
+      this.languageService.translate('taskCreate.status.completed'),
+    ];
+    this.priorityOptions = [
+      this.languageService.translate('taskCreate.priority.high'),
+      this.languageService.translate('taskCreate.priority.medium'),
+      this.languageService.translate('taskCreate.priority.low'),
+    ];
+    // デフォルト値を設定
+    this.taskForm.status = this.statusOptions[0];
+    this.taskForm.priority = this.priorityOptions[1];
+
     const navState = this.location.getState() as any;
     this.projectName = navState?.projectName || '';
     this.projectId = navState?.projectId || '';
@@ -108,8 +126,8 @@ export class TaskCreatePageComponent implements OnInit {
       const duplicateData = navState.duplicateData;
       this.taskForm = {
         taskName: duplicateData.taskName || '',
-        status: duplicateData.status || '未着手',
-        priority: duplicateData.priority || '中',
+        status: duplicateData.status || this.statusOptions[0],
+        priority: duplicateData.priority || this.priorityOptions[1],
         assignee: duplicateData.assignee || '',
         assignedMembers: Array.isArray(duplicateData.assignedMembers)
           ? [...duplicateData.assignedMembers]
@@ -176,7 +194,7 @@ export class TaskCreatePageComponent implements OnInit {
                 }
               },
               error: (error) => {
-                console.error('親タスク情報の取得に失敗しました:', error);
+                console.error(this.languageService.translate('taskCreate.error.parentTaskFetchFailed'), error);
               },
             });
         }
@@ -194,7 +212,7 @@ export class TaskCreatePageComponent implements OnInit {
                 }
               },
               error: (error) => {
-                console.error('親タスク情報の取得に失敗しました:', error);
+                console.error(this.languageService.translate('taskCreate.error.parentTaskFetchFailed'), error);
               },
             });
         }
@@ -382,9 +400,10 @@ export class TaskCreatePageComponent implements OnInit {
 
     Array.from(files).forEach((file) => {
       if (file.size > this.MAX_FILE_SIZE) {
+        const message = this.languageService.translate('taskCreate.error.fileSizeExceeded').replace('{{fileName}}', file.name);
         this.snackBar.open(
-          `${file.name} は5MBを超えています。別のファイルを選択してください。`,
-          '閉じる',
+          message,
+          this.languageService.translate('taskCreate.close'),
           { duration: 4000 }
         );
         return;
@@ -404,8 +423,8 @@ export class TaskCreatePageComponent implements OnInit {
         !trimmedUrl.startsWith('https://')
       ) {
         this.snackBar.open(
-          'URLはhttp://またはhttps://で始まる必要があります',
-          '閉じる',
+          this.languageService.translate('taskCreate.error.invalidUrl'),
+          this.languageService.translate('taskCreate.close'),
           { duration: 3000 }
         );
         return;
@@ -458,26 +477,34 @@ export class TaskCreatePageComponent implements OnInit {
 
   async save() {
     if (!this.taskForm.taskName.trim()) {
-      alert('タスク名を入力してください');
+      alert(this.languageService.translate('taskCreate.error.taskNameRequired'));
       return;
     }
 
     if (!this.taskForm.startDate || !this.taskForm.dueDate) {
-      this.snackBar.open('開始日と終了日は必須です', '閉じる', {
-        duration: 3000,
-      });
+      this.snackBar.open(
+        this.languageService.translate('taskCreate.error.datesRequired'),
+        this.languageService.translate('taskCreate.close'),
+        {
+          duration: 3000,
+        }
+      );
       return;
     }
 
     if (!this.selectedMemberIds || this.selectedMemberIds.length === 0) {
-      this.snackBar.open('担当者は1人以上選択してください', '閉じる', {
-        duration: 3000,
-      });
+      this.snackBar.open(
+        this.languageService.translate('taskCreate.error.assigneeRequired'),
+        this.languageService.translate('taskCreate.close'),
+        {
+          duration: 3000,
+        }
+      );
       return;
     }
 
     if (!this.projectId) {
-      alert('プロジェクトが指定されていません');
+      alert(this.languageService.translate('taskCreate.error.projectNotSpecified'));
       return;
     }
 
@@ -492,9 +519,10 @@ export class TaskCreatePageComponent implements OnInit {
         );
         const maxChildTasks = 5;
         if (childTaskCount >= maxChildTasks) {
+          const message = this.languageService.translate('taskCreate.error.maxChildTasks').replace('{{count}}', maxChildTasks.toString());
           this.snackBar.open(
-            `子タスクは最大${maxChildTasks}個作成できます`,
-            '閉じる',
+            message,
+            this.languageService.translate('taskCreate.close'),
             { duration: 5000 }
           );
           return;
@@ -506,19 +534,24 @@ export class TaskCreatePageComponent implements OnInit {
         );
         const maxParentTasks = 10;
         if (parentTaskCount >= maxParentTasks) {
+          const message = this.languageService.translate('taskCreate.error.maxParentTasks').replace('{{count}}', maxParentTasks.toString());
           this.snackBar.open(
-            `親タスクは最大${maxParentTasks}個作成できます`,
-            '閉じる',
+            message,
+            this.languageService.translate('taskCreate.close'),
             { duration: 5000 }
           );
           return;
         }
       }
     } catch (error) {
-      console.error('タスク数チェックエラー:', error);
-      this.snackBar.open('タスク数の確認に失敗しました', '閉じる', {
-        duration: 3000,
-      });
+      console.error('Task count check error:', error);
+      this.snackBar.open(
+        this.languageService.translate('taskCreate.error.taskCountCheckFailed'),
+        this.languageService.translate('taskCreate.close'),
+        {
+          duration: 3000,
+        }
+      );
       return;
     }
 
@@ -535,8 +568,8 @@ export class TaskCreatePageComponent implements OnInit {
           );
           if (exists) {
             this.snackBar.open(
-              'この子タスク名は既に使用されています',
-              '閉じる',
+              this.languageService.translate('taskCreate.error.childTaskNameExists'),
+              this.languageService.translate('taskCreate.close'),
               {
                 duration: 5000,
               }
@@ -550,9 +583,13 @@ export class TaskCreatePageComponent implements OnInit {
             taskName
           );
           if (exists) {
-            this.snackBar.open('このタスク名は既に使用されています', '閉じる', {
-              duration: 5000,
-            });
+            this.snackBar.open(
+              this.languageService.translate('taskCreate.error.taskNameExists'),
+              this.languageService.translate('taskCreate.close'),
+              {
+                duration: 5000,
+              }
+            );
             return;
           }
         }
@@ -594,11 +631,12 @@ export class TaskCreatePageComponent implements OnInit {
           });
           console.log('カレンダー連携フラグを保存しました');
         } catch (error: any) {
-          console.error('カレンダー連携エラー:', error);
-          const errorMsg = error?.message || 'エラーが発生しました';
+          console.error('Calendar sync error:', error);
+          const errorMsg = error?.message || this.languageService.translate('taskCreate.error.saveFailed');
+          const message = this.languageService.translate('taskCreate.error.calendarSyncFailed').replace('{{error}}', errorMsg);
           this.snackBar.open(
-            `カレンダー連携に失敗しました: ${errorMsg}`,
-            '閉じる',
+            message,
+            this.languageService.translate('taskCreate.close'),
             { duration: 5000 }
           );
           // エラーが発生した場合、calendarSyncEnabled を false に設定
@@ -637,8 +675,8 @@ export class TaskCreatePageComponent implements OnInit {
         this.goBack();
       }
     } catch (error) {
-      console.error('タスク追加失敗:', error);
-      alert('保存に失敗しました');
+      console.error('Task creation failed:', error);
+      alert(this.languageService.translate('taskCreate.error.saveFailed'));
     } finally {
       this.isSaving = false;
       this.isUploading = false;
@@ -657,10 +695,11 @@ export class TaskCreatePageComponent implements OnInit {
         );
         uploaded.push(attachment);
       } catch (error) {
-        console.error('添付ファイルのアップロードに失敗しました:', error);
+        console.error('Attachment upload failed:', error);
+        const message = this.languageService.translate('taskCreate.error.attachmentUploadFailed').replace('{{fileName}}', pending.file.name);
         this.snackBar.open(
-          `${pending.file.name} のアップロードに失敗しました`,
-          '閉じる',
+          message,
+          this.languageService.translate('taskCreate.close'),
           { duration: 4000 }
         );
       }

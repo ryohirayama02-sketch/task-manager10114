@@ -20,13 +20,13 @@
       <form (ngSubmit)="save()" #taskCreateForm="ngForm">
         <!-- 親タスク情報表示（サブタスク作成時のみ） -->
         <div *ngIf="isSubtaskCreation" class="parent-task-info">
-          <p class="info-line">プロジェクト名: <strong>{{ projectName }}</strong></p>
-          <p class="info-line">親タスク名: <strong>{{ parentTaskName }}</strong></p>
+          <p class="info-line">{{ 'taskCreate.parentTaskInfo.projectName' | translate }} <strong>{{ projectName }}</strong></p>
+          <p class="info-line">{{ 'taskCreate.parentTaskInfo.parentTaskName' | translate }} <strong>{{ parentTaskName }}</strong></p>
         </div>
 
         <!-- タスク名 -->
         <mat-form-field appearance="outline" class="full-width-field">
-          <mat-label>{{ isSubtaskCreation ? '子タスク名' : ('taskCreate.taskName' | translate) }} * <span class="required-hint">（入力必須）</span></mat-label>
+          <mat-label>{{ isSubtaskCreation ? ('taskCreate.subtaskName' | translate) : ('taskCreate.taskName' | translate) }} * <span class="required-hint">{{ 'taskCreate.required' | translate }}</span></mat-label>
           <input
             matInput
             [(ngModel)]="taskForm.taskName"
@@ -45,7 +45,7 @@
             rows="3"
             [(ngModel)]="taskForm.description"
             name="description"
-            placeholder="タスクの詳細説明を入力してください（200文字以内）"
+            [placeholder]="'taskCreate.descriptionPlaceholder' | translate"
             maxlength="200"
           ></textarea>
           <mat-hint align="end">{{ (taskForm.description || '').length }}/200</mat-hint>
@@ -54,7 +54,7 @@
         <!-- 日付範囲 -->
         <div class="date-row">
           <div class="date-field">
-            <label for="startDate">{{ 'taskCreate.startDate' | translate }} * <span class="required-hint">（入力必須）</span></label>
+            <label for="startDate">{{ 'taskCreate.startDate' | translate }} * <span class="required-hint">{{ 'taskCreate.required' | translate }}</span></label>
             <div class="date-input-wrapper">
               <input
                 id="startDate"
@@ -69,7 +69,7 @@
           </div>
 
           <div class="date-field">
-            <label for="dueDate">{{ 'taskCreate.dueDate' | translate }} * <span class="required-hint">（入力必須）</span></label>
+            <label for="dueDate">{{ 'taskCreate.dueDate' | translate }} * <span class="required-hint">{{ 'taskCreate.required' | translate }}</span></label>
             <div class="date-input-wrapper">
               <input
                 id="dueDate"
@@ -87,7 +87,7 @@
 
         <!-- 担当者 -->
         <mat-form-field appearance="outline" class="full-width-field">
-          <mat-label>{{ 'taskCreate.assignee' | translate }} * <span class="required-hint">（入力必須）</span></mat-label>
+          <mat-label>{{ 'taskCreate.assignee' | translate }} * <span class="required-hint">{{ 'taskCreate.required' | translate }}</span></mat-label>
           <mat-select
             [(ngModel)]="selectedMemberIds"
             name="assignee"
@@ -99,7 +99,7 @@
               {{ member.name }}
             </mat-option>
           </mat-select>
-          <mat-hint *ngIf="projectMembers.length === 0">プロジェクトにメンバーが登録されていません</mat-hint>
+          <mat-hint *ngIf="projectMembers.length === 0">{{ 'taskCreate.noMembersInProject' | translate }}</mat-hint>
         </mat-form-field>
 
         <!-- ステータス -->
@@ -147,7 +147,7 @@
               <input
                 matInput
                 [(ngModel)]="newUrlInput"
-                placeholder="https://example.com"
+                [placeholder]="'taskCreate.urlPlaceholder' | translate"
                 (keyup.enter)="addUrl(newUrlInput)"
                 name="newUrl"
               />
@@ -249,7 +249,7 @@
             <input
               matInput
               #tagInput
-              placeholder="{{ 'taskCreate.enterTag' | translate }}（20文字以内）"
+              [placeholder]="('taskCreate.enterTag' | translate) + ' ' + ('taskCreate.tagMaxLength' | translate)"
               (keydown.enter)="onTagInputEnter($event, tagInput)"
               maxlength="20"
             />
@@ -286,7 +286,7 @@
             [disabled]="isSaving || !canSaveTask()"
           >
             <mat-icon *ngIf="isSaving">schedule</mat-icon>
-            {{ isSaving ? ('taskCreate.saving' | translate) : (isSubtaskCreation ? '保存' : ('taskCreate.createTask' | translate)) }}
+            {{ isSaving ? ('taskCreate.saving' | translate) : (isSubtaskCreation ? ('taskCreate.save' | translate) : ('taskCreate.createTask' | translate)) }}
           </button>
         </div>
       </form>
