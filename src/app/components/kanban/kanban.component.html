@@ -75,7 +75,7 @@
     [ngClass]="'status-' + status"
   >
     <div class="status-header">
-      <h3>{{ status }}</h3>
+      <h3>{{ getStatusDisplay(status) }}</h3>
       <span class="task-count">({{ filterByStatus(status).length }})</span>
     </div>
     <div class="task-list">
