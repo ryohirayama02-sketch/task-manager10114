@@ -476,6 +476,17 @@ export class KanbanComponent implements OnInit {
     return statusShortMap[status]?.[currentLanguage] || status.charAt(0);
   }
 
+  /** 優先度を表示（言語設定に応じて） */
+  getPriorityDisplay(priority: string): string {
+    const currentLanguage = this.languageService.getCurrentLanguage();
+    const priorityMap: Record<string, Record<'ja' | 'en', string>> = {
+      '高': { ja: '高', en: 'High' },
+      '中': { ja: '中', en: 'Medium' },
+      '低': { ja: '低', en: 'Low' },
+    };
+    return priorityMap[priority]?.[currentLanguage] || priority;
+  }
+
   /** タスクの担当者を表示（カンマ区切り対応） */
   getTaskAssigneeDisplay(task: Task): string {
     // assignedMembers がある場合はそれを使用
