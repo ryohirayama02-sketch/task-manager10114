@@ -408,6 +408,8 @@
         </mat-expansion-panel>
 
         <!-- 通知オフ期間設定 -->
+        <!-- 通知オフ期間機能を無効化（コードは残す） -->
+        <!--
         <mat-expansion-panel class="expansion-panel">
           <mat-expansion-panel-header>
             <mat-panel-title>
@@ -509,7 +511,6 @@
                 </mat-checkbox>
               </div>
 
-              <!-- 開始時間と終了時間が同じ場合の警告 -->
               <div
                 *ngIf="!isQuietHoursTimeValid()"
                 class="quiet-hours-validation-error"
@@ -520,6 +521,7 @@
             </div>
           </div>
         </mat-expansion-panel>
+        -->
       </mat-card-content>
 
       <mat-card-actions>
@@ -557,8 +559,7 @@
           mat-raised-button
           color="primary"
           (click)="saveNotificationSettings()"
-          [disabled]="isSaving || !isQuietHoursTimeValid()"
-          [matTooltip]="!isQuietHoursTimeValid() ? '開始時間と終了時間を同じにすることはできません' : ''"
+          [disabled]="isSaving"
         >
           <mat-icon>save</mat-icon>
           {{ (isSaving ? "settings.saving" : "settings.save") | translate }}

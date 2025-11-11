@@ -16,7 +16,8 @@ export class NotificationSchedulerService {
   private checkInterval: any;
   private isRunning = false;
   private readonly NOTIFICATION_QUEUE_COLLECTION = 'notificationQueue';
-  private lastQuietHoursState: boolean | null = null; // 前回のオフ期間状態
+  // 通知オフ期間機能を無効化（コードは残す）
+  // private lastQuietHoursState: boolean | null = null; // 前回のオフ期間状態
 
   constructor(
     private notificationService: NotificationService,
@@ -71,39 +72,44 @@ export class NotificationSchedulerService {
       // 現在の時刻をチェック
       const now = new Date();
       const currentTime = this.formatTime(now);
-      const currentDay = now.getDay(); // 0=日曜日, 6=土曜日
+      // 通知オフ期間機能を無効化（コードは残す）
+      // const currentDay = now.getDay(); // 0=日曜日, 6=土曜日
 
-      // オフ期間状態をチェック
-      const isCurrentlyInQuietHours = this.isInQuietHours(settings, currentTime, currentDay);
-      
-      // オフ期間終了を検知（前回オフ期間中 → 今回オフ期間外）
-      if (this.lastQuietHoursState === true && !isCurrentlyInQuietHours) {
-        console.log('🔔 オフ期間が終了しました。キューに保存された通知を送信します');
-        await this.processNotificationQueue(currentUser.uid, settings);
-      }
-      
-      // 前回の状態を更新
-      this.lastQuietHoursState = isCurrentlyInQuietHours;
-
-      // 通知オフ期間をチェック
-      if (isCurrentlyInQuietHours) {
-        console.log('通知オフ期間中のため、通知をキューに保存します');
-        // オフ期間中は通知をキューに保存
-        await this.checkAndQueueNotifications(settings, currentTime, currentUser.uid);
-        return;
-      }
+      // 通知オフ期間機能を無効化（コードは残す）
+      // // オフ期間状態をチェック
+      // const isCurrentlyInQuietHours = this.isInQuietHours(settings, currentTime, currentDay);
+      // 
+      // // オフ期間終了を検知（前回オフ期間中 → 今回オフ期間外）
+      // if (this.lastQuietHoursState === true && !isCurrentlyInQuietHours) {
+      //   console.log('🔔 オフ期間が終了しました。キューに保存された通知を送信します');
+      //   await this.processNotificationQueue(currentUser.uid, settings);
+      // }
+      // 
+      // // 前回の状態を更新
+      // this.lastQuietHoursState = isCurrentlyInQuietHours;
+      // 
+      // // 通知オフ期間をチェック
+      // if (isCurrentlyInQuietHours) {
+      //   console.log('通知オフ期間中のため、通知をキューに保存します');
+      //   // オフ期間中は通知をキューに保存
+      //   await this.checkAndQueueNotifications(settings, currentTime, currentUser.uid);
+      //   return;
+      // }
 
       // 各通知タイプをチェック
-      await this.checkDeadlineNotifications(settings, currentTime);
-      await this.checkOverdueNotifications(settings, currentTime);
-      await this.checkWorkTimeOverflow(settings, currentTime);
-      await this.checkDailyReminder(settings, currentTime);
+      // Cloud Functionのみを使用するため、フロントエンドのスケジューラーを無効化（コードは残す）
+      // await this.checkDeadlineNotifications(settings, currentTime);
+      // await this.checkOverdueNotifications(settings, currentTime);
+      // await this.checkWorkTimeOverflow(settings, currentTime);
+      // await this.checkDailyReminder(settings, currentTime);
     } catch (error) {
       console.error('通知チェックエラー:', error);
     }
   }
 
   /** 期限通知をチェック */
+  // Cloud Functionのみを使用するため、フロントエンドのスケジューラーを無効化（コードは残す）
+  /*
   private async checkDeadlineNotifications(
     settings: NotificationSettings,
     currentTime: string
@@ -140,8 +146,11 @@ export class NotificationSchedulerService {
       console.error('期限通知チェックエラー:', error);
     }
   }
+  */
 
   /** 期限切れ通知をチェック */
+  // Cloud Functionのみを使用するため、フロントエンドのスケジューラーを無効化（コードは残す）
+  /*
   private async checkOverdueNotifications(
     settings: NotificationSettings,
     currentTime: string
@@ -165,8 +174,11 @@ export class NotificationSchedulerService {
       console.error('期限切れ通知チェックエラー:', error);
     }
   }
+  */
 
   /** 作業時間オーバー通知をチェック */
+  // Cloud Functionのみを使用するため、フロントエンドのスケジューラーを無効化（コードは残す）
+  /*
   private async checkWorkTimeOverflow(
     settings: NotificationSettings,
     currentTime: string
@@ -191,8 +203,11 @@ export class NotificationSchedulerService {
       console.error('作業時間オーバー通知チェックエラー:', error);
     }
   }
+  */
 
   /** 今日のタスク通知をチェック */
+  // Cloud Functionのみを使用するため、フロントエンドのスケジューラーを無効化（コードは残す）
+  /*
   private async checkDailyReminder(
     settings: NotificationSettings,
     currentTime: string
@@ -225,6 +240,7 @@ export class NotificationSchedulerService {
       console.error('今日のタスク通知チェックエラー:', error);
     }
   }
+  */
 
   /** 作業時間オーバータスクをチェック */
   private async checkWorkTimeOverflowTasks(
@@ -289,6 +305,8 @@ export class NotificationSchedulerService {
   }
 
   /** オフ期間中に通知をキューに保存 */
+  // 通知オフ期間機能を無効化（コードは残す）
+  /*
   private async checkAndQueueNotifications(
     settings: NotificationSettings,
     currentTime: string,
@@ -296,58 +314,109 @@ export class NotificationSchedulerService {
   ): Promise<void> {
     const roomId = this.authService.getCurrentRoomId();
     if (!roomId) {
+      console.log('⚠️ ルームIDが取得できません。キュー保存をスキップします');
       return;
     }
 
+    console.log(`🔍 オフ期間中の通知チェック開始: 現在時刻=${currentTime}`);
+
     try {
+      let queuedCount = 0;
+      let notificationTimeMatched = false; // 通知が発生する時間だったか
+
       // 期限通知をチェックしてキューに保存
       if (settings.taskDeadlineNotifications.enabled) {
         if (currentTime === settings.taskDeadlineNotifications.timeOfDay) {
+          notificationTimeMatched = true;
+          console.log(`📅 期限通知の時間です: ${currentTime}`);
           const upcomingTasks = await this.notificationService.checkUpcomingDeadlines();
+          console.log(`📋 期限間近タスク数: ${upcomingTasks.length}件`);
           for (const task of upcomingTasks) {
             const daysUntilDeadline = this.calculateDaysUntilDeadline(task.dueDate);
             if (settings.taskDeadlineNotifications.daysBeforeDeadline.includes(daysUntilDeadline)) {
               await this.addToQueue(userId, roomId, task, 'deadline_approaching');
+              queuedCount++;
             }
           }
+        } else {
+          console.log(`⏰ 期限通知の時間ではありません（設定: ${settings.taskDeadlineNotifications.timeOfDay}, 現在: ${currentTime}）`);
         }
       }
 
       // 期限切れ通知をチェックしてキューに保存
       if (settings.taskDeadlineNotifications.enabled && currentTime === '09:00') {
+        notificationTimeMatched = true;
+        console.log('📅 期限切れ通知の時間です: 09:00');
         const overdueTasks = await this.notificationService.checkOverdueTasks();
+        console.log(`📋 期限切れタスク数: ${overdueTasks.length}件`);
         for (const task of overdueTasks) {
           await this.addToQueue(userId, roomId, task, 'deadline_passed');
+          queuedCount++;
         }
       }
 
       // 作業時間オーバー通知をチェックしてキューに保存
       if (settings.workTimeOverflowNotifications.enabled) {
         if (currentTime === settings.workTimeOverflowNotifications.timeOfDay) {
+          notificationTimeMatched = true;
+          console.log(`⏱️ 作業時間オーバー通知の時間です: ${currentTime}`);
           const overflowTasks = await this.checkWorkTimeOverflowTasks(settings);
+          console.log(`📋 作業時間オーバータスク数: ${overflowTasks.length}件`);
           for (const task of overflowTasks) {
             await this.addToQueue(userId, roomId, task, 'work_time_overflow');
+            queuedCount++;
           }
+        } else {
+          console.log(`⏰ 作業時間オーバー通知の時間ではありません（設定: ${settings.workTimeOverflowNotifications.timeOfDay}, 現在: ${currentTime}）`);
         }
       }
 
       // 今日のタスク通知をチェックしてキューに保存
       if (settings.dailyDeadlineReminder.enabled) {
         if (currentTime === settings.dailyDeadlineReminder.timeOfDay) {
+          notificationTimeMatched = true;
+          console.log(`📅 今日のタスク通知の時間です: ${currentTime}`);
+          console.log(`🔍 期限間近タスクを取得中...`);
           const upcomingTasks = await this.notificationService.checkUpcomingDeadlines();
+          console.log(`📋 期限間近タスク数: ${upcomingTasks.length}件`);
+          console.log(`🔍 期限切れタスクを取得中...`);
           const overdueTasks = await this.notificationService.checkOverdueTasks();
+          console.log(`📋 期限切れタスク数: ${overdueTasks.length}件`);
           const allTasks = [...upcomingTasks, ...overdueTasks];
+          console.log(`📋 今日のタスク数（合計）: ${allTasks.length}件`);
+          if (allTasks.length === 0) {
+            console.log(`⚠️ 対象タスクが0件です。理由を確認してください:`);
+            console.log(`  - タスクが存在しない可能性`);
+            console.log(`  - タスクに担当者が設定されていない可能性`);
+            console.log(`  - タスクのステータスが「未着手」または「作業中」でない可能性`);
+          }
           for (const task of allTasks) {
             await this.addToQueue(userId, roomId, task, 'daily_reminder');
+            queuedCount++;
           }
+        } else {
+          console.log(`⏰ 今日のタスク通知の時間ではありません（設定: ${settings.dailyDeadlineReminder.timeOfDay}, 現在: ${currentTime}）`);
         }
       }
+
+      if (queuedCount === 0) {
+        if (notificationTimeMatched) {
+          console.log('ℹ️ オフ期間中で通知が発生する時間でしたが、対象タスクが0件のため、キューに保存する通知はありませんでした');
+        } else {
+          console.log('ℹ️ オフ期間中ですが、通知が発生する時間ではないため、キューに保存する通知はありませんでした');
+        }
+      } else {
+        console.log(`✅ 合計 ${queuedCount} 件の通知をキューに保存しました`);
+      }
     } catch (error) {
-      console.error('通知キュー保存エラー:', error);
+      console.error('❌ 通知キュー保存エラー:', error);
     }
   }
+  */
 
   /** 通知をキューに追加 */
+  // 通知オフ期間機能を無効化（コードは残す）
+  /*
   private async addToQueue(
     userId: string,
     roomId: string,
@@ -355,6 +424,8 @@ export class NotificationSchedulerService {
     notificationType: NotificationQueue['notificationType']
   ): Promise<void> {
     try {
+      console.log(`📝 キューに追加を試みます: ${task.taskName} (${notificationType})`);
+      
       // 重複チェック（同じタスクの同じタイプの通知が24時間以内に既にキューにあるか）
       const queueRef = collection(this.firestore, this.NOTIFICATION_QUEUE_COLLECTION);
       const duplicateQuery = query(
@@ -367,7 +438,7 @@ export class NotificationSchedulerService {
       const duplicateSnapshot = await getDocs(duplicateQuery);
       
       if (!duplicateSnapshot.empty) {
-        console.log(`通知キューに既に存在するため、スキップします: ${task.taskId} (${notificationType})`);
+        console.log(`⚠️ 通知キューに既に存在するため、スキップします: ${task.taskId} (${notificationType})`);
         return;
       }
 
@@ -391,19 +462,31 @@ export class NotificationSchedulerService {
         sent: false,
       };
 
-      await addDoc(queueRef, queueItem);
-      console.log(`通知をキューに保存しました: ${task.taskName} (${notificationType})`);
+      const docRef = await addDoc(queueRef, queueItem);
+      console.log(`✅ 通知をキューに保存しました: ${task.taskName} (${notificationType}), キューID: ${docRef.id}`);
     } catch (error) {
-      console.error('キュー追加エラー:', error);
+      console.error('❌ キュー追加エラー:', error);
+      console.error('エラー詳細:', {
+        userId,
+        roomId,
+        taskId: task.taskId,
+        taskName: task.taskName,
+        notificationType,
+        error: error instanceof Error ? error.message : String(error)
+      });
     }
   }
+  */
 
   /** キューに保存された通知を処理して送信 */
+  // 通知オフ期間機能を無効化（コードは残す）
+  /*
   private async processNotificationQueue(
     userId: string,
     settings: NotificationSettings
   ): Promise<void> {
     try {
+      console.log(`🔍 キュー処理開始: userId=${userId}`);
       const queueRef = collection(this.firestore, this.NOTIFICATION_QUEUE_COLLECTION);
       const queueQuery = query(
         queueRef,
@@ -412,12 +495,25 @@ export class NotificationSchedulerService {
       );
       const snapshot = await getDocs(queueQuery);
 
+      console.log(`📊 キュー検索結果: ${snapshot.size}件の未送信通知が見つかりました`);
+
       if (snapshot.empty) {
-        console.log('送信待ちの通知キューはありません');
+        console.log('ℹ️ 送信待ちの通知キューはありません');
+        // デバッグ用: すべてのキューアイテムを確認
+        const allQueueQuery = query(queueRef, where('userId', '==', userId));
+        const allSnapshot = await getDocs(allQueueQuery);
+        console.log(`📋 ユーザーの全キューアイテム数: ${allSnapshot.size}件`);
+        if (allSnapshot.size > 0) {
+          console.log('📋 キューアイテム詳細:');
+          allSnapshot.docs.forEach((doc, index) => {
+            const data = doc.data();
+            console.log(`  ${index + 1}. ${data['taskName']} (${data['notificationType']}) - sent: ${data['sent']}, createdAt: ${data['createdAt']}`);
+          });
+        }
         return;
       }
 
-      console.log(`キューに保存された通知 ${snapshot.size} 件を処理します`);
+      console.log(`✅ キューに保存された通知 ${snapshot.size} 件を処理します`);
 
       const now = new Date();
       const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000); // 24時間前
@@ -463,8 +559,11 @@ export class NotificationSchedulerService {
       console.error('キュー処理エラー:', error);
     }
   }
+  */
 
   /** 通知オフ期間かチェック */
+  // 通知オフ期間機能を無効化（コードは残す）
+  /*
   private isInQuietHours(
     settings: NotificationSettings,
     currentTime: string,
@@ -494,6 +593,7 @@ export class NotificationSchedulerService {
       return currentTime >= startTime || currentTime <= endTime;
     }
   }
+  */
 
   /** 期限までの日数を計算 */
   private calculateDaysUntilDeadline(dueDate: string): number {

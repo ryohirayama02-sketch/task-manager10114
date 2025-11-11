@@ -106,8 +106,9 @@ export class SettingsComponent implements OnInit {
 
   // 時間入力用のオブジェクト
   taskDeadlineTime = { hour: '09', minute: '00' };
-  quietStartTime = { hour: '22', minute: '00' };
-  quietEndTime = { hour: '08', minute: '00' };
+  // 通知オフ期間機能を無効化（コードは残す）
+  // quietStartTime = { hour: '22', minute: '00' };
+  // quietEndTime = { hour: '08', minute: '00' };
   workTimeOverflowTime = { hour: '09', minute: '00' };
   dailyReminderTime = { hour: '09', minute: '00' };
 
@@ -166,31 +167,33 @@ export class SettingsComponent implements OnInit {
 
       if (loadedSettings) {
         this.notificationSettings = loadedSettings;
-        // quietHoursが存在しない場合は初期化
-        if (!this.notificationSettings.quietHours) {
-          this.notificationSettings.quietHours = {
-            enabled: false,
-            startTime: '22:00',
-            endTime: '08:00',
-            weekends: true,
-          };
-        }
-        // enabledがundefinedの場合はfalseに設定
-        if (this.notificationSettings.quietHours.enabled === undefined) {
-          this.notificationSettings.quietHours.enabled = false;
-        }
+        // 通知オフ期間機能を無効化（コードは残す）
+        // // quietHoursが存在しない場合は初期化
+        // if (!this.notificationSettings.quietHours) {
+        //   this.notificationSettings.quietHours = {
+        //     enabled: false,
+        //     startTime: '22:00',
+        //     endTime: '08:00',
+        //     weekends: true,
+        //   };
+        // }
+        // // enabledがundefinedの場合はfalseに設定
+        // if (this.notificationSettings.quietHours.enabled === undefined) {
+        //   this.notificationSettings.quietHours.enabled = false;
+        // }
 
         // 時間を{ hour, minute }形式に変換
         this.taskDeadlineTime = this.parseTimeString(
           this.notificationSettings.taskDeadlineNotifications.timeOfDay ||
             '09:00'
         );
-        this.quietStartTime = this.parseTimeString(
-          this.notificationSettings.quietHours.startTime || '22:00'
-        );
-        this.quietEndTime = this.parseTimeString(
-          this.notificationSettings.quietHours.endTime || '08:00'
-        );
+        // 通知オフ期間機能を無効化（コードは残す）
+        // this.quietStartTime = this.parseTimeString(
+        //   this.notificationSettings.quietHours.startTime || '22:00'
+        // );
+        // this.quietEndTime = this.parseTimeString(
+        //   this.notificationSettings.quietHours.endTime || '08:00'
+        // );
         this.workTimeOverflowTime = this.parseTimeString(
           this.notificationSettings.workTimeOverflowNotifications.timeOfDay ||
             '09:00'
@@ -200,18 +203,20 @@ export class SettingsComponent implements OnInit {
         );
 
         // デバッグ: 読み込んだ設定を確認
-        console.log('📋 通知設定を読み込みました:', {
-          quietHours: this.notificationSettings.quietHours,
-          quietHoursEnabled: this.notificationSettings.quietHours?.enabled,
-        });
+        // 通知オフ期間機能を無効化（コードは残す）
+        // console.log('📋 通知設定を読み込みました:', {
+        //   quietHours: this.notificationSettings.quietHours,
+        //   quietHoursEnabled: this.notificationSettings.quietHours?.enabled,
+        // });
       } else {
         // デフォルト設定を作成
         this.notificationSettings =
           this.notificationService.createDefaultNotificationSettings();
-        console.log('📋 デフォルト通知設定を作成:', {
-          quietHours: this.notificationSettings.quietHours,
-          quietHoursEnabled: this.notificationSettings.quietHours?.enabled,
-        });
+        // 通知オフ期間機能を無効化（コードは残す）
+        // console.log('📋 デフォルト通知設定を作成:', {
+        //   quietHours: this.notificationSettings.quietHours,
+        //   quietHoursEnabled: this.notificationSettings.quietHours?.enabled,
+        // });
       }
 
       // 選択された日数を設定
@@ -263,6 +268,8 @@ export class SettingsComponent implements OnInit {
   }
 
   /** 通知オフ期間のON/OFF変更時の処理 */
+  // 通知オフ期間機能を無効化（コードは残す）
+  /*
   onQuietHoursEnabledChange(event: any): void {
     // 値を明示的に設定
     this.notificationSettings.quietHours.enabled = event.checked;
@@ -271,6 +278,7 @@ export class SettingsComponent implements OnInit {
       quietHoursEnabled: this.notificationSettings.quietHours.enabled,
     });
   }
+  */
 
   /** 時間文字列（'HH:mm'）を{ hour, minute }形式に変換 */
   parseTimeString(timeString: string): { hour: string; minute: string } {
@@ -290,6 +298,8 @@ export class SettingsComponent implements OnInit {
   }
 
   /** 通知オフ期間の時間が有効かチェック（開始時間と終了時間が同じでないか） */
+  // 通知オフ期間機能を無効化（コードは残す）
+  /*
   isQuietHoursTimeValid(): boolean {
     if (!this.notificationSettings?.quietHours.enabled) {
       return true; // 通知オフ期間が無効な場合は常に有効
@@ -298,22 +308,24 @@ export class SettingsComponent implements OnInit {
     const endTime = this.formatTimeString(this.quietEndTime);
     return startTime !== endTime;
   }
+  */
 
   /** 通知設定を保存 */
   async saveNotificationSettings() {
     if (!this.notificationSettings) return;
 
-    // 通知オフ期間の時間バリデーション
-    if (!this.isQuietHoursTimeValid()) {
-      this.snackBar.open(
-        '開始時間と終了時間を同じにすることはできません',
-        this.getCloseLabel(),
-        {
-          duration: 5000,
-        }
-      );
-      return;
-    }
+    // 通知オフ期間機能を無効化（コードは残す）
+    // // 通知オフ期間の時間バリデーション
+    // if (!this.isQuietHoursTimeValid()) {
+    //   this.snackBar.open(
+    //     '開始時間と終了時間を同じにすることはできません',
+    //     this.getCloseLabel(),
+    //     {
+    //       duration: 5000,
+    //     }
+    //   );
+    //   return;
+    // }
 
     this.isSaving = true;
     try {
@@ -324,22 +336,24 @@ export class SettingsComponent implements OnInit {
       // 時間を文字列形式に変換して設定に反映
       this.notificationSettings.taskDeadlineNotifications.timeOfDay =
         this.formatTimeString(this.taskDeadlineTime);
-      this.notificationSettings.quietHours.startTime = this.formatTimeString(
-        this.quietStartTime
-      );
-      this.notificationSettings.quietHours.endTime = this.formatTimeString(
-        this.quietEndTime
-      );
+      // 通知オフ期間機能を無効化（コードは残す）
+      // this.notificationSettings.quietHours.startTime = this.formatTimeString(
+      //   this.quietStartTime
+      // );
+      // this.notificationSettings.quietHours.endTime = this.formatTimeString(
+      //   this.quietEndTime
+      // );
       this.notificationSettings.workTimeOverflowNotifications.timeOfDay =
         this.formatTimeString(this.workTimeOverflowTime);
       this.notificationSettings.dailyDeadlineReminder.timeOfDay =
         this.formatTimeString(this.dailyReminderTime);
 
       // デバッグ: 保存前の値を確認
-      console.log('💾 保存前の通知設定:', {
-        quietHours: this.notificationSettings.quietHours,
-        quietHoursEnabled: this.notificationSettings.quietHours?.enabled,
-      });
+      // 通知オフ期間機能を無効化（コードは残す）
+      // console.log('💾 保存前の通知設定:', {
+      //   quietHours: this.notificationSettings.quietHours,
+      //   quietHoursEnabled: this.notificationSettings.quietHours?.enabled,
+      // });
 
       await this.notificationService.saveNotificationSettings(
         this.notificationSettings

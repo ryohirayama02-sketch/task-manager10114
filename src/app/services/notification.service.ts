@@ -334,22 +334,31 @@ export class NotificationService {
   async checkUpcomingDeadlines(): Promise<TaskNotificationData[]> {
     try {
       const currentUser = this.authService.getCurrentUser();
-      if (!currentUser) return [];
+      if (!currentUser) {
+        console.log('⚠️ [checkUpcomingDeadlines] ユーザーが未ログイン');
+        return [];
+      }
       const roomId = this.authService.getCurrentRoomId();
       const roomDocId = this.authService.getCurrentRoomDocId();
       if (!roomId || !roomDocId) {
-        console.warn('ルーム情報が未設定のため期限チェックを実行できません');
+        console.warn('⚠️ [checkUpcomingDeadlines] ルーム情報が未設定のため期限チェックを実行できません');
         return [];
       }
+      console.log(`🔍 [checkUpcomingDeadlines] 開始: roomId=${roomId}, roomDocId=${roomDocId}`);
 
       const settings = await this.getNotificationSettings(currentUser.uid);
-      if (!settings?.taskDeadlineNotifications.enabled) return [];
+      if (!settings?.taskDeadlineNotifications.enabled) {
+        console.log('⚠️ [checkUpcomingDeadlines] 期限通知が無効');
+        return [];
+      }
+      console.log(`📋 [checkUpcomingDeadlines] 通知設定: daysBeforeDeadline=${settings.taskDeadlineNotifications.daysBeforeDeadline.join(',')}`);
 
       // メンバー一覧を取得（assignedMembersの確認用）
       const membersRef = collection(this.firestore, 'members');
       const membersSnapshot = await getDocs(
         query(membersRef, where('roomId', '==', roomId))
       );
+      console.log(`👥 [checkUpcomingDeadlines] メンバー数: ${membersSnapshot.size}人`);
       const memberEmailMap = new Map<string, string>(); // memberId -> email
       membersSnapshot.forEach((doc) => {
         const memberData = doc.data();
@@ -357,6 +366,7 @@ export class NotificationService {
           memberEmailMap.set(doc.id, memberData['email']);
         }
       });
+      console.log(`📧 [checkUpcomingDeadlines] メールアドレス取得済みメンバー数: ${memberEmailMap.size}人`);
 
       const today = new Date();
       const upcomingTasks: TaskNotificationData[] = [];
@@ -366,37 +376,65 @@ export class NotificationService {
         query(projectsRef, where('roomDocId', '==', roomDocId))
       );
       if (projectsSnapshot.empty) {
+        console.log(`⚠️ [checkUpcomingDeadlines] roomDocIdでプロジェクトが見つからないため、roomIdで再検索`);
         projectsSnapshot = await getDocs(
           query(projectsRef, where('roomId', '==', roomId))
         );
       }
+      console.log(`📁 [checkUpcomingDeadlines] プロジェクト数: ${projectsSnapshot.size}件`);
 
-      for (const daysBefore of settings.taskDeadlineNotifications
-        .daysBeforeDeadline) {
+      let totalTasksFound = 0;
+      let tasksFilteredByStatus = 0;
+      let tasksFilteredByNotification = 0;
+      let tasksFilteredByAssignee = 0;
+
+      // 今日が期日のタスクも含める（daysBefore=0として扱う）
+      const daysToCheck = [0, ...settings.taskDeadlineNotifications.daysBeforeDeadline];
+      
+      for (const daysBefore of daysToCheck) {
         const targetDate = new Date(today);
         targetDate.setDate(today.getDate() + daysBefore);
         const targetDateStr = targetDate.toISOString().split('T')[0];
+        const label = daysBefore === 0 ? '今日' : `${daysBefore}日後`;
+        console.log(`📅 [checkUpcomingDeadlines] ${label}のタスクを検索: ${targetDateStr}`);
 
         for (const projectDoc of projectsSnapshot.docs) {
           const projectId = projectDoc.id;
           const projectData = projectDoc.data();
+          const projectName = projectData['projectName'] || 'プロジェクト';
           const tasksRef = collection(
             this.firestore,
             `projects/${projectId}/tasks`
           );
+          
+          // まず、期限日でフィルタリング（ステータス条件なし）
+          const allTasksQuery = query(
+            tasksRef,
+            where('dueDate', '==', targetDateStr)
+          );
+          const allTasksSnapshot = await getDocs(allTasksQuery);
+          console.log(`  📋 [${projectName}] 期限日が${targetDateStr}のタスク数: ${allTasksSnapshot.size}件`);
+          totalTasksFound += allTasksSnapshot.size;
+
+          // ステータスでフィルタリング
           const q = query(
             tasksRef,
             where('dueDate', '==', targetDateStr),
             where('status', 'in', ['未着手', '作業中'])
           );
           const querySnapshot = await getDocs(q);
+          console.log(`  ✅ [${projectName}] ステータス「未着手」または「作業中」のタスク数: ${querySnapshot.size}件`);
+          tasksFilteredByStatus += querySnapshot.size;
 
           querySnapshot.forEach((doc) => {
             const taskData = doc.data();
+            const taskName = taskData['taskName'] || '（タスク名なし）';
 
             // 詳細設定のタスク期限ボタンがONになっているかチェック
             const detailSettings = taskData['detailSettings'];
             if (detailSettings?.notifications?.beforeDeadline === false) {
+              console.log(`  ⏭️ [${projectName}] タスク「${taskName}」: タスク期限通知がOFFのためスキップ`);
+              tasksFilteredByNotification++;
               return; // タスク期限通知がOFFの場合はスキップ
             }
             // beforeDeadlineがundefinedの場合はデフォルトでONとみなす
@@ -439,12 +477,17 @@ export class NotificationService {
               });
             }
 
-            // 担当者がいる場合のみタスクを追加
-            if (assigneeEmails.length > 0) {
+            // ログインユーザーが担当者に含まれているかチェック
+            const currentUserEmail = currentUser.email?.toLowerCase();
+            const isCurrentUserAssignee = currentUserEmail && assigneeEmails.some(email => email.toLowerCase() === currentUserEmail);
+            
+            // ログインユーザーが担当者に含まれている場合のみタスクを追加
+            if (isCurrentUserAssignee) {
+              console.log(`  ✅ [${projectName}] タスク「${taskName}」: ログインユーザーが担当者（${assigneeEmails.length}人中）→ 通知対象に追加`);
               upcomingTasks.push({
                 taskId: doc.id,
                 taskName: taskData['taskName'],
-                projectName: projectData['projectName'] || 'プロジェクト',
+                projectName: projectName,
                 assignee: taskData['assignee'] || '',
                 assigneeEmails: assigneeEmails,
                 dueDate: taskData['dueDate'],
@@ -452,33 +495,50 @@ export class NotificationService {
                 priority: taskData['priority'],
                 estimatedHours: taskData['estimatedHours'],
               });
+            } else {
+              if (assigneeEmails.length > 0) {
+                console.log(`  ⏭️ [${projectName}] タスク「${taskName}」: ログインユーザーが担当者に含まれていないためスキップ (担当者: ${assigneeEmails.join(', ')})`);
+              } else {
+                console.log(`  ⚠️ [${projectName}] タスク「${taskName}」: 担当者がいないためスキップ (assignee=${assignee}, assignedMembers=${assignedMembers.length}件, assigneeEmail=${assigneeEmail})`);
+              }
+              tasksFilteredByAssignee++;
             }
           });
         }
       }
 
+      console.log(`📊 [checkUpcomingDeadlines] 結果サマリー:`);
+      console.log(`  - 期限日一致タスク総数: ${totalTasksFound}件`);
+      console.log(`  - ステータス条件通過: ${tasksFilteredByStatus}件`);
+      console.log(`  - 通知設定OFFで除外: ${tasksFilteredByNotification}件`);
+      console.log(`  - 担当者なしで除外: ${tasksFilteredByAssignee}件`);
+      console.log(`  - 最終的な通知対象: ${upcomingTasks.length}件`);
+
       return upcomingTasks;
     } catch (error) {
-      console.error('期限チェックエラー:', error);
+      console.error('❌ [checkUpcomingDeadlines] 期限チェックエラー:', error);
       return [];
     }
   }
 
-  /** 🔹 期限切れタスクをチェック */
+  /** 🔹 期限切れタスクをチェック（今日が期日のタスクも含む） */
   async checkOverdueTasks(): Promise<TaskNotificationData[]> {
     try {
       const currentUser = this.authService.getCurrentUser();
-      if (!currentUser) return [];
+      if (!currentUser) {
+        console.log('⚠️ [checkOverdueTasks] ユーザーが未ログイン');
+        return [];
+      }
       const roomId = this.authService.getCurrentRoomId();
       const roomDocId = this.authService.getCurrentRoomDocId();
       if (!roomId || !roomDocId) {
-        console.warn(
-          'ルーム情報が未設定のため期限切れチェックを実行できません'
-        );
+        console.warn('⚠️ [checkOverdueTasks] ルーム情報が未設定のため期限切れチェックを実行できません');
         return [];
       }
+      console.log(`🔍 [checkOverdueTasks] 開始: roomId=${roomId}, roomDocId=${roomDocId}`);
 
       const today = new Date().toISOString().split('T')[0];
+      console.log(`📅 [checkOverdueTasks] 今日の日付: ${today}`);
       const overdueTasks: TaskNotificationData[] = [];
 
       // メンバー一覧を取得（assignedMembersの確認用）
@@ -486,6 +546,7 @@ export class NotificationService {
       const membersSnapshot = await getDocs(
         query(membersRef, where('roomId', '==', roomId))
       );
+      console.log(`👥 [checkOverdueTasks] メンバー数: ${membersSnapshot.size}人`);
       const memberEmailMap = new Map<string, string>(); // memberId -> email
       membersSnapshot.forEach((doc) => {
         const memberData = doc.data();
@@ -493,33 +554,56 @@ export class NotificationService {
           memberEmailMap.set(doc.id, memberData['email']);
         }
       });
+      console.log(`📧 [checkOverdueTasks] メールアドレス取得済みメンバー数: ${memberEmailMap.size}人`);
 
       const projectsRef = collection(this.firestore, 'projects');
       let projectsSnapshot = await getDocs(
         query(projectsRef, where('roomDocId', '==', roomDocId))
       );
       if (projectsSnapshot.empty) {
+        console.log(`⚠️ [checkOverdueTasks] roomDocIdでプロジェクトが見つからないため、roomIdで再検索`);
         projectsSnapshot = await getDocs(
           query(projectsRef, where('roomId', '==', roomId))
         );
       }
+      console.log(`📁 [checkOverdueTasks] プロジェクト数: ${projectsSnapshot.size}件`);
+
+      let totalTasksFound = 0;
+      let tasksFilteredByStatus = 0;
+      let tasksFilteredByAssignee = 0;
 
       for (const projectDoc of projectsSnapshot.docs) {
         const projectId = projectDoc.id;
         const projectData = projectDoc.data();
+        const projectName = projectData['projectName'] || 'プロジェクト';
         const tasksRef = collection(
           this.firestore,
           `projects/${projectId}/tasks`
         );
+        
+        // まず、期限切れまたは今日が期日のタスクでフィルタリング（ステータス条件なし）
+        // 今日が期日のタスクも含めるため、<= を使用
+        const allTasksQuery = query(
+          tasksRef,
+          where('dueDate', '<=', today)
+        );
+        const allTasksSnapshot = await getDocs(allTasksQuery);
+        console.log(`  📋 [${projectName}] 期限切れまたは今日が期日のタスク数: ${allTasksSnapshot.size}件`);
+        totalTasksFound += allTasksSnapshot.size;
+
+        // ステータスでフィルタリング（今日が期日のタスクも含む）
         const q = query(
           tasksRef,
-          where('dueDate', '<', today),
+          where('dueDate', '<=', today),
           where('status', 'in', ['未着手', '作業中'])
         );
         const querySnapshot = await getDocs(q);
+        console.log(`  ✅ [${projectName}] ステータス「未着手」または「作業中」のタスク数: ${querySnapshot.size}件`);
+        tasksFilteredByStatus += querySnapshot.size;
 
         querySnapshot.forEach((doc) => {
           const taskData = doc.data();
+          const taskName = taskData['taskName'] || '（タスク名なし）';
 
           // 担当者のメールアドレスを取得
           const assigneeEmail = taskData['assigneeEmail'];
@@ -559,12 +643,17 @@ export class NotificationService {
             });
           }
 
-          // 担当者がいる場合のみタスクを追加
-          if (assigneeEmails.length > 0) {
+          // ログインユーザーが担当者に含まれているかチェック
+          const currentUserEmail = currentUser.email?.toLowerCase();
+          const isCurrentUserAssignee = currentUserEmail && assigneeEmails.some(email => email.toLowerCase() === currentUserEmail);
+          
+          // ログインユーザーが担当者に含まれている場合のみタスクを追加
+          if (isCurrentUserAssignee) {
+            console.log(`  ✅ [${projectName}] タスク「${taskName}」: ログインユーザーが担当者（${assigneeEmails.length}人中）→ 通知対象に追加`);
             overdueTasks.push({
               taskId: doc.id,
               taskName: taskData['taskName'],
-              projectName: projectData['projectName'] || 'プロジェクト',
+              projectName: projectName,
               assignee: taskData['assignee'] || '',
               assigneeEmails: assigneeEmails,
               dueDate: taskData['dueDate'],
@@ -572,13 +661,26 @@ export class NotificationService {
               priority: taskData['priority'],
               estimatedHours: taskData['estimatedHours'],
             });
+          } else {
+            if (assigneeEmails.length > 0) {
+              console.log(`  ⏭️ [${projectName}] タスク「${taskName}」: ログインユーザーが担当者に含まれていないためスキップ (担当者: ${assigneeEmails.join(', ')})`);
+            } else {
+              console.log(`  ⚠️ [${projectName}] タスク「${taskName}」: 担当者がいないためスキップ (assignee=${assignee}, assignedMembers=${assignedMembers.length}件, assigneeEmail=${assigneeEmail})`);
+            }
+            tasksFilteredByAssignee++;
           }
         });
       }
 
+      console.log(`📊 [checkOverdueTasks] 結果サマリー:`);
+      console.log(`  - 期限切れタスク総数: ${totalTasksFound}件`);
+      console.log(`  - ステータス条件通過: ${tasksFilteredByStatus}件`);
+      console.log(`  - 担当者なしで除外: ${tasksFilteredByAssignee}件`);
+      console.log(`  - 最終的な通知対象: ${overdueTasks.length}件`);
+
       return overdueTasks;
     } catch (error) {
-      console.error('期限切れチェックエラー:', error);
+      console.error('❌ [checkOverdueTasks] 期限切れチェックエラー:', error);
       return [];
     }
   }

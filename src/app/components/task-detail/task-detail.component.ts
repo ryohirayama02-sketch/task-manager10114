@@ -771,6 +771,8 @@ export class TaskDetailComponent implements OnInit {
     } else {
       this.initializeDetailSettings(undefined);
     }
+    // 作業予定時間を読み込んで、estimatedHoursプロパティを初期化
+    this.rebuildTimePickers();
     this.isDetailSettingsOpen = true;
   }
 
@@ -1070,6 +1072,9 @@ export class TaskDetailComponent implements OnInit {
         this.detailSettings.notifications.beforeDeadline = true;
       }
 
+      // 作業予定時間を保存（estimatedHoursからdetailSettings.workTime.estimatedHoursに反映）
+      this.detailSettings.workTime.estimatedHours = `${this.estimatedHours.hour}:${this.estimatedHours.minute}`;
+
       // 通知先は常に担当者に設定（通知先フィールドは削除されたため）
       this.detailSettings.notifications.recipients = this.getDefaultNotificationRecipients();
 
@@ -1083,7 +1088,16 @@ export class TaskDetailComponent implements OnInit {
             ...this.task,
             detailSettings: { ...this.detailSettings },
           } as Task;
+          this.snackBar.open('詳細設定を保存しました', '閉じる', {
+            duration: 3000,
+          });
           this.closeDetailSettings();
+        })
+        .catch((error) => {
+          console.error('詳細設定の保存エラー:', error);
+          this.snackBar.open('詳細設定の保存に失敗しました', '閉じる', {
+            duration: 3000,
+          });
         });
     }
   }
@@ -1168,6 +1182,10 @@ export class TaskDetailComponent implements OnInit {
     if (this.detailSettings.notifications.beforeDeadline) {
       this.ensureNotificationRecipients();
     }
+    
+    // 作業予定時間を読み込んで、estimatedHoursプロパティを初期化
+    this.rebuildTimePickers();
+    
     void this.reopenParentTaskIfNeeded(this.childTasks);
   }
 
