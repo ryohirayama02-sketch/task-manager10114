@@ -181,4 +181,13 @@ export class MemberManagementComponent implements OnInit {
       day: '2-digit',
     });
   }
+
+  /**
+   * メールアドレスを30文字で切り詰める
+   */
+  truncateEmail(email: string | undefined): string {
+    if (!email) return '';
+    if (email.length <= 30) return email;
+    return email.substring(0, 30) + '...';
+  }
 }

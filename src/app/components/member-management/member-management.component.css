@@ -110,6 +110,7 @@
   gap: 8px;
   font-weight: 500;
   color: #333;
+  min-width: 0; /* オーバーフローを許可 */
 }
 
 .member-icon {
@@ -117,6 +118,15 @@
   font-size: 20px;
   width: 20px;
   height: 20px;
+  flex-shrink: 0; /* アイコンは縮小しない */
+}
+
+.name-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0; /* オーバーフローを許可 */
+  flex: 1; /* 残りのスペースを使用 */
 }
 
 .member-email {
@@ -124,6 +134,7 @@
   align-items: center;
   gap: 8px;
   color: #666;
+  min-width: 0; /* オーバーフローを許可 */
 }
 
 .email-icon {
@@ -131,6 +142,15 @@
   font-size: 18px;
   width: 18px;
   height: 18px;
+  flex-shrink: 0; /* アイコンは縮小しない */
+}
+
+.email-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0; /* オーバーフローを許可 */
+  flex: 1; /* 残りのスペースを使用 */
 }
 
 .action-buttons {
@@ -154,6 +174,33 @@
 .mat-mdc-cell {
   border-bottom: 1px solid #f0f0f0;
   padding: 16px 8px;
+  overflow: hidden; /* セル内のオーバーフローを防ぐ */
+}
+
+/* テーブル列の幅設定 */
+.mat-mdc-header-cell.mat-column-name,
+.mat-mdc-cell.mat-column-name {
+  min-width: 120px;
+  max-width: 200px;
+}
+
+.mat-mdc-header-cell.mat-column-email,
+.mat-mdc-cell.mat-column-email {
+  min-width: 150px;
+  max-width: 300px;
+}
+
+.mat-mdc-header-cell.mat-column-createdAt,
+.mat-mdc-cell.mat-column-createdAt {
+  min-width: 100px;
+  max-width: 120px;
+}
+
+.mat-mdc-header-cell.mat-column-actions,
+.mat-mdc-cell.mat-column-actions {
+  min-width: 100px;
+  max-width: 100px;
+  width: 100px;
 }
 
 .mat-mdc-row:hover {
@@ -161,6 +208,20 @@
 }
 
 /* レスポンシブデザイン */
+@media (max-width: 1024px) {
+  .mat-mdc-header-cell.mat-column-name,
+  .mat-mdc-cell.mat-column-name {
+    min-width: 100px;
+    max-width: 150px;
+  }
+
+  .mat-mdc-header-cell.mat-column-email,
+  .mat-mdc-cell.mat-column-email {
+    min-width: 120px;
+    max-width: 200px;
+  }
+}
+
 @media (max-width: 768px) {
   .member-management-container {
     padding: 16px;
@@ -190,6 +251,31 @@
     font-size: 14px;
   }
 
+  .mat-mdc-header-cell.mat-column-name,
+  .mat-mdc-cell.mat-column-name {
+    min-width: 80px;
+    max-width: 120px;
+  }
+
+  .mat-mdc-header-cell.mat-column-email,
+  .mat-mdc-cell.mat-column-email {
+    min-width: 100px;
+    max-width: 150px;
+  }
+
+  .mat-mdc-header-cell.mat-column-createdAt,
+  .mat-mdc-cell.mat-column-createdAt {
+    min-width: 80px;
+    max-width: 100px;
+  }
+
+  .mat-mdc-header-cell.mat-column-actions,
+  .mat-mdc-cell.mat-column-actions {
+    min-width: 80px;
+    max-width: 80px;
+    width: 80px;
+  }
+
   .action-buttons {
     flex-direction: column;
     gap: 2px;
@@ -198,5 +284,39 @@
   .action-buttons button {
     width: 32px;
     height: 32px;
+  }
+
+  .member-icon,
+  .email-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .mat-mdc-header-cell.mat-column-name,
+  .mat-mdc-cell.mat-column-name {
+    min-width: 60px;
+    max-width: 100px;
+  }
+
+  .mat-mdc-header-cell.mat-column-email,
+  .mat-mdc-cell.mat-column-email {
+    min-width: 80px;
+    max-width: 120px;
+  }
+
+  .mat-mdc-header-cell.mat-column-createdAt,
+  .mat-mdc-cell.mat-column-createdAt {
+    min-width: 60px;
+    max-width: 80px;
+  }
+
+  .mat-mdc-header-cell.mat-column-actions,
+  .mat-mdc-cell.mat-column-actions {
+    min-width: 60px;
+    max-width: 60px;
+    width: 60px;
   }
 }

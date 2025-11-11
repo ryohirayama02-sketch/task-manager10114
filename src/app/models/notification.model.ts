@@ -84,3 +84,23 @@ export interface TaskNotificationData {
   estimatedHours?: number;
   actualHours?: number;
 }
+
+/** 通知キュー（オフ期間中に送信予定だった通知を保存） */
+export interface NotificationQueue {
+  id?: string;
+  userId: string;
+  roomId: string;
+  taskId: string;
+  taskName: string;
+  projectName: string;
+  assignee: string;
+  assigneeEmails: string[];
+  dueDate: string;
+  status: string;
+  priority: string;
+  notificationType: 'deadline_approaching' | 'deadline_passed' | 'work_time_overflow' | 'daily_reminder';
+  scheduledTime: Date | string; // 本来送信予定だった時刻
+  createdAt: Date | string;
+  sent?: boolean; // 送信済みフラグ
+  sentAt?: Date | string; // 実際に送信した時刻
+}

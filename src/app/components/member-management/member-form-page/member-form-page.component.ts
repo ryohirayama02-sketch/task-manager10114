@@ -51,7 +51,7 @@ export class MemberFormPageComponent {
         Validators.maxLength(20),
         this.noCommaValidator
       ]],
-      email: ['', [Validators.required, Validators.email]],
+      email: ['', [Validators.required, Validators.email, Validators.maxLength(254)]],
     });
   }
 
@@ -171,7 +171,11 @@ export class MemberFormPageComponent {
       return '1文字以上入力してください';
     }
     if (field?.hasError('maxlength')) {
-      return '名前は20文字以内で入力してください';
+      if (fieldName === 'name') {
+        return '名前は20文字以内で入力してください';
+      } else if (fieldName === 'email') {
+        return 'メールアドレスは254文字以内で入力してください';
+      }
     }
     if (field?.hasError('noComma')) {
       return '名前に「,」（カンマ）は使用できません';

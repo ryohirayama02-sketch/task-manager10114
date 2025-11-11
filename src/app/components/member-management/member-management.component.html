@@ -44,9 +44,9 @@
           <ng-container matColumnDef="name">
             <th mat-header-cell *matHeaderCellDef>{{ 'memberManagement.name' | translate }}</th>
             <td mat-cell *matCellDef="let member">
-              <div class="member-name">
+              <div class="member-name" [title]="member.name">
                 <mat-icon class="member-icon">person</mat-icon>
-                {{ member.name }}
+                <span class="name-text">{{ member.name }}</span>
               </div>
             </td>
           </ng-container>
@@ -55,9 +55,9 @@
           <ng-container matColumnDef="email">
             <th mat-header-cell *matHeaderCellDef>{{ 'memberManagement.email' | translate }}</th>
             <td mat-cell *matCellDef="let member">
-              <div class="member-email">
+              <div class="member-email" [title]="member.email">
                 <mat-icon class="email-icon">email</mat-icon>
-                {{ member.email }}
+                <span class="email-text">{{ truncateEmail(member.email) }}</span>
               </div>
             </td>
           </ng-container>

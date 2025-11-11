@@ -214,115 +214,64 @@
           </div>
         </mat-expansion-panel>
 
-        <!-- 通知オフ期間設定 -->
+        <!-- 今日のタスク通知設定 -->
         <mat-expansion-panel class="expansion-panel">
           <mat-expansion-panel-header>
             <mat-panel-title>
-              <mat-icon>bedtime</mat-icon>
-              {{ "settings.quiet.title" | translate }}
+              <mat-icon>today</mat-icon>
+              {{ "settings.daily.title" | translate }}
             </mat-panel-title>
           </mat-expansion-panel-header>
 
-          <div class="quiet-hours-settings">
+          <div class="daily-reminder-settings">
             <div class="setting-row">
               <mat-slide-toggle
-                [checked]="notificationSettings.quietHours?.enabled ?? false"
-                (change)="onQuietHoursEnabledChange($event)"
+                [(ngModel)]="notificationSettings.dailyDeadlineReminder.enabled"
+                name="dailyReminderEnabled"
               >
-                {{ "settings.quiet.enable" | translate }}
+                {{ "settings.daily.enable" | translate }}
               </mat-slide-toggle>
             </div>
 
             <div
-              *ngIf="notificationSettings.quietHours.enabled"
-              class="quiet-hours-options"
+              *ngIf="notificationSettings.dailyDeadlineReminder.enabled"
+              class="daily-reminder-options"
             >
-              <div class="time-range">
-                <div class="time-picker">
-                  <label>{{
-                    "settings.quiet.start" | translate
-                  }}</label>
-                  <mat-form-field appearance="outline" class="time-field">
-                    <mat-label>{{ "taskDetail.hour" | translate }}</mat-label>
-                    <mat-select
-                      [(ngModel)]="quietStartTime.hour"
-                      name="startHour"
-                    >
-                      <mat-option
-                        *ngFor="let hour of hourOptions"
-                        [value]="hour.value"
-                      >
-                        {{ hour.label }}
-                      </mat-option>
-                    </mat-select>
-                  </mat-form-field>
-                  <span class="time-separator">:</span>
-                  <mat-form-field appearance="outline" class="time-field">
-                    <mat-label>{{ "taskDetail.minute" | translate }}</mat-label>
-                    <mat-select
-                      [(ngModel)]="quietStartTime.minute"
-                      name="startMinute"
-                    >
-                      <mat-option
-                        *ngFor="let minute of minuteOptions"
-                        [value]="minute.value"
-                      >
-                        {{ minute.label }}
-                      </mat-option>
-                    </mat-select>
-                  </mat-form-field>
-                </div>
-
-                <div class="time-picker">
-                  <label>{{ "settings.quiet.end" | translate }}</label>
-                  <mat-form-field appearance="outline" class="time-field">
-                    <mat-label>{{ "taskDetail.hour" | translate }}</mat-label>
-                    <mat-select
-                      [(ngModel)]="quietEndTime.hour"
-                      name="endHour"
-                    >
-                      <mat-option
-                        *ngFor="let hour of hourOptions"
-                        [value]="hour.value"
-                      >
-                        {{ hour.label }}
-                      </mat-option>
-                    </mat-select>
-                  </mat-form-field>
-                  <span class="time-separator">:</span>
-                  <mat-form-field appearance="outline" class="time-field">
-                    <mat-label>{{ "taskDetail.minute" | translate }}</mat-label>
-                    <mat-select
-                      [(ngModel)]="quietEndTime.minute"
-                      name="endMinute"
-                    >
-                      <mat-option
-                        *ngFor="let minute of minuteOptions"
-                        [value]="minute.value"
-                      >
-                        {{ minute.label }}
-                      </mat-option>
-                    </mat-select>
-                  </mat-form-field>
-                </div>
-              </div>
-
               <div class="setting-row">
-                <mat-checkbox
-                  [(ngModel)]="notificationSettings.quietHours.weekends"
-                  name="weekendsOff"
-                >
-                  {{ "settings.quiet.weekend" | translate }}
-                </mat-checkbox>
-              </div>
-
-              <!-- 開始時間と終了時間が同じ場合の警告 -->
-              <div
-                *ngIf="!isQuietHoursTimeValid()"
-                class="quiet-hours-validation-error"
-              >
-                <mat-icon>warning</mat-icon>
-                <span>開始時間と終了時間を同じにすることはできません</span>
+                <label>{{
+                  "settings.common.notifyTime" | translate
+                }}</label>
+                <div class="time-picker">
+                  <mat-form-field appearance="outline" class="time-field">
+                    <mat-label>{{ "taskDetail.hour" | translate }}</mat-label>
+                    <mat-select
+                      [(ngModel)]="dailyReminderTime.hour"
+                      name="dailyReminderHour"
+                    >
+                      <mat-option
+                        *ngFor="let hour of hourOptions"
+                        [value]="hour.value"
+                      >
+                        {{ hour.label }}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                  <span class="time-separator">:</span>
+                  <mat-form-field appearance="outline" class="time-field">
+                    <mat-label>{{ "taskDetail.minute" | translate }}</mat-label>
+                    <mat-select
+                      [(ngModel)]="dailyReminderTime.minute"
+                      name="dailyReminderMinute"
+                    >
+                      <mat-option
+                        *ngFor="let minute of minuteOptions"
+                        [value]="minute.value"
+                      >
+                        {{ minute.label }}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                </div>
               </div>
             </div>
           </div>
@@ -458,39 +407,39 @@
           </div>
         </mat-expansion-panel>
 
-        <!-- 今日のタスク通知設定 -->
+        <!-- 通知オフ期間設定 -->
         <mat-expansion-panel class="expansion-panel">
           <mat-expansion-panel-header>
             <mat-panel-title>
-              <mat-icon>today</mat-icon>
-              {{ "settings.daily.title" | translate }}
+              <mat-icon>bedtime</mat-icon>
+              {{ "settings.quiet.title" | translate }}
             </mat-panel-title>
           </mat-expansion-panel-header>
 
-          <div class="daily-reminder-settings">
+          <div class="quiet-hours-settings">
             <div class="setting-row">
               <mat-slide-toggle
-                [(ngModel)]="notificationSettings.dailyDeadlineReminder.enabled"
-                name="dailyReminderEnabled"
+                [checked]="notificationSettings.quietHours?.enabled ?? false"
+                (change)="onQuietHoursEnabledChange($event)"
               >
-                {{ "settings.daily.enable" | translate }}
+                {{ "settings.quiet.enable" | translate }}
               </mat-slide-toggle>
             </div>
 
             <div
-              *ngIf="notificationSettings.dailyDeadlineReminder.enabled"
-              class="daily-reminder-options"
+              *ngIf="notificationSettings.quietHours.enabled"
+              class="quiet-hours-options"
             >
-              <div class="setting-row">
-                <label>{{
-                  "settings.common.notifyTime" | translate
-                }}</label>
+              <div class="time-range">
                 <div class="time-picker">
+                  <label>{{
+                    "settings.quiet.start" | translate
+                  }}</label>
                   <mat-form-field appearance="outline" class="time-field">
                     <mat-label>{{ "taskDetail.hour" | translate }}</mat-label>
                     <mat-select
-                      [(ngModel)]="dailyReminderTime.hour"
-                      name="dailyReminderHour"
+                      [(ngModel)]="quietStartTime.hour"
+                      name="startHour"
                     >
                       <mat-option
                         *ngFor="let hour of hourOptions"
@@ -504,8 +453,8 @@
                   <mat-form-field appearance="outline" class="time-field">
                     <mat-label>{{ "taskDetail.minute" | translate }}</mat-label>
                     <mat-select
-                      [(ngModel)]="dailyReminderTime.minute"
-                      name="dailyReminderMinute"
+                      [(ngModel)]="quietStartTime.minute"
+                      name="startMinute"
                     >
                       <mat-option
                         *ngFor="let minute of minuteOptions"
@@ -516,6 +465,57 @@
                     </mat-select>
                   </mat-form-field>
                 </div>
+
+                <div class="time-picker">
+                  <label>{{ "settings.quiet.end" | translate }}</label>
+                  <mat-form-field appearance="outline" class="time-field">
+                    <mat-label>{{ "taskDetail.hour" | translate }}</mat-label>
+                    <mat-select
+                      [(ngModel)]="quietEndTime.hour"
+                      name="endHour"
+                    >
+                      <mat-option
+                        *ngFor="let hour of hourOptions"
+                        [value]="hour.value"
+                      >
+                        {{ hour.label }}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                  <span class="time-separator">:</span>
+                  <mat-form-field appearance="outline" class="time-field">
+                    <mat-label>{{ "taskDetail.minute" | translate }}</mat-label>
+                    <mat-select
+                      [(ngModel)]="quietEndTime.minute"
+                      name="endMinute"
+                    >
+                      <mat-option
+                        *ngFor="let minute of minuteOptions"
+                        [value]="minute.value"
+                      >
+                        {{ minute.label }}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+              </div>
+
+              <div class="setting-row">
+                <mat-checkbox
+                  [(ngModel)]="notificationSettings.quietHours.weekends"
+                  name="weekendsOff"
+                >
+                  {{ "settings.quiet.weekend" | translate }}
+                </mat-checkbox>
+              </div>
+
+              <!-- 開始時間と終了時間が同じ場合の警告 -->
+              <div
+                *ngIf="!isQuietHoursTimeValid()"
+                class="quiet-hours-validation-error"
+              >
+                <mat-icon>warning</mat-icon>
+                <span>開始時間と終了時間を同じにすることはできません</span>
               </div>
             </div>
           </div>

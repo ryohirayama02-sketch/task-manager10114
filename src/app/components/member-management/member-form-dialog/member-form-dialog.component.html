@@ -17,6 +17,7 @@
             maxlength="20"
           />
           <mat-icon matSuffix>person</mat-icon>
+          <mat-hint align="end">{{ (memberForm.get('name')?.value || '').length }}/20</mat-hint>
           <mat-error
             *ngIf="
               memberForm.get('name')?.invalid && memberForm.get('name')?.touched
@@ -34,8 +35,10 @@
             type="email"
             placeholder="例: tanaka@example.com"
             autocomplete="email"
+            maxlength="254"
           />
           <mat-icon matSuffix>email</mat-icon>
+          <mat-hint align="end">{{ (memberForm.get('email')?.value || '').length }}/254</mat-hint>
           <mat-error
             *ngIf="
               memberForm.get('email')?.invalid &&

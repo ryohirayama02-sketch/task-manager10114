@@ -5,7 +5,9 @@ import {
   NotificationSettings,
   TaskNotificationData,
   NotificationTemplate,
+  NotificationQueue,
 } from '../models/notification.model';
+import { Firestore, collection, addDoc, getDocs, query, where, updateDoc, doc, serverTimestamp, deleteDoc, FieldValue } from '@angular/fire/firestore';
 
 @Injectable({
   providedIn: 'root',
@@ -13,10 +15,13 @@ import {
 export class NotificationSchedulerService {
   private checkInterval: any;
   private isRunning = false;
+  private readonly NOTIFICATION_QUEUE_COLLECTION = 'notificationQueue';
+  private lastQuietHoursState: boolean | null = null; // 前回のオフ期間状態
 
   constructor(
     private notificationService: NotificationService,
-    private authService: AuthService
+    private authService: AuthService,
+    private firestore: Firestore
   ) {}
 
   /** 通知スケジューラーを開始 */
@@ -68,9 +73,23 @@ export class NotificationSchedulerService {
       const currentTime = this.formatTime(now);
       const currentDay = now.getDay(); // 0=日曜日, 6=土曜日
 
+      // オフ期間状態をチェック
+      const isCurrentlyInQuietHours = this.isInQuietHours(settings, currentTime, currentDay);
+      
+      // オフ期間終了を検知（前回オフ期間中 → 今回オフ期間外）
+      if (this.lastQuietHoursState === true && !isCurrentlyInQuietHours) {
+        console.log('🔔 オフ期間が終了しました。キューに保存された通知を送信します');
+        await this.processNotificationQueue(currentUser.uid, settings);
+      }
+      
+      // 前回の状態を更新
+      this.lastQuietHoursState = isCurrentlyInQuietHours;
+
       // 通知オフ期間をチェック
-      if (this.isInQuietHours(settings, currentTime, currentDay)) {
-        console.log('通知オフ期間中のため、通知をスキップします');
+      if (isCurrentlyInQuietHours) {
+        console.log('通知オフ期間中のため、通知をキューに保存します');
+        // オフ期間中は通知をキューに保存
+        await this.checkAndQueueNotifications(settings, currentTime, currentUser.uid);
         return;
       }
 
@@ -266,6 +285,182 @@ export class NotificationSchedulerService {
       }
     } catch (error) {
       console.error('通知送信エラー:', error);
+    }
+  }
+
+  /** オフ期間中に通知をキューに保存 */
+  private async checkAndQueueNotifications(
+    settings: NotificationSettings,
+    currentTime: string,
+    userId: string
+  ): Promise<void> {
+    const roomId = this.authService.getCurrentRoomId();
+    if (!roomId) {
+      return;
+    }
+
+    try {
+      // 期限通知をチェックしてキューに保存
+      if (settings.taskDeadlineNotifications.enabled) {
+        if (currentTime === settings.taskDeadlineNotifications.timeOfDay) {
+          const upcomingTasks = await this.notificationService.checkUpcomingDeadlines();
+          for (const task of upcomingTasks) {
+            const daysUntilDeadline = this.calculateDaysUntilDeadline(task.dueDate);
+            if (settings.taskDeadlineNotifications.daysBeforeDeadline.includes(daysUntilDeadline)) {
+              await this.addToQueue(userId, roomId, task, 'deadline_approaching');
+            }
+          }
+        }
+      }
+
+      // 期限切れ通知をチェックしてキューに保存
+      if (settings.taskDeadlineNotifications.enabled && currentTime === '09:00') {
+        const overdueTasks = await this.notificationService.checkOverdueTasks();
+        for (const task of overdueTasks) {
+          await this.addToQueue(userId, roomId, task, 'deadline_passed');
+        }
+      }
+
+      // 作業時間オーバー通知をチェックしてキューに保存
+      if (settings.workTimeOverflowNotifications.enabled) {
+        if (currentTime === settings.workTimeOverflowNotifications.timeOfDay) {
+          const overflowTasks = await this.checkWorkTimeOverflowTasks(settings);
+          for (const task of overflowTasks) {
+            await this.addToQueue(userId, roomId, task, 'work_time_overflow');
+          }
+        }
+      }
+
+      // 今日のタスク通知をチェックしてキューに保存
+      if (settings.dailyDeadlineReminder.enabled) {
+        if (currentTime === settings.dailyDeadlineReminder.timeOfDay) {
+          const upcomingTasks = await this.notificationService.checkUpcomingDeadlines();
+          const overdueTasks = await this.notificationService.checkOverdueTasks();
+          const allTasks = [...upcomingTasks, ...overdueTasks];
+          for (const task of allTasks) {
+            await this.addToQueue(userId, roomId, task, 'daily_reminder');
+          }
+        }
+      }
+    } catch (error) {
+      console.error('通知キュー保存エラー:', error);
+    }
+  }
+
+  /** 通知をキューに追加 */
+  private async addToQueue(
+    userId: string,
+    roomId: string,
+    task: TaskNotificationData,
+    notificationType: NotificationQueue['notificationType']
+  ): Promise<void> {
+    try {
+      // 重複チェック（同じタスクの同じタイプの通知が24時間以内に既にキューにあるか）
+      const queueRef = collection(this.firestore, this.NOTIFICATION_QUEUE_COLLECTION);
+      const duplicateQuery = query(
+        queueRef,
+        where('userId', '==', userId),
+        where('taskId', '==', task.taskId),
+        where('notificationType', '==', notificationType),
+        where('sent', '==', false)
+      );
+      const duplicateSnapshot = await getDocs(duplicateQuery);
+      
+      if (!duplicateSnapshot.empty) {
+        console.log(`通知キューに既に存在するため、スキップします: ${task.taskId} (${notificationType})`);
+        return;
+      }
+
+      const queueItem: Omit<NotificationQueue, 'id' | 'scheduledTime' | 'createdAt'> & {
+        scheduledTime: FieldValue;
+        createdAt: FieldValue;
+      } = {
+        userId,
+        roomId,
+        taskId: task.taskId,
+        taskName: task.taskName,
+        projectName: task.projectName,
+        assignee: task.assignee,
+        assigneeEmails: task.assigneeEmails || [],
+        dueDate: task.dueDate,
+        status: task.status,
+        priority: task.priority,
+        notificationType,
+        scheduledTime: serverTimestamp(),
+        createdAt: serverTimestamp(),
+        sent: false,
+      };
+
+      await addDoc(queueRef, queueItem);
+      console.log(`通知をキューに保存しました: ${task.taskName} (${notificationType})`);
+    } catch (error) {
+      console.error('キュー追加エラー:', error);
+    }
+  }
+
+  /** キューに保存された通知を処理して送信 */
+  private async processNotificationQueue(
+    userId: string,
+    settings: NotificationSettings
+  ): Promise<void> {
+    try {
+      const queueRef = collection(this.firestore, this.NOTIFICATION_QUEUE_COLLECTION);
+      const queueQuery = query(
+        queueRef,
+        where('userId', '==', userId),
+        where('sent', '==', false)
+      );
+      const snapshot = await getDocs(queueQuery);
+
+      if (snapshot.empty) {
+        console.log('送信待ちの通知キューはありません');
+        return;
+      }
+
+      console.log(`キューに保存された通知 ${snapshot.size} 件を処理します`);
+
+      const now = new Date();
+      const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000); // 24時間前
+
+      for (const docSnapshot of snapshot.docs) {
+        const queueItem = docSnapshot.data() as NotificationQueue;
+        
+        // 24時間以上前の通知は削除（古すぎる通知は送信しない）
+        const scheduledTime = queueItem.scheduledTime instanceof Date 
+          ? queueItem.scheduledTime 
+          : new Date(queueItem.scheduledTime);
+        
+        if (scheduledTime < oneDayAgo) {
+          console.log(`24時間以上前の通知のため削除します: ${queueItem.taskName}`);
+          await deleteDoc(doc(this.firestore, `${this.NOTIFICATION_QUEUE_COLLECTION}/${docSnapshot.id}`));
+          continue;
+        }
+
+        // タスク通知データに変換
+        const taskData: TaskNotificationData = {
+          taskId: queueItem.taskId,
+          taskName: queueItem.taskName,
+          projectName: queueItem.projectName,
+          assignee: queueItem.assignee,
+          assigneeEmails: queueItem.assigneeEmails,
+          dueDate: queueItem.dueDate,
+          status: queueItem.status,
+          priority: queueItem.priority,
+        };
+
+        // 通知を送信
+        await this.sendTaskNotification(settings, taskData, queueItem.notificationType);
+
+        // キューアイテムを送信済みにマーク
+        await updateDoc(doc(this.firestore, `${this.NOTIFICATION_QUEUE_COLLECTION}/${docSnapshot.id}`), {
+          sent: true,
+          sentAt: serverTimestamp(),
+        });
+
+        console.log(`キューから通知を送信しました: ${queueItem.taskName} (${queueItem.notificationType})`);
+      }
+    } catch (error) {
+      console.error('キュー処理エラー:', error);
     }
   }
 
