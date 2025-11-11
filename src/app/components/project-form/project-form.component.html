@@ -12,7 +12,7 @@
       <form [formGroup]="projectForm" (ngSubmit)="onSubmit()">
         <!-- プロジェクト名 -->
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>{{ "projectForm.projectName" | translate }}</mat-label>
+          <mat-label>{{ "projectForm.projectName" | translate }} * <span class="required-hint">（入力必須）</span></mat-label>
           <input
             matInput
             formControlName="projectName"
@@ -50,7 +50,7 @@
           <div class="date-field half-width">
             <label for="startDate">{{
               "projectForm.startDate" | translate
-            }}</label>
+            }} * <span class="required-hint">（入力必須）</span></label>
             <div class="date-input-wrapper">
               <input
                 id="startDate"
@@ -59,13 +59,14 @@
                 placeholder="開始日を選択"
                 class="date-input"
                 max="9999-12-31"
+                required
               />
               <mat-icon class="date-icon">event</mat-icon>
             </div>
           </div>
 
           <div class="date-field half-width">
-            <label for="endDate">{{ "projectForm.endDate" | translate }}</label>
+            <label for="endDate">{{ "projectForm.endDate" | translate }} * <span class="required-hint">（入力必須）</span></label>
             <div class="date-input-wrapper">
               <input
                 id="endDate"
@@ -75,6 +76,7 @@
                 placeholder="終了日を選択"
                 class="date-input"
                 max="9999-12-31"
+                required
               />
               <mat-icon class="date-icon">event</mat-icon>
             </div>
@@ -84,7 +86,7 @@
         <!-- 責任者選択 -->
         <div class="member-selection responsible-selection">
           <div class="member-selection-header">
-            <h3>{{ "projectForm.responsible" | translate }}</h3>
+            <h3>{{ "projectForm.responsible" | translate }} * <span class="required-hint">（入力必須）</span></h3>
           </div>
 
           <!-- ローディング表示 -->
@@ -104,6 +106,7 @@
                 multiple
                 (selectionChange)="onResponsibleSelectionChange($event.value)"
                 placeholder="責任者を選択してください（複数選択可）"
+                required
               >
                 <mat-option *ngFor="let member of members" [value]="member.id">
                   {{ member.name }}
@@ -156,7 +159,7 @@
         <div class="member-selection">
           <div class="member-selection-header">
             <h3>
-              {{ "projectForm.projectMembers" | translate }}
+              {{ "projectForm.projectMembers" | translate }} * <span class="required-hint">（入力必須）</span>
               <span class="member-count" *ngIf="selectedMembers.length > 0">
                 ({{ selectedMembers.length }}人選択中)
               </span>
@@ -180,6 +183,7 @@
                 multiple
                 (selectionChange)="onMemberSelectionChange($event.value)"
                 placeholder="メンバーを選択してください（複数選択可）"
+                required
               >
                 <mat-option *ngFor="let member of members" [value]="member.id">
                   {{ member.name }}
@@ -456,7 +460,7 @@
         mat-raised-button
         color="primary"
         (click)="onSubmit()"
-        [disabled]="projectForm.invalid || isSubmitting || isUploading || projectCountLimitReached"
+        [disabled]="projectForm.invalid || isSubmitting || isUploading || projectCountLimitReached || !projectForm.get('startDate')?.value || !projectForm.get('endDate')?.value || selectedResponsibles.length === 0 || selectedMembers.length === 0"
         [matTooltip]="projectCountLimitMessage"
       >
         <mat-icon *ngIf="!isSubmitting">add</mat-icon>

@@ -98,8 +98,8 @@ export class ProjectFormComponent implements OnInit {
     this.projectForm = this.fb.group({
       projectName: ['', [Validators.required, Validators.minLength(1), Validators.maxLength(30)]],
       overview: [''],
-      startDate: [''],
-      endDate: [''],
+      startDate: ['', Validators.required],
+      endDate: ['', Validators.required],
       responsible: [[]],
       members: [[]],
       milestones: this.fb.array([]),
@@ -332,6 +332,30 @@ export class ProjectFormComponent implements OnInit {
    */
   async onSubmit(): Promise<void> {
     if (this.isSubmitting || this.isUploading) {
+      return;
+    }
+
+    // 開始日と終了日の必須チェック
+    if (!this.projectForm.get('startDate')?.value || !this.projectForm.get('endDate')?.value) {
+      this.snackBar.open('開始日と終了日は必須です', '閉じる', {
+        duration: 3000,
+      });
+      return;
+    }
+
+    // 責任者の必須チェック
+    if (!this.selectedResponsibles || this.selectedResponsibles.length === 0) {
+      this.snackBar.open('責任者は1人以上選択してください', '閉じる', {
+        duration: 3000,
+      });
+      return;
+    }
+
+    // プロジェクトメンバーの必須チェック
+    if (!this.selectedMembers || this.selectedMembers.length === 0) {
+      this.snackBar.open('プロジェクトメンバーは1人以上選択してください', '閉じる', {
+        duration: 3000,
+      });
       return;
     }
 
