@@ -355,7 +355,7 @@ export class LanguageService {
     'progress.member.period': { ja: '期間', en: 'Period' },
     // 素早いタスク
     'quickTasks.title': { ja: 'すぐやるタスク', en: 'Quick Tasks' },
-    'quickTasks.dueDate': { ja: '期日設定', en: 'Due Date Setting' },
+    'quickTasks.dueDate': { ja: '期間設定', en: 'Period Setting' },
     'quickTasks.days': { ja: '{days}日以内', en: 'Within {days} days' },
     'quickTasks.loading': {
       ja: 'タスクを読み込み中...',
