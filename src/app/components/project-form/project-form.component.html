@@ -361,7 +361,7 @@
                 [(ngModel)]="linkUrl"
                 [ngModelOptions]="{standalone: true}"
                 name="attachmentUrl"
-                placeholder="https://example.com/document.pdf"
+                [placeholder]="'projectForm.attachmentUrlPlaceholder' | translate"
                 (keyup.enter)="addLinkAttachment()"
               />
             </mat-form-field>

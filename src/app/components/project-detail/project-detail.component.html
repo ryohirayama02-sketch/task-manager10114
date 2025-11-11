@@ -315,7 +315,7 @@
                     type="text"
                     [(ngModel)]="milestone.name"
                     name="inlineMilestoneName{{ i }}"
-                    [placeholder]="('projectDetail.milestoneName' | translate) + '（30文字以内）'"
+                    [placeholder]="('projectDetail.milestoneName' | translate) + ' ' + ('projectDetail.milestoneNamePlaceholder' | translate)"
                     maxlength="30"
                   />
                   <mat-hint align="end">{{ (milestone.name || '').length }}/30</mat-hint>
@@ -380,9 +380,9 @@
         class="theme-color-option no-color-option"
         (click)="clearThemeColor()"
         [class.selected]="isThemeColorSelected(null)"
-        matTooltip="色を選択しない"
+        [matTooltip]="'projectDetail.tooltip.noColor' | translate"
         [attr.aria-pressed]="isThemeColorSelected(null)"
-        aria-label="テーマ色 なし"
+        [attr.aria-label]="'projectDetail.ariaLabel.themeColorNone' | translate"
       >
         <span>{{ "projectForm.noColor" | translate }}</span>
       </button>
@@ -395,7 +395,7 @@
         (click)="selectThemeColor(color)"
         [matTooltip]="getThemeColorLabel(color)"
         [attr.aria-pressed]="isThemeColorSelected(color)"
-        [attr.aria-label]="'テーマ色 ' + getThemeColorLabel(color)"
+        [attr.aria-label]="('projectDetail.ariaLabel.themeColor' | translate).replace('{colorName}', getThemeColorLabel(color))"
       >
         <mat-icon *ngIf="isThemeColorSelected(color)">check</mat-icon>
       </button>
