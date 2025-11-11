@@ -109,7 +109,7 @@ export class SettingsComponent implements OnInit {
   workTimeOverflowTime = { hour: '09', minute: '00' };
   dailyReminderTime = { hour: '09', minute: '00' };
 
-  workTimeOptions = [20, 30, 40, 50, 60, 80];
+  workTimeOptions: number[] = Array.from({ length: 31 }, (_, i) => i * 10); // 0~300時間を10時間刻み
   checkPeriodOptions = [1, 3, 7, 14, 30];
 
   constructor(

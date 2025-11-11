@@ -113,11 +113,11 @@ export class LanguageService {
       en: 'Mute notifications on weekends',
     },
     'settings.worktime.title': {
-      ja: '作業時間オーバー通知',
+      ja: '作業予定時間オーバー通知',
       en: 'Work Time Overrun Notifications',
     },
     'settings.worktime.enable': {
-      ja: '作業時間オーバー通知を有効にする',
+      ja: '作業予定時間オーバー通知を有効にする',
       en: 'Enable work time overrun notifications',
     },
     'settings.worktime.period': { ja: 'チェック期間', en: 'Monitoring Period' },
