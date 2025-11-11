@@ -111,28 +111,31 @@ export class TaskCreatePageComponent implements OnInit {
         status: duplicateData.status || '未着手',
         priority: duplicateData.priority || '中',
         assignee: duplicateData.assignee || '',
-        assignedMembers: Array.isArray(duplicateData.assignedMembers) 
-          ? [...duplicateData.assignedMembers] 
+        assignedMembers: Array.isArray(duplicateData.assignedMembers)
+          ? [...duplicateData.assignedMembers]
           : [],
         startDate: duplicateData.startDate || '',
         dueDate: duplicateData.dueDate || '',
-        tags: Array.isArray(duplicateData.tags) 
-          ? [...duplicateData.tags] 
-          : duplicateData.tags 
-            ? [duplicateData.tags] 
-            : [],
+        tags: Array.isArray(duplicateData.tags)
+          ? [...duplicateData.tags]
+          : duplicateData.tags
+          ? [duplicateData.tags]
+          : [],
         description: duplicateData.description || '',
         calendarSyncEnabled: duplicateData.calendarSyncEnabled ?? false,
         attachments: [], // 複製時は添付ファイルは含めない
-        urls: Array.isArray(duplicateData.urls) 
-          ? [...duplicateData.urls] 
-          : duplicateData.urls 
-            ? [duplicateData.urls] 
-            : [],
+        urls: Array.isArray(duplicateData.urls)
+          ? [...duplicateData.urls]
+          : duplicateData.urls
+          ? [duplicateData.urls]
+          : [],
       };
 
       // assignedMembersがある場合は、selectedMemberIdsに設定
-      if (Array.isArray(duplicateData.assignedMembers) && duplicateData.assignedMembers.length > 0) {
+      if (
+        Array.isArray(duplicateData.assignedMembers) &&
+        duplicateData.assignedMembers.length > 0
+      ) {
         this.selectedMemberIds = [...duplicateData.assignedMembers];
       }
 
@@ -145,11 +148,13 @@ export class TaskCreatePageComponent implements OnInit {
 
     // プロジェクトのテーマ色を取得
     if (this.projectId) {
-      this.projectService.getProjectById(this.projectId).subscribe((project) => {
-        if (project) {
-          this.projectThemeColor = resolveProjectThemeColor(project);
-        }
-      });
+      this.projectService
+        .getProjectById(this.projectId)
+        .subscribe((project) => {
+          if (project) {
+            this.projectThemeColor = resolveProjectThemeColor(project);
+          }
+        });
     }
 
     // Check for parentTaskId query parameter
@@ -157,37 +162,41 @@ export class TaskCreatePageComponent implements OnInit {
       if (params['parentTaskId']) {
         this.parentTaskId = params['parentTaskId'];
         this.isSubtaskCreation = true;
-        
+
         // Fetch parent task information
         if (this.projectId && this.parentTaskId) {
-          this.projectService.getTask(this.projectId, this.parentTaskId).subscribe({
-            next: (task) => {
-              this.parentTaskName = task.taskName || '';
-              // projectName already set from navState, but can be overridden from task if needed
-              if (!this.projectName && task.projectName) {
-                this.projectName = task.projectName;
-              }
-            },
-            error: (error) => {
-              console.error('親タスク情報の取得に失敗しました:', error);
-            }
-          });
+          this.projectService
+            .getTask(this.projectId, this.parentTaskId)
+            .subscribe({
+              next: (task) => {
+                this.parentTaskName = task.taskName || '';
+                // projectName already set from navState, but can be overridden from task if needed
+                if (!this.projectName && task.projectName) {
+                  this.projectName = task.projectName;
+                }
+              },
+              error: (error) => {
+                console.error('親タスク情報の取得に失敗しました:', error);
+              },
+            });
         }
       } else if (this.parentTaskId && this.isSubtaskCreation) {
         // duplicateDataからparentTaskIdが設定された場合も、親タスク情報を取得
         if (this.projectId && this.parentTaskId) {
-          this.projectService.getTask(this.projectId, this.parentTaskId).subscribe({
-            next: (task) => {
-              this.parentTaskName = task.taskName || '';
-              // projectName already set from navState, but can be overridden from task if needed
-              if (!this.projectName && task.projectName) {
-                this.projectName = task.projectName;
-              }
-            },
-            error: (error) => {
-              console.error('親タスク情報の取得に失敗しました:', error);
-            }
-          });
+          this.projectService
+            .getTask(this.projectId, this.parentTaskId)
+            .subscribe({
+              next: (task) => {
+                this.parentTaskName = task.taskName || '';
+                // projectName already set from navState, but can be overridden from task if needed
+                if (!this.projectName && task.projectName) {
+                  this.projectName = task.projectName;
+                }
+              },
+              error: (error) => {
+                console.error('親タスク情報の取得に失敗しました:', error);
+              },
+            });
         }
       }
     });
@@ -220,58 +229,97 @@ export class TaskCreatePageComponent implements OnInit {
       next: (members) => {
         this.members = members;
         console.log('🔍 [TaskCreate] 全メンバー数:', members.length, '件');
-        console.log('🔍 [TaskCreate] 全メンバー一覧:', members.map(m => ({ id: m.id, name: m.name })));
-        
+        console.log(
+          '🔍 [TaskCreate] 全メンバー一覧:',
+          members.map((m) => ({ id: m.id, name: m.name }))
+        );
+
         // プロジェクト情報を取得して、プロジェクトのメンバーのみをフィルタリング
         if (this.projectId) {
           console.log('🔍 [TaskCreate] プロジェクトID:', this.projectId);
           this.projectService.getProjectById(this.projectId).subscribe({
             next: (project) => {
               console.log('🔍 [TaskCreate] プロジェクト情報:', project);
-              console.log('🔍 [TaskCreate] プロジェクトのmembersフィールド:', project?.members, '型:', typeof project?.members);
-              
+              console.log(
+                '🔍 [TaskCreate] プロジェクトのmembersフィールド:',
+                project?.members,
+                '型:',
+                typeof project?.members
+              );
+
               // メンバーフィールドを正規化
-              const membersString = this.normalizeMembersField(project?.members);
-              console.log('🔍 [TaskCreate] 正規化後のmembers文字列:', membersString);
-              
+              const membersString = this.normalizeMembersField(
+                project?.members
+              );
+              console.log(
+                '🔍 [TaskCreate] 正規化後のmembers文字列:',
+                membersString
+              );
+
               if (membersString && membersString.trim().length > 0) {
                 // プロジェクトのmembersフィールドはメンバー名のカンマ区切り文字列
                 const projectMemberNames = membersString
                   .split(',')
                   .map((name) => name.trim())
                   .filter((name) => name.length > 0);
-                
-                console.log('🔍 [TaskCreate] プロジェクトのメンバー名（カンマ区切り）:', projectMemberNames);
-                
+
+                console.log(
+                  '🔍 [TaskCreate] プロジェクトのメンバー名（カンマ区切り）:',
+                  projectMemberNames
+                );
+
                 // プロジェクトのメンバー名に一致するメンバーのみをフィルタリング
                 this.projectMembers = members.filter((member) => {
                   const memberName = member.name || '';
                   const isIncluded = projectMemberNames.includes(memberName);
                   if (isIncluded) {
-                    console.log('🔍 [TaskCreate] マッチしたメンバー:', memberName, 'ID:', member.id);
+                    console.log(
+                      '🔍 [TaskCreate] マッチしたメンバー:',
+                      memberName,
+                      'ID:',
+                      member.id
+                    );
                   }
                   return isIncluded;
                 });
-                
-                console.log('🔍 [TaskCreate] フィルタリング後のプロジェクトメンバー数:', this.projectMembers.length, '件');
-                console.log('🔍 [TaskCreate] フィルタリング後のプロジェクトメンバー:', this.projectMembers.map(m => ({ id: m.id, name: m.name })));
-                
+
+                console.log(
+                  '🔍 [TaskCreate] フィルタリング後のプロジェクトメンバー数:',
+                  this.projectMembers.length,
+                  '件'
+                );
+                console.log(
+                  '🔍 [TaskCreate] フィルタリング後のプロジェクトメンバー:',
+                  this.projectMembers.map((m) => ({ id: m.id, name: m.name }))
+                );
+
                 // マッチしないメンバー名を確認
                 const unmatchedNames = projectMemberNames.filter(
-                  name => !members.some(m => m.name === name)
+                  (name) => !members.some((m) => m.name === name)
                 );
                 if (unmatchedNames.length > 0) {
-                  console.warn('🔍 [TaskCreate] マッチしないメンバー名（メンバー管理に存在しない）:', unmatchedNames);
+                  console.warn(
+                    '🔍 [TaskCreate] マッチしないメンバー名（メンバー管理に存在しない）:',
+                    unmatchedNames
+                  );
                 }
               } else {
-                console.log('🔍 [TaskCreate] プロジェクトのメンバーが設定されていないか、空文字列です');
-                console.log('🔍 [TaskCreate] project.members:', project?.members);
+                console.log(
+                  '🔍 [TaskCreate] プロジェクトのメンバーが設定されていないか、空文字列です'
+                );
+                console.log(
+                  '🔍 [TaskCreate] project.members:',
+                  project?.members
+                );
                 // プロジェクトのメンバーが設定されていない場合は全メンバーを表示
                 this.projectMembers = members;
               }
             },
             error: (error) => {
-              console.error('🔍 [TaskCreate] プロジェクト情報の取得エラー:', error);
+              console.error(
+                '🔍 [TaskCreate] プロジェクト情報の取得エラー:',
+                error
+              );
               // エラー時は全メンバーを表示
               this.projectMembers = members;
             },
@@ -292,10 +340,12 @@ export class TaskCreatePageComponent implements OnInit {
     this.selectedMemberIds = memberIds;
     // assignedMembers（ID配列）を設定
     this.taskForm.assignedMembers = memberIds || [];
-    
+
     // 後方互換性のため、最初のメンバーを assignee にも設定
     if (memberIds && memberIds.length > 0) {
-      const firstMember = this.projectMembers.find((m) => m.id === memberIds[0]);
+      const firstMember = this.projectMembers.find(
+        (m) => m.id === memberIds[0]
+      );
       if (firstMember) {
         this.taskForm.assignee = firstMember.name;
       }
@@ -349,7 +399,10 @@ export class TaskCreatePageComponent implements OnInit {
     if (url && url.trim()) {
       const trimmedUrl = url.trim();
       // URLのバリデーション：http/httpsで始まるかチェック
-      if (!trimmedUrl.startsWith('http://') && !trimmedUrl.startsWith('https://')) {
+      if (
+        !trimmedUrl.startsWith('http://') &&
+        !trimmedUrl.startsWith('https://')
+      ) {
         this.snackBar.open(
           'URLはhttp://またはhttps://で始まる必要があります',
           '閉じる',
@@ -415,7 +468,9 @@ export class TaskCreatePageComponent implements OnInit {
         }
       } else {
         // 親タスクの場合
-        const parentTaskCount = await this.taskService.getParentTaskCount(this.projectId);
+        const parentTaskCount = await this.taskService.getParentTaskCount(
+          this.projectId
+        );
         const maxParentTasks = 10;
         if (parentTaskCount >= maxParentTasks) {
           this.snackBar.open(
@@ -428,7 +483,9 @@ export class TaskCreatePageComponent implements OnInit {
       }
     } catch (error) {
       console.error('タスク数チェックエラー:', error);
-      this.snackBar.open('タスク数の確認に失敗しました', '閉じる', { duration: 3000 });
+      this.snackBar.open('タスク数の確認に失敗しました', '閉じる', {
+        duration: 3000,
+      });
       return;
     }
 
@@ -444,14 +501,21 @@ export class TaskCreatePageComponent implements OnInit {
             taskName
           );
           if (exists) {
-            this.snackBar.open('この子タスク名は既に使用されています', '閉じる', {
-              duration: 5000,
-            });
+            this.snackBar.open(
+              'この子タスク名は既に使用されています',
+              '閉じる',
+              {
+                duration: 5000,
+              }
+            );
             return;
           }
         } else {
           // 親タスクの場合
-          const exists = await this.taskService.taskNameExists(this.projectId, taskName);
+          const exists = await this.taskService.taskNameExists(
+            this.projectId,
+            taskName
+          );
           if (exists) {
             this.snackBar.open('このタスク名は既に使用されています', '閉じる', {
               duration: 5000,
@@ -490,7 +554,7 @@ export class TaskCreatePageComponent implements OnInit {
             this.taskForm.dueDate
           );
           console.log('カレンダー連携: Googleカレンダーにタスクを追加しました');
-          
+
           // カレンダー連携が成功した場合、タスクの calendarSyncEnabled フラグを確実に保存
           await this.projectService.updateTask(this.projectId, taskId, {
             calendarSyncEnabled: true,
@@ -515,7 +579,7 @@ export class TaskCreatePageComponent implements OnInit {
       if (this.pendingFiles.length > 0) {
         this.isUploading = true;
         const uploadedAttachments = await this.uploadPendingFiles(taskId);
-        
+
         // Step 4: アップロードされたファイル情報でタスクを更新
         if (uploadedAttachments.length > 0) {
           await this.projectService.updateTask(this.projectId, taskId, {

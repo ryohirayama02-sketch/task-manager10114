@@ -169,16 +169,40 @@
   align-items: center;
   padding-bottom: 16px;
   border-bottom: 2px solid #e0e0e0;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.priority-stats-card mat-card-title,
+.tasks-card mat-card-title {
+  flex-shrink: 0;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .header-actions {
   display: flex;
   gap: 10px;
+  flex-wrap: wrap;
+  min-width: 0;
+  flex-shrink: 1;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .filter-field {
   width: 180px;
+  min-width: 120px;
+  max-width: 180px;
   font-size: 12px;
+  flex-shrink: 1;
+  box-sizing: border-box;
 }
 
 .period-field {
