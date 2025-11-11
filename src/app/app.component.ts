@@ -57,41 +57,75 @@ export class AppComponent implements OnInit, OnDestroy {
     console.log('roomId:', this.authService.getCurrentRoomId());
     console.log('roomDocId:', this.authService.getCurrentRoomDocId());
 
-    // 認証状態の変更を監視して通知スケジューラーを制御
-    this.authService.user$.subscribe((user) => {
-      if (user) {
-        console.log('👤 ログインユーザー:', user.email);
-        console.log('📦 現在のroomId:', this.authService.getCurrentRoomId());
-        console.log(
-          '📦 現在のroomDocId:',
-          this.authService.getCurrentRoomDocId()
-        );
+    // 認証状態の復元を待つフラグ
+    let authStateRestored = false;
+    const initialUrl = this.router.url;
+    const isInitialLoad = initialUrl !== '/login' && initialUrl !== '/room-login';
 
-        // ログイン時は通知スケジューラーを開始
-        this.notificationScheduler.startScheduler();
-        // ホーム画面設定に基づいてリダイレクト
-        this.redirectToHomeScreen();
-      } else {
-        // ログアウト時は通知スケジューラーを停止
-        this.notificationScheduler.stopScheduler();
-        // ログイン画面にいない場合のみログイン画面へナビゲート
-        if (!this.router.url.includes('/login')) {
+    // 認証状態の変更を監視して通知スケジューラーを制御
+    this.authService.user$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((user) => {
+        if (user) {
+          console.log('👤 ログインユーザー:', user.email);
+          console.log('📦 現在のroomId:', this.authService.getCurrentRoomId());
           console.log(
-            '🚪 ユーザーがログアウトしたため、ログイン画面へ遷移します'
+            '📦 現在のroomDocId:',
+            this.authService.getCurrentRoomDocId()
           );
-          this.router.navigate(['/login']);
+
+          // ログイン時は通知スケジューラーを開始
+          this.notificationScheduler.startScheduler();
+          
+          // 認証状態が復元されたことをマーク
+          if (!authStateRestored) {
+            authStateRestored = true;
+            // 初回の認証状態復元時
+            // ログイン画面から来た場合のみホーム画面へリダイレクト
+            // ページ再読み込み時（既に他の画面にいる場合）はリダイレクトしない
+            if (!isInitialLoad) {
+              // ログイン画面から来た場合
+              this.redirectToHomeScreen(true);
+            }
+            // ページ再読み込み時は何もしない（現在の画面にとどまる）
+          } else {
+            // 認証状態が復元された後のログイン（通常のログイン操作）の場合のみリダイレクト
+            // ページ再読み込み時はリダイレクトしない
+            if (initialUrl !== this.router.url) {
+              // URLが変更されている場合は、通常のログイン操作と判断
+              this.redirectToHomeScreen(true);
+            }
+          }
+        } else {
+          // ログアウト時は通知スケジューラーを停止
+          this.notificationScheduler.stopScheduler();
+          
+          // 認証状態が復元された後で、かつログイン画面にいない場合のみログイン画面へナビゲート
+          // これにより、ページ再読み込み時の一時的なnull状態ではリダイレクトしない
+          if (authStateRestored && !this.router.url.includes('/login') && !this.router.url.includes('/room-login')) {
+            console.log(
+              '🚪 ユーザーがログアウトしたため、ログイン画面へ遷移します'
+            );
+            this.router.navigate(['/login']);
+          }
         }
-      }
-    });
+      });
   }
 
   /**
    * ホーム画面設定に基づいてリダイレクト
+   * @param isInitialLoad 初回読み込み時かどうか（ページ再読み込み時はfalse）
    */
-  private redirectToHomeScreen() {
+  private redirectToHomeScreen(isInitialLoad: boolean = false) {
     // ログイン画面にいる場合はスキップ
-    if (this.router.url.includes('/login')) {
+    if (this.router.url.includes('/login') || this.router.url.includes('/room-login')) {
       console.log('🚪 ログイン画面でのホーム画面設定リダイレクトはスキップ');
+      return;
+    }
+
+    // ページ再読み込み時（既に特定の画面にいる場合）はリダイレクトしない
+    if (!isInitialLoad && this.router.url !== '/' && this.router.url !== '') {
+      console.log('🏠 ページ再読み込み時のため、リダイレクトをスキップ');
       return;
     }
 
@@ -131,8 +165,9 @@ export class AppComponent implements OnInit, OnDestroy {
       error: (error) => {
         console.error('❌ ホーム画面設定の読み込みエラー:', error);
         // エラーの場合はデフォルトのカンバン画面にリダイレクト
+        // ただし、ページ再読み込み時はリダイレクトしない
         const currentPath = this.router.url;
-        if (currentPath === '/' || currentPath === '') {
+        if ((isInitialLoad || currentPath === '/' || currentPath === '') && !this.router.url.includes('/login')) {
           console.log('🏠 エラー時のデフォルトリダイレクト: /kanban');
           this.router.navigate(['/kanban']);
         }
