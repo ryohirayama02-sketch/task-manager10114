@@ -191,12 +191,43 @@ export class ProjectDetailComponent implements OnInit {
 
     if (this.isInlineEditMode) {
       // 編集モードから通常モードに戻る（保存）
+      if (!this.canSaveProject()) {
+        return;
+      }
       await this.saveInlineEditChangesClick();
     } else {
       // 通常モードから編集モードに切り替え
       this.enterInlineEditMode();
       this.isInlineEditMode = true;
     }
+  }
+
+  canSaveProject(): boolean {
+    if (!this.editableProject) {
+      return false;
+    }
+
+    // プロジェクト名の必須チェック
+    if (!this.editableProject.projectName?.trim()) {
+      return false;
+    }
+
+    // 開始日と終了日の必須チェック
+    if (!this.editableProject.startDate || !this.editableProject.endDate) {
+      return false;
+    }
+
+    // 責任者の必須チェック
+    if (!this.selectedResponsibles || this.selectedResponsibles.length === 0) {
+      return false;
+    }
+
+    // プロジェクトメンバーの必須チェック
+    if (!this.selectedMembers || this.selectedMembers.length === 0) {
+      return false;
+    }
+
+    return true;
   }
 
   private enterInlineEditMode(): void {
@@ -248,9 +279,34 @@ export class ProjectDetailComponent implements OnInit {
       return;
     }
 
+    // 必須項目のバリデーション
     const trimmedName = this.editableProject.projectName.trim();
     if (!trimmedName) {
       this.snackBar.open('プロジェクト名を入力してください', '閉じる', {
+        duration: 3000,
+      });
+      this.isInlineEditMode = true;
+      return;
+    }
+
+    if (!this.editableProject.startDate || !this.editableProject.endDate) {
+      this.snackBar.open('開始日と終了日は必須です', '閉じる', {
+        duration: 3000,
+      });
+      this.isInlineEditMode = true;
+      return;
+    }
+
+    if (!this.selectedResponsibles || this.selectedResponsibles.length === 0) {
+      this.snackBar.open('責任者は1人以上選択してください', '閉じる', {
+        duration: 3000,
+      });
+      this.isInlineEditMode = true;
+      return;
+    }
+
+    if (!this.selectedMembers || this.selectedMembers.length === 0) {
+      this.snackBar.open('プロジェクトメンバーは1人以上選択してください', '閉じる', {
         duration: 3000,
       });
       this.isInlineEditMode = true;
@@ -388,9 +444,37 @@ export class ProjectDetailComponent implements OnInit {
       return;
     }
 
+    // 必須項目のバリデーション
     const trimmedName = this.editableProject.projectName.trim();
     if (!trimmedName) {
       this.snackBar.open('プロジェクト名を入力してください', '閉じる', {
+        duration: 3000,
+      });
+      event.source.checked = true;
+      this.isInlineEditMode = true;
+      return;
+    }
+
+    if (!this.editableProject.startDate || !this.editableProject.endDate) {
+      this.snackBar.open('開始日と終了日は必須です', '閉じる', {
+        duration: 3000,
+      });
+      event.source.checked = true;
+      this.isInlineEditMode = true;
+      return;
+    }
+
+    if (!this.selectedResponsibles || this.selectedResponsibles.length === 0) {
+      this.snackBar.open('責任者は1人以上選択してください', '閉じる', {
+        duration: 3000,
+      });
+      event.source.checked = true;
+      this.isInlineEditMode = true;
+      return;
+    }
+
+    if (!this.selectedMembers || this.selectedMembers.length === 0) {
+      this.snackBar.open('プロジェクトメンバーは1人以上選択してください', '閉じる', {
         duration: 3000,
       });
       event.source.checked = true;

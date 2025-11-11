@@ -17,7 +17,7 @@
         type="button"
         class="calendar-switch"
         [class.on]="isInlineEditMode"
-        [disabled]="isSavingInlineEdit"
+        [disabled]="isSavingInlineEdit || (isInlineEditMode && !canSaveProject())"
         (click)="onInlineEditToggleClick()"
         role="switch"
         [attr.aria-checked]="isInlineEditMode"
@@ -69,7 +69,7 @@
       <ng-template #inlineEditForm>
         <form class="project-inline-edit-form" novalidate>
           <mat-form-field appearance="outline" class="full-width-field">
-            <mat-label>{{ 'projectDetail.projectName' | translate }}</mat-label>
+            <mat-label>{{ 'projectDetail.projectName' | translate }} * <span class="required-hint">（入力必須）</span></mat-label>
             <input
               matInput
               [(ngModel)]="editableProject!.projectName"
@@ -94,7 +94,7 @@
 
           <div class="inline-date-row">
             <div class="date-field">
-              <label for="inlineStartDate">{{ 'projectDetail.startDate' | translate }}</label>
+              <label for="inlineStartDate">{{ 'projectDetail.startDate' | translate }} * <span class="required-hint">（入力必須）</span></label>
               <div class="date-input-wrapper">
                 <input
                   id="inlineStartDate"
@@ -103,13 +103,14 @@
                   [(ngModel)]="editableProject!.startDate"
                   name="inlineStartDate"
                   max="9999-12-31"
+                  required
                 />
                 <mat-icon class="date-icon">event</mat-icon>
               </div>
             </div>
 
             <div class="date-field">
-              <label for="inlineEndDate">{{ 'projectDetail.endDate' | translate }}</label>
+              <label for="inlineEndDate">{{ 'projectDetail.endDate' | translate }} * <span class="required-hint">（入力必須）</span></label>
               <div class="date-input-wrapper">
                 <input
                   id="inlineEndDate"
@@ -119,6 +120,7 @@
                   name="inlineEndDate"
                   [min]="editableProject!.startDate || ''"
                   max="9999-12-31"
+                  required
                 />
                 <mat-icon class="date-icon">event</mat-icon>
               </div>
@@ -126,13 +128,14 @@
           </div>
 
           <mat-form-field appearance="outline" class="full-width-field">
-            <mat-label>{{ 'projectDetail.responsible' | translate }}</mat-label>
+            <mat-label>{{ 'projectDetail.responsible' | translate }} * <span class="required-hint">（入力必須）</span></mat-label>
             <mat-select
               multiple
               [(ngModel)]="selectedResponsibleIds"
               name="inlineResponsibleIds"
               (ngModelChange)="onResponsibleSelectionChange($event)"
               [disabled]="membersLoading"
+              required
             >
               <mat-option *ngFor="let member of members" [value]="member.id">
                 {{ member.name }}
@@ -156,7 +159,7 @@
           </div>
 
           <mat-form-field appearance="outline" class="full-width-field">
-            <mat-label>{{ 'projectDetail.assignee' | translate }}</mat-label>
+            <mat-label>{{ 'projectDetail.assignee' | translate }} * <span class="required-hint">（入力必須）</span></mat-label>
             <mat-select
               multiple
               [(ngModel)]="selectedMemberIds"
@@ -164,6 +167,7 @@
               (ngModelChange)="onMembersSelectionChange($event)"
               placeholder="{{ 'projectDetail.selectMember' | translate }}"
               [disabled]="membersLoading"
+              required
             >
               <mat-option *ngFor="let member of members" [value]="member.id">
                 {{ member.name }}

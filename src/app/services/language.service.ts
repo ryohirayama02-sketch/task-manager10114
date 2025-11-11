@@ -458,7 +458,7 @@ export class LanguageService {
     'projectDetail.projectName': { ja: 'プロジェクト名', en: 'Project Name' },
     'projectDetail.startDate': { ja: '開始日', en: 'Start Date' },
     'projectDetail.endDate': { ja: '終了日', en: 'End Date' },
-    'projectDetail.assignee': { ja: '担当メンバー', en: 'Assigned Members' },
+    'projectDetail.assignee': { ja: 'メンバー', en: 'Members' },
     'projectDetail.selectMember': {
       ja: 'メンバーを選択',
       en: 'Select Members',
