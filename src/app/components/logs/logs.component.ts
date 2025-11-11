@@ -157,7 +157,7 @@ export class LogsComponent implements OnInit, OnDestroy {
 
   /** CSV出力 */
   exportToCSV(): void {
-    this.editLogService.exportToCSV(this.editLogs);
+    this.editLogService.exportToCSV(this.editLogs, (log) => this.getUserNameDisplay(log));
   }
 
   /** アクション名を取得 */

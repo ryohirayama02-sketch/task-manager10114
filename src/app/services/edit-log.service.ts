@@ -263,7 +263,7 @@ export class EditLogService {
   }
 
   /** 編集ログをCSV形式で出力 */
-  exportToCSV(logs: EditLog[]): void {
+  exportToCSV(logs: EditLog[], getUserNameDisplay?: (log: EditLog) => string): void {
     try {
       const headers = [
         '日時',
@@ -272,19 +272,15 @@ export class EditLogService {
         'タスク名',
         'アクション',
         '変更内容',
-        '変更前',
-        '変更後',
       ];
 
       const csvData = logs.map((log) => [
         this.formatDate(log.createdAt),
-        log.userName,
+        getUserNameDisplay ? getUserNameDisplay(log) : log.userName,
         log.projectName,
         log.taskName || '',
         this.getActionLabel(log.action),
         log.changeDescription,
-        log.oldValue || '',
-        log.newValue || '',
       ]);
 
       const csvContent = [headers, ...csvData]
