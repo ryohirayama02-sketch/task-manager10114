@@ -16,6 +16,7 @@ import { Member } from '../../models/member.model';
 import { MemberFormDialogComponent } from './member-form-dialog/member-form-dialog.component';
 import { Router } from '@angular/router';
 import { TranslatePipe } from '../../pipes/translate.pipe';
+import { LanguageService } from '../../services/language.service';
 
 @Component({
   selector: 'app-member-management',
@@ -50,7 +51,8 @@ export class MemberManagementComponent implements OnInit {
     private memberService: MemberManagementService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
-    private router: Router
+    private router: Router,
+    private languageService: LanguageService
   ) {}
 
   ngOnInit(): void {
@@ -72,9 +74,13 @@ export class MemberManagementComponent implements OnInit {
         console.log('メンバー一覧を読み込みました:', members.length, '件');
         if (this.memberAddedFeedback) {
           this.memberAddedFeedback = false;
-          this.snackBar.open('メンバーを追加しました', '閉じる', {
-            duration: 3000,
-          });
+          this.snackBar.open(
+            this.languageService.translate('memberManagement.memberAdded'),
+            this.languageService.translate('memberManagement.close'),
+            {
+              duration: 3000,
+            }
+          );
           const historyState = window.history.state ?? {};
           const { memberAdded, ...rest } = historyState;
           window.history.replaceState(rest, document.title);
@@ -82,9 +88,13 @@ export class MemberManagementComponent implements OnInit {
       },
       error: (error) => {
         console.error('メンバー一覧の読み込みエラー:', error);
-        this.snackBar.open('メンバー一覧の読み込みに失敗しました', '閉じる', {
-          duration: 3000,
-        });
+        this.snackBar.open(
+          this.languageService.translate('memberManagement.loadFailed'),
+          this.languageService.translate('common.close'),
+          {
+            duration: 3000,
+          }
+        );
         this.loading = false;
       },
     });
@@ -111,9 +121,13 @@ export class MemberManagementComponent implements OnInit {
     dialogRef.afterClosed().subscribe((result) => {
       if (result === 'success') {
         this.loadMembers();
-        this.snackBar.open('メンバーを更新しました', '閉じる', {
-          duration: 3000,
-        });
+        this.snackBar.open(
+          this.languageService.translate('memberManagement.memberUpdated'),
+          this.languageService.translate('common.close'),
+          {
+            duration: 3000,
+          }
+        );
       }
     });
   }
@@ -127,21 +141,33 @@ export class MemberManagementComponent implements OnInit {
       return;
     }
 
-    if (!confirm(`「${member.name}」を削除してもよろしいですか？`)) {
+    const confirmMessage = this.languageService.translateWithParams(
+      'memberManagement.deleteConfirm',
+      { name: member.name }
+    );
+    if (!confirm(confirmMessage)) {
       return;
     }
 
     try {
       await this.memberService.deleteMember(member.id);
       this.loadMembers();
-      this.snackBar.open('メンバーを削除しました', '閉じる', {
-        duration: 3000,
-      });
+      this.snackBar.open(
+        this.languageService.translate('memberManagement.memberDeleted'),
+        this.languageService.translate('common.close'),
+        {
+          duration: 3000,
+        }
+      );
     } catch (error) {
       console.error('メンバー削除エラー:', error);
-      this.snackBar.open('メンバーの削除に失敗しました', '閉じる', {
-        duration: 3000,
-      });
+      this.snackBar.open(
+        this.languageService.translate('memberManagement.deleteFailed'),
+        this.languageService.translate('common.close'),
+        {
+          duration: 3000,
+        }
+      );
     }
   }
 
@@ -175,7 +201,8 @@ export class MemberManagementComponent implements OnInit {
       return '-';
     }
 
-    return d.toLocaleDateString('ja-JP', {
+    const locale = this.languageService.getCurrentLanguage() === 'ja' ? 'ja-JP' : 'en-US';
+    return d.toLocaleDateString(locale, {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
@@ -189,5 +216,14 @@ export class MemberManagementComponent implements OnInit {
     if (!email) return '';
     if (email.length <= 30) return email;
     return email.substring(0, 30) + '...';
+  }
+
+  /**
+   * メンバー数の上限メッセージを取得
+   */
+  getMaxMemberLimitMessage(): string {
+    return this.languageService.translateWithParams('memberManagement.maxMemberLimit', {
+      count: this.maxMemberCount.toString(),
+    });
   }
 }

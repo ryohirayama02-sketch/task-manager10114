@@ -2,17 +2,17 @@
   <div class="form-container">
     <div class="form-header">
       <mat-icon>person_add</mat-icon>
-      <h2>メンバーを追加</h2>
+      <h2>{{ 'memberManagement.addMember' | translate }}</h2>
     </div>
 
     <form [formGroup]="memberForm" (ngSubmit)="onSubmit()">
       <div class="form-fields">
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>名前</mat-label>
+          <mat-label>{{ 'memberManagement.name' | translate }}</mat-label>
           <input
             matInput
             formControlName="name"
-            placeholder="例: 田中太郎"
+            [placeholder]="'memberManagement.namePlaceholder' | translate"
             autocomplete="name"
             maxlength="20"
           />
@@ -28,12 +28,12 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>メールアドレス</mat-label>
+          <mat-label>{{ 'memberManagement.email' | translate }}</mat-label>
           <input
             matInput
             formControlName="email"
             type="email"
-            placeholder="例: tanaka@example.com"
+            [placeholder]="'memberManagement.emailPlaceholder' | translate"
             autocomplete="email"
             maxlength="254"
           />
@@ -57,7 +57,7 @@
           (click)="onCancel()"
           [disabled]="isSubmitting"
         >
-          キャンセル
+          {{ 'memberManagement.cancel' | translate }}
         </button>
         <button
           mat-raised-button
@@ -67,7 +67,7 @@
         >
           <mat-icon *ngIf="!isSubmitting">add</mat-icon>
           <mat-spinner *ngIf="isSubmitting" diameter="18"></mat-spinner>
-          {{ isSubmitting ? "追加中..." : "追加" }}
+          {{ isSubmitting ? ('memberManagement.adding' | translate) : ('memberManagement.add' | translate) }}
         </button>
       </div>
     </form>

@@ -22,6 +22,8 @@ import { MemberManagementService } from '../../../services/member-management.ser
 import { Member } from '../../../models/member.model';
 import { AuthService } from '../../../services/auth.service';
 import { firstValueFrom } from 'rxjs';
+import { TranslatePipe } from '../../../pipes/translate.pipe';
+import { LanguageService } from '../../../services/language.service';
 
 export interface MemberFormData {
   mode: 'add' | 'edit';
@@ -42,6 +44,7 @@ export interface MemberFormData {
     MatIconModule,
     MatProgressSpinnerModule,
     MatSnackBarModule,
+    TranslatePipe,
   ],
   templateUrl: './member-form-dialog.component.html',
   styleUrls: ['./member-form-dialog.component.css'],
@@ -56,7 +59,8 @@ export class MemberFormDialogComponent implements OnInit {
     private memberService: MemberManagementService,
     private snackBar: MatSnackBar,
     private fb: FormBuilder,
-    private authService: AuthService
+    private authService: AuthService,
+    private languageService: LanguageService
   ) {
     this.memberForm = this.fb.group({
       name: ['', [
@@ -93,9 +97,13 @@ export class MemberFormDialogComponent implements OnInit {
    */
   async onSubmit(): Promise<void> {
     if (this.memberForm.invalid) {
-      this.snackBar.open('入力内容を確認してください', '閉じる', {
-        duration: 3000,
-      });
+      this.snackBar.open(
+        this.languageService.translate('memberManagement.checkInput'),
+        this.languageService.translate('memberManagement.close'),
+        {
+          duration: 3000,
+        }
+      );
       return;
     }
 
@@ -103,9 +111,13 @@ export class MemberFormDialogComponent implements OnInit {
 
     // 名前にカンマが含まれているかチェック
     if (formData.name && formData.name.includes(',')) {
-      this.snackBar.open('名前に「,」（カンマ）は使用できません', '閉じる', {
-        duration: 5000,
-      });
+      this.snackBar.open(
+        this.languageService.translate('memberManagement.noComma'),
+        this.languageService.translate('memberManagement.close'),
+        {
+          duration: 5000,
+        }
+      );
       return;
     }
 
@@ -116,8 +128,8 @@ export class MemberFormDialogComponent implements OnInit {
         const maxCount = 20;
         if (currentCount >= maxCount) {
           this.snackBar.open(
-            `管理メンバーは最大${maxCount}人登録できます`,
-            '閉じる',
+            this.languageService.translateWithParams('memberManagement.maxMemberLimit', { count: maxCount.toString() }),
+            this.languageService.translate('memberManagement.close'),
             { duration: 5000 }
           );
           return;
@@ -138,8 +150,8 @@ export class MemberFormDialogComponent implements OnInit {
 
         if (nameExists) {
           this.snackBar.open(
-            'この名前は既に登録されています',
-            '閉じる',
+            this.languageService.translate('memberManagement.nameExists'),
+            this.languageService.translate('memberManagement.close'),
             { duration: 5000 }
           );
           return;
@@ -147,17 +159,21 @@ export class MemberFormDialogComponent implements OnInit {
 
         if (emailExists) {
           this.snackBar.open(
-            'このメールアドレスは既に登録されています',
-            '閉じる',
+            this.languageService.translate('memberManagement.emailExists'),
+            this.languageService.translate('memberManagement.close'),
             { duration: 5000 }
           );
           return;
         }
       } catch (error) {
         console.error('メンバー数チェックエラー:', error);
-        this.snackBar.open('メンバー数の確認に失敗しました', '閉じる', {
-          duration: 3000,
-        });
+        this.snackBar.open(
+          this.languageService.translate('memberManagement.countCheckFailed'),
+          this.languageService.translate('memberManagement.close'),
+          {
+            duration: 3000,
+          }
+        );
         return;
       }
     }
@@ -184,8 +200,8 @@ export class MemberFormDialogComponent implements OnInit {
 
         if (nameExists) {
           this.snackBar.open(
-            'この名前は既に登録されています',
-            '閉じる',
+            this.languageService.translate('memberManagement.nameExists'),
+            this.languageService.translate('memberManagement.close'),
             { duration: 5000 }
           );
           return;
@@ -193,8 +209,8 @@ export class MemberFormDialogComponent implements OnInit {
 
         if (emailExists) {
           this.snackBar.open(
-            'このメールアドレスは既に登録されています',
-            '閉じる',
+            this.languageService.translate('memberManagement.emailExists'),
+            this.languageService.translate('memberManagement.close'),
             { duration: 5000 }
           );
           return;
@@ -229,9 +245,13 @@ export class MemberFormDialogComponent implements OnInit {
       this.dialogRef.close('success');
     } catch (error) {
       console.error('メンバー保存エラー:', error);
-      this.snackBar.open('保存に失敗しました', '閉じる', {
-        duration: 3000,
-      });
+      this.snackBar.open(
+        this.languageService.translate('memberManagement.saveFailed'),
+        this.languageService.translate('memberManagement.close'),
+        {
+          duration: 3000,
+        }
+      );
     } finally {
       this.isSubmitting = false;
     }
@@ -250,23 +270,25 @@ export class MemberFormDialogComponent implements OnInit {
   getErrorMessage(fieldName: string): string {
     const field = this.memberForm.get(fieldName);
     if (field?.hasError('required')) {
-      return `${fieldName === 'name' ? '名前' : 'メールアドレス'}は必須です`;
+      return fieldName === 'name'
+        ? this.languageService.translate('memberManagement.nameRequired')
+        : this.languageService.translate('memberManagement.emailRequired');
     }
     if (field?.hasError('email')) {
-      return '有効なメールアドレスを入力してください';
+      return this.languageService.translate('memberManagement.validEmail');
     }
     if (field?.hasError('minlength')) {
-      return '1文字以上入力してください';
+      return this.languageService.translate('memberManagement.minLength');
     }
     if (field?.hasError('maxlength')) {
       if (fieldName === 'name') {
-        return '名前は20文字以内で入力してください';
+        return this.languageService.translate('memberManagement.nameMaxLength');
       } else if (fieldName === 'email') {
-        return 'メールアドレスは254文字以内で入力してください';
+        return this.languageService.translate('memberManagement.emailMaxLength');
       }
     }
     if (field?.hasError('noComma')) {
-      return '名前に「,」（カンマ）は使用できません';
+      return this.languageService.translate('memberManagement.noComma');
     }
     return '';
   }

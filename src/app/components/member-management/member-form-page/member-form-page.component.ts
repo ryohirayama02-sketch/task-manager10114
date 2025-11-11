@@ -16,6 +16,8 @@ import { Router } from '@angular/router';
 import { MemberManagementService } from '../../../services/member-management.service';
 import { AuthService } from '../../../services/auth.service';
 import { firstValueFrom } from 'rxjs';
+import { TranslatePipe } from '../../../pipes/translate.pipe';
+import { LanguageService } from '../../../services/language.service';
 
 @Component({
   selector: 'app-member-form-page',
@@ -29,6 +31,7 @@ import { firstValueFrom } from 'rxjs';
     MatIconModule,
     MatProgressSpinnerModule,
     MatSnackBarModule,
+    TranslatePipe,
   ],
   templateUrl: './member-form-page.component.html',
   styleUrls: ['./member-form-page.component.css'],
@@ -42,7 +45,8 @@ export class MemberFormPageComponent {
     private memberService: MemberManagementService,
     private snackBar: MatSnackBar,
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
+    private languageService: LanguageService
   ) {
     this.memberForm = this.fb.group({
       name: ['', [
@@ -67,9 +71,13 @@ export class MemberFormPageComponent {
 
   async onSubmit(): Promise<void> {
     if (this.memberForm.invalid) {
-      this.snackBar.open('入力内容を確認してください', '閉じる', {
-        duration: 3000,
-      });
+      this.snackBar.open(
+        this.languageService.translate('memberManagement.checkInput'),
+        this.languageService.translate('memberManagement.close'),
+        {
+          duration: 3000,
+        }
+      );
       return;
     }
 
@@ -77,9 +85,13 @@ export class MemberFormPageComponent {
 
     // 名前にカンマが含まれているかチェック
     if (formData.name && formData.name.includes(',')) {
-      this.snackBar.open('名前に「,」（カンマ）は使用できません', '閉じる', {
-        duration: 5000,
-      });
+      this.snackBar.open(
+        this.languageService.translate('memberManagement.noComma'),
+        this.languageService.translate('memberManagement.close'),
+        {
+          duration: 5000,
+        }
+      );
       return;
     }
 
@@ -89,8 +101,8 @@ export class MemberFormPageComponent {
       const maxCount = 20;
       if (currentCount >= maxCount) {
         this.snackBar.open(
-          `管理メンバーは最大${maxCount}人登録できます`,
-          '閉じる',
+          this.languageService.translateWithParams('memberManagement.maxMemberLimit', { count: maxCount.toString() }),
+          this.languageService.translate('memberManagement.close'),
           { duration: 5000 }
         );
         return;
@@ -111,8 +123,8 @@ export class MemberFormPageComponent {
 
       if (nameExists) {
         this.snackBar.open(
-          'この名前は既に登録されています',
-          '閉じる',
+          this.languageService.translate('memberManagement.nameExists'),
+          this.languageService.translate('memberManagement.close'),
           { duration: 5000 }
         );
         return;
@@ -120,17 +132,21 @@ export class MemberFormPageComponent {
 
       if (emailExists) {
         this.snackBar.open(
-          'このメールアドレスは既に登録されています',
-          '閉じる',
+          this.languageService.translate('memberManagement.emailExists'),
+          this.languageService.translate('memberManagement.close'),
           { duration: 5000 }
         );
         return;
       }
     } catch (error) {
       console.error('メンバー数チェックエラー:', error);
-      this.snackBar.open('メンバー数の確認に失敗しました', '閉じる', {
-        duration: 3000,
-      });
+      this.snackBar.open(
+        this.languageService.translate('memberManagement.countCheckFailed'),
+        this.languageService.translate('memberManagement.close'),
+        {
+          duration: 3000,
+        }
+      );
       return;
     }
 
@@ -147,9 +163,13 @@ export class MemberFormPageComponent {
       this.router.navigate(['/members'], { state: { memberAdded: true } });
     } catch (error) {
       console.error('メンバー追加エラー:', error);
-      this.snackBar.open('メンバーの追加に失敗しました', '閉じる', {
-        duration: 3000,
-      });
+      this.snackBar.open(
+        this.languageService.translate('memberManagement.addFailed'),
+        this.languageService.translate('memberManagement.close'),
+        {
+          duration: 3000,
+        }
+      );
     } finally {
       this.isSubmitting = false;
     }
@@ -162,23 +182,25 @@ export class MemberFormPageComponent {
   getErrorMessage(fieldName: string): string {
     const field = this.memberForm.get(fieldName);
     if (field?.hasError('required')) {
-      return `${fieldName === 'name' ? '名前' : 'メールアドレス'}は必須です`;
+      return fieldName === 'name'
+        ? this.languageService.translate('memberManagement.nameRequired')
+        : this.languageService.translate('memberManagement.emailRequired');
     }
     if (field?.hasError('email')) {
-      return '有効なメールアドレスを入力してください';
+      return this.languageService.translate('memberManagement.validEmail');
     }
     if (field?.hasError('minlength')) {
-      return '1文字以上入力してください';
+      return this.languageService.translate('memberManagement.minLength');
     }
     if (field?.hasError('maxlength')) {
       if (fieldName === 'name') {
-        return '名前は20文字以内で入力してください';
+        return this.languageService.translate('memberManagement.nameMaxLength');
       } else if (fieldName === 'email') {
-        return 'メールアドレスは254文字以内で入力してください';
+        return this.languageService.translate('memberManagement.emailMaxLength');
       }
     }
     if (field?.hasError('noComma')) {
-      return '名前に「,」（カンマ）は使用できません';
+      return this.languageService.translate('memberManagement.noComma');
     }
     return '';
   }

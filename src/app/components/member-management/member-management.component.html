@@ -7,14 +7,14 @@
         color="primary" 
         (click)="openAddMemberDialog()"
         [disabled]="memberCountLimitReached"
-        [matTooltip]="memberCountLimitReached ? '管理メンバーは最大' + maxMemberCount + '人登録できます' : ''"
+        [matTooltip]="memberCountLimitReached ? getMaxMemberLimitMessage() : ''"
       >
         <mat-icon>person_add</mat-icon>
         {{ 'memberManagement.addMember' | translate }}
       </button>
       <div *ngIf="memberCountLimitReached" class="limit-warning">
         <mat-icon>warning</mat-icon>
-        <span>管理メンバーは最大{{ maxMemberCount }}人登録できます</span>
+        <span>{{ getMaxMemberLimitMessage() }}</span>
       </div>
     </div>
   </div>
@@ -64,7 +64,7 @@
 
           <!-- 登録日列 -->
           <ng-container matColumnDef="createdAt">
-            <th mat-header-cell *matHeaderCellDef>登録日</th>
+            <th mat-header-cell *matHeaderCellDef>{{ 'memberManagement.createdAt' | translate }}</th>
             <td mat-cell *matCellDef="let member">
               {{ formatDate(member.createdAt) }}
             </td>
@@ -72,14 +72,14 @@
 
           <!-- アクション列 -->
           <ng-container matColumnDef="actions">
-            <th mat-header-cell *matHeaderCellDef>操作</th>
+            <th mat-header-cell *matHeaderCellDef>{{ 'memberManagement.actions' | translate }}</th>
             <td mat-cell *matCellDef="let member">
               <div class="action-buttons">
                 <button
                   mat-icon-button
                   color="primary"
                   (click)="openEditMemberDialog(member)"
-                  matTooltip="編集"
+                  [matTooltip]="'memberManagement.edit' | translate"
                 >
                   <mat-icon>edit</mat-icon>
                 </button>
@@ -87,7 +87,7 @@
                   mat-icon-button
                   color="warn"
                   (click)="deleteMember(member)"
-                  matTooltip="削除"
+                  [matTooltip]="'memberManagement.delete' | translate"
                 >
                   <mat-icon>delete</mat-icon>
                 </button>
