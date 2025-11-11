@@ -97,6 +97,18 @@
   width: 100%;
 }
 
+.required-hint {
+  font-size: 12px;
+  color: #666;
+  font-weight: normal;
+  margin-left: 4px;
+}
+
+/* Material Designの必須マーカーを非表示 */
+::ng-deep .mat-mdc-form-field-required-marker {
+  display: none !important;
+}
+
 .task-info-section,
 .task-tags-section {
   display: flex;

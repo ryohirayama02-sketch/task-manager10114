@@ -19,7 +19,7 @@
         type="button"
         class="calendar-switch"
         [class.on]="isEditing"
-        [disabled]="isSaving"
+        [disabled]="isSaving || (isEditing && !canSaveTask())"
         (click)="toggleEdit()"
         role="switch"
         [attr.aria-checked]="isEditing"
@@ -53,8 +53,8 @@
           task.parentTaskId
             ? ("taskDetail.childTaskName" | translate)
             : ("taskDetail.taskName" | translate)
-        }}</mat-label>
-        <input matInput [(ngModel)]="taskData.taskName" name="taskName" maxlength="30" />
+        }} * <span class="required-hint">（入力必須）</span></mat-label>
+        <input matInput [(ngModel)]="taskData.taskName" name="taskName" maxlength="30" required />
         <mat-hint align="end">{{ (taskData.taskName || '').length }}/30</mat-hint>
       </mat-form-field>
     </div>
@@ -213,7 +213,7 @@
             <div class="date-field">
               <label for="startDate">{{
                 "taskDetail.startDate" | translate
-              }} *</label>
+              }} * <span class="required-hint">（入力必須）</span></label>
               <div class="date-input-wrapper">
                 <input
                   id="startDate"
@@ -230,7 +230,7 @@
             <div class="date-field">
               <label for="dueDate">{{
                 "taskDetail.dueDate" | translate
-              }} *</label>
+              }} * <span class="required-hint">（入力必須）</span></label>
               <div class="date-input-wrapper">
                 <input
                   id="dueDate"
@@ -247,13 +247,14 @@
           </div>
 
           <mat-form-field appearance="outline" class="full-width-field">
-            <mat-label>{{ "taskDetail.assignee" | translate }}</mat-label>
+            <mat-label>{{ "taskDetail.assignee" | translate }} * <span class="required-hint">（入力必須）</span></mat-label>
             <mat-select
               [(ngModel)]="selectedAssignedMemberIds"
               name="assignedMembers"
               multiple
               (ngModelChange)="onAssignedMembersChange($event)"
               [disabled]="membersLoading"
+              required
             >
               <mat-option
                 *ngFor="let member of projectMembers"

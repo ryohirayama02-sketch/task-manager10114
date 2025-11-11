@@ -464,6 +464,9 @@ export class TaskDetailComponent implements OnInit {
   toggleEdit() {
     if (this.isEditing) {
       // 編集中から読み取りモードへ
+      if (!this.canSaveTask()) {
+        return;
+      }
       this.saveTask();
     } else {
       // 読み取りモードから編集中へ
@@ -472,6 +475,25 @@ export class TaskDetailComponent implements OnInit {
       // 現在の担当者を編集モード用の選択状態に設定
       this.initializeAssigneeForEdit();
     }
+  }
+
+  canSaveTask(): boolean {
+    // タスク名の必須チェック
+    if (!this.taskData.taskName?.trim()) {
+      return false;
+    }
+
+    // 開始日と終了日の必須チェック
+    if (!this.taskData.startDate || !this.taskData.dueDate) {
+      return false;
+    }
+
+    // 担当者の必須チェック
+    if (!this.selectedAssignedMemberIds || this.selectedAssignedMemberIds.length === 0) {
+      return false;
+    }
+
+    return true;
   }
 
   /** 編集モード用に担当者を初期化 */
@@ -540,6 +562,15 @@ export class TaskDetailComponent implements OnInit {
       return;
     }
 
+    // タスク名の必須チェック
+    const taskName = this.taskData.taskName?.trim();
+    if (!taskName) {
+      this.snackBar.open('タスク名を入力してください', '閉じる', {
+        duration: 3000,
+      });
+      return;
+    }
+
     // 開始日と終了日の必須チェック
     if (!this.taskData.startDate || !this.taskData.dueDate) {
       this.snackBar.open('開始日と終了日は必須です', '閉じる', {
@@ -548,8 +579,15 @@ export class TaskDetailComponent implements OnInit {
       return;
     }
 
+    // 担当者の必須チェック
+    if (!this.selectedAssignedMemberIds || this.selectedAssignedMemberIds.length === 0) {
+      this.snackBar.open('担当者は1人以上選択してください', '閉じる', {
+        duration: 3000,
+      });
+      return;
+    }
+
     // タスク名の重複チェック
-    const taskName = this.taskData.taskName?.trim();
     if (taskName) {
       try {
         const isSubtask = !!this.task.parentTaskId;
