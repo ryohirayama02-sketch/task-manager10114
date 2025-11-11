@@ -4,7 +4,7 @@
   <!-- ローディング表示 -->
   <div *ngIf="loading" class="loading-container">
     <mat-spinner diameter="30"></mat-spinner>
-    <p>チャットを読み込み中...</p>
+    <p>{{ 'projectChat.loading' | translate }}</p>
   </div>
 
   <!-- メッセージ一覧 -->
@@ -30,7 +30,7 @@
 
     <!-- メッセージが空の場合 -->
     <div *ngIf="messages.length === 0" class="no-messages">
-      <p>まだメッセージはありません</p>
+      <p>{{ 'projectChat.noMessages' | translate }}</p>
     </div>
   </div>
 
@@ -66,7 +66,7 @@
         (change)="onMessageInputChange($event)"
         (input)="onMessageInputChange($event)"
         (keydown)="onMentionKeyDown($event)"
-        placeholder="メッセージを入力（最大100文字）"
+        [placeholder]="'projectChat.messagePlaceholder' | translate"
         rows="3"
         maxlength="100"
       ></textarea>
@@ -78,7 +78,7 @@
         class="send-button"
       >
         <mat-icon>send</mat-icon>
-        送信
+        {{ 'projectChat.send' | translate }}
       </button>
     </div>
   </div>

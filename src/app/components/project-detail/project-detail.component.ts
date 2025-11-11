@@ -38,6 +38,7 @@ import {
 import { inject } from '@angular/core';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { getMemberNamesAsString, getMemberNames } from '../../utils/member-utils';
+import { LanguageService } from '../../services/language.service';
 
 @Component({
   selector: 'app-project-detail',
@@ -125,9 +126,38 @@ export class ProjectDetailComponent implements OnInit {
   filterDueDate: string = '';
   assigneeOptions: string[] = [];
 
-  // フィルターオプション
-  statusOptions = ['未着手', '作業中', '完了'];
-  priorityOptions = ['高', '中', '低'];
+  // フィルターオプション（表示用の翻訳済み配列）
+  get statusOptions(): string[] {
+    return ['未着手', '作業中', '完了'];
+  }
+  get priorityOptions(): string[] {
+    return ['高', '中', '低'];
+  }
+  
+  // ステータスの表示テキストを取得
+  getStatusDisplay(status: string): string {
+    const statusMap: Record<string, string> = {
+      '未着手': this.languageService.translate('projectDetail.status.notStarted'),
+      '作業中': this.languageService.translate('projectDetail.status.inProgress'),
+      '完了': this.languageService.translate('projectDetail.status.completed'),
+    };
+    return statusMap[status] || status;
+  }
+  
+  // 優先度の表示テキストを取得
+  getPriorityDisplay(priority: string): string {
+    const priorityMap: Record<string, string> = {
+      '高': this.languageService.translate('projectDetail.priority.high'),
+      '中': this.languageService.translate('projectDetail.priority.medium'),
+      '低': this.languageService.translate('projectDetail.priority.low'),
+    };
+    return priorityMap[priority] || priority;
+  }
+  
+  // 現在の言語設定を取得（date inputのlang属性用）
+  getCurrentLang(): string {
+    return this.languageService.getCurrentLanguage();
+  }
   private readonly returnUrl: string | null;
 
   constructor(
@@ -139,7 +169,8 @@ export class ProjectDetailComponent implements OnInit {
     private memberService: MemberManagementService,
     private attachmentService: ProjectAttachmentService,
     private location: Location,
-    private taskService: TaskService
+    private taskService: TaskService,
+    private languageService: LanguageService
   ) {
     const nav = this.router.getCurrentNavigation();
     const navState = nav?.extras?.state as { returnUrl?: string } | undefined;
@@ -1530,9 +1561,11 @@ export class ProjectDetailComponent implements OnInit {
 
   toDateDisplay(date?: string): string {
     if (!date) {
-      return '未設定';
+      return this.languageService.translate('projectDetail.notSet');
     }
-    return new Date(date).toLocaleDateString('ja-JP', {
+    const currentLanguage = this.languageService.getCurrentLanguage();
+    const locale = currentLanguage === 'en' ? 'en-US' : 'ja-JP';
+    return new Date(date).toLocaleDateString(locale, {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',

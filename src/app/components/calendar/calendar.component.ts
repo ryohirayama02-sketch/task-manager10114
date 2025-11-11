@@ -1,4 +1,10 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  ViewChild,
+  ElementRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -22,7 +28,10 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
 import { AuthService } from '../../services/auth.service';
 import { MemberManagementService } from '../../services/member-management.service';
 import { Member } from '../../models/member.model';
-import { getMemberNamesAsString, getMemberNames } from '../../utils/member-utils';
+import {
+  getMemberNamesAsString,
+  getMemberNames,
+} from '../../utils/member-utils';
 import { LanguageService } from '../../services/language.service';
 
 @Component({
@@ -215,14 +224,10 @@ export class CalendarComponent implements OnInit, OnDestroy {
     const storedSelection =
       this.projectSelectionService.getSelectedProjectIdsSync();
     const availableIds = new Set(
-      projects
-        .map((project) => project.id)
-        .filter((id): id is string => !!id)
+      projects.map((project) => project.id).filter((id): id is string => !!id)
     );
 
-    let nextSelection = storedSelection.filter((id) =>
-      availableIds.has(id)
-    );
+    let nextSelection = storedSelection.filter((id) => availableIds.has(id));
 
     if (nextSelection.length === 0) {
       // 保存された選択がない場合は、すべてのプロジェクトを選択
@@ -298,8 +303,8 @@ export class CalendarComponent implements OnInit, OnDestroy {
       : [];
 
     if (this.filterPriority.length > 0) {
-      filteredTasks = filteredTasks.filter(
-        (task) => this.filterPriority.includes(task.priority)
+      filteredTasks = filteredTasks.filter((task) =>
+        this.filterPriority.includes(task.priority)
       );
     }
     // 担当者フィルター（カンマ区切り対応 + assignedMembers対応）
@@ -317,8 +322,14 @@ export class CalendarComponent implements OnInit, OnDestroy {
         }
 
         // assignedMembers も含める（メンバーIDをメンバー名に変換）
-        if (Array.isArray(task.assignedMembers) && task.assignedMembers.length > 0) {
-          const memberNames = getMemberNames(task.assignedMembers, this.members);
+        if (
+          Array.isArray(task.assignedMembers) &&
+          task.assignedMembers.length > 0
+        ) {
+          const memberNames = getMemberNames(
+            task.assignedMembers,
+            this.members
+          );
           assignees.push(...memberNames);
         }
 
@@ -334,8 +345,8 @@ export class CalendarComponent implements OnInit, OnDestroy {
       });
     }
     if (this.filterStatus.length > 0) {
-      filteredTasks = filteredTasks.filter(
-        (task) => this.filterStatus.includes(task.status)
+      filteredTasks = filteredTasks.filter((task) =>
+        this.filterStatus.includes(task.status)
       );
     }
 
@@ -451,7 +462,7 @@ export class CalendarComponent implements OnInit, OnDestroy {
   /** 日付を変更 */
   changeDate(direction: number) {
     const newDate = new Date(this.currentDate);
-    
+
     if (this.viewMode === 'day') {
       newDate.setDate(newDate.getDate() + direction);
     } else if (this.viewMode === 'week') {
@@ -532,8 +543,11 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
   /** 表示名を取得 */
   getDisplayName(): string {
+    const currentLanguage = this.languageService.getCurrentLanguage();
+    const locale = currentLanguage === 'en' ? 'en-US' : 'ja-JP';
+
     if (this.viewMode === 'day') {
-      return this.currentDate.toLocaleDateString('ja-JP', {
+      return this.currentDate.toLocaleDateString(locale, {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
@@ -546,15 +560,15 @@ export class CalendarComponent implements OnInit, OnDestroy {
       const endOfWeek = new Date(startOfWeek);
       endOfWeek.setDate(startOfWeek.getDate() + 6);
 
-      return `${startOfWeek.toLocaleDateString('ja-JP', {
+      return `${startOfWeek.toLocaleDateString(locale, {
         month: 'short',
         day: 'numeric',
-      })} - ${endOfWeek.toLocaleDateString('ja-JP', {
+      })} - ${endOfWeek.toLocaleDateString(locale, {
         month: 'short',
         day: 'numeric',
       })}`;
     } else {
-      return this.currentDate.toLocaleDateString('ja-JP', {
+      return this.currentDate.toLocaleDateString(locale, {
         year: 'numeric',
         month: 'long',
       });
@@ -582,7 +596,7 @@ export class CalendarComponent implements OnInit, OnDestroy {
     const memberNames = this.members
       .map((member) => member.name)
       .filter((name) => name && name.trim().length > 0);
-    
+
     // カンマ区切りのメンバー名を分割
     const assigneeSet = new Set<string>();
     memberNames.forEach((name) => {
@@ -592,7 +606,7 @@ export class CalendarComponent implements OnInit, OnDestroy {
         .filter((n) => n.length > 0);
       names.forEach((n) => assigneeSet.add(n));
     });
-    
+
     return Array.from(assigneeSet).sort();
   }
 
@@ -626,88 +640,88 @@ export class CalendarComponent implements OnInit, OnDestroy {
       return;
     }
     this.tooltipMilestones = milestones;
-    
+
     // 初期位置を設定
     const tooltipWidth = 250; // max-width
     const padding = 10;
     const margin = 10;
-    
+
     let x = event.clientX + margin;
     let y = event.clientY - margin;
-    
+
     // ウィンドウの境界を取得
     const windowWidth = window.innerWidth;
     const windowHeight = window.innerHeight;
-    
+
     // 右側にはみ出る場合は左側に表示
     if (x + tooltipWidth > windowWidth - padding) {
       x = event.clientX - tooltipWidth - margin;
     }
-    
+
     // 左側にはみ出る場合は右側に表示（最小限のマージンを確保）
     if (x < padding) {
       x = padding;
     }
-    
+
     // 高さは後で調整するため、まずは上方向に配置
     // マイルストーンの数から高さを推定（1項目あたり約60px、ヘッダー約40px）
     const estimatedHeight = 40 + milestones.length * 60;
-    
+
     // 下側にはみ出る場合は上側に表示
     if (y + estimatedHeight > windowHeight - padding) {
       y = event.clientY - estimatedHeight - margin;
     }
-    
+
     // 上側にはみ出る場合は下側に表示
     if (y < padding) {
       y = event.clientY + margin;
     }
-    
+
     this.tooltipPosition = { x, y };
     this.tooltipVisible = true;
-    
+
     // DOMが更新された後に実際のサイズで再調整
     setTimeout(() => {
       this.adjustTooltipPosition(event);
     }, 0);
   }
-  
+
   /** ツールチップの位置を実際のサイズに基づいて調整 */
   adjustTooltipPosition(event: MouseEvent) {
     if (!this.tooltipElement?.nativeElement) {
       return;
     }
-    
+
     const tooltip = this.tooltipElement.nativeElement;
     const tooltipRect = tooltip.getBoundingClientRect();
     const windowWidth = window.innerWidth;
     const windowHeight = window.innerHeight;
     const padding = 10;
     const margin = 10;
-    
+
     let x = this.tooltipPosition.x;
     let y = this.tooltipPosition.y;
-    
+
     // 右側にはみ出る場合は左側に表示
     if (tooltipRect.right > windowWidth - padding) {
       x = event.clientX - tooltipRect.width - margin;
     }
-    
+
     // 左側にはみ出る場合は右側に表示
     if (tooltipRect.left < padding) {
       x = padding;
     }
-    
+
     // 下側にはみ出る場合は上側に表示
     if (tooltipRect.bottom > windowHeight - padding) {
       y = event.clientY - tooltipRect.height - margin;
     }
-    
+
     // 上側にはみ出る場合は下側に表示
     if (tooltipRect.top < padding) {
       y = event.clientY + margin;
     }
-    
+
     // 最終的な境界チェック（確実に画面内に収める）
     if (x + tooltipRect.width > windowWidth - padding) {
       x = windowWidth - tooltipRect.width - padding;
@@ -721,7 +735,7 @@ export class CalendarComponent implements OnInit, OnDestroy {
     if (y < padding) {
       y = padding;
     }
-    
+
     this.tooltipPosition = { x, y };
   }
 
@@ -785,7 +799,10 @@ export class CalendarComponent implements OnInit, OnDestroy {
     // assignedMembers がある場合はそれを使用
     if (task.assignedMembers && task.assignedMembers.length > 0) {
       // デバッグ: assignedMembersとmembersの内容を確認
-      console.log('🔍 [Calendar getTaskAssigneeDisplay] タスク:', task.taskName);
+      console.log(
+        '🔍 [Calendar getTaskAssigneeDisplay] タスク:',
+        task.taskName
+      );
       console.log('   - assignedMembers:', task.assignedMembers);
       console.log('   - this.members:', this.members);
       console.log('   - this.members.length:', this.members.length);
@@ -813,16 +830,16 @@ export class CalendarComponent implements OnInit, OnDestroy {
     if (!task.assignee) {
       return '—';
     }
-    
+
     // assignee がカンマ区切りの場合を考慮
-    const assigneeNames = task.assignee.split(',').map(name => name.trim());
+    const assigneeNames = task.assignee.split(',').map((name) => name.trim());
     const updatedNames = assigneeNames
-      .map(name => {
+      .map((name) => {
         const member = this.members.find((m) => m.name === name);
         return member ? member.name : null;
       })
       .filter((name): name is string => name !== null);
-    
+
     return updatedNames.length > 0 ? updatedNames.join(', ') : '—';
   }
 
@@ -933,9 +950,9 @@ export class CalendarComponent implements OnInit, OnDestroy {
   getStatusDisplay(status: string): string {
     const currentLanguage = this.languageService.getCurrentLanguage();
     const statusMap: Record<string, Record<'ja' | 'en', string>> = {
-      '未着手': { ja: '未着手', en: 'Not Started' },
-      '作業中': { ja: '作業中', en: 'In Progress' },
-      '完了': { ja: '完了', en: 'Completed' },
+      未着手: { ja: '未着手', en: 'Not Started' },
+      作業中: { ja: '作業中', en: 'In Progress' },
+      完了: { ja: '完了', en: 'Completed' },
     };
     return statusMap[status]?.[currentLanguage] || status;
   }
@@ -944,9 +961,9 @@ export class CalendarComponent implements OnInit, OnDestroy {
   getPriorityDisplay(priority: string): string {
     const currentLanguage = this.languageService.getCurrentLanguage();
     const priorityMap: Record<string, Record<'ja' | 'en', string>> = {
-      '高': { ja: '高', en: 'High' },
-      '中': { ja: '中', en: 'Medium' },
-      '低': { ja: '低', en: 'Low' },
+      高: { ja: '高', en: 'High' },
+      中: { ja: '中', en: 'Medium' },
+      低: { ja: '低', en: 'Low' },
     };
     return priorityMap[priority]?.[currentLanguage] || priority;
   }
@@ -964,9 +981,9 @@ export class CalendarComponent implements OnInit, OnDestroy {
   getViewModeLabel(mode: 'day' | 'week' | 'month'): string {
     const currentLanguage = this.languageService.getCurrentLanguage();
     const labelMap: Record<string, Record<'ja' | 'en', string>> = {
-      'day': { ja: '日', en: 'Day' },
-      'week': { ja: '週', en: 'Week' },
-      'month': { ja: '月', en: 'Month' },
+      day: { ja: '日', en: 'Day' },
+      week: { ja: '週', en: 'Week' },
+      month: { ja: '月', en: 'Month' },
     };
     return labelMap[mode]?.[currentLanguage] || mode;
   }

@@ -24,6 +24,7 @@ import { Member } from '../../models/member.model';
 import { ChatMessage } from '../../models/task.model';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 interface MentionCandidate {
   uid: string;
@@ -44,6 +45,7 @@ interface MentionCandidate {
     MatCardModule,
     MatProgressSpinnerModule,
     MatAutocompleteModule,
+    TranslatePipe,
   ],
   templateUrl: './project-chat.component.html',
   styleUrls: ['./project-chat.component.css'],

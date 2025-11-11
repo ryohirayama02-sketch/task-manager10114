@@ -92,7 +92,7 @@
             <mat-hint align="end">{{ (editableProject!.overview || '').length }}/200</mat-hint>
           </mat-form-field>
 
-          <div class="inline-date-row">
+          <div class="inline-date-row" [attr.lang]="getCurrentLang()">
             <div class="date-field">
               <label for="inlineStartDate">{{ 'projectDetail.startDate' | translate }} * <span class="required-hint">（入力必須）</span></label>
               <div class="date-input-wrapper">
@@ -104,6 +104,7 @@
                   (change)="onStartDateChange()"
                   name="inlineStartDate"
                   [max]="editableProject!.endDate || '9999-12-31'"
+                  [attr.lang]="getCurrentLang()"
                   required
                 />
                 <mat-icon class="date-icon">event</mat-icon>
@@ -122,6 +123,7 @@
                   name="inlineEndDate"
                   [min]="editableProject!.startDate || ''"
                   max="9999-12-31"
+                  [attr.lang]="getCurrentLang()"
                   required
                 />
                 <mat-icon class="date-icon">event</mat-icon>
@@ -292,7 +294,7 @@
                 *ngFor="let milestone of editableMilestones; let i = index; trackBy: trackMilestone"
                 class="milestone-item"
               >
-                <div class="milestone-date-field">
+                <div class="milestone-date-field" [attr.lang]="getCurrentLang()">
                   <label [attr.for]="'inlineMilestoneDate' + i">{{ 'projectDetail.date' | translate }}</label>
                   <div class="date-input-wrapper">
                     <input
@@ -301,6 +303,7 @@
                       type="date"
                       [(ngModel)]="milestone.date"
                       name="inlineMilestoneDate{{ i }}"
+                      [attr.lang]="getCurrentLang()"
                     />
                     <mat-icon class="date-icon">event</mat-icon>
                   </div>
@@ -400,7 +403,7 @@
   </div>
 
   <!-- プロジェクトチャット -->
-  <app-project-chat *ngIf="projectId" [projectId]="projectId" [chatTitle]="'プロジェクトチャット'" [members]="members">
+  <app-project-chat *ngIf="projectId" [projectId]="projectId" [chatTitle]="'projectDetail.chatTitle' | translate" [members]="members">
   </app-project-chat>
 
   <div
@@ -446,7 +449,7 @@
       <mat-select [(ngModel)]="filterStatus" (selectionChange)="applyFilter()">
         <mat-option value="">{{ 'projectDetail.all' | translate }}</mat-option>
         <mat-option *ngFor="let status of statusOptions" [value]="status">
-          {{ status }}
+          {{ getStatusDisplay(status) }}
         </mat-option>
       </mat-select>
     </mat-form-field>
@@ -459,7 +462,7 @@
       >
         <mat-option value="">{{ 'projectDetail.all' | translate }}</mat-option>
         <mat-option *ngFor="let priority of priorityOptions" [value]="priority">
-          {{ priority }}
+          {{ getPriorityDisplay(priority) }}
         </mat-option>
       </mat-select>
     </mat-form-field>
@@ -478,7 +481,7 @@
       </mat-select>
     </mat-form-field>
 
-    <mat-form-field appearance="outline">
+    <mat-form-field appearance="outline" [attr.lang]="getCurrentLang()">
       <mat-label>{{ 'projectDetail.dueDate' | translate }}</mat-label>
       <input
         matInput
@@ -487,6 +490,7 @@
         [(ngModel)]="filterDueDate"
         (change)="applyFilter()"
         max="9999-12-31"
+        [attr.lang]="getCurrentLang()"
       />
       <button
         mat-icon-button
@@ -525,14 +529,14 @@
               [ngClass]="'status-' + task.status"
               selected
             >
-              {{ task.status }}
+              {{ getStatusDisplay(task.status) }}
             </mat-chip>
             <mat-chip
               class="priority-chip"
               [ngClass]="'priority-' + task.priority"
               selected
             >
-              {{ task.priority }}
+              {{ getPriorityDisplay(task.priority) }}
             </mat-chip>
           </mat-chip-set>
         </div>

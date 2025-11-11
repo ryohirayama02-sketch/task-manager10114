@@ -1,5 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { RouterOutlet, Router } from '@angular/router';
+import { takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { NavbarComponent } from './components/navbar/navbar.component';
 import { OfflineIndicatorComponent } from './components/offline-indicator/offline-indicator.component';
@@ -8,6 +10,9 @@ import { AuthService } from './services/auth.service';
 import { HomeScreenSettingsService } from './services/home-screen-settings.service';
 import { NavigationHistoryService } from './services/navigation-history.service';
 import { TranslatePipe } from './pipes/translate.pipe';
+import { LanguageService } from './services/language.service';
+import { DOCUMENT } from '@angular/common';
+import { Inject } from '@angular/core';
 
 @Component({
   selector: 'app-root',
@@ -23,17 +28,30 @@ import { TranslatePipe } from './pipes/translate.pipe';
   styleUrls: ['./app.component.css'],
 })
 export class AppComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+
   constructor(
     private notificationScheduler: NotificationSchedulerService,
     private authService: AuthService,
     private homeScreenSettingsService: HomeScreenSettingsService,
     private router: Router,
-    private navigationHistory: NavigationHistoryService
+    private navigationHistory: NavigationHistoryService,
+    private languageService: LanguageService,
+    @Inject(DOCUMENT) private document: Document
   ) {
     // ナビゲーション履歴サービスを初期化（Routerイベントの監視を開始）
   }
 
   ngOnInit() {
+    // HTML要素のlang属性を言語設定に応じて設定
+    this.updateHtmlLang();
+    // 言語設定の変更を監視
+    this.languageService.language$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.updateHtmlLang();
+      });
+
     // 🔍 現在のルーム情報をコンソールに出力（確認用）
     console.log('✅ 現在のルーム情報を確認します...');
     console.log('roomId:', this.authService.getCurrentRoomId());
@@ -122,8 +140,22 @@ export class AppComponent implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * HTML要素のlang属性を現在の言語設定に応じて更新
+   */
+  private updateHtmlLang(): void {
+    const currentLanguage = this.languageService.getCurrentLanguage();
+    const htmlElement = this.document.documentElement;
+    if (htmlElement) {
+      htmlElement.setAttribute('lang', currentLanguage);
+    }
+  }
+
   ngOnDestroy() {
     // アプリケーション終了時に通知スケジューラーを停止
     this.notificationScheduler.stopScheduler();
+    // 購読を解除
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

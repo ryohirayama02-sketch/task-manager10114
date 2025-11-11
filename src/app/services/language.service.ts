@@ -282,6 +282,7 @@ export class LanguageService {
     'progress.projects.responsible': { ja: '責任者', en: 'Responsible' },
     'progress.projects.members': { ja: 'メンバー', en: 'Members' },
     'progress.projects.completed': { ja: '完了', en: 'Completed' },
+    'progress.projects.overviewNotSet': { ja: '（説明未設定）', en: '(Not Set)' },
     // 進捗画面（メンバー概要）
     'progress.members.title': {
       ja: '全メンバーの進捗',
@@ -533,6 +534,21 @@ export class LanguageService {
       ja: '本当にこのプロジェクトを削除しますか？',
       en: 'Are you sure you want to delete this project?',
     },
+    'projectDetail.status.notStarted': { ja: '未着手', en: 'Not Started' },
+    'projectDetail.status.inProgress': { ja: '作業中', en: 'In Progress' },
+    'projectDetail.status.completed': { ja: '完了', en: 'Completed' },
+    'projectDetail.priority.high': { ja: '高', en: 'High' },
+    'projectDetail.priority.medium': { ja: '中', en: 'Medium' },
+    'projectDetail.priority.low': { ja: '低', en: 'Low' },
+    'projectDetail.chatTitle': { ja: 'プロジェクトチャット', en: 'Project Chat' },
+    // プロジェクトチャット
+    'projectChat.loading': { ja: 'チャットを読み込み中...', en: 'Loading chat...' },
+    'projectChat.noMessages': { ja: 'まだメッセージはありません', en: 'No messages yet' },
+    'projectChat.messagePlaceholder': {
+      ja: 'メッセージを入力（最大100文字）',
+      en: 'Enter message (max 100 characters)',
+    },
+    'projectChat.send': { ja: '送信', en: 'Send' },
     // タスク詳細追加キー
     'taskDetail.back': { ja: '戻る', en: 'Back' },
     'taskDetail.title': { ja: 'タスク詳細', en: 'Task Detail' },
