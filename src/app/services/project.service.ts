@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import {
   Firestore,
   collection,
@@ -23,23 +23,15 @@ import { AuthService } from './auth.service';
 import { TaskService } from './task.service';
 import { TaskAttachmentService } from './task-attachment.service';
 import { ProjectAttachmentService } from './project-attachment.service';
-
-// プロジェクトフィールドの日本語名マッピング
-const PROJECT_FIELD_NAMES: { [key: string]: string } = {
-  projectName: 'プロジェクト名',
-  overview: '説明',
-  startDate: '開始日',
-  endDate: '終了日',
-  themeColor: 'テーマ色',
-  attachments: '資料',
-  responsible: '責任者',
-};
+import { LanguageService } from './language.service';
 
 type ProjectWithRoom = IProject & { roomId?: string };
 type TaskWithRoom = Task & { roomId?: string };
 
 @Injectable({ providedIn: 'root' })
 export class ProjectService {
+  private readonly languageService = inject(LanguageService);
+
   constructor(
     private firestore: Firestore,
     private editLogService: EditLogService,
@@ -48,6 +40,21 @@ export class ProjectService {
     private taskAttachmentService: TaskAttachmentService,
     private projectAttachmentService: ProjectAttachmentService
   ) {}
+
+  /** プロジェクトフィールド名を多言語対応で取得 */
+  private getProjectFieldName(fieldKey: string): string {
+    const fieldKeyMap: { [key: string]: string } = {
+      projectName: 'logs.field.projectName',
+      overview: 'logs.field.overview',
+      startDate: 'logs.field.startDate',
+      endDate: 'logs.field.endDate',
+      themeColor: 'logs.field.themeColor',
+      attachments: 'logs.field.attachments',
+      responsible: 'logs.field.responsible',
+    };
+    const translationKey = fieldKeyMap[fieldKey];
+    return translationKey ? this.languageService.translate(translationKey) : fieldKey;
+  }
 
   /** 🔹 全プロジェクト一覧を取得 */
   getProjects(): Observable<IProject[]> {
@@ -440,7 +447,7 @@ export class ProjectService {
         // プロジェクト名
         if (projectData.projectName !== undefined && projectData.projectName !== oldProject['projectName']) {
           changeDetails.push({
-            field: PROJECT_FIELD_NAMES['projectName'],
+            field: this.getProjectFieldName('projectName'),
             oldValue: oldProject['projectName'] || '',
             newValue: projectData.projectName || '',
           });
@@ -449,7 +456,7 @@ export class ProjectService {
         // 説明（overview）
         if (projectData.overview !== undefined && projectData.overview !== oldProject['overview']) {
           changeDetails.push({
-            field: PROJECT_FIELD_NAMES['overview'],
+            field: this.getProjectFieldName('overview'),
             oldValue: oldProject['overview'] || '',
             newValue: projectData.overview || '',
           });
@@ -458,7 +465,7 @@ export class ProjectService {
         // 開始日
         if (projectData.startDate !== undefined && projectData.startDate !== oldProject['startDate']) {
           changeDetails.push({
-            field: PROJECT_FIELD_NAMES['startDate'],
+            field: this.getProjectFieldName('startDate'),
             oldValue: oldProject['startDate'] || '',
             newValue: projectData.startDate || '',
           });
@@ -467,7 +474,7 @@ export class ProjectService {
         // 終了日
         if (projectData.endDate !== undefined && projectData.endDate !== oldProject['endDate']) {
           changeDetails.push({
-            field: PROJECT_FIELD_NAMES['endDate'],
+            field: this.getProjectFieldName('endDate'),
             oldValue: oldProject['endDate'] || '',
             newValue: projectData.endDate || '',
           });
@@ -476,7 +483,7 @@ export class ProjectService {
         // テーマ色
         if (projectData.themeColor !== undefined && projectData.themeColor !== oldProject['themeColor']) {
           changeDetails.push({
-            field: PROJECT_FIELD_NAMES['themeColor'],
+            field: this.getProjectFieldName('themeColor'),
             oldValue: oldProject['themeColor'] || '',
             newValue: projectData.themeColor || '',
           });
@@ -487,10 +494,11 @@ export class ProjectService {
           const oldAttachmentCount = Array.isArray(oldProject['attachments']) ? oldProject['attachments'].length : 0;
           const newAttachmentCount = Array.isArray(projectData.attachments) ? projectData.attachments.length : 0;
           if (oldAttachmentCount !== newAttachmentCount) {
+            const countUnit = this.languageService.getCurrentLanguage() === 'ja' ? '件' : ' items';
             changeDetails.push({
-              field: PROJECT_FIELD_NAMES['attachments'],
-              oldValue: `${oldAttachmentCount}件`,
-              newValue: `${newAttachmentCount}件`,
+              field: this.getProjectFieldName('attachments'),
+              oldValue: `${oldAttachmentCount}${countUnit}`,
+              newValue: `${newAttachmentCount}${countUnit}`,
             });
           }
         }
@@ -498,24 +506,23 @@ export class ProjectService {
         // 責任者
         if (projectData.responsible !== undefined && projectData.responsible !== oldProject['responsible']) {
           changeDetails.push({
-            field: PROJECT_FIELD_NAMES['responsible'],
+            field: this.getProjectFieldName('responsible'),
             oldValue: oldProject['responsible'] || '',
             newValue: projectData.responsible || '',
           });
         }
       }
 
-      // 編集ログを記録
-      const changeDescriptions = changeDetails.map(change => 
-        `${change.field}: ${change.oldValue}→${change.newValue}`
-      );
-      const changeDescriptionText = changeDescriptions.length > 0
-        ? `プロジェクトを更新しました (${changeDescriptions.join(', ')})`
-        : 'プロジェクトを更新しました';
+      // 編集ログを記録（changeDetailsは既に多言語対応済み）
+
+      const projectUpdatedText = this.languageService.translate('logs.projectUpdated');
+      const changeDescriptionText = changeDetails.length > 0
+        ? `${projectUpdatedText} (${changeDetails.map(c => `${c.field}: ${c.oldValue}→${c.newValue}`).join(', ')})`
+        : projectUpdatedText;
 
       await this.editLogService.logEdit(
         projectId,
-        projectData.projectName || (oldProject ? oldProject['projectName'] : null) || 'プロジェクト',
+        projectData.projectName || (oldProject ? oldProject['projectName'] : null) || this.languageService.translate('logs.projectFallback'),
         'update',
         changeDescriptionText,
         undefined, // taskId

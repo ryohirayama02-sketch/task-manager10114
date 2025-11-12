@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import {
   Firestore,
   collection,
@@ -22,9 +22,12 @@ import {
   resolveProjectThemeColor,
 } from '../constants/project-theme-colors';
 import { TaskAttachmentService } from './task-attachment.service';
+import { LanguageService } from './language.service';
 
 @Injectable({ providedIn: 'root' })
 export class TaskService {
+  private readonly languageService = inject(LanguageService);
+
   constructor(
     private firestore: Firestore,
     private editLogService: EditLogService,
@@ -32,6 +35,21 @@ export class TaskService {
     private memberManagementService: MemberManagementService,
     private taskAttachmentService: TaskAttachmentService
   ) {}
+
+  /** タスクフィールド名を多言語対応で取得 */
+  private getTaskFieldName(fieldKey: string): string {
+    const fieldKeyMap: { [key: string]: string } = {
+      status: 'logs.field.status',
+      priority: 'logs.field.priority',
+      assignee: 'logs.field.assignee',
+      dueDate: 'logs.field.dueDate',
+      taskName: 'logs.field.taskName',
+      description: 'logs.field.description',
+      tags: 'logs.field.tags',
+    };
+    const translationKey = fieldKeyMap[fieldKey];
+    return translationKey ? this.languageService.translate(translationKey) : fieldKey;
+  }
 
   /** 🔹 Firestoreからタスク一覧を取得 */
   getTasks(): Observable<any[]> {
@@ -389,78 +407,65 @@ export class TaskService {
     await updateDoc(taskRef, taskData);
 
     const changeDetails: ChangeDetail[] = [];
-    const changeStrings: string[] = [];
+    const unknownText = this.languageService.translate('logs.status.unknown');
+    const notSetText = this.languageService.translate('logs.status.notSet');
 
     // ステータスの変更
     if (taskData.status && oldTaskData?.status !== taskData.status) {
       changeDetails.push({
-        field: 'ステータス',
-        oldValue: oldTaskData?.status || '不明',
+        field: this.getTaskFieldName('status'),
+        oldValue: oldTaskData?.status || unknownText,
         newValue: taskData.status,
       });
-      changeStrings.push(
-        `ステータス: ${oldTaskData?.status || '不明'} → ${taskData.status}`
-      );
     }
 
     // 優先度の変更
     if (taskData.priority && oldTaskData?.priority !== taskData.priority) {
       changeDetails.push({
-        field: '優先度',
-        oldValue: oldTaskData?.priority || '不明',
+        field: this.getTaskFieldName('priority'),
+        oldValue: oldTaskData?.priority || unknownText,
         newValue: taskData.priority,
       });
-      changeStrings.push(
-        `優先度: ${oldTaskData?.priority || '不明'} → ${taskData.priority}`
-      );
     }
 
     // 担当者の変更
     if (taskData.assignee && oldTaskData?.assignee !== taskData.assignee) {
       const oldAssignee = oldTaskData?.assignee?.trim();
       const isNewAssignee =
-        !oldAssignee || oldAssignee === '' || oldAssignee === '不明';
+        !oldAssignee || oldAssignee === '' || oldAssignee === unknownText;
 
       if (isNewAssignee) {
         // 担当者が追加された場合
         changeDetails.push({
-          field: '担当者',
+          field: this.getTaskFieldName('assignee'),
           newValue: taskData.assignee,
         });
-        changeStrings.push(`担当者: ${taskData.assignee}が追加されました`);
       } else {
         // 担当者が変更された場合
         changeDetails.push({
-          field: '担当者',
+          field: this.getTaskFieldName('assignee'),
           oldValue: oldAssignee,
           newValue: taskData.assignee,
         });
-        changeStrings.push(`担当者: ${oldAssignee} → ${taskData.assignee}`);
       }
     }
 
     // 期限の変更
     if (taskData.dueDate && oldTaskData?.dueDate !== taskData.dueDate) {
       changeDetails.push({
-        field: '期限',
-        oldValue: oldTaskData?.dueDate || '不明',
+        field: this.getTaskFieldName('dueDate'),
+        oldValue: oldTaskData?.dueDate || unknownText,
         newValue: taskData.dueDate,
       });
-      changeStrings.push(
-        `期限: ${oldTaskData?.dueDate || '不明'} → ${taskData.dueDate}`
-      );
     }
 
     // タスク名の変更
     if (taskData.taskName && oldTaskData?.taskName !== taskData.taskName) {
       changeDetails.push({
-        field: 'タスク名',
-        oldValue: oldTaskData?.taskName || '不明',
+        field: this.getTaskFieldName('taskName'),
+        oldValue: oldTaskData?.taskName || unknownText,
         newValue: taskData.taskName,
       });
-      changeStrings.push(
-        `タスク名: ${oldTaskData?.taskName || '不明'} → ${taskData.taskName}`
-      );
     }
 
     // 概要（説明）の変更
@@ -469,15 +474,10 @@ export class TaskService {
       oldTaskData?.description !== taskData.description
     ) {
       changeDetails.push({
-        field: '概要',
-        oldValue: oldTaskData?.description || '変更なし',
+        field: this.getTaskFieldName('description'),
+        oldValue: oldTaskData?.description || notSetText,
         newValue: taskData.description,
       });
-      changeStrings.push(
-        `概要: ${oldTaskData?.description || '変更なし'}→${
-          taskData.description
-        }に変更しました`
-      );
     }
 
     // タグの変更（追加・削除）
@@ -503,10 +503,9 @@ export class TaskService {
       const addedTags = newTags.filter((tag: string) => !oldTags.includes(tag));
       addedTags.forEach((tag: string) => {
         changeDetails.push({
-          field: 'タグ',
+          field: this.getTaskFieldName('tags'),
           newValue: tag,
         });
-        changeStrings.push(`タグ: ${tag}が追加されました`);
       });
 
       // 削除されたタグ
@@ -515,23 +514,24 @@ export class TaskService {
       );
       removedTags.forEach((tag: string) => {
         changeDetails.push({
-          field: 'タグ',
+          field: this.getTaskFieldName('tags'),
           oldValue: tag,
         });
-        changeStrings.push(`タグ: ${tag}が削除されました`);
       });
     }
 
-    if (changeStrings.length > 0) {
+    if (changeDetails.length > 0) {
+      const taskName = taskData.taskName || this.languageService.translate('logs.field.taskName');
+      const taskUpdatedText = this.languageService.translateWithParams('logs.message.taskUpdatedWithName', { taskName });
+      const projectName = taskData.projectName || this.languageService.translate('logs.projectFallback');
+      
       await this.editLogService.logEdit(
         projectId,
-        taskData.projectName || 'プロジェクト',
+        projectName,
         'update',
-        `タスク「${
-          taskData.taskName || 'タスク'
-        }」を更新しました (${changeStrings.join(', ')})`,
+        taskUpdatedText,
         taskId,
-        taskData.taskName || 'タスク',
+        taskData.taskName || taskName,
         undefined,
         undefined,
         changeDetails
@@ -552,21 +552,25 @@ export class TaskService {
     await updateDoc(ref, { status: newStatus });
 
     // ChangeDetail配列を生成
+    const unknownText = this.languageService.translate('logs.status.unknown');
     const changeDetails: ChangeDetail[] = [
       {
-        field: 'ステータス',
-        oldValue: oldStatus || '不明',
+        field: this.getTaskFieldName('status'),
+        oldValue: oldStatus || unknownText,
         newValue: newStatus,
       },
     ];
 
+    const statusChangedText = this.languageService.translateWithParams('logs.message.statusChanged', {
+      oldStatus: oldStatus || unknownText,
+      newStatus: newStatus,
+    });
+
     await this.editLogService.logEdit(
       projectId,
-      projectName || 'プロジェクト',
+      projectName || this.languageService.translate('logs.projectFallback'),
       'update',
-      `タスクのステータスを「${
-        oldStatus || '不明'
-      }」→「${newStatus}」に変更しました`,
+      statusChangedText,
       taskId,
       undefined,
       oldStatus,

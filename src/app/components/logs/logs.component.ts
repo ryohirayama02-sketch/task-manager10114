@@ -274,15 +274,36 @@ export class LogsComponent implements OnInit, OnDestroy {
 
   /** 個別の変更詳細を整形 */
   formatChangeDetail(change: any): string {
-    const field = change.field || '';
+    let field = change.field || '';
     let oldValue = change.oldValue?.toString().trim();
     let newValue = change.newValue?.toString().trim();
     const hasOld = !!oldValue;
     const hasNew = !!newValue;
 
+    // フィールド名が日本語の場合は多言語対応に変換
+    const fieldTranslationMap: { [key: string]: string } = {
+      'プロジェクト名': 'logs.field.projectName',
+      '説明': 'logs.field.overview',
+      '開始日': 'logs.field.startDate',
+      '終了日': 'logs.field.endDate',
+      'テーマ色': 'logs.field.themeColor',
+      '資料': 'logs.field.attachments',
+      '責任者': 'logs.field.responsible',
+      'ステータス': 'logs.field.status',
+      '優先度': 'logs.field.priority',
+      '担当者': 'logs.field.assignee',
+      '期限': 'logs.field.dueDate',
+      'タスク名': 'logs.field.taskName',
+      '概要': 'logs.field.description',
+      'タグ': 'logs.field.tags',
+    };
+    if (fieldTranslationMap[field]) {
+      field = this.languageService.translate(fieldTranslationMap[field]);
+    }
+
     // プロジェクトテーマ色の場合は16進表記を色名に変換
     const themeColorKey = this.languageService.translate('logs.themeColor');
-    if (field === 'テーマ色' || field === 'themeColor' || field === themeColorKey) {
+    if (change.field === 'テーマ色' || change.field === 'themeColor' || change.field === themeColorKey || field === themeColorKey) {
       if (oldValue) {
         oldValue = this.getThemeColorLabel(oldValue);
       }
