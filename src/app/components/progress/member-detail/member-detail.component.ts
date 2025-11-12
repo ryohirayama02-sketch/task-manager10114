@@ -294,6 +294,32 @@ export class MemberDetailComponent implements OnInit {
   applyTaskFilters() {
     if (!this.memberDetail) return;
     let filtered = [...this.memberDetail.tasks];
+    
+    // 期間フィルターを適用
+    if (this.periodStartDate || this.periodEndDate) {
+      filtered = filtered.filter((task) => {
+        const dueDate = task.dueDate ? new Date(task.dueDate) : null;
+        if (!dueDate) return false;
+        
+        // 日付のみを比較（時刻を00:00:00にリセット）
+        const dueDateOnly = this.getDateOnly(dueDate);
+        const startDateOnly = this.periodStartDate
+          ? this.getDateOnly(this.periodStartDate)
+          : null;
+        const endDateOnly = this.periodEndDate
+          ? this.getDateOnly(this.periodEndDate)
+          : null;
+        
+        const afterStart = startDateOnly
+          ? dueDateOnly >= startDateOnly
+          : true;
+        const beforeEnd = endDateOnly
+          ? dueDateOnly <= endDateOnly
+          : true;
+        return afterStart && beforeEnd;
+      });
+    }
+    
     if (this.filterProjects.length > 0) {
       filtered = filtered.filter((task) =>
         this.filterProjects.includes(task.projectName)
@@ -333,6 +359,15 @@ export class MemberDetailComponent implements OnInit {
     this.applyTaskFilters();
   }
 
+  /**
+   * 日付を時刻を00:00:00にリセットして比較用のDateオブジェクトを作成
+   */
+  private getDateOnly(date: Date): Date {
+    const dateOnly = new Date(date);
+    dateOnly.setHours(0, 0, 0, 0);
+    return dateOnly;
+  }
+
   applyPeriodFilter() {
     if (!this.memberDetail) return;
     let filteredTasks = this.memberDetail.tasks;
@@ -340,11 +375,21 @@ export class MemberDetailComponent implements OnInit {
       filteredTasks = filteredTasks.filter((task) => {
         const dueDate = task.dueDate ? new Date(task.dueDate) : null;
         if (!dueDate) return false;
-        const afterStart = this.periodStartDate
-          ? dueDate >= this.periodStartDate
+        
+        // 日付のみを比較（時刻を00:00:00にリセット）
+        const dueDateOnly = this.getDateOnly(dueDate);
+        const startDateOnly = this.periodStartDate
+          ? this.getDateOnly(this.periodStartDate)
+          : null;
+        const endDateOnly = this.periodEndDate
+          ? this.getDateOnly(this.periodEndDate)
+          : null;
+        
+        const afterStart = startDateOnly
+          ? dueDateOnly >= startDateOnly
           : true;
-        const beforeEnd = this.periodEndDate
-          ? dueDate <= this.periodEndDate
+        const beforeEnd = endDateOnly
+          ? dueDateOnly <= endDateOnly
           : true;
         return afterStart && beforeEnd;
       });
@@ -374,8 +419,14 @@ export class MemberDetailComponent implements OnInit {
       targetTasks = this.memberDetail.tasks.filter((task) => {
         const dueDate = task.dueDate ? new Date(task.dueDate) : null;
         if (!dueDate) return false;
-        const afterStart = dueDate >= this.periodStartDate!;
-        const beforeEnd = dueDate <= this.periodEndDate!;
+        
+        // 日付のみを比較（時刻を00:00:00にリセット）
+        const dueDateOnly = this.getDateOnly(dueDate);
+        const startDateOnly = this.getDateOnly(this.periodStartDate!);
+        const endDateOnly = this.getDateOnly(this.periodEndDate!);
+        
+        const afterStart = dueDateOnly >= startDateOnly;
+        const beforeEnd = dueDateOnly <= endDateOnly;
         return afterStart && beforeEnd;
       });
     } else {
@@ -471,6 +522,7 @@ export class MemberDetailComponent implements OnInit {
       this.periodStartDate = null;
     }
     this.applyPeriodFilter();
+    this.applyTaskFilters(); // タスク一覧にも期間フィルターを適用
   }
 
   onPeriodEndDateChange(): void {
@@ -480,6 +532,7 @@ export class MemberDetailComponent implements OnInit {
       this.periodEndDate = null;
     }
     this.applyPeriodFilter();
+    this.applyTaskFilters(); // タスク一覧にも期間フィルターを適用
   }
 
   resetPeriodFilter(): void {
@@ -488,6 +541,7 @@ export class MemberDetailComponent implements OnInit {
     this.periodStartDate = null;
     this.periodEndDate = null;
     this.applyPeriodFilter();
+    this.applyTaskFilters(); // タスク一覧にも期間フィルターを適用
   }
 
   /** ✅ タスク一覧をCSV形式で出力 */
