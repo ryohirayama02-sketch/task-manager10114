@@ -2,6 +2,9 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .logs-header {
@@ -11,12 +14,17 @@
   margin-bottom: 30px;
   padding-bottom: 15px;
   border-bottom: 2px solid #e0e0e0;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
 .logs-header h2 {
   margin: 0;
   color: #1976d2;
   font-size: 28px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
 }
 
 .csv-export-btn {
@@ -28,6 +36,10 @@
   cursor: pointer;
   font-size: 14px;
   transition: background-color 0.3s ease;
+  white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
 }
 
 .csv-export-btn:hover:not(:disabled) {
@@ -48,6 +60,10 @@
   background-color: #f1f3f5;
   border-radius: 8px;
   border: 1px solid #dee2e6;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .filter-group {
@@ -55,6 +71,8 @@
   flex-direction: column;
   min-width: 180px;
   flex: 1 1 200px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .filter-field {
@@ -86,6 +104,9 @@
   width: 180px;
   min-width: 160px;
   font-size: 14px;
+  flex-shrink: 1;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .period-field ::ng-deep .mat-mdc-form-field-label {
@@ -97,11 +118,69 @@
   font-size: 14px;
 }
 
+.period-field ::ng-deep .mat-mdc-text-field-wrapper {
+  overflow: hidden;
+  padding-right: 8px;
+}
+
+.period-field ::ng-deep .mat-mdc-form-field-icon-suffix {
+  padding-right: 0;
+  margin-right: 0;
+  position: relative;
+  right: 0;
+  width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.period-field ::ng-deep mat-datepicker-toggle {
+  margin-right: 0;
+  padding-right: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.period-field ::ng-deep mat-datepicker-toggle button {
+  margin-right: 0;
+  padding-right: 0;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.period-field
+  ::ng-deep
+  .mat-mdc-form-field-icon-suffix
+  .mat-mdc-button-touch-target {
+  width: 40px;
+  height: 40px;
+  right: 0;
+  position: absolute;
+}
+
+.period-field ::ng-deep .mat-mdc-form-field-icon-suffix mat-icon {
+  width: 20px;
+  height: 20px;
+  font-size: 20px;
+  margin: 0;
+}
+
 .filter-actions {
   display: flex;
   align-items: flex-end;
   gap: 8px;
   flex: 1 1 160px;
+  flex-wrap: wrap;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .period-btn,
@@ -155,6 +234,10 @@
   border-radius: 8px;
   padding: 20px;
   transition: box-shadow 0.3s ease;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .log-item:hover {
@@ -168,11 +251,16 @@
   margin-bottom: 15px;
   padding-bottom: 10px;
   border-bottom: 1px solid #dee2e6;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .log-date {
   color: #666;
   font-size: 14px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
 }
 
 .log-action {
@@ -199,11 +287,18 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .log-user {
   color: #495057;
   font-size: 16px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
 }
 
 .log-project,
@@ -211,6 +306,9 @@
 .log-description {
   color: #6c757d;
   font-size: 14px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
 }
 
 .log-description {
@@ -371,5 +469,196 @@
 
   .log-content {
     gap: 12px;
+  }
+
+  .period-field {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .period-field ::ng-deep .mat-mdc-text-field-wrapper {
+    overflow: hidden;
+    padding-right: 8px;
+  }
+
+  .period-field ::ng-deep .mat-mdc-form-field-icon-suffix {
+    padding-right: 0;
+    margin-right: 0;
+    position: relative;
+    right: 0;
+    width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .period-field ::ng-deep mat-datepicker-toggle {
+    margin-right: 0;
+    padding-right: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .period-field ::ng-deep mat-datepicker-toggle button {
+    margin-right: 0;
+    padding-right: 0;
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .period-field
+    ::ng-deep
+    .mat-mdc-form-field-icon-suffix
+    .mat-mdc-button-touch-target {
+    width: 40px;
+    height: 40px;
+    right: 0;
+    position: absolute;
+  }
+
+  .period-field ::ng-deep .mat-mdc-form-field-icon-suffix mat-icon {
+    width: 20px;
+    height: 20px;
+    font-size: 20px;
+    margin: 0;
+  }
+
+  .filter-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-actions button {
+    width: 100%;
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  .log-item {
+    padding: 16px;
+  }
+
+  .log-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .log-date,
+  .log-action {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .logs-container {
+    padding: 12px;
+  }
+
+  .logs-header h2 {
+    font-size: 20px;
+  }
+
+  .csv-export-btn {
+    width: 100%;
+    padding: 8px 16px;
+    font-size: 12px;
+  }
+
+  .logs-filters {
+    padding: 12px;
+  }
+
+  .filter-group {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .period-field {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .period-field ::ng-deep .mat-mdc-text-field-wrapper {
+    overflow: hidden;
+    padding-right: 8px;
+  }
+
+  .period-field ::ng-deep .mat-mdc-form-field-icon-suffix {
+    padding-right: 0;
+    margin-right: 0;
+    position: relative;
+    right: 0;
+    width: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .period-field ::ng-deep mat-datepicker-toggle {
+    margin-right: 0;
+    padding-right: 0;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .period-field ::ng-deep mat-datepicker-toggle button {
+    margin-right: 0;
+    padding-right: 0;
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .period-field
+    ::ng-deep
+    .mat-mdc-form-field-icon-suffix
+    .mat-mdc-button-touch-target {
+    width: 36px;
+    height: 36px;
+    right: 0;
+    position: absolute;
+  }
+
+  .period-field ::ng-deep .mat-mdc-form-field-icon-suffix mat-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+    margin: 0;
+  }
+
+  .log-item {
+    padding: 12px;
+  }
+
+  .log-user {
+    font-size: 14px;
+  }
+
+  .log-project,
+  .log-task,
+  .log-description {
+    font-size: 12px;
+  }
+
+  .log-action {
+    font-size: 11px;
+    padding: 3px 10px;
   }
 }
