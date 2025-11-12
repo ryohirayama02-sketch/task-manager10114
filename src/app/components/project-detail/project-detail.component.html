@@ -530,6 +530,7 @@
   <!-- フィルター -->
   <div class="filter-section">
     <mat-form-field appearance="outline">
+      <mat-label>{{ "projectDetail.status" | translate }}</mat-label>
       <mat-select
         [(ngModel)]="filterStatus"
         (selectionChange)="applyFilter()"
@@ -543,6 +544,7 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline">
+      <mat-label>{{ "projectDetail.priority" | translate }}</mat-label>
       <mat-select
         [(ngModel)]="filterPriority"
         (selectionChange)="applyFilter()"
@@ -556,6 +558,7 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline">
+      <mat-label>{{ "projectDetail.assignee" | translate }}</mat-label>
       <mat-select
         [(ngModel)]="filterAssignee"
         (selectionChange)="applyFilter()"

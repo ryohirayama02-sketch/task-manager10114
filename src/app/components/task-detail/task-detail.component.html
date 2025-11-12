@@ -688,6 +688,7 @@
 
       <div class="child-filter-section">
         <mat-form-field appearance="outline">
+          <mat-label>{{ "taskDetail.status" | translate }}</mat-label>
           <mat-select
             [(ngModel)]="childFilterStatus"
             (selectionChange)="applyChildFilter()"
@@ -701,6 +702,7 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline">
+          <mat-label>{{ "taskDetail.priority" | translate }}</mat-label>
           <mat-select
             [(ngModel)]="childFilterPriority"
             (selectionChange)="applyChildFilter()"
@@ -717,6 +719,7 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline">
+          <mat-label>{{ "taskDetail.assignee" | translate }}</mat-label>
           <mat-select
             [(ngModel)]="childFilterAssignee"
             (selectionChange)="applyChildFilter()"
@@ -732,7 +735,7 @@
           </mat-select>
         </mat-form-field>
 
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" class="due-date-filter-field">
           <input
             matInput
             [matDatepicker]="childDueDatePicker"

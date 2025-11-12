@@ -192,10 +192,62 @@
   opacity: 1 !important;
 }
 
-/* 子タスクフィルターセクションのラベルを非表示（プレースホルダーを表示するため） */
-.child-filter-section ::ng-deep .mat-mdc-form-field-label-wrapper,
-.child-filter-section ::ng-deep .mat-mdc-form-field-label,
-.child-filter-section ::ng-deep mat-label {
+/* 子タスクフィルターセクションのmat-selectのラベルを表示（グローバルスタイルを上書き） */
+.child-filter-section ::ng-deep mat-select ~ .mat-mdc-form-field-label-wrapper,
+.child-filter-section
+  ::ng-deep
+  .mat-mdc-form-field:has(mat-select)
+  .mat-mdc-form-field-label-wrapper,
+.child-filter-section
+  ::ng-deep
+  .mat-mdc-form-field:has(mat-select)
+  .mat-mdc-form-field-label,
+.child-filter-section ::ng-deep .mat-mdc-form-field:has(mat-select) mat-label,
+body[data-language="ja"]
+  .child-filter-section
+  ::ng-deep
+  mat-select
+  ~ .mat-mdc-form-field-label-wrapper,
+body[data-language="ja"]
+  .child-filter-section
+  ::ng-deep
+  .mat-mdc-form-field:has(mat-select)
+  .mat-mdc-form-field-label-wrapper,
+body[data-language="ja"]
+  .child-filter-section
+  ::ng-deep
+  .mat-mdc-form-field:has(mat-select)
+  .mat-mdc-form-field-label,
+body[data-language="ja"]
+  .child-filter-section
+  ::ng-deep
+  .mat-mdc-form-field:has(mat-select)
+  mat-label {
+  display: block !important;
+}
+
+/* 子タスクフィルターセクションの期日フィールドのラベルのみ非表示（プレースホルダーを表示するため） */
+.child-filter-section
+  ::ng-deep
+  input[matDatepicker]
+  ~ .mat-mdc-form-field-label-wrapper,
+.child-filter-section
+  ::ng-deep
+  input[matDatepicker]
+  ~ .mat-mdc-form-field-label,
+.child-filter-section ::ng-deep input[matDatepicker] ~ mat-label,
+.child-filter-section
+  ::ng-deep
+  .mat-mdc-form-field:has(input[matDatepicker])
+  .mat-mdc-form-field-label-wrapper,
+.child-filter-section
+  ::ng-deep
+  .mat-mdc-form-field:has(input[matDatepicker])
+  .mat-mdc-form-field-label,
+.child-filter-section
+  ::ng-deep
+  .mat-mdc-form-field:has(input[matDatepicker])
+  mat-label {
   display: none !important;
 }
 
@@ -633,11 +685,76 @@ mat-chip mat-icon {
   flex-wrap: wrap;
   gap: 12px;
   margin-bottom: 20px;
-  align-items: flex-end;
+  align-items: center;
 }
 
 .child-filter-section mat-form-field {
-  min-width: 180px;
+  flex: 0 0 auto;
+  width: 140px;
+  min-width: 120px;
+  max-width: 200px;
+}
+
+.child-filter-section mat-form-field .mat-mdc-select-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.child-filter-section mat-form-field .mat-mdc-select-value-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  display: block;
+}
+
+/* 期日フィルターのdate pickerは幅を広げる */
+.child-filter-section .due-date-filter-field {
+  width: 180px;
+  min-width: 160px;
+  max-width: 220px;
+}
+
+/* Material date pickerの入力フィールドのテキストが見切れないように */
+.child-filter-section .due-date-filter-field .mat-mdc-form-field-infix {
+  min-width: 140px;
+}
+
+.child-filter-section .due-date-filter-field input {
+  width: 100%;
+  min-width: 0;
+  overflow: visible;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 期日フィルターフィールドのカレンダーアイコンの余白 */
+.child-filter-section
+  .due-date-filter-field
+  ::ng-deep
+  .mat-mdc-form-field-icon-suffix {
+  padding-right: 8px;
+}
+
+.child-filter-section .due-date-filter-field ::ng-deep .mat-datepicker-toggle {
+  margin-right: 4px;
+}
+
+.child-filter-section
+  .due-date-filter-field
+  ::ng-deep
+  .mat-mdc-text-field-wrapper {
+  padding-right: 8px;
+}
+
+.child-filter-section
+  .due-date-filter-field
+  ::ng-deep
+  .mat-mdc-form-field-icon-suffix
+  .mat-datepicker-toggle {
+  margin-left: 4px;
 }
 
 .child-tasks-grid {
