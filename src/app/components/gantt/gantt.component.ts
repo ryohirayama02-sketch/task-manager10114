@@ -78,10 +78,10 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
   currentScrollLeft: number = 0;
 
   // 担当者列の動的幅
-  assigneeColumnWidth: number = 140;
+  assigneeColumnWidth: number = 120;
 
   // 全体の動的幅
-  totalInfoWidth: number = 603;
+  totalInfoWidth: number = 483;
 
   // マイルストーン
   allMilestones: any[] = [];
@@ -646,14 +646,14 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** 担当者列の幅を動的に計算 */
   calculateAssigneeColumnWidth(): void {
-    this.assigneeColumnWidth = 140;
+    this.assigneeColumnWidth = 120;
     this.calculateTotalInfoWidth();
   }
 
   /** 全体の情報列幅を計算 */
   calculateTotalInfoWidth(): void {
-    // プロジェクト名(200) + タスク名(200) + 優先度(60) + 担当者(固定) + ボーダー(3)
-    this.totalInfoWidth = 200 + 200 + 60 + this.assigneeColumnWidth + 3;
+    // プロジェクト名(150) + タスク名(150) + 優先度(60) + 担当者(固定) + ボーダー(3)
+    this.totalInfoWidth = 150 + 150 + 60 + this.assigneeColumnWidth + 3;
   }
 
   /** マイルストーンの位置を計算 */
