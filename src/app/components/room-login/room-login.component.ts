@@ -17,30 +17,32 @@ import { firstValueFrom } from 'rxjs';
     <div class="room-login">
       <form (ngSubmit)="enterRoom()" #roomForm="ngForm">
         <label>
-          {{ "roomLogin.roomId" | translate }}
+          {{ 'roomLogin.roomId' | translate }}
           <input
             type="text"
             name="roomId"
             required
             [(ngModel)]="roomId"
+            maxlength="20"
           />
         </label>
         <label>
-          {{ "roomLogin.password" | translate }}
+          {{ 'roomLogin.password' | translate }}
           <input
             type="password"
             name="password"
             required
             [(ngModel)]="password"
+            maxlength="20"
           />
         </label>
         <button type="submit" [disabled]="roomForm.invalid || isLoading">
-          {{ "roomLogin.enter" | translate }}
+          {{ 'roomLogin.enter' | translate }}
         </button>
       </form>
       <p *ngIf="error" class="error">{{ error }}</p>
       <button type="button" (click)="showCreateRoom = !showCreateRoom">
-        {{ "roomLogin.createRoom" | translate }}
+        {{ 'roomLogin.createRoom' | translate }}
       </button>
       <form
         *ngIf="showCreateRoom"
@@ -48,7 +50,7 @@ import { firstValueFrom } from 'rxjs';
         #createRoomForm="ngForm"
       >
         <label>
-          {{ "roomLogin.roomId" | translate }}
+          {{ 'roomLogin.roomId' | translate }}
           <input
             type="text"
             name="newRoomId"
@@ -62,10 +64,10 @@ import { firstValueFrom } from 'rxjs';
           <span *ngIf="roomIdExistsError" class="error-message">
             {{ roomIdExistsError }}
           </span>
-          <span class="hint-text">{{ "roomLogin.maxLength" | translate }}</span>
+          <span class="hint-text">{{ 'roomLogin.maxLength' | translate }}</span>
         </label>
         <label>
-          {{ "roomLogin.displayName" | translate }}
+          {{ 'roomLogin.displayName' | translate }}
           <input
             type="text"
             name="newRoomName"
@@ -74,10 +76,10 @@ import { firstValueFrom } from 'rxjs';
             maxlength="20"
             [placeholder]="'roomLogin.maxLength' | translate"
           />
-          <span class="hint-text">{{ "roomLogin.maxLength" | translate }}</span>
+          <span class="hint-text">{{ 'roomLogin.maxLength' | translate }}</span>
         </label>
         <label>
-          {{ "roomLogin.password" | translate }}
+          {{ 'roomLogin.password' | translate }}
           <input
             type="password"
             name="newRoomPassword"
@@ -86,13 +88,18 @@ import { firstValueFrom } from 'rxjs';
             maxlength="20"
             [placeholder]="'roomLogin.maxLength' | translate"
           />
-          <span class="hint-text">{{ "roomLogin.maxLength" | translate }}</span>
+          <span class="hint-text">{{ 'roomLogin.maxLength' | translate }}</span>
         </label>
         <button
           type="submit"
-          [disabled]="createRoomForm.invalid || isCreating || !!roomIdExistsError || isCheckingRoomId"
+          [disabled]="
+            createRoomForm.invalid ||
+            isCreating ||
+            !!roomIdExistsError ||
+            isCheckingRoomId
+          "
         >
-          {{ "roomLogin.create" | translate }}
+          {{ 'roomLogin.create' | translate }}
         </button>
       </form>
     </div>
@@ -182,14 +189,18 @@ export class RoomLoginComponent {
         this.password
       );
       if (!roomDoc) {
-        this.error = this.languageService.translate('roomLogin.error.invalidInput');
+        this.error = this.languageService.translate(
+          'roomLogin.error.invalidInput'
+        );
         return;
       }
       this.authService.setRoomId(this.roomId, roomDoc.id);
       await this.navigateToHomeScreen();
     } catch (err) {
       console.error('Failed to join room', err);
-      this.error = this.languageService.translate('roomLogin.error.invalidInput');
+      this.error = this.languageService.translate(
+        'roomLogin.error.invalidInput'
+      );
     } finally {
       this.isLoading = false;
     }
@@ -207,7 +218,9 @@ export class RoomLoginComponent {
     try {
       const exists = await this.roomService.roomIdExists(this.newRoomId.trim());
       if (exists) {
-        this.roomIdExistsError = this.languageService.translate('roomLogin.error.roomIdExists');
+        this.roomIdExistsError = this.languageService.translate(
+          'roomLogin.error.roomIdExists'
+        );
       }
     } catch (err) {
       console.error('Failed to check room ID', err);
@@ -230,15 +243,16 @@ export class RoomLoginComponent {
     // 念のため再度チェック
     const exists = await this.roomService.roomIdExists(this.newRoomId.trim());
     if (exists) {
-      this.roomIdExistsError = this.languageService.translate('roomLogin.error.roomIdExists');
+      this.roomIdExistsError = this.languageService.translate(
+        'roomLogin.error.roomIdExists'
+      );
       return;
     }
 
     this.error = null;
     this.isCreating = true;
     try {
-      const createdBy =
-        this.authService.getCurrentUser()?.email || 'unknown';
+      const createdBy = this.authService.getCurrentUser()?.email || 'unknown';
       const docRef = await this.roomService.createRoom(
         this.newRoomName,
         this.newRoomPassword,
@@ -249,7 +263,9 @@ export class RoomLoginComponent {
       await this.navigateToHomeScreen();
     } catch (err) {
       console.error('Failed to create room', err);
-      this.error = this.languageService.translate('roomLogin.error.createFailed');
+      this.error = this.languageService.translate(
+        'roomLogin.error.createFailed'
+      );
     } finally {
       this.isCreating = false;
     }
@@ -263,7 +279,8 @@ export class RoomLoginComponent {
       const settings = await firstValueFrom(
         this.homeScreenSettingsService.getHomeScreenSettings()
       );
-      const homeScreen = settings?.homeScreen || 
+      const homeScreen =
+        settings?.homeScreen ||
         this.homeScreenSettingsService.getDefaultHomeScreen();
       await this.router.navigate([`/${homeScreen}`]);
     } catch (error) {
