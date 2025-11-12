@@ -170,6 +170,16 @@ export class ProjectFormComponent implements OnInit {
         this.projectForm.patchValue({ startDate: '' });
         return;
       }
+      
+      // 開始日が終了日より後の場合は、終了日を開始日に合わせる
+      if (this.endDateObj && this.startDateObj > this.endDateObj) {
+        this.endDateObj = new Date(this.startDateObj);
+        const endYear = this.endDateObj.getFullYear();
+        const endMonth = String(this.endDateObj.getMonth() + 1).padStart(2, '0');
+        const endDay = String(this.endDateObj.getDate()).padStart(2, '0');
+        this.projectForm.patchValue({ endDate: `${endYear}-${endMonth}-${endDay}` });
+      }
+      
       this.startDateError = null;
       const month = String(this.startDateObj.getMonth() + 1).padStart(2, '0');
       const day = String(this.startDateObj.getDate()).padStart(2, '0');
