@@ -13,10 +13,20 @@
           </mat-option>
         </mat-select>
       </mat-form-field>
-      <button mat-raised-button color="primary" (click)="openProjectForm()">
-        <mat-icon>add</mat-icon>
-        {{ 'progress.projects.createProject' | translate }}
-      </button>
+      <div class="create-project-wrapper">
+        <button 
+          mat-raised-button 
+          color="primary" 
+          [disabled]="!hasMembers"
+          (click)="openProjectForm()"
+        >
+          <mat-icon>add</mat-icon>
+          {{ 'progress.projects.createProject' | translate }}
+        </button>
+        <span *ngIf="!hasMembers" class="member-required-message">
+          {{ 'common.memberRequiredForProject' | translate }}
+        </span>
+      </div>
     </div>
   </div>
 

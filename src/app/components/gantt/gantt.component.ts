@@ -69,6 +69,11 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
   filterStatus: string[] = [];
   members: Member[] = []; // メンバー一覧
 
+  // メンバー数チェック
+  get hasMembers(): boolean {
+    return this.members.length > 0;
+  }
+
   // 日付範囲
   startDate: Date = new Date();
   endDate: Date = new Date();
@@ -291,8 +296,10 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
       availableIds.has(id)
     );
 
-    if (nextSelection.length === 0) {
-      // 保存された選択がない場合は、すべてのプロジェクトを選択
+    // 初回起動時（ストレージに保存がない場合）のみ、すべてのプロジェクトを選択
+    // ユーザーが意図的にすべてのチェックを外した場合は、空配列のまま保持
+    if (nextSelection.length === 0 && !this.projectSelectionService.hasStoredSelection()) {
+      // 初回起動時のみ、すべてのプロジェクトを選択
       const allIds = Array.from(availableIds);
       nextSelection = allIds;
     }

@@ -157,6 +157,13 @@ mat-toolbar, .mat-toolbar {
   flex-wrap: wrap;
 }
 
+/* 日本語設定時にmat-labelを非表示にする */
+body[data-language="ja"] mat-label,
+body[data-language="ja"] .mat-mdc-form-field-label,
+body[data-language="ja"] .mat-form-field-label {
+  display: none !important;
+}
+
 /* モバイルでの追加対策 */
 @media (max-width: 480px) {
   /* すべての要素で確実に改行 */

@@ -441,7 +441,7 @@
   <div class="filter-section">
     <mat-form-field appearance="outline">
       <mat-label>{{ 'projectDetail.status' | translate }}</mat-label>
-      <mat-select [(ngModel)]="filterStatus" (selectionChange)="applyFilter()">
+      <mat-select [(ngModel)]="filterStatus" (selectionChange)="applyFilter()" [placeholder]="'projectDetail.status' | translate">
         <mat-option value="">{{ 'projectDetail.all' | translate }}</mat-option>
         <mat-option *ngFor="let status of statusOptions" [value]="status">
           {{ getStatusDisplay(status) }}
@@ -454,6 +454,7 @@
       <mat-select
         [(ngModel)]="filterPriority"
         (selectionChange)="applyFilter()"
+        [placeholder]="'projectDetail.priority' | translate"
       >
         <mat-option value="">{{ 'projectDetail.all' | translate }}</mat-option>
         <mat-option *ngFor="let priority of priorityOptions" [value]="priority">

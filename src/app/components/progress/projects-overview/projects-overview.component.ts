@@ -55,6 +55,11 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
   private progressRequestId = 0;
   members: Member[] = [];
 
+  // メンバー数チェック
+  get hasMembers(): boolean {
+    return this.members.length > 0;
+  }
+
   constructor(
     private router: Router,
     private projectService: ProjectService,

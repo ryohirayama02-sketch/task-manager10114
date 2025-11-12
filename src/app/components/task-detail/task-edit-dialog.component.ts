@@ -114,6 +114,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
                 [(ngModel)]="selectedMemberId"
                 (selectionChange)="onMemberSelectionChange($event.value)"
                 name="assignee"
+                [placeholder]="'taskEditDialog.assignee' | translate"
               >
                 <mat-option value="">{{ "taskEditDialog.noAssignee" | translate }}</mat-option>
                 <mat-option *ngFor="let member of members" [value]="member.id">
@@ -141,7 +142,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
           <!-- ステータス -->
           <mat-form-field appearance="outline" class="half-width">
             <mat-label>{{ "taskEditDialog.status" | translate }}</mat-label>
-            <mat-select [(ngModel)]="task.status" name="status">
+            <mat-select [(ngModel)]="task.status" name="status" [placeholder]="'taskEditDialog.status' | translate">
               <mat-option value="未着手">{{ "taskDetail.status.notStarted" | translate }}</mat-option>
               <mat-option value="作業中">{{ "taskDetail.status.inProgress" | translate }}</mat-option>
               <mat-option value="完了">{{ "taskDetail.status.completed" | translate }}</mat-option>
@@ -152,7 +153,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
           <!-- 優先度 -->
           <mat-form-field appearance="outline" class="half-width">
             <mat-label>{{ "taskEditDialog.priority" | translate }}</mat-label>
-            <mat-select [(ngModel)]="task.priority" name="priority">
+            <mat-select [(ngModel)]="task.priority" name="priority" [placeholder]="'taskEditDialog.priority' | translate">
               <mat-option value="高">{{ "taskDetail.priority.high" | translate }}</mat-option>
               <mat-option value="中">{{ "taskDetail.priority.medium" | translate }}</mat-option>
               <mat-option value="低">{{ "taskDetail.priority.low" | translate }}</mat-option>

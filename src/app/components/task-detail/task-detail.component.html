@@ -246,6 +246,7 @@
               multiple
               (ngModelChange)="onAssignedMembersChange($event)"
               [disabled]="membersLoading"
+              [placeholder]="'taskDetail.assignee' | translate"
               required
             >
               <mat-option
@@ -273,7 +274,7 @@
 
           <mat-form-field appearance="outline" class="full-width-field">
             <mat-label>{{ "taskDetail.status" | translate }}</mat-label>
-            <mat-select [(ngModel)]="taskData.status" name="status">
+            <mat-select [(ngModel)]="taskData.status" name="status" [placeholder]="'taskDetail.status' | translate">
               <mat-option value="未着手">{{
                 "taskDetail.status.notStarted" | translate
               }}</mat-option>
@@ -288,7 +289,7 @@
 
           <mat-form-field appearance="outline" class="full-width-field">
             <mat-label>{{ "taskDetail.priority" | translate }}</mat-label>
-            <mat-select [(ngModel)]="taskData.priority" name="priority">
+            <mat-select [(ngModel)]="taskData.priority" name="priority" [placeholder]="'taskDetail.priority' | translate">
               <mat-option value="高">{{
                 "taskDetail.priority.high" | translate
               }}</mat-option>
@@ -650,6 +651,7 @@
           <mat-select
             [(ngModel)]="childFilterStatus"
             (selectionChange)="applyChildFilter()"
+            [placeholder]="'taskDetail.status' | translate"
           >
             <mat-option value="">{{ "taskDetail.all" | translate }}</mat-option>
             <mat-option *ngFor="let status of statusOptions" [value]="status">
@@ -663,6 +665,7 @@
           <mat-select
             [(ngModel)]="childFilterPriority"
             (selectionChange)="applyChildFilter()"
+            [placeholder]="'taskDetail.priority' | translate"
           >
             <mat-option value="">{{ "taskDetail.all" | translate }}</mat-option>
             <mat-option
@@ -679,6 +682,7 @@
           <mat-select
             [(ngModel)]="childFilterAssignee"
             (selectionChange)="applyChildFilter()"
+            [placeholder]="'taskDetail.assignee' | translate"
           >
             <mat-option value="">{{ "taskDetail.all" | translate }}</mat-option>
             <mat-option

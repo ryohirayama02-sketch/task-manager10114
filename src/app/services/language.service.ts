@@ -318,6 +318,10 @@ export class LanguageService {
     'common.delete': { ja: '削除', en: 'Delete' },
     'common.notSet': { ja: '未設定', en: 'Not Set' },
     'common.nameNotSet': { ja: '名称未設定', en: 'Name Not Set' },
+    'common.memberRequiredForProject': {
+      ja: 'メンバー管理にメンバーを追加してください',
+      en: 'Please add members in Member Management',
+    },
     'language.japanese': { ja: '日本語', en: 'Japanese' },
     'language.english': { ja: '英語', en: 'English' },
     'homeScreen.kanban': { ja: 'カンバン画面', en: 'Kanban Board' },

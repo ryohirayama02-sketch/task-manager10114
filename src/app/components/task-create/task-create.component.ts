@@ -164,6 +164,20 @@ export class TaskCreatePageComponent implements OnInit {
         this.selectedMemberIds = [...duplicateData.assignedMembers];
       }
 
+      // 開始日と終了日をDateオブジェクトに変換して設定
+      if (duplicateData.startDate) {
+        const startDate = new Date(duplicateData.startDate);
+        if (!isNaN(startDate.getTime())) {
+          this.startDateObj = startDate;
+        }
+      }
+      if (duplicateData.dueDate) {
+        const dueDate = new Date(duplicateData.dueDate);
+        if (!isNaN(dueDate.getTime())) {
+          this.dueDateObj = dueDate;
+        }
+      }
+
       // 子タスクの複製の場合は、parentTaskIdを設定
       if (duplicateData.parentTaskId) {
         this.parentTaskId = duplicateData.parentTaskId;

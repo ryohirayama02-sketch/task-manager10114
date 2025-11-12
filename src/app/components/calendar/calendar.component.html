@@ -35,13 +35,19 @@
           {{ "calendar.projectSelector.clearAll" | translate }}
         </button>
       </div>
-      <button
-        mat-stroked-button
-        class="create-project-button"
-        (click)="openProjectDialog()"
-      >
-        ＋{{ "calendar.actionButtons.addProject" | translate }}
-      </button>
+      <div class="create-project-wrapper">
+        <button
+          mat-stroked-button
+          class="create-project-button"
+          [disabled]="!hasMembers"
+          (click)="openProjectDialog()"
+        >
+          ＋{{ "calendar.actionButtons.addProject" | translate }}
+        </button>
+        <span *ngIf="!hasMembers" class="member-required-message">
+          {{ "common.memberRequiredForProject" | translate }}
+        </span>
+      </div>
     </div>
   </div>
 

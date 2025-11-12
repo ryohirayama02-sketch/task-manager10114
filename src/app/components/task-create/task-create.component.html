@@ -1,10 +1,14 @@
 <div class="page-header" [style.background]="projectThemeColor">
   <button mat-button (click)="goBack()" class="back-button">
     <mat-icon>arrow_back</mat-icon>
-    {{ 'taskCreate.back' | translate }}
+    {{ "taskCreate.back" | translate }}
   </button>
   <h2>
-    {{ isSubtaskCreation ? ('taskCreate.createSubtask' | translate) : ('taskCreate.title' | translate) }}
+    {{
+      isSubtaskCreation
+        ? ("taskCreate.createSubtask" | translate)
+        : ("taskCreate.title" | translate)
+    }}
   </h2>
 </div>
 
@@ -12,7 +16,17 @@
   <mat-card class="task-form-card">
     <mat-card-header>
       <h3>
-        {{ isSubtaskCreation ? (parentTaskName ? parentTaskName + ' - ' + ('taskCreate.createSubtask' | translate) : ('taskCreate.createSubtask' | translate)) : (projectName ? projectName + ' - ' + ('taskCreate.title' | translate) : ('taskCreate.title' | translate)) }}
+        {{
+          isSubtaskCreation
+            ? parentTaskName
+              ? parentTaskName +
+                " - " +
+                ("taskCreate.createSubtask" | translate)
+              : ("taskCreate.createSubtask" | translate)
+            : projectName
+            ? projectName + " - " + ("taskCreate.title" | translate)
+            : ("taskCreate.title" | translate)
+        }}
       </h3>
     </mat-card-header>
 
@@ -20,13 +34,29 @@
       <form (ngSubmit)="save()" #taskCreateForm="ngForm">
         <!-- 親タスク情報表示（サブタスク作成時のみ） -->
         <div *ngIf="isSubtaskCreation" class="parent-task-info">
-          <p class="info-line">{{ 'taskCreate.parentTaskInfo.projectName' | translate }} <strong>{{ projectName }}</strong></p>
-          <p class="info-line">{{ 'taskCreate.parentTaskInfo.parentTaskName' | translate }} <strong>{{ parentTaskName }}</strong></p>
+          <p class="info-line">
+            {{ "taskCreate.parentTaskInfo.projectName" | translate }}
+            <strong>{{ projectName }}</strong>
+          </p>
+          <p class="info-line">
+            {{ "taskCreate.parentTaskInfo.parentTaskName" | translate }}
+            <strong>{{ parentTaskName }}</strong>
+          </p>
         </div>
 
         <!-- タスク名 -->
         <mat-form-field appearance="outline" class="full-width-field">
-          <mat-label>{{ isSubtaskCreation ? ('taskCreate.subtaskName' | translate) : ('taskCreate.taskName' | translate) }} * <span class="required-hint">{{ 'taskCreate.required' | translate }}</span></mat-label>
+          <mat-label
+            >{{
+              isSubtaskCreation
+                ? ("taskCreate.subtaskName" | translate)
+                : ("taskCreate.taskName" | translate)
+            }}
+            *
+            <span class="required-hint">{{
+              "taskCreate.required" | translate
+            }}</span></mat-label
+          >
           <input
             matInput
             [(ngModel)]="taskForm.taskName"
@@ -34,12 +64,14 @@
             required
             maxlength="30"
           />
-          <mat-hint align="end">{{ (taskForm.taskName || '').length }}/30</mat-hint>
+          <mat-hint align="end"
+            >{{ (taskForm.taskName || "").length }}/30</mat-hint
+          >
         </mat-form-field>
 
         <!-- 説明 -->
         <mat-form-field appearance="outline" class="full-width-field">
-          <mat-label>{{ 'taskCreate.description' | translate }}</mat-label>
+          <mat-label>{{ "taskCreate.description" | translate }}</mat-label>
           <textarea
             matInput
             rows="3"
@@ -48,29 +80,44 @@
             [placeholder]="'taskCreate.descriptionPlaceholder' | translate"
             maxlength="200"
           ></textarea>
-          <mat-hint align="end">{{ (taskForm.description || '').length }}/200</mat-hint>
+          <mat-hint align="end"
+            >{{ (taskForm.description || "").length }}/200</mat-hint
+          >
         </mat-form-field>
 
         <!-- 日付範囲 -->
         <div class="date-row">
           <mat-form-field appearance="outline" class="date-field">
-            <mat-label>{{ 'taskCreate.startDate' | translate }} * <span class="required-hint">{{ 'taskCreate.required' | translate }}</span></mat-label>
+            <mat-label
+              >{{ "taskCreate.startDate" | translate }} *
+              <span class="required-hint">{{
+                "taskCreate.required" | translate
+              }}</span></mat-label
+            >
             <input
               matInput
               [matDatepicker]="startDatePicker"
               [(ngModel)]="startDateObj"
               (dateChange)="onStartDateChange()"
               [max]="dueDateObj || maxDate"
-              [ngModelOptions]="{standalone: true}"
+              [ngModelOptions]="{ standalone: true }"
               readonly
               required
             />
-            <mat-datepicker-toggle matIconSuffix [for]="startDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker-toggle
+              matIconSuffix
+              [for]="startDatePicker"
+            ></mat-datepicker-toggle>
             <mat-datepicker #startDatePicker></mat-datepicker>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="date-field">
-            <mat-label>{{ 'taskCreate.dueDate' | translate }} * <span class="required-hint">{{ 'taskCreate.required' | translate }}</span></mat-label>
+            <mat-label
+              >{{ "taskCreate.dueDate" | translate }} *
+              <span class="required-hint">{{
+                "taskCreate.required" | translate
+              }}</span></mat-label
+            >
             <input
               matInput
               [matDatepicker]="dueDatePicker"
@@ -78,36 +125,54 @@
               (dateChange)="onDueDateChange()"
               [min]="startDateObj || undefined"
               [max]="maxDate"
-              [ngModelOptions]="{standalone: true}"
+              [ngModelOptions]="{ standalone: true }"
               readonly
               required
             />
-            <mat-datepicker-toggle matIconSuffix [for]="dueDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker-toggle
+              matIconSuffix
+              [for]="dueDatePicker"
+            ></mat-datepicker-toggle>
             <mat-datepicker #dueDatePicker></mat-datepicker>
           </mat-form-field>
         </div>
 
         <!-- 担当者 -->
         <mat-form-field appearance="outline" class="full-width-field">
-          <mat-label>{{ 'taskCreate.assignee' | translate }} * <span class="required-hint">{{ 'taskCreate.required' | translate }}</span></mat-label>
+          <mat-label
+            >{{ "taskCreate.assignee" | translate }} *
+            <span class="required-hint">{{
+              "taskCreate.required" | translate
+            }}</span></mat-label
+          >
           <mat-select
             [(ngModel)]="selectedMemberIds"
             name="assignee"
             multiple
             (ngModelChange)="onMembersSelectionChange($event)"
+            [placeholder]="'taskCreate.assignee' | translate"
             required
           >
-            <mat-option *ngFor="let member of projectMembers" [value]="member.id">
+            <mat-option
+              *ngFor="let member of projectMembers"
+              [value]="member.id"
+            >
               {{ member.name }}
             </mat-option>
           </mat-select>
-          <mat-hint *ngIf="projectMembers.length === 0">{{ 'taskCreate.noMembersInProject' | translate }}</mat-hint>
+          <mat-hint *ngIf="projectMembers.length === 0">{{
+            "taskCreate.noMembersInProject" | translate
+          }}</mat-hint>
         </mat-form-field>
 
         <!-- ステータス -->
         <mat-form-field appearance="outline" class="full-width-field">
-          <mat-label>{{ 'taskCreate.status' | translate }}</mat-label>
-          <mat-select [(ngModel)]="taskForm.status" name="status">
+          <mat-label>{{ "taskCreate.status" | translate }}</mat-label>
+          <mat-select
+            [(ngModel)]="taskForm.status"
+            name="status"
+            [placeholder]="'taskCreate.status' | translate"
+          >
             <mat-option *ngFor="let status of statusOptions" [value]="status">
               {{ status }}
             </mat-option>
@@ -116,9 +181,16 @@
 
         <!-- 優先度 -->
         <mat-form-field appearance="outline" class="full-width-field">
-          <mat-label>{{ 'taskCreate.priority' | translate }}</mat-label>
-          <mat-select [(ngModel)]="taskForm.priority" name="priority">
-            <mat-option *ngFor="let priority of priorityOptions" [value]="priority">
+          <mat-label>{{ "taskCreate.priority" | translate }}</mat-label>
+          <mat-select
+            [(ngModel)]="taskForm.priority"
+            name="priority"
+            [placeholder]="'taskCreate.priority' | translate"
+          >
+            <mat-option
+              *ngFor="let priority of priorityOptions"
+              [value]="priority"
+            >
               {{ priority }}
             </mat-option>
           </mat-select>
@@ -126,7 +198,9 @@
 
         <!-- 資料セクション -->
         <div class="resources-section">
-          <label><strong>📁 {{ 'taskCreate.resources' | translate }}</strong></label>
+          <label
+            ><strong>📁 {{ "taskCreate.resources" | translate }}</strong></label
+          >
           <div class="resources-action-row">
             <button
               mat-stroked-button
@@ -134,7 +208,7 @@
               (click)="fileInput.click()"
               [disabled]="isUploading"
             >
-              {{ 'taskCreate.addFile' | translate }}
+              {{ "taskCreate.addFile" | translate }}
             </button>
             <input
               #fileInput
@@ -145,7 +219,7 @@
               hidden
             />
             <mat-form-field appearance="outline" class="url-input-field">
-              <mat-label>{{ 'taskCreate.enterUrl' | translate }}</mat-label>
+              <mat-label>{{ "taskCreate.enterUrl" | translate }}</mat-label>
               <input
                 matInput
                 [(ngModel)]="newUrlInput"
@@ -159,13 +233,15 @@
               type="button"
               (click)="addUrl(newUrlInput)"
             >
-              {{ 'taskCreate.add' | translate }}
+              {{ "taskCreate.add" | translate }}
             </button>
           </div>
 
           <!-- アップロード中のファイル表示 -->
           <div class="pending-files" *ngIf="pendingFiles.length > 0">
-            <p class="pending-label">{{ 'taskCreate.uploadingFiles' | translate }}:</p>
+            <p class="pending-label">
+              {{ "taskCreate.uploadingFiles" | translate }}:
+            </p>
             <div class="pending-files-list">
               <div
                 class="pending-file-item"
@@ -173,7 +249,9 @@
               >
                 <mat-icon class="pending-icon">file_upload</mat-icon>
                 <span class="pending-filename">{{ pending.file.name }}</span>
-                <span class="pending-size">({{ formatFileSize(pending.file.size) }})</span>
+                <span class="pending-size"
+                  >({{ formatFileSize(pending.file.size) }})</span
+                >
               </div>
             </div>
           </div>
@@ -194,7 +272,9 @@
               >
                 <span class="resource-icon">📎</span>
                 <span class="resource-name">{{ pending.file.name }}</span>
-                <span class="resource-size">({{ formatFileSize(pending.file.size) }})</span>
+                <span class="resource-size"
+                  >({{ formatFileSize(pending.file.size) }})</span
+                >
                 <button
                   mat-icon-button
                   type="button"
@@ -235,7 +315,7 @@
 
         <!-- タグ -->
         <div class="tag-section">
-          <label>{{ 'taskCreate.tags' | translate }}</label>
+          <label>{{ "taskCreate.tags" | translate }}</label>
           <mat-chip-set>
             <mat-chip
               *ngFor="let tag of taskForm.tags"
@@ -247,15 +327,21 @@
             </mat-chip>
           </mat-chip-set>
           <mat-form-field appearance="outline" class="tag-input-field">
-            <mat-label>{{ 'taskCreate.addTag' | translate }}</mat-label>
+            <mat-label>{{ "taskCreate.addTag" | translate }}</mat-label>
             <input
               matInput
               #tagInput
-              [placeholder]="('taskCreate.enterTag' | translate) + ' ' + ('taskCreate.tagMaxLength' | translate)"
+              [placeholder]="
+                ('taskCreate.enterTag' | translate) +
+                ' ' +
+                ('taskCreate.tagMaxLength' | translate)
+              "
               (keydown.enter)="onTagInputEnter($event, tagInput)"
               maxlength="20"
             />
-            <mat-hint align="end">{{ tagInput.value?.length || 0 }}/20</mat-hint>
+            <mat-hint align="end"
+              >{{ tagInput.value ? tagInput.value.length : 0 }}/20</mat-hint
+            >
           </mat-form-field>
         </div>
 
@@ -267,7 +353,7 @@
               [(ngModel)]="taskForm.calendarSyncEnabled"
               name="calendarSyncEnabled"
             />
-            {{ 'taskCreate.calendarSync' | translate }}
+            {{ "taskCreate.calendarSync" | translate }}
           </label>
         </div>
 
@@ -279,7 +365,7 @@
             (click)="cancel()"
             [disabled]="isSaving"
           >
-            {{ 'taskCreate.cancel' | translate }}
+            {{ "taskCreate.cancel" | translate }}
           </button>
           <button
             mat-raised-button
@@ -288,7 +374,13 @@
             [disabled]="isSaving || !canSaveTask()"
           >
             <mat-icon *ngIf="isSaving">schedule</mat-icon>
-            {{ isSaving ? ('taskCreate.saving' | translate) : (isSubtaskCreation ? ('taskCreate.save' | translate) : ('taskCreate.createTask' | translate)) }}
+            {{
+              isSaving
+                ? ("taskCreate.saving" | translate)
+                : isSubtaskCreation
+                ? ("taskCreate.save" | translate)
+                : ("taskCreate.createTask" | translate)
+            }}
           </button>
         </div>
       </form>

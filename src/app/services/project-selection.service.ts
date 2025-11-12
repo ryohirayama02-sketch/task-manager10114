@@ -27,6 +27,17 @@ export class ProjectSelectionService {
   }
 
   /**
+   * ストレージに選択状態が保存されているかどうかを確認
+   */
+  hasStoredSelection(): boolean {
+    try {
+      return localStorage.getItem(this.STORAGE_KEY) !== null;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  /**
    * 選択されたプロジェクトIDを設定
    */
   setSelectedProjectIds(projectIds: string[]): void {

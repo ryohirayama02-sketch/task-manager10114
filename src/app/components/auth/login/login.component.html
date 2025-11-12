@@ -22,7 +22,7 @@
             type="email"
             [(ngModel)]="email"
             name="email"
-            placeholder="example@email.com"
+            [placeholder]="'login.emailPlaceholder' | translate"
             required
           />
           <mat-icon matSuffix>email</mat-icon>

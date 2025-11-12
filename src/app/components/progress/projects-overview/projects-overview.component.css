@@ -43,6 +43,20 @@
   gap: 16px;
 }
 
+.create-project-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+}
+
+.member-required-message {
+  font-size: 12px;
+  color: #d32f2f;
+  margin-left: 0;
+  white-space: nowrap;
+}
+
 .sort-filter {
   min-width: 200px;
   max-width: 100%;

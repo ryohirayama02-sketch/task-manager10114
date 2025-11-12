@@ -67,8 +67,22 @@
     0 1px 5px rgba(0, 0, 0, 0.12);
 }
 
+.create-project-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+}
+
 .create-project-button {
   align-self: flex-start;
+}
+
+.member-required-message {
+  font-size: 12px;
+  color: #d32f2f;
+  margin-left: 0;
+  white-space: nowrap;
 }
 
 .filter-section {
@@ -596,4 +610,7 @@
 }
 .calendar-title {
   color: #1976d2;
+  margin: 0 0 20px 0;
+  font-size: 28px;
+  font-weight: 500;
 }

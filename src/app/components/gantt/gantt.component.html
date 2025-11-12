@@ -31,13 +31,19 @@
         {{ 'gantt.projectSelector.clearAll' | translate }}
       </button>
       </div>
-      <button
-        mat-stroked-button
-        class="create-project-button"
-        (click)="openProjectDialog()"
-      >
-        {{ 'gantt.projectSelector.createProject' | translate }}
-      </button>
+      <div class="create-project-wrapper">
+        <button
+          mat-stroked-button
+          class="create-project-button"
+          [disabled]="!hasMembers"
+          (click)="openProjectDialog()"
+        >
+          {{ 'gantt.projectSelector.createProject' | translate }}
+        </button>
+        <span *ngIf="!hasMembers" class="member-required-message">
+          {{ 'common.memberRequiredForProject' | translate }}
+        </span>
+      </div>
     </div>
   </div>
 
