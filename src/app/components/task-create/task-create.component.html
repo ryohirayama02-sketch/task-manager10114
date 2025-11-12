@@ -61,6 +61,11 @@
             matInput
             [(ngModel)]="taskForm.taskName"
             name="taskName"
+            [placeholder]="
+              isSubtaskCreation
+                ? ('taskCreate.subtaskNamePlaceholder' | translate)
+                : ('taskCreate.taskNamePlaceholder' | translate)
+            "
             required
             maxlength="30"
           />
@@ -101,7 +106,7 @@
               (dateChange)="onStartDateChange()"
               [max]="dueDateObj || maxDate"
               [ngModelOptions]="{ standalone: true }"
-              placeholder="開始日"
+              [placeholder]="'taskCreate.startDatePlaceholder' | translate"
               readonly
               required
             />
@@ -127,6 +132,7 @@
               [min]="startDateObj || undefined"
               [max]="maxDate"
               [ngModelOptions]="{ standalone: true }"
+              [placeholder]="'taskCreate.dueDatePlaceholder' | translate"
               readonly
               required
             />
