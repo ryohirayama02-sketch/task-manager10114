@@ -51,8 +51,137 @@ table {
   word-wrap: break-word;
 }
 
-/* 長いテキストの折り返し */
-p, span, div, h1, h2, h3, h4, h5, h6 {
+/* 長いテキストの折り返し - すべてのテキスト要素に適用 */
+p, span, div, h1, h2, h3, h4, h5, h6, 
+label, a, li, td, th, 
+mat-card-title, mat-card-subtitle, mat-label,
+button, .mat-button, .mat-raised-button, .mat-stroked-button,
+.mat-chip, .mdc-chip,
+.mat-form-field-label, .mat-option-text {
   word-wrap: break-word;
   overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+/* Material Designコンポーネントの自動改行 */
+mat-card, mat-card-content, mat-card-header, mat-card-title, mat-card-subtitle,
+mat-form-field, .mat-form-field-wrapper,
+mat-button, mat-raised-button, mat-stroked-button, mat-icon-button,
+mat-chip, .mat-mdc-chip,
+mat-select, mat-option,
+mat-list-item, mat-list,
+.mat-toolbar,
+.mat-menu-panel,
+.mat-dialog-container {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Material Designコンポーネントの内部テキスト要素も確実に改行 */
+mat-card-title, mat-card-subtitle, 
+.mat-mdc-card-title, .mat-mdc-card-subtitle,
+.mat-mdc-form-field-label,
+.mat-mdc-select-value-text,
+.mat-mdc-option-text,
+.mat-mdc-chip-text,
+.mat-mdc-button-label {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  max-width: 100%;
+}
+
+/* ボタンやチップのテキストも折り返し可能に */
+button, .mat-button, .mat-raised-button, .mat-stroked-button,
+.mat-chip, .mdc-chip {
+  white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* テーブルセルの自動改行 */
+td, th {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  max-width: 0;
+}
+
+/* リストアイテムの自動改行 */
+li, .mat-list-item {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+/* 入力フィールドのテキストも折り返し */
+input, textarea {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+/* すべてのコンテナ要素でオーバーフロー防止 */
+.container, .wrapper, .content, .section, .panel {
+  max-width: 100%;
+  overflow-x: hidden;
+  word-wrap: break-word;
+}
+
+/* FlexboxとGridレイアウトでの自動改行を確実に */
+.flex, [class*="flex"], 
+.grid, [class*="grid"],
+[style*="display: flex"], [style*="display:grid"] {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Flexアイテムの自動改行 */
+.flex > *, [class*="flex"] > *,
+[style*="display: flex"] > * {
+  min-width: 0;
+  max-width: 100%;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* ナビゲーションバーやツールバーの自動改行 */
+nav, .navbar, .toolbar, .header, .footer,
+mat-toolbar, .mat-toolbar {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+  overflow-x: hidden;
+  flex-wrap: wrap;
+}
+
+/* モバイルでの追加対策 */
+@media (max-width: 480px) {
+  /* すべての要素で確実に改行 */
+  * {
+    max-width: 100%;
+  }
+  
+  /* テキスト要素の強制改行 */
+  p, span, div, h1, h2, h3, h4, h5, h6,
+  label, a, li, td, th, button {
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+  }
+  
+  /* ボタンやチップの強制改行 */
+  button, .mat-button, .mat-raised-button, 
+  .mat-chip, .mdc-chip {
+    white-space: normal !important;
+    word-wrap: break-word !important;
+  }
+  
+  /* テーブルセルの強制改行 */
+  td, th {
+    white-space: normal !important;
+    word-wrap: break-word !important;
+  }
 }

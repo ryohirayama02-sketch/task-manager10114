@@ -399,23 +399,43 @@
 .task-name {
   font-weight: 600;
   color: inherit;
-  white-space: nowrap;
+  white-space: normal;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
   display: block;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  line-height: 1.2;
+}
+
+@media (max-width: 480px) {
+  .task-name {
+    white-space: normal;
+    text-overflow: clip;
+  }
 }
 
 .task-project {
   color: inherit;
   font-size: 9px;
-  white-space: nowrap;
+  white-space: normal;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
   display: flex;
   align-items: center;
   gap: 4px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 480px) {
+  .task-project {
+    white-space: normal;
+    text-overflow: clip;
+  }
 }
 
 .task-project .project-icon {
@@ -431,7 +451,16 @@
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+@media (max-width: 480px) {
+  .task-project .project-name-text {
+    white-space: normal;
+    text-overflow: clip;
+  }
 }
 
 .task-item-more {

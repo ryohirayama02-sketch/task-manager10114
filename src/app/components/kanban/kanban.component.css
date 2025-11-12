@@ -4,16 +4,25 @@
 
 .controls-section {
   display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
   gap: 20px;
   margin-bottom: 20px;
   padding: 16px;
   background-color: #f8f9fa;
   border-radius: 8px;
   border: 1px solid #e9ecef;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .project-selector {
   flex: 1;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .project-selector h3 {
@@ -27,11 +36,27 @@
   flex-wrap: wrap;
   gap: 12px;
   margin-bottom: 12px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .project-checkbox {
   margin: 0;
+  max-width: 100%;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
+
+.project-checkbox ::ng-deep .mdc-checkbox__label,
+.project-checkbox ::ng-deep .mat-mdc-checkbox-label {
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  max-width: 100%;
+  line-height: 1.4;
+}
+
 
 .project-selection-actions {
   display: flex;
@@ -66,10 +91,16 @@
   flex-direction: column;
   gap: 12px;
   align-items: flex-start;
+  flex-shrink: 0;
+  min-width: 300px;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .filter-section mat-form-field {
   width: 300px !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
 }
 
 .filter-section button {
@@ -80,6 +111,93 @@
     0 3px 1px -2px rgba(0, 0, 0, 0.2),
     0 2px 2px rgba(0, 0, 0, 0.14),
     0 1px 5px rgba(0, 0, 0, 0.12);
+  white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+}
+
+/* モバイル対応 */
+@media (max-width: 768px) {
+  .controls-section {
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 16px;
+    padding: 12px;
+  }
+
+  .project-selector {
+    width: 100%;
+    max-width: 100%;
+    flex: none;
+  }
+
+  .project-checkboxes {
+    width: 100%;
+  }
+
+  .filter-section {
+    width: 100%;
+    min-width: 0;
+    align-items: stretch;
+    flex-shrink: 1;
+  }
+
+  .filter-section mat-form-field {
+    width: 100% !important;
+  }
+
+  .filter-section button {
+    width: 100%;
+    align-self: stretch;
+  }
+
+  .project-selection-actions {
+    width: 100%;
+  }
+
+  .project-action-row {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .project-action-row button {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .create-project-button {
+    width: 100%;
+  }
+
+  .kanban-board {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .controls-section {
+    padding: 10px;
+  }
+
+  .project-selector h3 {
+    font-size: 14px;
+    word-wrap: break-word;
+  }
+
+  .project-checkboxes {
+    gap: 8px;
+  }
+
+  .task-header b {
+    font-size: 13px;
+  }
+
+  .project-name-text,
+  .task-meta span {
+    font-size: 11px;
+  }
 }
 
 .selected-projects-info {
@@ -202,7 +320,11 @@
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  min-width: 0;
+  line-height: 1.4;
 }
 
 .status-buttons {
@@ -236,8 +358,12 @@
 .project-name-text {
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
   flex: 1;
+  min-width: 0;
+  line-height: 1.4;
 }
 
 .project-icon {
@@ -257,8 +383,11 @@
 .task-meta span {
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
   max-width: 100%;
+  line-height: 1.4;
 }
 
 .priority {
