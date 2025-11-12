@@ -1555,6 +1555,9 @@ export class LanguageService {
     'logs.themeColor': { ja: 'テーマ色', en: 'Theme Color' },
     'logs.none': { ja: 'なし', en: 'None' },
     'logs.projectFallback': { ja: 'プロジェクト', en: 'Project' },
+    'logs.action.create': { ja: '新規作成', en: 'Create' },
+    'logs.action.update': { ja: '更新', en: 'Update' },
+    'logs.action.delete': { ja: '削除', en: 'Delete' },
     // ルーム情報（設定画面）
     'settings.roomInfo.title': { ja: 'ルーム情報', en: 'Room Information' },
     'settings.roomInfo.subtitle': {

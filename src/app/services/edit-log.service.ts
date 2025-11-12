@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import {
   collection,
   getDocs,
@@ -16,6 +16,7 @@ import {
 } from '@angular/fire/firestore';
 import { Firestore } from '@angular/fire/firestore';
 import { AuthService } from './auth.service';
+import { LanguageService } from './language.service';
 import { EditLog, ChangeDetail } from '../models/task.model';
 
 @Injectable({
@@ -24,6 +25,7 @@ import { EditLog, ChangeDetail } from '../models/task.model';
 export class EditLogService {
   private readonly EDIT_LOGS_COLLECTION = 'editLogs';
   private readonly LOGS_PER_PAGE = 30;
+  private readonly languageService = inject(LanguageService);
 
   constructor(private firestore: Firestore, private authService: AuthService) {}
 
@@ -252,18 +254,25 @@ export class EditLogService {
     }
   }
 
-  /** アクション名を日本語に変換 */
+  /** アクション名を多言語対応で取得 */
   getActionLabel(action: string): string {
-    const actionLabels: { [key: string]: string } = {
-      create: '新規作成',
-      update: '更新',
-      delete: '削除',
+    const actionKeyMap: { [key: string]: string } = {
+      create: 'logs.action.create',
+      update: 'logs.action.update',
+      delete: 'logs.action.delete',
     };
-    return actionLabels[action] || action;
+    const translationKey = actionKeyMap[action];
+    if (translationKey) {
+      return this.languageService.translate(translationKey);
+    }
+    return action;
   }
 
   /** 編集ログをCSV形式で出力 */
-  exportToCSV(logs: EditLog[], getUserNameDisplay?: (log: EditLog) => string): void {
+  exportToCSV(
+    logs: EditLog[],
+    getUserNameDisplay?: (log: EditLog) => string
+  ): void {
     try {
       const headers = [
         '日時',
@@ -348,12 +357,17 @@ export class EditLogService {
     console.log(`削除対象の編集ログ数: ${snapshot.size}件`);
 
     const deletePromises = snapshot.docs.map(async (logDoc) => {
-      const logRef = doc(this.firestore, `${this.EDIT_LOGS_COLLECTION}/${logDoc.id}`);
+      const logRef = doc(
+        this.firestore,
+        `${this.EDIT_LOGS_COLLECTION}/${logDoc.id}`
+      );
       await deleteDoc(logRef);
       console.log(`✅ 編集ログを削除しました: ${logDoc.id}`);
     });
 
     await Promise.all(deletePromises);
-    console.log(`✅ ルーム内のすべての編集ログを削除しました: ${snapshot.size}件`);
+    console.log(
+      `✅ ルーム内のすべての編集ログを削除しました: ${snapshot.size}件`
+    );
   }
 }
