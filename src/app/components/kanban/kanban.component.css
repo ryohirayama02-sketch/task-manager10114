@@ -171,8 +171,15 @@
   }
 
   .kanban-board {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
     gap: 12px;
+    display: grid !important;
+  }
+
+  .status-column {
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
   }
 }
 
@@ -198,6 +205,15 @@
   .task-meta span {
     font-size: 11px;
   }
+
+  .kanban-board {
+    grid-template-columns: 1fr !important;
+  }
+
+  .status-column {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
 }
 
 .selected-projects-info {
@@ -217,12 +233,26 @@
 
 .kanban-board {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(280px, 1fr));
   gap: 16px;
   padding: 16px 0;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
+}
+
+/* タブレット以下の画面では1列表示 */
+@media (max-width: 900px) {
+  .kanban-board {
+    grid-template-columns: 1fr !important;
+    display: grid !important;
+  }
+
+  .status-column {
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
 }
 
 .status-column {
@@ -231,7 +261,7 @@
   border-radius: 8px;
   padding: 16px;
   min-height: 400px;
-  min-width: 0;
+  min-width: 280px;
   max-width: 100%;
   box-sizing: border-box;
   overflow: hidden;
