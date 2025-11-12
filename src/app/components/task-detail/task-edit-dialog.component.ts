@@ -171,6 +171,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
               (dateChange)="onStartDateChange()"
               [max]="dueDateObj || maxDate"
               [ngModelOptions]="{standalone: true}"
+              placeholder="開始日"
               readonly
             />
             <mat-datepicker-toggle matIconSuffix [for]="startDatePicker"></mat-datepicker-toggle>

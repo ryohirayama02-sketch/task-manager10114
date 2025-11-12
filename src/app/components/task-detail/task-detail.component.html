@@ -213,6 +213,7 @@
                 (dateChange)="onTaskStartDateChange()"
                 [max]="taskDueDateObj || maxDate"
                 [ngModelOptions]="{standalone: true}"
+                placeholder="開始日"
                 readonly
                 required
               />
@@ -703,6 +704,7 @@
             (dateChange)="onChildDueDateChange()"
             [max]="maxDate"
             [ngModelOptions]="{standalone: true}"
+            placeholder="日にち"
             readonly
           />
           <mat-datepicker-toggle matIconSuffix [for]="childDueDatePicker"></mat-datepicker-toggle>

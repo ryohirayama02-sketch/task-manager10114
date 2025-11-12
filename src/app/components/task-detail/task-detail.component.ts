@@ -108,8 +108,8 @@ export class TaskDetailComponent implements OnInit {
   childFilterStatus = '';
   childFilterPriority = '';
   childFilterAssignee = '';
-  childFilterDueDate = '';
-  childFilterDueDateObj: Date | null = null; // Material date picker用（子タスクフィルター）
+  childFilterDueDateObj: Date | null = new Date(); // Material date picker用（子タスクフィルター）
+  childFilterDueDate = this.formatChildFilterDate(this.childFilterDueDateObj);
   childAssigneeOptions: string[] = [];
   projectThemeColor = DEFAULT_PROJECT_THEME_COLOR;
   taskStartDateObj: Date | null = null; // Material date picker用（編集モードの開始日）
@@ -1772,15 +1772,18 @@ export class TaskDetailComponent implements OnInit {
   }
 
   onChildDueDateChange(): void {
-    if (this.childFilterDueDateObj) {
-      const year = this.childFilterDueDateObj.getFullYear();
-      const month = String(this.childFilterDueDateObj.getMonth() + 1).padStart(2, '0');
-      const day = String(this.childFilterDueDateObj.getDate()).padStart(2, '0');
-      this.childFilterDueDate = `${year}-${month}-${day}`;
-    } else {
-      this.childFilterDueDate = '';
-    }
+    this.childFilterDueDate = this.formatChildFilterDate(this.childFilterDueDateObj);
     this.applyChildFilter();
+  }
+
+  private formatChildFilterDate(date: Date | null): string {
+    if (!date) {
+      return '';
+    }
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   applyChildFilter(): void {
@@ -1832,6 +1835,7 @@ export class TaskDetailComponent implements OnInit {
     this.childFilterPriority = '';
     this.childFilterAssignee = '';
     this.childFilterDueDate = '';
+    this.childFilterDueDateObj = null;
     this.filteredChildTasks = [...this.childTasks];
   }
 
