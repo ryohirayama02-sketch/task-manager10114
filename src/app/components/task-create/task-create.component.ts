@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -14,6 +14,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
+import { Firestore, doc, getDoc } from '@angular/fire/firestore';
 import { ProjectService } from '../../services/project.service';
 import { MemberManagementService } from '../../services/member-management.service';
 import { TaskAttachmentService } from '../../services/task-attachment.service';
@@ -92,6 +93,8 @@ export class TaskCreatePageComponent implements OnInit {
   startDateObj: Date | null = null; // Material date picker用
   dueDateObj: Date | null = null; // Material date picker用
   maxDate = new Date(9999, 11, 31); // 9999-12-31
+
+  private firestore = inject(Firestore);
 
   constructor(
     private router: Router,
@@ -662,6 +665,14 @@ export class TaskCreatePageComponent implements OnInit {
 
     this.isSaving = true;
     try {
+      console.log('[save] タスク作成開始:', {
+        projectId: this.projectId,
+        parentTaskId: this.parentTaskId,
+        isSubtask: !!this.parentTaskId,
+        pendingFilesCount: this.pendingFiles.length,
+        urlsCount: this.taskForm.urls?.length || 0,
+      });
+
       // Step 1: タスクを作成（URL は含める）
       const taskDataToCreate = {
         ...this.taskForm,
@@ -670,12 +681,71 @@ export class TaskCreatePageComponent implements OnInit {
         ...(this.parentTaskId && { parentTaskId: this.parentTaskId }),
       };
 
+      console.log('[save] Step 1開始: タスク作成', {
+        taskDataToCreate: {
+          ...taskDataToCreate,
+          attachments: taskDataToCreate.attachments,
+          urls: taskDataToCreate.urls,
+          parentTaskId: taskDataToCreate.parentTaskId,
+        },
+        parentTaskId: this.parentTaskId,
+        isSubtask: !!this.parentTaskId,
+      });
+
       const result = await this.projectService.addTaskToProject(
         this.projectId,
         taskDataToCreate
       );
       const taskId = result.id;
-      console.log('タスク作成成功:', taskId);
+      console.log('[save] Step 1完了: タスク作成成功', {
+        taskId,
+        projectId: this.projectId,
+        parentTaskId: this.parentTaskId,
+        createdTaskParentTaskId: taskDataToCreate.parentTaskId,
+      });
+
+      // 子タスクの場合、作成したタスクが正しく保存されているか確認
+      if (this.parentTaskId) {
+        console.log('[save] 子タスク作成確認: Firestoreから取得', {
+          taskId,
+          projectId: this.projectId,
+          expectedParentTaskId: this.parentTaskId,
+        });
+        try {
+          // 作成したタスクをFirestoreから取得して確認
+          const taskRef = doc(
+            this.firestore,
+            `projects/${this.projectId}/tasks/${taskId}`
+          );
+          const taskDoc = await getDoc(taskRef);
+          if (taskDoc.exists()) {
+            const taskData = taskDoc.data();
+            console.log('[save] 作成した子タスクの確認:', {
+              taskId,
+              savedParentTaskId: taskData['parentTaskId'],
+              expectedParentTaskId: this.parentTaskId,
+              match: taskData['parentTaskId'] === this.parentTaskId,
+              allTaskData: taskData,
+            });
+            if (taskData['parentTaskId'] !== this.parentTaskId) {
+              console.error('[save] 警告: parentTaskIdが一致しません', {
+                saved: taskData['parentTaskId'],
+                expected: this.parentTaskId,
+              });
+            }
+          } else {
+            console.error(
+              '[save] エラー: 作成したタスクがFirestoreに見つかりません',
+              {
+                taskId,
+              }
+            );
+          }
+        } catch (verifyError: any) {
+          console.error('[save] 子タスク確認エラー:', verifyError);
+          // エラーが発生しても続行
+        }
+      }
 
       // Step 2: カレンダー連携が有効で期日が設定されている場合、Googleカレンダーに追加
       if (this.taskForm.calendarSyncEnabled && this.taskForm.dueDate) {
@@ -712,35 +782,143 @@ export class TaskCreatePageComponent implements OnInit {
       }
 
       // Step 3: ペンディングファイルをアップロード
+      let uploadedAttachments: any[] = [];
       if (this.pendingFiles.length > 0) {
+        console.log('[save] Step 3開始: ファイルアップロード', {
+          pendingFilesCount: this.pendingFiles.length,
+          taskId,
+          projectId: this.projectId,
+        });
         this.isUploading = true;
-        const uploadedAttachments = await this.uploadPendingFiles(taskId);
-
-        // Step 4: アップロードされたファイル情報でタスクを更新
-        if (uploadedAttachments.length > 0) {
-          await this.projectService.updateTask(this.projectId, taskId, {
-            attachments: uploadedAttachments,
+        try {
+          uploadedAttachments = await this.uploadPendingFiles(taskId);
+          console.log('[save] ファイルアップロード完了:', {
+            uploadedCount: uploadedAttachments.length,
+            uploadedAttachments,
           });
-          console.log('タスクの添付ファイル情報を更新しました');
+
+          // Step 4: アップロードされたファイル情報でタスクを更新
+          if (uploadedAttachments.length > 0) {
+            console.log('[save] Step 4開始: タスクの添付ファイル情報を更新', {
+              taskId,
+              projectId: this.projectId,
+              attachmentsCount: uploadedAttachments.length,
+            });
+            try {
+              // attachments配列にundefinedが含まれていないか確認
+              const validAttachments = uploadedAttachments.filter(
+                (att) => att !== undefined && att !== null
+              );
+              console.log('[save] 有効な添付ファイル:', {
+                originalCount: uploadedAttachments.length,
+                validCount: validAttachments.length,
+                validAttachments,
+              });
+
+              if (validAttachments.length > 0) {
+                await this.projectService.updateTask(this.projectId, taskId, {
+                  attachments: validAttachments,
+                });
+                console.log('[save] タスクの添付ファイル情報を更新しました');
+              } else {
+                console.warn(
+                  '[save] 有効な添付ファイルが0件のため、更新をスキップしました'
+                );
+              }
+            } catch (updateError: any) {
+              console.error('[save] タスク更新エラー:', updateError);
+              console.error('[save] エラー詳細:', {
+                errorMessage: updateError?.message,
+                errorCode: updateError?.code,
+                taskId,
+                projectId: this.projectId,
+                attachments: uploadedAttachments,
+              });
+              // タスク更新エラーは警告として記録するが、タスク作成は成功とみなす
+              this.snackBar.open(
+                this.languageService.translate(
+                  'taskCreate.error.attachmentUpdateFailed'
+                ) ||
+                  'ファイル情報の更新に失敗しましたが、タスクは作成されました',
+                this.languageService.translate('taskCreate.close'),
+                { duration: 5000 }
+              );
+            }
+          } else {
+            // ファイルが選択されていたが、アップロードに失敗した場合
+            console.warn(
+              '[save] ファイルのアップロードに失敗しましたが、タスクは作成されました',
+              {
+                pendingFilesCount: this.pendingFiles.length,
+              }
+            );
+          }
+        } catch (error: any) {
+          console.error('[save] ファイルアップロード処理エラー:', error);
+          console.error('[save] エラー詳細:', {
+            errorMessage: error?.message,
+            errorCode: error?.code,
+            taskId,
+            projectId: this.projectId,
+          });
+          // ファイルアップロードエラーは警告として記録するが、タスク作成は成功とみなす
+          // エラーメッセージはuploadPendingFiles内で既に表示されている
+        } finally {
+          this.isUploading = false;
         }
-        this.isUploading = false;
       }
 
       // Step 5: リスト初期化
       this.pendingFiles = [];
       this.taskForm.urls = [];
 
+      console.log('[save] Step 5完了: 処理完了', {
+        taskId,
+        projectId: this.projectId,
+        parentTaskId: this.parentTaskId,
+        isSubtask: !!this.parentTaskId,
+      });
+
       // If this is a subtask creation, navigate to parent task detail
       if (this.parentTaskId) {
+        console.log('[save] 親タスク画面に遷移:', {
+          projectId: this.projectId,
+          parentTaskId: this.parentTaskId,
+          createdTaskId: taskId,
+        });
+        // Firestoreの同期を待つため、少し待機してから遷移
+        // Promiseで待機することで、非同期処理の完了を確実に待つ
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        console.log('[save] 遷移実行:', {
+          projectId: this.projectId,
+          parentTaskId: this.parentTaskId,
+        });
+        // クエリパラメータを追加して、親タスク画面を強制的に再読み込み
         this.router.navigate(
           ['/project', this.projectId, 'task', this.parentTaskId],
-          { replaceUrl: true }
+          {
+            replaceUrl: true,
+            queryParams: { refresh: Date.now() },
+          }
         );
       } else {
         this.goBack();
       }
-    } catch (error) {
-      console.error('Task creation failed:', error);
+    } catch (error: any) {
+      console.error('[save] タスク作成失敗:', error);
+      console.error('[save] エラー詳細:', {
+        errorMessage: error?.message,
+        errorCode: error?.code,
+        errorStack: error?.stack,
+        projectId: this.projectId,
+        parentTaskId: this.parentTaskId,
+        taskForm: {
+          taskName: this.taskForm.taskName,
+          startDate: this.taskForm.startDate,
+          dueDate: this.taskForm.dueDate,
+        },
+      });
+      // タスク作成自体が失敗した場合のみエラーメッセージを表示
       alert(this.languageService.translate('taskCreate.error.saveFailed'));
     } finally {
       this.isSaving = false;
@@ -750,17 +928,52 @@ export class TaskCreatePageComponent implements OnInit {
 
   /** ペンディングファイルをアップロード */
   private async uploadPendingFiles(taskId: string): Promise<any[]> {
-    const uploaded: any[] = [];
+    console.log('[uploadPendingFiles] 開始:', {
+      taskId,
+      pendingFilesCount: this.pendingFiles.length,
+      pendingFiles: this.pendingFiles.map((p) => ({
+        id: p.id,
+        fileName: p.file.name,
+        fileSize: p.file.size,
+      })),
+    });
 
-    for (const pending of this.pendingFiles) {
+    const uploaded: any[] = [];
+    const filesToUpload = [...this.pendingFiles]; // コピーを作成（後でクリアするため）
+
+    for (const pending of filesToUpload) {
+      console.log('[uploadPendingFiles] ファイルアップロード開始:', {
+        fileName: pending.file.name,
+        fileSize: pending.file.size,
+        fileType: pending.file.type,
+        taskId,
+      });
       try {
         const attachment = await this.attachmentService.uploadAttachment(
           taskId,
           pending.file
         );
-        uploaded.push(attachment);
-      } catch (error) {
-        console.error('Attachment upload failed:', error);
+        console.log('[uploadPendingFiles] ファイルアップロード成功:', {
+          fileName: pending.file.name,
+          attachment,
+        });
+        if (attachment) {
+          uploaded.push(attachment);
+        } else {
+          console.warn(
+            '[uploadPendingFiles] アップロード結果がnull/undefined:',
+            {
+              fileName: pending.file.name,
+            }
+          );
+        }
+      } catch (error: any) {
+        console.error('[uploadPendingFiles] ファイルアップロード失敗:', {
+          fileName: pending.file.name,
+          error: error?.message || error,
+          errorCode: error?.code,
+          errorStack: error?.stack,
+        });
         const message = this.languageService
           .translate('taskCreate.error.attachmentUploadFailed')
           .replace('{{fileName}}', pending.file.name);
@@ -769,10 +982,30 @@ export class TaskCreatePageComponent implements OnInit {
           this.languageService.translate('taskCreate.close'),
           { duration: 4000 }
         );
+        // エラーが発生しても続行（他のファイルのアップロードを試みる）
       }
     }
 
-    this.pendingFiles = [];
+    console.log('[uploadPendingFiles] 完了:', {
+      uploadedCount: uploaded.length,
+      uploadedAttachments: uploaded,
+      failedCount: filesToUpload.length - uploaded.length,
+    });
+
+    // アップロードが完了したファイルをpendingFilesから削除
+    // アップロードに失敗したファイルは残す（ユーザーに再試行の機会を与える）
+    const beforeFilterCount = this.pendingFiles.length;
+    this.pendingFiles = this.pendingFiles.filter((pending) => {
+      return !filesToUpload.some(
+        (uploadedFile) => uploadedFile.id === pending.id
+      );
+    });
+    console.log('[uploadPendingFiles] pendingFiles更新:', {
+      beforeCount: beforeFilterCount,
+      afterCount: this.pendingFiles.length,
+      removedCount: beforeFilterCount - this.pendingFiles.length,
+    });
+
     return uploaded;
   }
 

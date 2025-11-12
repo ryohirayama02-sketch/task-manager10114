@@ -660,26 +660,60 @@ export class ProjectService {
 
   /** ✅ 特定プロジェクトにタスクを追加 */
   async addTaskToProject(projectId: string, taskData: any) {
+    console.log('[ProjectService.addTaskToProject] 開始:', {
+      projectId,
+      taskDataKeys: Object.keys(taskData),
+      parentTaskId: taskData.parentTaskId,
+    });
+
     const roomId = this.authService.getCurrentRoomId();
     const roomDocId = this.authService.getCurrentRoomDocId();
     if (!roomId || !roomDocId) {
       throw new Error('ルーム情報が設定されていません');
     }
 
-    const tasksRef = collection(this.firestore, `projects/${projectId}/tasks`);
-    const result = await addDoc(tasksRef, { ...taskData, roomId, roomDocId });
+    // undefinedの値を削除（Firestoreはundefinedを許可しない）
+    const cleanedTaskData = this.cleanUndefinedValues({
+      ...taskData,
+      roomId,
+      roomDocId,
+    });
 
-    // 編集ログを記録
-    await this.editLogService.logEdit(
+    console.log('[ProjectService.addTaskToProject] cleanedTaskData:', {
+      keys: Object.keys(cleanedTaskData),
+      parentTaskId: cleanedTaskData.parentTaskId,
+      attachments: cleanedTaskData.attachments,
+    });
+
+    const tasksRef = collection(this.firestore, `projects/${projectId}/tasks`);
+    const result = await addDoc(tasksRef, cleanedTaskData);
+
+    console.log('[ProjectService.addTaskToProject] タスク作成成功:', {
+      taskId: result.id,
       projectId,
-      taskData.projectName || 'プロジェクト',
-      'create',
-      `タスク「${taskData.taskName || 'タスク'}」を作成しました`,
-      result.id,
-      taskData.taskName || 'タスク',
-      undefined,
-      taskData.taskName || 'タスク'
-    );
+      parentTaskId: cleanedTaskData.parentTaskId,
+    });
+
+    // 編集ログを記録（エラーが発生してもタスク作成は成功とみなす）
+    try {
+      await this.editLogService.logEdit(
+        projectId,
+        taskData.projectName || 'プロジェクト',
+        'create',
+        `タスク「${taskData.taskName || 'タスク'}」を作成しました`,
+        result.id,
+        taskData.taskName || 'タスク',
+        undefined,
+        taskData.taskName || 'タスク'
+      );
+      console.log('[ProjectService.addTaskToProject] 編集ログ記録完了');
+    } catch (logError: any) {
+      console.error(
+        '[ProjectService.addTaskToProject] 編集ログ記録エラー:',
+        logError
+      );
+      // 編集ログのエラーは無視（タスク作成は成功している）
+    }
 
     return result;
   }
@@ -716,12 +750,19 @@ export class ProjectService {
       }
 
       // undefinedの値を削除（Firestoreはundefinedを許可しない）
+      // 配列やオブジェクトの中のundefinedも再帰的に削除
       const cleanedTaskData: any = {};
       for (const [key, value] of Object.entries(taskData)) {
         if (value !== undefined) {
-          cleanedTaskData[key] = value;
+          cleanedTaskData[key] = this.cleanUndefinedValues(value);
         }
       }
+
+      console.log('[ProjectService.updateTask] cleanedTaskData:', {
+        keys: Object.keys(cleanedTaskData),
+        attachments: cleanedTaskData.attachments,
+        attachmentsLength: cleanedTaskData.attachments?.length,
+      });
 
       const result = await updateDoc(taskRef, cleanedTaskData);
 
@@ -880,6 +921,42 @@ export class ProjectService {
       });
       throw error;
     }
+  }
+
+  /** undefinedの値を再帰的に削除（配列やオブジェクトの中も含む） */
+  private cleanUndefinedValues(value: any): any {
+    // undefinedの場合はスキップ（呼び出し元で既にチェック済み）
+    if (value === undefined) {
+      return undefined;
+    }
+
+    // nullは許可される
+    if (value === null) {
+      return null;
+    }
+
+    // 配列の場合
+    if (Array.isArray(value)) {
+      const cleaned = value
+        .map((item) => this.cleanUndefinedValues(item))
+        .filter((item) => item !== undefined);
+      return cleaned;
+    }
+
+    // オブジェクトの場合
+    if (typeof value === 'object' && value.constructor === Object) {
+      const cleaned: any = {};
+      for (const [key, val] of Object.entries(value)) {
+        const cleanedVal = this.cleanUndefinedValues(val);
+        if (cleanedVal !== undefined) {
+          cleaned[key] = cleanedVal;
+        }
+      }
+      return cleaned;
+    }
+
+    // プリミティブ値の場合
+    return value;
   }
 
   /** ✅ プロジェクトを削除（プロジェクト内のすべてのタスクも削除） */

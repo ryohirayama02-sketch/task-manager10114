@@ -108,8 +108,8 @@ export class TaskDetailComponent implements OnInit {
   childFilterStatus = '';
   childFilterPriority = '';
   childFilterAssignee = '';
-  childFilterDueDateObj: Date | null = new Date(); // Material date picker用（子タスクフィルター）
-  childFilterDueDate = this.formatChildFilterDate(this.childFilterDueDateObj);
+  childFilterDueDateObj: Date | null = null; // Material date picker用（子タスクフィルター）
+  childFilterDueDate = ''; // デフォルトは選択無し
   childAssigneeOptions: string[] = [];
   projectThemeColor = DEFAULT_PROJECT_THEME_COLOR;
   taskStartDateObj: Date | null = null; // Material date picker用（編集モードの開始日）
@@ -220,11 +220,13 @@ export class TaskDetailComponent implements OnInit {
   }
 
   ngOnInit() {
+    // パラメータとクエリパラメータの両方を監視して、再読み込みを確実にする
+    // パラメータとクエリパラメータの両方を監視
     this.route.paramMap.subscribe((params) => {
       const taskId = params.get('taskId');
       const projectId = params.get('projectId');
 
-      console.log('ルートパラメータ:', { taskId, projectId });
+      console.log('[ngOnInit] ルートパラメータ変更:', { taskId, projectId });
 
       if (taskId && projectId) {
         this.isLoading = true;
@@ -237,6 +239,37 @@ export class TaskDetailComponent implements OnInit {
           taskId,
           projectId,
         });
+      }
+    });
+
+    // クエリパラメータの変更も監視（子タスク作成後の再読み込み用）
+    this.route.queryParamMap.subscribe((queryParams) => {
+      const refresh = queryParams.get('refresh');
+      const taskId = this.route.snapshot.paramMap.get('taskId');
+      const projectId = this.route.snapshot.paramMap.get('projectId');
+
+      console.log('[ngOnInit] クエリパラメータ変更:', {
+        refresh,
+        taskId,
+        projectId,
+        allQueryParams: Object.fromEntries(
+          queryParams.keys.map((key) => [key, queryParams.get(key)])
+        ),
+      });
+
+      if (refresh && taskId && projectId) {
+        console.log('[ngOnInit] クエリパラメータによる再読み込み実行:', {
+          refresh,
+          taskId,
+          projectId,
+        });
+        // 少し待機してから再読み込み（Firestoreの同期を待つ）
+        setTimeout(() => {
+          this.isLoading = true;
+          this.childTasks = [];
+          this.filteredChildTasks = [];
+          this.loadTaskDetails(projectId, taskId);
+        }, 300);
       }
     });
   }
@@ -1815,9 +1848,20 @@ export class TaskDetailComponent implements OnInit {
   }
 
   private setupChildTasks(tasks: Task[], parentId: string): void {
+    console.log('[setupChildTasks] 開始:', {
+      parentId,
+      totalTasks: tasks.length,
+      tasksWithParentId: tasks.filter((task) => task.parentTaskId === parentId)
+        .length,
+    });
     const children = this.sortTasksByDueDate(
       tasks.filter((task) => task.parentTaskId === parentId)
     );
+    console.log('[setupChildTasks] 子タスク:', {
+      childrenCount: children.length,
+      childrenIds: children.map((c) => c.id),
+      childrenNames: children.map((c) => c.taskName),
+    });
     this.childTasks = children;
     // ✅ 修正：メンバー管理画面のメンバー一覧から選択肢を生成（最新の名前を表示）
     const assigneeSet = new Set<string>();
@@ -1870,6 +1914,11 @@ export class TaskDetailComponent implements OnInit {
     } else {
       this.filteredChildTasks = [...children];
     }
+
+    console.log('[setupChildTasks] 完了:', {
+      childTasksCount: this.childTasks.length,
+      filteredChildTasksCount: this.filteredChildTasks.length,
+    });
 
     void this.reopenParentTaskIfNeeded(children);
   }

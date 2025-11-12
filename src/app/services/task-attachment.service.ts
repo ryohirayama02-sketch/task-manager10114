@@ -20,10 +20,7 @@ export class TaskAttachmentService {
   /**
    * Firebase Storage にファイルをアップロードし、添付ファイル情報を返す
    */
-  async uploadAttachment(
-    taskId: string,
-    file: File
-  ): Promise<TaskAttachment> {
+  async uploadAttachment(taskId: string, file: File): Promise<TaskAttachment> {
     if (file.size > MAX_FILE_SIZE) {
       throw new Error('ファイルサイズが5MBを超えています');
     }
@@ -45,16 +42,22 @@ export class TaskAttachmentService {
 
     const downloadUrl = await getDownloadURL(fileRef);
 
-    return {
+    const attachment: TaskAttachment = {
       id: attachmentId,
       name: file.name,
       url: downloadUrl,
       type: 'file',
       size: file.size,
-      contentType: file.type || undefined,
       storagePath,
       uploadedAt: new Date().toISOString(),
     };
+
+    // contentTypeは空文字列の場合は含めない（undefinedはFirestoreで許可されない）
+    if (file.type && file.type.trim() !== '') {
+      attachment.contentType = file.type;
+    }
+
+    return attachment;
   }
 
   /**
@@ -72,5 +75,3 @@ export class TaskAttachmentService {
     return Date.now().toString(36) + Math.random().toString(36).substring(2);
   }
 }
-
-

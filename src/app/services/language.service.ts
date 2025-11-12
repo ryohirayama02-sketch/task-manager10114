@@ -1813,6 +1813,10 @@ export class LanguageService {
       ja: '{{fileName}} のアップロードに失敗しました',
       en: 'Failed to upload {{fileName}}',
     },
+    'taskCreate.error.attachmentUpdateFailed': {
+      ja: 'ファイル情報の更新に失敗しましたが、タスクは作成されました',
+      en: 'Failed to update file information, but the task was created',
+    },
     'taskCreate.error.calendarSyncFailed': {
       ja: 'カレンダー連携に失敗しました: {{error}}',
       en: 'Calendar sync failed: {{error}}',
