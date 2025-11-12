@@ -30,6 +30,7 @@ import { Member } from '../../models/member.model';
 import { ProjectAttachmentService } from '../../services/project-attachment.service';
 import { NavigationHistoryService } from '../../services/navigation-history.service';
 import { ProjectDeleteConfirmDialogComponent } from './project-delete-confirm-dialog.component';
+import { MemberRemoveConfirmDialogComponent, MemberRemoveConfirmDialogData } from './member-remove-confirm-dialog.component';
 import { ProgressCircleComponent } from '../progress/projects-overview/progress-circle.component';
 import { ProjectChatComponent } from '../project-chat/project-chat.component';
 import {
@@ -41,6 +42,7 @@ import { inject } from '@angular/core';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { getMemberNamesAsString, getMemberNames } from '../../utils/member-utils';
 import { LanguageService } from '../../services/language.service';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-project-detail',
@@ -1092,17 +1094,126 @@ export class ProjectDetailComponent implements OnInit {
     }
   }
 
-  removeSelectedMember(member: Member): void {
-    const memberId = member.id || '';
-    this.selectedMemberIds = this.selectedMemberIds.filter(
-      (id) => id !== memberId
-    );
-    this.selectedMembers = this.selectedMembers.filter(
-      (selected) => (selected.id || '') !== memberId
-    );
-    if (this.selectedResponsibleIds.includes(memberId)) {
-      this.removeResponsible(member);
+  async removeSelectedMember(member: Member): Promise<void> {
+    if (!this.projectId) {
+      return;
     }
+
+    const memberId = member.id || '';
+    if (!memberId) {
+      return;
+    }
+
+    // プロジェクト内の全タスクを取得
+    const allTasks = await firstValueFrom(
+      this.projectService.getTasksByProjectId(this.projectId)
+    ).catch(() => [] as Task[]);
+
+    // 影響を受けるタスクをカウント
+    let affectedTasksCount = 0;
+    let tasksToDeleteCount = 0;
+
+    for (const task of allTasks) {
+      const assignedMembers = Array.isArray(task.assignedMembers) ? task.assignedMembers : [];
+      const hasMember = assignedMembers.includes(memberId);
+      
+      if (hasMember) {
+        affectedTasksCount++;
+        // このメンバーしか担当者がいない場合は削除対象
+        if (assignedMembers.length === 1) {
+          tasksToDeleteCount++;
+        }
+      }
+    }
+
+    // 警告ダイアログを表示
+    const dialogData: MemberRemoveConfirmDialogData = {
+      memberName: member.name || '',
+      memberId: memberId,
+      affectedTasksCount,
+      tasksToDeleteCount,
+    };
+
+    const dialogRef = this.dialog.open(MemberRemoveConfirmDialogComponent, {
+      width: '90vw',
+      maxWidth: '500px',
+      data: dialogData,
+    });
+
+    dialogRef.afterClosed().subscribe(async (confirmed) => {
+      if (!confirmed) {
+        return;
+      }
+
+      try {
+        // タスクからメンバーを削除、またはタスクを削除
+        for (const task of allTasks) {
+          const assignedMembers = Array.isArray(task.assignedMembers) ? [...task.assignedMembers] : [];
+          const hasMember = assignedMembers.includes(memberId);
+          
+          if (hasMember) {
+            // メンバーを削除
+            const updatedMembers = assignedMembers.filter(id => id !== memberId);
+            
+            if (updatedMembers.length === 0) {
+              // 担当者が空になった場合はタスクを削除
+              if (task.id) {
+                await this.taskService.deleteTask(task.id, task, this.projectId!);
+              }
+            } else {
+              // 担当者を更新
+              if (task.id) {
+                // 更新後のメンバー名を取得してassigneeフィールドにも設定
+                const updatedMemberNames = updatedMembers
+                  .map(id => {
+                    const member = this.members.find(m => m.id === id);
+                    return member?.name || '';
+                  })
+                  .filter(name => name.length > 0);
+
+                await this.projectService.updateTask(this.projectId!, task.id, {
+                  assignedMembers: updatedMembers,
+                  assignee: updatedMemberNames.join(', '),
+                });
+              }
+            }
+          }
+        }
+
+        // プロジェクトのメンバーリストから削除
+        const memberIdToRemove = member.id || '';
+        this.selectedMemberIds = this.selectedMemberIds.filter(
+          (id) => id !== memberIdToRemove
+        );
+        this.selectedMembers = this.selectedMembers.filter(
+          (selected) => (selected.id || '') !== memberIdToRemove
+        );
+        
+        // 責任者リストからも削除
+        if (this.selectedResponsibleIds.includes(memberIdToRemove)) {
+          this.removeResponsible(member);
+        }
+
+        // プロジェクトを保存
+        await this.saveInlineEditChangesClick();
+
+        // タスク一覧を再読み込み
+        this.loadTasks();
+
+        this.snackBar.open(
+          this.languageService.translate('projectDetail.memberRemoveConfirm.success'),
+          this.languageService.translate('common.close'),
+          { duration: 3000 }
+        );
+      } catch (error) {
+        console.error('メンバー削除エラー:', error);
+        this.snackBar.open(
+          this.languageService.translate('projectDetail.memberRemoveConfirm.error'),
+          this.languageService.translate('common.close'),
+          { duration: 3000 }
+        );
+      }
+    });
   }
 
   removeResponsible(member: Member): void {
