@@ -52,7 +52,6 @@
         <mat-card-title>{{ 'progress.member.allTasksStatus' | translate }}</mat-card-title>
         <div class="header-actions period-filters">
           <mat-form-field appearance="outline" class="period-field">
-            <mat-label>{{ 'progress.member.periodDialog.startDate' | translate }}</mat-label>
             <input
               matInput
               [matDatepicker]="periodStartDatePicker"
@@ -61,13 +60,13 @@
               [max]="periodEndDateObj || maxDate"
               [ngModelOptions]="{standalone: true}"
               readonly
+              [placeholder]="'progress.member.periodDialog.startDate' | translate"
             />
             <mat-datepicker-toggle matIconSuffix [for]="periodStartDatePicker"></mat-datepicker-toggle>
             <mat-datepicker #periodStartDatePicker></mat-datepicker>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="period-field">
-            <mat-label>{{ 'progress.member.periodDialog.endDate' | translate }}</mat-label>
             <input
               matInput
               [matDatepicker]="periodEndDatePicker"
@@ -77,6 +76,7 @@
               [max]="maxDate"
               [ngModelOptions]="{standalone: true}"
               readonly
+              [placeholder]="'progress.member.periodDialog.endDate' | translate"
             />
             <mat-datepicker-toggle matIconSuffix [for]="periodEndDatePicker"></mat-datepicker-toggle>
             <mat-datepicker #periodEndDatePicker></mat-datepicker>
@@ -163,11 +163,11 @@
         <mat-card-title>{{ 'progress.member.taskList' | translate }}</mat-card-title>
         <div class="header-actions">
           <mat-form-field appearance="outline" class="filter-field">
-            <mat-label>{{ 'progress.member.filter.project' | translate }}</mat-label>
             <mat-select
               [(ngModel)]="filterProjects"
               (selectionChange)="applyTaskFilters()"
               multiple
+              [placeholder]="'progress.member.filter.project' | translate"
             >
               <mat-option
                 *ngFor="let project of memberDetail?.projects"
@@ -179,8 +179,7 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="filter-field">
-            <mat-label>{{ 'progress.member.filter.dueDate' | translate }}</mat-label>
-            <mat-select [(ngModel)]="filterDueDateSort" (selectionChange)="applyTaskFilters()">
+            <mat-select [(ngModel)]="filterDueDateSort" (selectionChange)="applyTaskFilters()" [placeholder]="'progress.member.filter.dueDate' | translate">
               <mat-option value="">{{ 'progress.member.filter.sortNone' | translate }}</mat-option>
               <mat-option value="near">{{ 'progress.member.filter.sortNear' | translate }}</mat-option>
               <mat-option value="far">{{ 'progress.member.filter.sortFar' | translate }}</mat-option>
@@ -188,8 +187,7 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="filter-field">
-            <mat-label>{{ 'progress.member.filter.status' | translate }}</mat-label>
-            <mat-select [(ngModel)]="filterStatus" (selectionChange)="applyTaskFilters()" multiple>
+            <mat-select [(ngModel)]="filterStatus" (selectionChange)="applyTaskFilters()" multiple [placeholder]="'progress.member.filter.status' | translate">
               <mat-option value="未着手">{{ 'progress.status.notStarted' | translate }}</mat-option>
               <mat-option value="作業中">{{ 'progress.status.inProgress' | translate }}</mat-option>
               <mat-option value="完了">{{ 'progress.status.completed' | translate }}</mat-option>
@@ -197,8 +195,7 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="filter-field">
-            <mat-label>{{ 'progress.member.filter.priority' | translate }}</mat-label>
-            <mat-select [(ngModel)]="filterPriority" (selectionChange)="applyTaskFilters()" multiple>
+            <mat-select [(ngModel)]="filterPriority" (selectionChange)="applyTaskFilters()" multiple [placeholder]="'progress.member.filter.priority' | translate">
               <mat-option value="高">{{ 'progress.priority.high' | translate }}</mat-option>
               <mat-option value="中">{{ 'progress.priority.medium' | translate }}</mat-option>
               <mat-option value="低">{{ 'progress.priority.low' | translate }}</mat-option>
