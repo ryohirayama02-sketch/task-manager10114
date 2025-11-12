@@ -14,12 +14,12 @@
   <div class="logs-filters" *ngIf="!loading">
     <div class="filter-group">
       <mat-form-field appearance="outline" class="filter-field">
-        <mat-label>{{ 'logs.filterProject' | translate }}</mat-label>
         <mat-select
           multiple
           [(ngModel)]="filterProjects"
           name="projectFilter"
           (ngModelChange)="onProjectFilterChange()"
+          [placeholder]="'logs.filterProject' | translate"
         >
           <mat-option *ngFor="let project of projectOptions" [value]="project">
             {{ project }}
@@ -30,12 +30,12 @@
 
     <div class="filter-group">
       <mat-form-field appearance="outline" class="filter-field">
-        <mat-label>{{ 'logs.filterTask' | translate }}</mat-label>
         <mat-select
           multiple
           [(ngModel)]="filterTasks"
           name="taskFilter"
           (ngModelChange)="onTaskFilterChange()"
+          [placeholder]="'logs.filterTask' | translate"
         >
           <mat-option *ngFor="let task of taskOptions" [value]="task">
             {{ task }}
@@ -46,12 +46,12 @@
 
     <div class="filter-group">
       <mat-form-field appearance="outline" class="filter-field">
-        <mat-label>{{ 'logs.filterMember' | translate }}</mat-label>
         <mat-select
           multiple
           [(ngModel)]="filterMembers"
           name="memberFilter"
           (ngModelChange)="onMemberFilterChange()"
+          [placeholder]="'logs.filterMember' | translate"
         >
           <mat-option *ngFor="let member of memberOptions" [value]="member">
             {{ member }}
@@ -62,7 +62,6 @@
 
     <div class="filter-actions period-filters">
       <mat-form-field appearance="outline" class="period-field">
-        <mat-label>{{ 'progress.member.periodDialog.startDate' | translate }}</mat-label>
         <input
           matInput
           [matDatepicker]="periodStartDatePicker"
@@ -71,13 +70,13 @@
           [max]="periodEndDateObj || maxDate"
           [ngModelOptions]="{standalone: true}"
           readonly
+          [placeholder]="'progress.member.periodDialog.startDate' | translate"
         />
         <mat-datepicker-toggle matIconSuffix [for]="periodStartDatePicker"></mat-datepicker-toggle>
         <mat-datepicker #periodStartDatePicker></mat-datepicker>
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="period-field">
-        <mat-label>{{ 'progress.member.periodDialog.endDate' | translate }}</mat-label>
         <input
           matInput
           [matDatepicker]="periodEndDatePicker"
@@ -87,6 +86,7 @@
           [max]="maxDate"
           [ngModelOptions]="{standalone: true}"
           readonly
+          [placeholder]="'progress.member.periodDialog.endDate' | translate"
         />
         <mat-datepicker-toggle matIconSuffix [for]="periodEndDatePicker"></mat-datepicker-toggle>
         <mat-datepicker #periodEndDatePicker></mat-datepicker>
