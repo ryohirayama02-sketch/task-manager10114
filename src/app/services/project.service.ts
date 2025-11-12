@@ -14,7 +14,14 @@ import {
   getDocs,
   limit,
 } from '@angular/fire/firestore';
-import { Observable, combineLatest, map, of, switchMap, firstValueFrom } from 'rxjs';
+import {
+  Observable,
+  combineLatest,
+  map,
+  of,
+  switchMap,
+  firstValueFrom,
+} from 'rxjs';
 import { IProject } from '../models/project.model'; // 上の方に追加
 import { Task, ChangeDetail } from '../models/task.model';
 import { EditLogService } from './edit-log.service';
@@ -53,7 +60,9 @@ export class ProjectService {
       responsible: 'logs.field.responsible',
     };
     const translationKey = fieldKeyMap[fieldKey];
-    return translationKey ? this.languageService.translate(translationKey) : fieldKey;
+    return translationKey
+      ? this.languageService.translate(translationKey)
+      : fieldKey;
   }
 
   /** 🔹 全プロジェクト一覧を取得 */
@@ -85,7 +94,10 @@ export class ProjectService {
   }
 
   /** 🔹 プロジェクト名の重複チェック（同じルーム内） */
-  async projectNameExists(projectName: string, excludeProjectId?: string): Promise<boolean> {
+  async projectNameExists(
+    projectName: string,
+    excludeProjectId?: string
+  ): Promise<boolean> {
     if (!projectName || projectName.trim() === '') {
       return false;
     }
@@ -101,13 +113,15 @@ export class ProjectService {
       limit(1)
     );
     const snapshot = await getDocs(roomQuery);
-    
+
     // 編集時は自分自身を除外
     if (excludeProjectId && snapshot.size > 0) {
-      const existingProject = snapshot.docs.find(doc => doc.id !== excludeProjectId);
+      const existingProject = snapshot.docs.find(
+        (doc) => doc.id !== excludeProjectId
+      );
       return !!existingProject;
     }
-    
+
     return !snapshot.empty;
   }
 
@@ -273,15 +287,27 @@ export class ProjectService {
 
   /** 🔹 指定されたタスクを取得 */
   getTask(projectId: string, taskId: string): Observable<any> {
-    const taskRef = doc(this.firestore, `projects/${projectId}/tasks/${taskId}`);
+    const taskRef = doc(
+      this.firestore,
+      `projects/${projectId}/tasks/${taskId}`
+    );
     const task$ = docData(taskRef, { idField: 'id' }) as Observable<any>;
-    
+
     // デバッグ: 単一タスク取得時のデータを確認
     return task$.pipe(
       map((task) => {
-        console.log(`[ProjectService.getTask] タスク「${task.taskName}」の生データ:`, task);
-        console.log(`[ProjectService.getTask] タスク「${task.taskName}」のtags（生）:`, task.tags);
-        console.log(`[ProjectService.getTask] タスク「${task.taskName}」の全キー:`, Object.keys(task));
+        console.log(
+          `[ProjectService.getTask] タスク「${task.taskName}」の生データ:`,
+          task
+        );
+        console.log(
+          `[ProjectService.getTask] タスク「${task.taskName}」のtags（生）:`,
+          task.tags
+        );
+        console.log(
+          `[ProjectService.getTask] タスク「${task.taskName}」の全キー:`,
+          Object.keys(task)
+        );
         return task;
       })
     );
@@ -299,7 +325,9 @@ export class ProjectService {
         }) as Observable<ProjectWithRoom | undefined>;
 
         return projectDoc$.pipe(
-          map((project) => (!project || project.roomId !== roomId ? null : (project as IProject)))
+          map((project) =>
+            !project || project.roomId !== roomId ? null : (project as IProject)
+          )
         );
       })
     );
@@ -326,33 +354,44 @@ export class ProjectService {
         const roomId = projectWithRoom.roomId;
 
         return tasks$.pipe(
-          map(
-            (tasks) => {
-              // デバッグ: Firestoreから取得した生のデータを確認
-              console.log(`[ProjectService] プロジェクト「${projectName}」のタスク取得（生データ）:`, tasks.length, '件');
-              if (tasks.length > 0) {
-                console.log('[ProjectService] 最初のタスクの生データ:', tasks[0]);
-                console.log('[ProjectService] 最初のタスクのtags（生）:', tasks[0].tags);
-                console.log('[ProjectService] 最初のタスクの全キー:', Object.keys(tasks[0]));
-              }
-              
-              return tasks
-                .filter((task) =>
-                  roomId ? !task.roomId || task.roomId === roomId : true
-                )
-                .map((task) => {
-                  const mappedTask = {
-                    ...task,
-                    projectId,
-                    projectName: task.projectName || projectName,
-                    projectThemeColor: task.projectThemeColor || themeColor,
-                  };
-                  // デバッグ: マッピング後のタスクデータを確認
-                  console.log(`[ProjectService] タスク「${task.taskName}」マッピング後のtags:`, mappedTask.tags);
-                  return mappedTask;
-                }) as Task[];
+          map((tasks) => {
+            // デバッグ: Firestoreから取得した生のデータを確認
+            console.log(
+              `[ProjectService] プロジェクト「${projectName}」のタスク取得（生データ）:`,
+              tasks.length,
+              '件'
+            );
+            if (tasks.length > 0) {
+              console.log('[ProjectService] 最初のタスクの生データ:', tasks[0]);
+              console.log(
+                '[ProjectService] 最初のタスクのtags（生）:',
+                tasks[0].tags
+              );
+              console.log(
+                '[ProjectService] 最初のタスクの全キー:',
+                Object.keys(tasks[0])
+              );
             }
-          )
+
+            return tasks
+              .filter((task) =>
+                roomId ? !task.roomId || task.roomId === roomId : true
+              )
+              .map((task) => {
+                const mappedTask = {
+                  ...task,
+                  projectId,
+                  projectName: task.projectName || projectName,
+                  projectThemeColor: task.projectThemeColor || themeColor,
+                };
+                // デバッグ: マッピング後のタスクデータを確認
+                console.log(
+                  `[ProjectService] タスク「${task.taskName}」マッピング後のtags:`,
+                  mappedTask.tags
+                );
+                return mappedTask;
+              }) as Task[];
+          })
         );
       })
     );
@@ -377,8 +416,13 @@ export class ProjectService {
 
     // 編集ログを記録
     console.log('📝 編集ログを記録します...');
-    const projectName = project.projectName || this.languageService.translate('logs.projectFallback');
-    const projectCreatedText = this.languageService.translateWithParams('logs.message.projectCreatedWithName', { projectName });
+    const projectName =
+      project.projectName ||
+      this.languageService.translate('logs.projectFallback');
+    const projectCreatedText = this.languageService.translateWithParams(
+      'logs.message.projectCreatedWithName',
+      { projectName }
+    );
     await this.editLogService.logEdit(
       result.id,
       projectName,
@@ -414,28 +458,63 @@ export class ProjectService {
         oldProject = projectDoc.data() as IProject;
       }
 
-      const result = await updateDoc(projectRef, projectData);
+      // undefinedの値を削除（Firestoreはundefinedを許可しない）
+      const cleanedProjectData: any = {};
+      for (const [key, value] of Object.entries(projectData)) {
+        if (value !== undefined) {
+          cleanedProjectData[key] = value;
+        }
+      }
+
+      console.log(
+        '[ProjectService.updateProject] 更新するプロジェクトデータ:',
+        {
+          projectId,
+          projectDataKeys: Object.keys(cleanedProjectData),
+          removedUndefinedKeys: Object.keys(projectData).filter(
+            (key) => projectData[key] === undefined
+          ),
+        }
+      );
+
+      const result = await updateDoc(projectRef, cleanedProjectData);
 
       // プロジェクト名が変更された場合、そのプロジェクトのすべてのタスクのprojectNameも更新
-      if (oldProject && projectData.projectName && oldProject.projectName && projectData.projectName !== oldProject.projectName) {
-        console.log('プロジェクト名が変更されました。タスクのprojectNameも更新します。', {
-          oldProjectName: oldProject.projectName,
-          newProjectName: projectData.projectName,
-        });
+      if (
+        oldProject &&
+        projectData.projectName &&
+        oldProject.projectName &&
+        projectData.projectName !== oldProject.projectName
+      ) {
+        console.log(
+          'プロジェクト名が変更されました。タスクのprojectNameも更新します。',
+          {
+            oldProjectName: oldProject.projectName,
+            newProjectName: projectData.projectName,
+          }
+        );
 
         try {
-          const tasksRef = collection(this.firestore, `projects/${projectId}/tasks`);
+          const tasksRef = collection(
+            this.firestore,
+            `projects/${projectId}/tasks`
+          );
           const tasksQuery = query(tasksRef);
           const tasksSnapshot = await getDocs(tasksQuery);
-          
+
           // 各タスクのprojectNameを更新
           const updatePromises = tasksSnapshot.docs.map((taskDoc) => {
-            const taskRef = doc(this.firestore, `projects/${projectId}/tasks/${taskDoc.id}`);
+            const taskRef = doc(
+              this.firestore,
+              `projects/${projectId}/tasks/${taskDoc.id}`
+            );
             return updateDoc(taskRef, { projectName: projectData.projectName });
           });
-          
+
           await Promise.all(updatePromises);
-          console.log(`✅ ${tasksSnapshot.docs.length}件のタスクのprojectNameを更新しました`);
+          console.log(
+            `✅ ${tasksSnapshot.docs.length}件のタスクのprojectNameを更新しました`
+          );
         } catch (taskUpdateError: any) {
           console.error('タスクのprojectName更新エラー:', taskUpdateError);
           // タスク更新のエラーはプロジェクト更新を失敗させない
@@ -444,59 +523,81 @@ export class ProjectService {
 
       // 変更があったフィールドのみをChangeDetail配列として作成
       const changeDetails: ChangeDetail[] = [];
-      
+
       if (oldProject) {
         // プロジェクト名
-        if (projectData.projectName !== undefined && projectData.projectName !== oldProject['projectName']) {
+        if (
+          projectData.projectName !== undefined &&
+          projectData.projectName !== oldProject['projectName']
+        ) {
           changeDetails.push({
             field: this.getProjectFieldName('projectName'),
             oldValue: oldProject['projectName'] || '',
             newValue: projectData.projectName || '',
           });
         }
-        
+
         // 説明（overview）
-        if (projectData.overview !== undefined && projectData.overview !== oldProject['overview']) {
+        if (
+          projectData.overview !== undefined &&
+          projectData.overview !== oldProject['overview']
+        ) {
           changeDetails.push({
             field: this.getProjectFieldName('overview'),
             oldValue: oldProject['overview'] || '',
             newValue: projectData.overview || '',
           });
         }
-        
+
         // 開始日
-        if (projectData.startDate !== undefined && projectData.startDate !== oldProject['startDate']) {
+        if (
+          projectData.startDate !== undefined &&
+          projectData.startDate !== oldProject['startDate']
+        ) {
           changeDetails.push({
             field: this.getProjectFieldName('startDate'),
             oldValue: oldProject['startDate'] || '',
             newValue: projectData.startDate || '',
           });
         }
-        
+
         // 終了日
-        if (projectData.endDate !== undefined && projectData.endDate !== oldProject['endDate']) {
+        if (
+          projectData.endDate !== undefined &&
+          projectData.endDate !== oldProject['endDate']
+        ) {
           changeDetails.push({
             field: this.getProjectFieldName('endDate'),
             oldValue: oldProject['endDate'] || '',
             newValue: projectData.endDate || '',
           });
         }
-        
+
         // テーマ色
-        if (projectData.themeColor !== undefined && projectData.themeColor !== oldProject['themeColor']) {
+        if (
+          projectData.themeColor !== undefined &&
+          projectData.themeColor !== oldProject['themeColor']
+        ) {
           changeDetails.push({
             field: this.getProjectFieldName('themeColor'),
             oldValue: oldProject['themeColor'] || '',
             newValue: projectData.themeColor || '',
           });
         }
-        
+
         // 資料（添付ファイル数）
         if (projectData.attachments !== undefined) {
-          const oldAttachmentCount = Array.isArray(oldProject['attachments']) ? oldProject['attachments'].length : 0;
-          const newAttachmentCount = Array.isArray(projectData.attachments) ? projectData.attachments.length : 0;
+          const oldAttachmentCount = Array.isArray(oldProject['attachments'])
+            ? oldProject['attachments'].length
+            : 0;
+          const newAttachmentCount = Array.isArray(projectData.attachments)
+            ? projectData.attachments.length
+            : 0;
           if (oldAttachmentCount !== newAttachmentCount) {
-            const countUnit = this.languageService.getCurrentLanguage() === 'ja' ? '件' : ' items';
+            const countUnit =
+              this.languageService.getCurrentLanguage() === 'ja'
+                ? '件'
+                : ' items';
             changeDetails.push({
               field: this.getProjectFieldName('attachments'),
               oldValue: `${oldAttachmentCount}${countUnit}`,
@@ -504,9 +605,12 @@ export class ProjectService {
             });
           }
         }
-        
+
         // 責任者
-        if (projectData.responsible !== undefined && projectData.responsible !== oldProject['responsible']) {
+        if (
+          projectData.responsible !== undefined &&
+          projectData.responsible !== oldProject['responsible']
+        ) {
           changeDetails.push({
             field: this.getProjectFieldName('responsible'),
             oldValue: oldProject['responsible'] || '',
@@ -517,14 +621,21 @@ export class ProjectService {
 
       // 編集ログを記録（changeDetailsは既に多言語対応済み）
 
-      const projectUpdatedText = this.languageService.translate('logs.projectUpdated');
-      const changeDescriptionText = changeDetails.length > 0
-        ? `${projectUpdatedText} (${changeDetails.map(c => `${c.field}: ${c.oldValue}→${c.newValue}`).join(', ')})`
-        : projectUpdatedText;
+      const projectUpdatedText = this.languageService.translate(
+        'logs.projectUpdated'
+      );
+      const changeDescriptionText =
+        changeDetails.length > 0
+          ? `${projectUpdatedText} (${changeDetails
+              .map((c) => `${c.field}: ${c.oldValue}→${c.newValue}`)
+              .join(', ')})`
+          : projectUpdatedText;
 
       await this.editLogService.logEdit(
         projectId,
-        projectData.projectName || (oldProject ? oldProject['projectName'] : null) || this.languageService.translate('logs.projectFallback'),
+        projectData.projectName ||
+          (oldProject ? oldProject['projectName'] : null) ||
+          this.languageService.translate('logs.projectFallback'),
         'update',
         changeDescriptionText,
         undefined, // taskId
@@ -604,7 +715,15 @@ export class ProjectService {
         taskData.roomDocId = roomDocId;
       }
 
-      const result = await updateDoc(taskRef, taskData);
+      // undefinedの値を削除（Firestoreはundefinedを許可しない）
+      const cleanedTaskData: any = {};
+      for (const [key, value] of Object.entries(taskData)) {
+        if (value !== undefined) {
+          cleanedTaskData[key] = value;
+        }
+      }
+
+      const result = await updateDoc(taskRef, cleanedTaskData);
 
       // 編集ログを記録 - ChangeDetail配列を生成
       const changeDetails: ChangeDetail[] = [];
@@ -630,7 +749,9 @@ export class ProjectService {
           newValue: taskData.taskName,
         });
         changeStrings.push(
-          `タスク名: ${oldTaskData['taskName'] || '不明'} → ${taskData.taskName}`
+          `タスク名: ${oldTaskData['taskName'] || '不明'} → ${
+            taskData.taskName
+          }`
         );
       }
 
@@ -649,7 +770,8 @@ export class ProjectService {
       // 担当者の変更
       if (taskData.assignee && oldTaskData['assignee'] !== taskData.assignee) {
         const oldAssignee = oldTaskData['assignee']?.trim();
-        const isNewAssignee = !oldAssignee || oldAssignee === '' || oldAssignee === '不明';
+        const isNewAssignee =
+          !oldAssignee || oldAssignee === '' || oldAssignee === '不明';
 
         if (isNewAssignee) {
           // 担当者が追加された場合
@@ -682,14 +804,19 @@ export class ProjectService {
       }
 
       // 概要（説明）の変更
-      if (taskData.description && oldTaskData['description'] !== taskData.description) {
+      if (
+        taskData.description &&
+        oldTaskData['description'] !== taskData.description
+      ) {
         changeDetails.push({
           field: '概要',
           oldValue: oldTaskData['description'] || '変更なし',
           newValue: taskData.description,
         });
         changeStrings.push(
-          `概要: ${oldTaskData['description'] || '変更なし'}→${taskData.description}に変更しました`
+          `概要: ${oldTaskData['description'] || '変更なし'}→${
+            taskData.description
+          }に変更しました`
         );
       }
 
@@ -698,10 +825,12 @@ export class ProjectService {
       const newTags = taskData.tags || [];
       const oldTagsStr = JSON.stringify(oldTags.sort());
       const newTagsStr = JSON.stringify(newTags.sort());
-      
+
       if (oldTagsStr !== newTagsStr) {
         // 追加されたタグ
-        const addedTags = newTags.filter((tag: string) => !oldTags.includes(tag));
+        const addedTags = newTags.filter(
+          (tag: string) => !oldTags.includes(tag)
+        );
         addedTags.forEach((tag: string) => {
           changeDetails.push({
             field: 'タグ',
@@ -711,7 +840,9 @@ export class ProjectService {
         });
 
         // 削除されたタグ
-        const removedTags = oldTags.filter((tag: string) => !newTags.includes(tag));
+        const removedTags = oldTags.filter(
+          (tag: string) => !newTags.includes(tag)
+        );
         removedTags.forEach((tag: string) => {
           changeDetails.push({
             field: 'タグ',
@@ -722,19 +853,19 @@ export class ProjectService {
       }
 
       if (changeDetails.length > 0) {
-      await this.editLogService.logEdit(
-        projectId,
-        taskData.projectName || 'プロジェクト',
-        'update',
-        `タスク「${
-          taskData.taskName || 'タスク'
+        await this.editLogService.logEdit(
+          projectId,
+          taskData.projectName || 'プロジェクト',
+          'update',
+          `タスク「${
+            taskData.taskName || 'タスク'
           }」を更新しました (${changeStrings.join(', ')})`,
-        taskId,
-        taskData.taskName || 'タスク',
-        undefined,
+          taskId,
+          taskData.taskName || 'タスク',
+          undefined,
           undefined,
           changeDetails
-      );
+        );
       }
 
       return result;
@@ -762,7 +893,10 @@ export class ProjectService {
     );
 
     // プロジェクト内のすべてのタスクを削除
-    await this.deleteAllTasksInProject(projectId, projectData.projectName || 'プロジェクト');
+    await this.deleteAllTasksInProject(
+      projectId,
+      projectData.projectName || 'プロジェクト'
+    );
 
     // プロジェクトの添付ファイルを削除
     if (projectData.attachments && Array.isArray(projectData.attachments)) {
@@ -786,8 +920,13 @@ export class ProjectService {
 
     // 編集ログを記録
     console.log('📝 編集ログを記録します...');
-    const projectName = projectData.projectName || this.languageService.translate('logs.projectFallback');
-    const projectDeletedText = this.languageService.translateWithParams('logs.message.projectDeletedWithName', { projectName });
+    const projectName =
+      projectData.projectName ||
+      this.languageService.translate('logs.projectFallback');
+    const projectDeletedText = this.languageService.translateWithParams(
+      'logs.message.projectDeletedWithName',
+      { projectName }
+    );
     await this.editLogService.logEdit(
       projectId,
       projectName,
@@ -826,7 +965,13 @@ export class ProjectService {
     const allTasks = tasksSnapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
-    })) as Array<{ id: string; parentTaskId?: string; taskName?: string; attachments?: any[]; [key: string]: any }>;
+    })) as Array<{
+      id: string;
+      parentTaskId?: string;
+      taskName?: string;
+      attachments?: any[];
+      [key: string]: any;
+    }>;
 
     console.log(`削除対象タスク数: ${allTasks.length}件`);
 

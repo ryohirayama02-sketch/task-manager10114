@@ -30,7 +30,10 @@ import { Member } from '../../models/member.model';
 import { ProjectAttachmentService } from '../../services/project-attachment.service';
 import { NavigationHistoryService } from '../../services/navigation-history.service';
 import { ProjectDeleteConfirmDialogComponent } from './project-delete-confirm-dialog.component';
-import { MemberRemoveConfirmDialogComponent, MemberRemoveConfirmDialogData } from './member-remove-confirm-dialog.component';
+import {
+  MemberRemoveConfirmDialogComponent,
+  MemberRemoveConfirmDialogData,
+} from './member-remove-confirm-dialog.component';
 import { ProgressCircleComponent } from '../progress/projects-overview/progress-circle.component';
 import { ProjectChatComponent } from '../project-chat/project-chat.component';
 import {
@@ -40,7 +43,10 @@ import {
 } from '../../constants/project-theme-colors';
 import { inject } from '@angular/core';
 import { TranslatePipe } from '../../pipes/translate.pipe';
-import { getMemberNamesAsString, getMemberNames } from '../../utils/member-utils';
+import {
+  getMemberNamesAsString,
+  getMemberNames,
+} from '../../utils/member-utils';
 import { LanguageService } from '../../services/language.service';
 import { firstValueFrom } from 'rxjs';
 
@@ -95,7 +101,7 @@ export class ProjectDetailComponent implements OnInit {
   tagInputValue = '';
   editableThemeColor: string | null = DEFAULT_PROJECT_THEME_COLOR;
   readonly themeColors = PROJECT_THEME_COLORS;
-  
+
   // プロジェクトテーマカラーの16進表記から色名へのマッピング
   private readonly themeColorLabelMap: Record<string, string> = {
     '#fde4ec': 'ピンク',
@@ -143,45 +149,49 @@ export class ProjectDetailComponent implements OnInit {
   get priorityOptions(): string[] {
     return ['高', '中', '低'];
   }
-  
+
   // ステータスの表示テキストを取得（タスクカード用：英語時は短縮形）
   getStatusDisplay(status: string, short: boolean = false): string {
     const currentLanguage = this.languageService.getCurrentLanguage();
     const useShort = short && currentLanguage === 'en';
-    
+
     const statusMap: Record<string, string> = {
-      '未着手': useShort 
-        ? this.languageService.translate('projectDetail.status.notStarted.short')
+      未着手: useShort
+        ? this.languageService.translate(
+            'projectDetail.status.notStarted.short'
+          )
         : this.languageService.translate('projectDetail.status.notStarted'),
-      '作業中': useShort
-        ? this.languageService.translate('projectDetail.status.inProgress.short')
+      作業中: useShort
+        ? this.languageService.translate(
+            'projectDetail.status.inProgress.short'
+          )
         : this.languageService.translate('projectDetail.status.inProgress'),
-      '完了': useShort
+      完了: useShort
         ? this.languageService.translate('projectDetail.status.completed.short')
         : this.languageService.translate('projectDetail.status.completed'),
     };
     return statusMap[status] || status;
   }
-  
+
   // 優先度の表示テキストを取得（タスクカード用：英語時は短縮形）
   getPriorityDisplay(priority: string, short: boolean = false): string {
     const currentLanguage = this.languageService.getCurrentLanguage();
     const useShort = short && currentLanguage === 'en';
-    
+
     const priorityMap: Record<string, string> = {
-      '高': useShort
+      高: useShort
         ? this.languageService.translate('projectDetail.priority.high.short')
         : this.languageService.translate('projectDetail.priority.high'),
-      '中': useShort
+      中: useShort
         ? this.languageService.translate('projectDetail.priority.medium.short')
         : this.languageService.translate('projectDetail.priority.medium'),
-      '低': useShort
+      低: useShort
         ? this.languageService.translate('projectDetail.priority.low.short')
         : this.languageService.translate('projectDetail.priority.low'),
     };
     return priorityMap[priority] || priority;
   }
-  
+
   // 現在の言語設定を取得（date inputのlang属性用）
   getCurrentLang(): string {
     return this.languageService.getCurrentLanguage();
@@ -222,7 +232,9 @@ export class ProjectDetailComponent implements OnInit {
         .subscribe(async (data) => {
           if (!data) {
             this.snackBar.open(
-              this.languageService.translate('projectDetail.error.projectNotFound'),
+              this.languageService.translate(
+                'projectDetail.error.projectNotFound'
+              ),
               this.languageService.translate('common.close'),
               {
                 duration: 3000,
@@ -336,12 +348,16 @@ export class ProjectDetailComponent implements OnInit {
     }
 
     // 概要の変更チェック
-    if ((this.project.overview || '') !== (this.editableProject.overview || '')) {
+    if (
+      (this.project.overview || '') !== (this.editableProject.overview || '')
+    ) {
       return true;
     }
 
     // 開始日の変更チェック
-    if ((this.project.startDate || '') !== (this.editableProject.startDate || '')) {
+    if (
+      (this.project.startDate || '') !== (this.editableProject.startDate || '')
+    ) {
       return true;
     }
 
@@ -352,25 +368,27 @@ export class ProjectDetailComponent implements OnInit {
 
     // 責任者の変更チェック
     const oldResponsibleIds = (this.project.responsibles || [])
-      .map(r => r.memberId)
+      .map((r) => r.memberId)
       .filter((id): id is string => !!id)
       .sort();
     const newResponsibleIds = (this.selectedResponsibles || [])
-      .map(m => m.id)
+      .map((m) => m.id)
       .filter((id): id is string => !!id)
       .sort();
-    if (JSON.stringify(oldResponsibleIds) !== JSON.stringify(newResponsibleIds)) {
+    if (
+      JSON.stringify(oldResponsibleIds) !== JSON.stringify(newResponsibleIds)
+    ) {
       return true;
     }
 
     // プロジェクトメンバーの変更チェック
     const oldMemberNames = this.normalizeMembersField(this.project.members)
       .split(',')
-      .map(name => name.trim())
-      .filter(name => name.length > 0)
+      .map((name) => name.trim())
+      .filter((name) => name.length > 0)
       .sort();
     const newMemberNames = (this.selectedMembers || [])
-      .map(m => m.name)
+      .map((m) => m.name)
       .filter((name): name is string => !!name)
       .sort();
     if (JSON.stringify(oldMemberNames) !== JSON.stringify(newMemberNames)) {
@@ -385,38 +403,45 @@ export class ProjectDetailComponent implements OnInit {
     }
 
     // マイルストーンの変更チェック
-    const oldMilestones = (this.project.milestones || []).map(m => ({
-      name: m.name || '',
-      date: m.date || '',
-      description: m.description || '',
-    })).sort((a, b) => {
-      if (a.date !== b.date) return a.date.localeCompare(b.date);
-      if (a.name !== b.name) return a.name.localeCompare(b.name);
-      return a.description.localeCompare(b.description);
-    });
-    const newMilestones = (this.editableMilestones || []).map(m => ({
-      name: m.name || '',
-      date: m.date || '',
-      description: m.description || '',
-    })).sort((a, b) => {
-      if (a.date !== b.date) return a.date.localeCompare(b.date);
-      if (a.name !== b.name) return a.name.localeCompare(b.name);
-      return a.description.localeCompare(b.description);
-    });
+    const oldMilestones = (this.project.milestones || [])
+      .map((m) => ({
+        name: m.name || '',
+        date: m.date || '',
+        description: m.description || '',
+      }))
+      .sort((a, b) => {
+        if (a.date !== b.date) return a.date.localeCompare(b.date);
+        if (a.name !== b.name) return a.name.localeCompare(b.name);
+        return a.description.localeCompare(b.description);
+      });
+    const newMilestones = (this.editableMilestones || [])
+      .map((m) => ({
+        name: m.name || '',
+        date: m.date || '',
+        description: m.description || '',
+      }))
+      .sort((a, b) => {
+        if (a.date !== b.date) return a.date.localeCompare(b.date);
+        if (a.name !== b.name) return a.name.localeCompare(b.name);
+        return a.description.localeCompare(b.description);
+      });
     if (JSON.stringify(oldMilestones) !== JSON.stringify(newMilestones)) {
       return true;
     }
 
     // テーマ色の変更チェック
     const oldThemeColor = resolveProjectThemeColor(this.project);
-    const oldThemeColorNormalized = oldThemeColor === '#ffffff' ? null : oldThemeColor;
+    const oldThemeColorNormalized =
+      oldThemeColor === '#ffffff' ? null : oldThemeColor;
     if (oldThemeColorNormalized !== this.editableThemeColor) {
       return true;
     }
 
     // 添付ファイルの変更チェック（追加・削除されたファイルがあるか）
-    const oldAttachmentIds = (this.project.attachments || []).map(a => a.id).sort();
-    const newAttachmentIds = this.editableAttachments.map(a => a.id).sort();
+    const oldAttachmentIds = (this.project.attachments || [])
+      .map((a) => a.id)
+      .sort();
+    const newAttachmentIds = this.editableAttachments.map((a) => a.id).sort();
     if (JSON.stringify(oldAttachmentIds) !== JSON.stringify(newAttachmentIds)) {
       return true;
     }
@@ -455,8 +480,12 @@ export class ProjectDetailComponent implements OnInit {
         : this.project.tags || '',
     };
     // Dateオブジェクトを初期化
-    this.inlineStartDateObj = this.project.startDate ? new Date(this.project.startDate) : null;
-    this.inlineEndDateObj = this.project.endDate ? new Date(this.project.endDate) : null;
+    this.inlineStartDateObj = this.project.startDate
+      ? new Date(this.project.startDate)
+      : null;
+    this.inlineEndDateObj = this.project.endDate
+      ? new Date(this.project.endDate)
+      : null;
     this.editableTags = this.parseTags(this.project.tags);
     this.editableMilestones = (this.project.milestones || []).map(
       (milestone) => ({
@@ -478,7 +507,8 @@ export class ProjectDetailComponent implements OnInit {
     this.tagInputValue = '';
     // プロジェクトのテーマ色が#ffffffまたはnullの場合はnullに設定（「なし」を選択）
     const resolvedColor = resolveProjectThemeColor(this.project);
-    this.editableThemeColor = resolvedColor === '#ffffff' ? null : resolvedColor;
+    this.editableThemeColor =
+      resolvedColor === '#ffffff' ? null : resolvedColor;
     this.syncSelectionsFromProject();
   }
 
@@ -492,7 +522,9 @@ export class ProjectDetailComponent implements OnInit {
     const trimmedName = this.editableProject.projectName.trim();
     if (!trimmedName) {
       this.snackBar.open(
-        this.languageService.translate('projectDetail.error.projectNameRequired'),
+        this.languageService.translate(
+          'projectDetail.error.projectNameRequired'
+        ),
         this.languageService.translate('common.close'),
         {
           duration: 3000,
@@ -520,7 +552,9 @@ export class ProjectDetailComponent implements OnInit {
       const endDate = new Date(this.editableProject.endDate);
       if (startDate > endDate) {
         this.snackBar.open(
-          this.languageService.translate('projectDetail.error.startDateAfterEndDate'),
+          this.languageService.translate(
+            'projectDetail.error.startDateAfterEndDate'
+          ),
           this.languageService.translate('common.close'),
           {
             duration: 3000,
@@ -533,7 +567,9 @@ export class ProjectDetailComponent implements OnInit {
 
     if (!this.selectedResponsibles || this.selectedResponsibles.length === 0) {
       this.snackBar.open(
-        this.languageService.translate('projectDetail.error.responsibleRequired'),
+        this.languageService.translate(
+          'projectDetail.error.responsibleRequired'
+        ),
         this.languageService.translate('common.close'),
         {
           duration: 3000,
@@ -617,24 +653,35 @@ export class ProjectDetailComponent implements OnInit {
         description: milestone.description || '',
       }));
 
-    const payload = {
+    // payloadを作成（undefinedを防ぐため、必要なフィールドのみを明示的に設定）
+    const payload: any = {
       projectName: trimmedName,
       overview: this.editableProject.overview?.trim() || '',
       startDate: this.editableProject.startDate || '',
       endDate: this.editableProject.endDate || '',
       responsible:
         responsibleNames || this.editableProject.responsible?.trim() || '',
-      responsibleId: primaryResponsibleId,
-      responsibleEmail: primaryResponsibleEmail,
-      responsibles: responsiblesPayload,
-      members: membersString,
-      tags: tagsString,
+      responsibleId: primaryResponsibleId || '',
+      responsibleEmail: primaryResponsibleEmail || '',
+      responsibles: responsiblesPayload || [],
+      members: membersString || '',
+      tags: tagsString || '',
       // テーマ色が「なし」（null）の場合は白（#ffffff）に設定
-      themeColor: this.editableThemeColor === null ? '#ffffff' : this.editableThemeColor,
-      milestones: milestonesPayload,
-      attachments,
+      themeColor:
+        this.editableThemeColor === null
+          ? '#ffffff'
+          : this.editableThemeColor || '#ffffff',
+      milestones: milestonesPayload || [],
+      attachments: attachments || [],
       updatedAt: new Date(),
     };
+
+    // undefinedの値を削除（念のため）
+    Object.keys(payload).forEach((key) => {
+      if (payload[key] === undefined) {
+        delete payload[key];
+      }
+    });
 
     if (this.isSavingInlineEdit) {
       this.isInlineEditMode = true;
@@ -650,7 +697,8 @@ export class ProjectDetailComponent implements OnInit {
       } as IProject;
       this.project.responsibles = responsiblesPayload;
       // テーマ色が「なし」（null）の場合は白（#ffffff）に設定
-      this.project.themeColor = this.editableThemeColor === null ? '#ffffff' : this.editableThemeColor;
+      this.project.themeColor =
+        this.editableThemeColor === null ? '#ffffff' : this.editableThemeColor;
       this.projectThemeColor = resolveProjectThemeColor(this.project);
       this.project.attachments = attachments;
       this.project.milestones = milestonesPayload;
@@ -715,7 +763,9 @@ export class ProjectDetailComponent implements OnInit {
     const trimmedName = this.editableProject.projectName.trim();
     if (!trimmedName) {
       this.snackBar.open(
-        this.languageService.translate('projectDetail.error.projectNameRequired'),
+        this.languageService.translate(
+          'projectDetail.error.projectNameRequired'
+        ),
         this.languageService.translate('common.close'),
         {
           duration: 3000,
@@ -741,7 +791,9 @@ export class ProjectDetailComponent implements OnInit {
 
     if (!this.selectedResponsibles || this.selectedResponsibles.length === 0) {
       this.snackBar.open(
-        this.languageService.translate('projectDetail.error.responsibleRequired'),
+        this.languageService.translate(
+          'projectDetail.error.responsibleRequired'
+        ),
         this.languageService.translate('common.close'),
         {
           duration: 3000,
@@ -827,24 +879,35 @@ export class ProjectDetailComponent implements OnInit {
         description: milestone.description || '',
       }));
 
-    const payload = {
+    // payloadを作成（undefinedを防ぐため、必要なフィールドのみを明示的に設定）
+    const payload: any = {
       projectName: trimmedName,
       overview: this.editableProject.overview?.trim() || '',
       startDate: this.editableProject.startDate || '',
       endDate: this.editableProject.endDate || '',
       responsible:
         responsibleNames || this.editableProject.responsible?.trim() || '',
-      responsibleId: primaryResponsibleId,
-      responsibleEmail: primaryResponsibleEmail,
-      responsibles: responsiblesPayload,
-      members: membersString,
-      tags: tagsString,
+      responsibleId: primaryResponsibleId || '',
+      responsibleEmail: primaryResponsibleEmail || '',
+      responsibles: responsiblesPayload || [],
+      members: membersString || '',
+      tags: tagsString || '',
       // テーマ色が「なし」（null）の場合は白（#ffffff）に設定
-      themeColor: this.editableThemeColor === null ? '#ffffff' : this.editableThemeColor,
-      milestones: milestonesPayload,
-      attachments,
+      themeColor:
+        this.editableThemeColor === null
+          ? '#ffffff'
+          : this.editableThemeColor || '#ffffff',
+      milestones: milestonesPayload || [],
+      attachments: attachments || [],
       updatedAt: new Date(),
     };
+
+    // undefinedの値を削除（念のため）
+    Object.keys(payload).forEach((key) => {
+      if (payload[key] === undefined) {
+        delete payload[key];
+      }
+    });
 
     if (this.isSavingInlineEdit) {
       event.source.checked = true;
@@ -861,7 +924,8 @@ export class ProjectDetailComponent implements OnInit {
       } as IProject;
       this.project.responsibles = responsiblesPayload;
       // テーマ色が「なし」（null）の場合は白（#ffffff）に設定
-      this.project.themeColor = this.editableThemeColor === null ? '#ffffff' : this.editableThemeColor;
+      this.project.themeColor =
+        this.editableThemeColor === null ? '#ffffff' : this.editableThemeColor;
       this.projectThemeColor = resolveProjectThemeColor(this.project);
       this.project.attachments = attachments;
       this.project.milestones = milestonesPayload;
@@ -942,9 +1006,12 @@ export class ProjectDetailComponent implements OnInit {
     if (!project) {
       return notSetText;
     }
-    
+
     // responsibles が配列で、memberId が含まれている場合は、それを使って最新のメンバー名を取得
-    if (Array.isArray(project.responsibles) && project.responsibles.length > 0) {
+    if (
+      Array.isArray(project.responsibles) &&
+      project.responsibles.length > 0
+    ) {
       const names: string[] = [];
       project.responsibles.forEach((entry) => {
         // memberId がある場合は、それを使って最新のメンバー名を取得
@@ -967,20 +1034,20 @@ export class ProjectDetailComponent implements OnInit {
       });
       return names.length > 0 ? names.join(', ') : notSetText;
     }
-    
+
     // responsibles がない場合は、responsible フィールドから取得
     const names = this.extractResponsibleNames(project);
     if (names.length > 0) {
       // メンバー名を最新の名前に更新（メンバー管理画面に存在しない名前は除外）
       const updatedNames = names
-        .map(name => {
+        .map((name) => {
           const member = this.members.find((m) => m.name === name);
           return member ? member.name : null;
         })
         .filter((name): name is string => name !== null);
       return updatedNames.length > 0 ? updatedNames.join(', ') : notSetText;
     }
-    
+
     return notSetText;
   }
 
@@ -992,16 +1059,16 @@ export class ProjectDetailComponent implements OnInit {
     if (!membersString) {
       return '';
     }
-    
+
     // メンバー名を最新の名前に更新（メンバー管理画面に存在しない名前は除外）
-    const memberNames = membersString.split(',').map(name => name.trim());
+    const memberNames = membersString.split(',').map((name) => name.trim());
     const updatedNames = memberNames
-      .map(name => {
+      .map((name) => {
         const member = this.members.find((m) => m.name === name);
         return member ? member.name : null;
       })
       .filter((name): name is string => name !== null);
-    
+
     return updatedNames.join(', ');
   }
 
@@ -1114,9 +1181,11 @@ export class ProjectDetailComponent implements OnInit {
     let tasksToDeleteCount = 0;
 
     for (const task of allTasks) {
-      const assignedMembers = Array.isArray(task.assignedMembers) ? task.assignedMembers : [];
+      const assignedMembers = Array.isArray(task.assignedMembers)
+        ? task.assignedMembers
+        : [];
       const hasMember = assignedMembers.includes(memberId);
-      
+
       if (hasMember) {
         affectedTasksCount++;
         // このメンバーしか担当者がいない場合は削除対象
@@ -1148,28 +1217,36 @@ export class ProjectDetailComponent implements OnInit {
       try {
         // タスクからメンバーを削除、またはタスクを削除
         for (const task of allTasks) {
-          const assignedMembers = Array.isArray(task.assignedMembers) ? [...task.assignedMembers] : [];
+          const assignedMembers = Array.isArray(task.assignedMembers)
+            ? [...task.assignedMembers]
+            : [];
           const hasMember = assignedMembers.includes(memberId);
-          
+
           if (hasMember) {
             // メンバーを削除
-            const updatedMembers = assignedMembers.filter(id => id !== memberId);
-            
+            const updatedMembers = assignedMembers.filter(
+              (id) => id !== memberId
+            );
+
             if (updatedMembers.length === 0) {
               // 担当者が空になった場合はタスクを削除
               if (task.id) {
-                await this.taskService.deleteTask(task.id, task, this.projectId!);
+                await this.taskService.deleteTask(
+                  task.id,
+                  task,
+                  this.projectId!
+                );
               }
             } else {
               // 担当者を更新
               if (task.id) {
                 // 更新後のメンバー名を取得してassigneeフィールドにも設定
                 const updatedMemberNames = updatedMembers
-                  .map(id => {
-                    const member = this.members.find(m => m.id === id);
+                  .map((id) => {
+                    const member = this.members.find((m) => m.id === id);
                     return member?.name || '';
                   })
-                  .filter(name => name.length > 0);
+                  .filter((name) => name.length > 0);
 
                 await this.projectService.updateTask(this.projectId!, task.id, {
                   assignedMembers: updatedMembers,
@@ -1188,7 +1265,7 @@ export class ProjectDetailComponent implements OnInit {
         this.selectedMembers = this.selectedMembers.filter(
           (selected) => (selected.id || '') !== memberIdToRemove
         );
-        
+
         // 責任者リストからも削除
         if (this.selectedResponsibleIds.includes(memberIdToRemove)) {
           this.removeResponsible(member);
@@ -1201,14 +1278,18 @@ export class ProjectDetailComponent implements OnInit {
         this.loadTasks();
 
         this.snackBar.open(
-          this.languageService.translate('projectDetail.memberRemoveConfirm.success'),
+          this.languageService.translate(
+            'projectDetail.memberRemoveConfirm.success'
+          ),
           this.languageService.translate('common.close'),
           { duration: 3000 }
         );
       } catch (error) {
         console.error('メンバー削除エラー:', error);
         this.snackBar.open(
-          this.languageService.translate('projectDetail.memberRemoveConfirm.error'),
+          this.languageService.translate(
+            'projectDetail.memberRemoveConfirm.error'
+          ),
           this.languageService.translate('common.close'),
           { duration: 3000 }
         );
@@ -1298,9 +1379,12 @@ export class ProjectDetailComponent implements OnInit {
     try {
       await this.projectService.deleteProject(this.project.id, this.project);
       this.snackBar.open(
-        this.languageService.translateWithParams('projectDetail.success.deleted', {
-          projectName: this.project.projectName || '',
-        }),
+        this.languageService.translateWithParams(
+          'projectDetail.success.deleted',
+          {
+            projectName: this.project.projectName || '',
+          }
+        ),
         this.languageService.translate('common.close'),
         { duration: 3000 }
       );
@@ -1338,9 +1422,12 @@ export class ProjectDetailComponent implements OnInit {
     Array.from(files).forEach((file) => {
       if (file.size > this.MAX_FILE_SIZE) {
         this.snackBar.open(
-          this.languageService.translateWithParams('projectDetail.error.fileSizeExceeded', {
-            fileName: file.name,
-          }),
+          this.languageService.translateWithParams(
+            'projectDetail.error.fileSizeExceeded',
+            {
+              fileName: file.name,
+            }
+          ),
           this.languageService.translate('common.close'),
           { duration: 4000 }
         );
@@ -1365,14 +1452,14 @@ export class ProjectDetailComponent implements OnInit {
             duration: 3000,
           }
         );
-      return;
-    }
+        return;
+      }
 
       // 既に同じURLが存在するかチェック
       const exists = this.editableAttachments.some(
         (att) => att.type === 'link' && att.url === trimmedUrl
       );
-      
+
       if (exists) {
         this.snackBar.open(
           this.languageService.translate('projectDetail.error.urlAlreadyAdded'),
@@ -1381,18 +1468,18 @@ export class ProjectDetailComponent implements OnInit {
             duration: 3000,
           }
         );
-      return;
-    }
+        return;
+      }
 
-    const attachment: ProjectAttachment = {
-      id: this.generateId(),
+      const attachment: ProjectAttachment = {
+        id: this.generateId(),
         name: this.extractUrlLabel(trimmedUrl),
         url: trimmedUrl,
-      type: 'link',
-      uploadedAt: new Date().toISOString(),
-    };
+        type: 'link',
+        uploadedAt: new Date().toISOString(),
+      };
 
-    this.editableAttachments.push(attachment);
+      this.editableAttachments.push(attachment);
       this.newUrlInput = '';
     }
   }
@@ -1444,9 +1531,12 @@ export class ProjectDetailComponent implements OnInit {
       } catch (error) {
         console.error('添付ファイルのアップロードに失敗しました:', error);
         this.snackBar.open(
-          this.languageService.translateWithParams('projectDetail.error.attachmentUploadFailed', {
-            fileName: pending.file.name,
-          }),
+          this.languageService.translateWithParams(
+            'projectDetail.error.attachmentUploadFailed',
+            {
+              fileName: pending.file.name,
+            }
+          ),
           this.languageService.translate('common.close'),
           { duration: 4000 }
         );
@@ -1464,7 +1554,9 @@ export class ProjectDetailComponent implements OnInit {
       } catch (error) {
         console.error('添付ファイルの削除に失敗しました:', error);
         this.snackBar.open(
-          this.languageService.translate('projectDetail.error.attachmentDeleteFailed'),
+          this.languageService.translate(
+            'projectDetail.error.attachmentDeleteFailed'
+          ),
           this.languageService.translate('common.close'),
           {
             duration: 3000,
@@ -1515,7 +1607,9 @@ export class ProjectDetailComponent implements OnInit {
         console.error('メンバー一覧の取得に失敗しました:', error);
         this.membersLoading = false;
         this.snackBar.open(
-          this.languageService.translate('projectDetail.error.membersLoadFailed'),
+          this.languageService.translate(
+            'projectDetail.error.membersLoadFailed'
+          ),
           this.languageService.translate('common.close'),
           {
             duration: 3000,
@@ -1551,7 +1645,7 @@ export class ProjectDetailComponent implements OnInit {
     }
 
     this.location.back();
-    
+
     // 次の戻る操作を少し待ってから実行（ブラウザの履歴更新を待つ）
     if (remainingCount > 1) {
       setTimeout(() => {
@@ -1560,20 +1654,24 @@ export class ProjectDetailComponent implements OnInit {
     }
   }
 
-
   /** ✅ 「＋タスク」ボタン押下でフォームを開く */
   async openAddTaskDialog() {
     if (!this.project || !this.projectId) return;
 
     // 親タスク数の制限をチェック
     try {
-      const parentTaskCount = await this.taskService.getParentTaskCount(this.projectId);
+      const parentTaskCount = await this.taskService.getParentTaskCount(
+        this.projectId
+      );
       const maxParentTasks = 10;
       if (parentTaskCount >= maxParentTasks) {
         this.snackBar.open(
-          this.languageService.translateWithParams('projectDetail.error.maxParentTasks', {
-            count: maxParentTasks.toString(),
-          }),
+          this.languageService.translateWithParams(
+            'projectDetail.error.maxParentTasks',
+            {
+              count: maxParentTasks.toString(),
+            }
+          ),
           this.languageService.translate('common.close'),
           { duration: 5000 }
         );
@@ -1609,10 +1707,10 @@ export class ProjectDetailComponent implements OnInit {
         });
         this.taskNameById = nameMap;
         this.tasks = this.sortTasks(tasks);
-        
+
         // ✅ 修正：プロジェクトのメンバーのみから選択肢を生成
         const assigneeSet = new Set<string>();
-        
+
         // プロジェクトのmembersフィールドはメンバー名のカンマ区切り文字列
         const projectMemberNames: string[] = [];
         if (this.project?.members && this.project.members.trim().length > 0) {
@@ -1623,20 +1721,23 @@ export class ProjectDetailComponent implements OnInit {
               .filter((name) => name.length > 0)
           );
         }
-        
+
         // プロジェクトのメンバー名に一致するメンバーのみをフィルタリング
         const projectMembers = this.members.filter((member) =>
           projectMemberNames.includes(member.name || '')
         );
-        
+
         // 各タスクの担当者を取得（assignedMembersから最新のメンバー名を取得）
         tasks.forEach((task) => {
           // assignedMembers から取得（メンバーIDからメンバー名に変換、プロジェクトのメンバーのみ）
           if (Array.isArray((task as any).assignedMembers)) {
-            const memberNames = getMemberNames((task as any).assignedMembers, projectMembers);
+            const memberNames = getMemberNames(
+              (task as any).assignedMembers,
+              projectMembers
+            );
             memberNames.forEach((name) => assigneeSet.add(name));
           }
-          
+
           // assignee から取得（プロジェクトのメンバーのみ）
           if (task.assignee) {
             const assignees = task.assignee
@@ -1650,7 +1751,7 @@ export class ProjectDetailComponent implements OnInit {
             assignees.forEach((assignee) => assigneeSet.add(assignee));
           }
         });
-        
+
         // プロジェクトのメンバー一覧からも取得（最新の名前を確実に含める）
         projectMembers.forEach((member) => {
           if (member.name) {
@@ -1661,9 +1762,9 @@ export class ProjectDetailComponent implements OnInit {
             names.forEach((name) => assigneeSet.add(name));
           }
         });
-        
+
         this.assigneeOptions = Array.from(assigneeSet).sort();
-        
+
         this.filteredTasks = [...this.tasks];
         console.log('プロジェクトのタスク一覧:', tasks);
       });
@@ -1676,7 +1777,7 @@ export class ProjectDetailComponent implements OnInit {
         !this.filterStatus || task.status === this.filterStatus;
       const priorityMatch =
         !this.filterPriority || task.priority === this.filterPriority;
-      
+
       // ✅ 修正：カンマ区切りメンバー対応 + メンバーIDをメンバー名に変換（プロジェクトのメンバーのみ）
       let assigneeMatch = false;
       if (!this.filterAssignee) {
@@ -1692,12 +1793,12 @@ export class ProjectDetailComponent implements OnInit {
               .filter((name) => name.length > 0)
           );
         }
-        
+
         // プロジェクトのメンバー名に一致するメンバーのみをフィルタリング
         const projectMembers = this.members.filter((member) =>
           projectMemberNames.includes(member.name || '')
         );
-        
+
         // assignee をカンマで分割
         const assignees = (task.assignee || '')
           .split(',')
@@ -1707,19 +1808,22 @@ export class ProjectDetailComponent implements OnInit {
             // プロジェクトのメンバーのみを対象
             return projectMembers.some((m) => m.name.toLowerCase() === name);
           });
-        
+
         // assignedMembers も含める（メンバーIDをメンバー名に変換、プロジェクトのメンバーのみ）
         if (Array.isArray((task as any).assignedMembers)) {
-          const memberNames = getMemberNames((task as any).assignedMembers, projectMembers);
+          const memberNames = getMemberNames(
+            (task as any).assignedMembers,
+            projectMembers
+          );
           assignees.push(...memberNames.map((name) => name.toLowerCase()));
         }
-        
+
         // フィルター値とマッチするか確認
         assigneeMatch = assignees.some(
           (a) => a === this.filterAssignee.toLowerCase()
         );
       }
-      
+
       const dueDateMatch =
         !this.filterDueDate || task.dueDate === this.filterDueDate;
 
@@ -1734,7 +1838,10 @@ export class ProjectDetailComponent implements OnInit {
     if (this.filterDueDateObj) {
       // DateオブジェクトをYYYY-MM-DD形式の文字列に変換
       const year = this.filterDueDateObj.getFullYear();
-      const month = String(this.filterDueDateObj.getMonth() + 1).padStart(2, '0');
+      const month = String(this.filterDueDateObj.getMonth() + 1).padStart(
+        2,
+        '0'
+      );
       const day = String(this.filterDueDateObj.getDate()).padStart(2, '0');
       this.filterDueDate = `${year}-${month}-${day}`;
     } else {
@@ -1817,7 +1924,9 @@ export class ProjectDetailComponent implements OnInit {
   /** CSV出力 */
   exportToCSV() {
     if (!this.project || this.filteredTasks.length === 0) {
-      alert(this.languageService.translate('projectDetail.error.noDataToExport'));
+      alert(
+        this.languageService.translate('projectDetail.error.noDataToExport')
+      );
       return;
     }
 
@@ -1871,7 +1980,10 @@ export class ProjectDetailComponent implements OnInit {
   onInlineStartDateChange(): void {
     if (this.inlineStartDateObj && this.editableProject) {
       const year = this.inlineStartDateObj.getFullYear();
-      const month = String(this.inlineStartDateObj.getMonth() + 1).padStart(2, '0');
+      const month = String(this.inlineStartDateObj.getMonth() + 1).padStart(
+        2,
+        '0'
+      );
       const day = String(this.inlineStartDateObj.getDate()).padStart(2, '0');
       this.editableProject.startDate = `${year}-${month}-${day}`;
     } else if (this.editableProject) {
@@ -1882,7 +1994,10 @@ export class ProjectDetailComponent implements OnInit {
   onInlineEndDateChange(): void {
     if (this.inlineEndDateObj && this.editableProject) {
       const year = this.inlineEndDateObj.getFullYear();
-      const month = String(this.inlineEndDateObj.getMonth() + 1).padStart(2, '0');
+      const month = String(this.inlineEndDateObj.getMonth() + 1).padStart(
+        2,
+        '0'
+      );
       const day = String(this.inlineEndDateObj.getDate()).padStart(2, '0');
       this.editableProject.endDate = `${year}-${month}-${day}`;
     } else if (this.editableProject) {
@@ -1909,7 +2024,11 @@ export class ProjectDetailComponent implements OnInit {
   }
 
   onStartDateChange(): void {
-    if (this.editableProject && this.editableProject.startDate && this.editableProject.endDate) {
+    if (
+      this.editableProject &&
+      this.editableProject.startDate &&
+      this.editableProject.endDate
+    ) {
       const startDate = new Date(this.editableProject.startDate);
       const endDate = new Date(this.editableProject.endDate);
       // 開始日が終了日より後の場合は、終了日を開始日に合わせる
@@ -1921,7 +2040,11 @@ export class ProjectDetailComponent implements OnInit {
 
   /** 終了日変更時の処理 */
   onEndDateChange(): void {
-    if (this.editableProject && this.editableProject.startDate && this.editableProject.endDate) {
+    if (
+      this.editableProject &&
+      this.editableProject.startDate &&
+      this.editableProject.endDate
+    ) {
       const startDate = new Date(this.editableProject.startDate);
       const endDate = new Date(this.editableProject.endDate);
       // 終了日が開始日より前の場合は、開始日を終了日に合わせる
@@ -1959,13 +2082,17 @@ export class ProjectDetailComponent implements OnInit {
       console.log('   - assignedMembers:', task.assignedMembers);
       console.log('   - this.members:', this.members);
       console.log('   - this.members.length:', this.members.length);
-      
+
       // 各assignedMembersのUIDがmembersに存在するか確認
       task.assignedMembers.forEach((memberId, index) => {
         const member = this.members.find((m) => m.id === memberId);
-        console.log(`   - assignedMembers[${index}]: ${memberId} → ${member ? member.name : '(見つからない)'}`);
+        console.log(
+          `   - assignedMembers[${index}]: ${memberId} → ${
+            member ? member.name : '(見つからない)'
+          }`
+        );
       });
-      
+
       const display = getMemberNamesAsString(
         task.assignedMembers,
         this.members,
@@ -1976,21 +2103,21 @@ export class ProjectDetailComponent implements OnInit {
       const notSetText = this.languageService.translate('common.notSet');
       return display === notSetText ? '—' : display;
     }
-    
+
     // assignedMembers がない場合は assignee から最新のメンバー名を取得
     if (!task.assignee) {
       return '—';
     }
-    
+
     // assignee がカンマ区切りの場合を考慮
-    const assigneeNames = task.assignee.split(',').map(name => name.trim());
+    const assigneeNames = task.assignee.split(',').map((name) => name.trim());
     const updatedNames = assigneeNames
-      .map(name => {
+      .map((name) => {
         const member = this.members.find((m) => m.name === name);
         return member ? member.name : null;
       })
       .filter((name): name is string => name !== null);
-    
+
     return updatedNames.length > 0 ? updatedNames.join(', ') : '—';
   }
 }

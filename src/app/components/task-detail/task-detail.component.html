@@ -479,11 +479,7 @@
                 <input
                   matInput
                   #tagInput
-                  [placeholder]="
-                    ('taskDetail.enterTag' | translate) +
-                    ' ' +
-                    ('taskDetail.tagPlaceholder' | translate)
-                  "
+                  [placeholder]="'taskDetail.enterTag' | translate"
                   (keyup.enter)="addTag(tagInput.value); tagInput.value = ''"
                   maxlength="20"
                 />

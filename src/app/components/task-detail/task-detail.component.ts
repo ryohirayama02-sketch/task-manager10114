@@ -165,45 +165,45 @@ export class TaskDetailComponent implements OnInit {
   // ステータスと優先度のオプション
   statusOptions = ['未着手', '作業中', '完了'];
   priorityOptions = ['高', '中', '低'];
-  
+
   // ステータスの表示テキストを取得（タスクカード用：英語時は短縮形）
   getStatusDisplay(status: string, short: boolean = false): string {
     const currentLanguage = this.languageService.getCurrentLanguage();
     const useShort = short && currentLanguage === 'en';
-    
+
     const statusMap: Record<string, string> = {
-      '未着手': useShort
+      未着手: useShort
         ? this.languageService.translate('taskDetail.status.notStarted.short')
         : this.languageService.translate('taskDetail.status.notStarted'),
-      '作業中': useShort
+      作業中: useShort
         ? this.languageService.translate('taskDetail.status.inProgress.short')
         : this.languageService.translate('taskDetail.status.inProgress'),
-      '完了': useShort
+      完了: useShort
         ? this.languageService.translate('taskDetail.status.completed.short')
         : this.languageService.translate('taskDetail.status.completed'),
     };
     return statusMap[status] || status;
   }
-  
+
   // 優先度の表示テキストを取得（タスクカード用：英語時は短縮形）
   getPriorityDisplay(priority: string, short: boolean = false): string {
     const currentLanguage = this.languageService.getCurrentLanguage();
     const useShort = short && currentLanguage === 'en';
-    
+
     const priorityMap: Record<string, string> = {
-      '高': useShort
+      高: useShort
         ? this.languageService.translate('taskDetail.priority.high.short')
         : this.languageService.translate('taskDetail.priority.high'),
-      '中': useShort
+      中: useShort
         ? this.languageService.translate('taskDetail.priority.medium.short')
         : this.languageService.translate('taskDetail.priority.medium'),
-      '低': useShort
+      低: useShort
         ? this.languageService.translate('taskDetail.priority.low.short')
         : this.languageService.translate('taskDetail.priority.low'),
     };
     return priorityMap[priority] || priority;
   }
-  
+
   // 期間表示用の日付フォーマット
   formatDateForDisplay(date: string | null | undefined): string {
     if (!date) {
@@ -574,8 +574,13 @@ export class TaskDetailComponent implements OnInit {
         return;
       }
       // originalTaskSnapshotを保存（saveTask()で使用するため、nullに設定される前に保持）
-      const snapshotToUse = this.originalTaskSnapshot 
-        ? { ...this.originalTaskSnapshot, tags: this.originalTaskSnapshot.tags ? [...this.originalTaskSnapshot.tags] : [] }
+      const snapshotToUse = this.originalTaskSnapshot
+        ? {
+            ...this.originalTaskSnapshot,
+            tags: this.originalTaskSnapshot.tags
+              ? [...this.originalTaskSnapshot.tags]
+              : [],
+          }
         : null;
       this.saveTask(snapshotToUse);
       // 保存後にスナップショットをクリア
@@ -584,16 +589,21 @@ export class TaskDetailComponent implements OnInit {
       // 読み取りモードから編集中へ
       this.isEditing = true;
       // Dateオブジェクトを初期化
-      this.taskStartDateObj = this.taskData.startDate ? new Date(this.taskData.startDate) : null;
-      this.taskDueDateObj = this.taskData.dueDate ? new Date(this.taskData.dueDate) : null;
+      this.taskStartDateObj = this.taskData.startDate
+        ? new Date(this.taskData.startDate)
+        : null;
+      this.taskDueDateObj = this.taskData.dueDate
+        ? new Date(this.taskData.dueDate)
+        : null;
 
       // 編集モードON時にタスクのスナップショットを保持（リアルタイム更新でthis.taskが変更される前に）
       if (this.task) {
         // 深いコピーを作成（tagsは特に重要）
-        const tagsCopy = this.task.tags && Array.isArray(this.task.tags) 
-          ? JSON.parse(JSON.stringify(this.task.tags)) 
-          : [];
-        
+        const tagsCopy =
+          this.task.tags && Array.isArray(this.task.tags)
+            ? JSON.parse(JSON.stringify(this.task.tags))
+            : [];
+
         this.originalTaskSnapshot = {
           ...this.task,
           tags: tagsCopy,
@@ -605,14 +615,11 @@ export class TaskDetailComponent implements OnInit {
             : [],
           urls: this.task.urls ? [...this.task.urls] : [],
         };
-        console.log(
-          '編集モードON: タスクのスナップショットを保持:',
-          {
-            originalTaskSnapshot: this.originalTaskSnapshot,
-            originalTaskSnapshotTags: this.originalTaskSnapshot.tags,
-            taskTags: this.task.tags,
-          }
-        );
+        console.log('編集モードON: タスクのスナップショットを保持:', {
+          originalTaskSnapshot: this.originalTaskSnapshot,
+          originalTaskSnapshotTags: this.originalTaskSnapshot.tags,
+          taskTags: this.task.tags,
+        });
       }
 
       // 現在の担当者を編集モード用の選択状態に設定
@@ -750,7 +757,10 @@ export class TaskDetailComponent implements OnInit {
   onTaskStartDateChange(): void {
     if (this.taskStartDateObj) {
       const year = this.taskStartDateObj.getFullYear();
-      const month = String(this.taskStartDateObj.getMonth() + 1).padStart(2, '0');
+      const month = String(this.taskStartDateObj.getMonth() + 1).padStart(
+        2,
+        '0'
+      );
       const day = String(this.taskStartDateObj.getDate()).padStart(2, '0');
       this.taskData.startDate = `${year}-${month}-${day}`;
     } else {
@@ -907,7 +917,9 @@ export class TaskDetailComponent implements OnInit {
       const dueDate = new Date(this.taskData.dueDate);
       if (startDate > dueDate) {
         this.snackBar.open(
-          this.languageService.translate('taskDetail.error.startDateAfterDueDate'),
+          this.languageService.translate(
+            'taskDetail.error.startDateAfterDueDate'
+          ),
           this.languageService.translate('common.close'),
           {
             duration: 3000,
@@ -946,7 +958,9 @@ export class TaskDetailComponent implements OnInit {
           );
           if (exists) {
             this.snackBar.open(
-              this.languageService.translate('taskDetail.error.childTaskNameExists'),
+              this.languageService.translate(
+                'taskDetail.error.childTaskNameExists'
+              ),
               this.languageService.translate('common.close'),
               {
                 duration: 5000,
@@ -990,30 +1004,42 @@ export class TaskDetailComponent implements OnInit {
       await this.deleteMarkedAttachments(this.task.id);
 
       // タスクデータに添付ファイル情報を追加
-      this.taskData.attachments = this.editableAttachments;
+      this.taskData.attachments = this.editableAttachments || [];
 
       // tagsが未初期化の場合は空配列に設定
       if (!this.taskData.tags) {
         this.taskData.tags = [];
       }
 
+      // urlsが未初期化の場合は空配列に設定
+      if (!this.taskData.urls) {
+        this.taskData.urls = [];
+      }
+
       // スナップショットが存在する場合はそれを使用、なければthis.taskを使用（oldTaskDataとして）
       // 引数として渡されたsnapshotToUseを優先使用（toggleEdit()でnullに設定される前に保持されたもの）
       // 次にthis.originalTaskSnapshotを使用（まだ存在する場合）
       // 最後にthis.taskを使用（リアルタイム更新で変更されている可能性があるため、最後の手段）
-      const oldTaskData = snapshotToUse 
+      const oldTaskData = snapshotToUse
         ? snapshotToUse
-        : this.originalTaskSnapshot 
-        ? { ...this.originalTaskSnapshot, tags: this.originalTaskSnapshot.tags ? [...this.originalTaskSnapshot.tags] : [] } // 深いコピーを作成
+        : this.originalTaskSnapshot
+        ? {
+            ...this.originalTaskSnapshot,
+            tags: this.originalTaskSnapshot.tags
+              ? [...this.originalTaskSnapshot.tags]
+              : [],
+          } // 深いコピーを作成
         : this.task;
-      
+
       console.log('[saveTask] タグ比較デバッグ:', {
         snapshotToUseExists: !!snapshotToUse,
         snapshotToUseTags: snapshotToUse?.tags,
         originalTaskSnapshotExists: !!this.originalTaskSnapshot,
         originalTaskSnapshotTags: this.originalTaskSnapshot?.tags,
         originalTaskSnapshotTagsType: typeof this.originalTaskSnapshot?.tags,
-        originalTaskSnapshotTagsIsArray: Array.isArray(this.originalTaskSnapshot?.tags),
+        originalTaskSnapshotTagsIsArray: Array.isArray(
+          this.originalTaskSnapshot?.tags
+        ),
         taskTags: this.task?.tags,
         taskDataTags: this.taskData.tags,
         oldTaskDataTags: oldTaskData?.tags,
@@ -1023,11 +1049,64 @@ export class TaskDetailComponent implements OnInit {
         taskDataKeys: Object.keys(this.taskData),
       });
 
-      // taskData.tagsを明示的に設定（saveTagsOnly()で保存された値を使用）
-      const taskDataToSave = {
-        ...this.taskData,
-        tags: this.taskData.tags || [],
-      };
+      // taskDataを明示的に設定（undefinedを防ぐため）
+      // 必要なフィールドのみを明示的に設定し、undefinedを確実に除外
+      const taskDataToSave: any = {};
+
+      // 必須フィールドを設定
+      if (this.taskData.projectId !== undefined)
+        taskDataToSave.projectId = this.taskData.projectId;
+      if (this.taskData.projectName !== undefined)
+        taskDataToSave.projectName = this.taskData.projectName;
+      if (this.taskData.taskName !== undefined)
+        taskDataToSave.taskName = this.taskData.taskName;
+      if (this.taskData.description !== undefined)
+        taskDataToSave.description = this.taskData.description || '';
+      if (this.taskData.startDate !== undefined)
+        taskDataToSave.startDate = this.taskData.startDate;
+      if (this.taskData.dueDate !== undefined)
+        taskDataToSave.dueDate = this.taskData.dueDate;
+      if (this.taskData.assignee !== undefined)
+        taskDataToSave.assignee = this.taskData.assignee || '';
+      if (this.taskData.status !== undefined)
+        taskDataToSave.status = this.taskData.status;
+      if (this.taskData.priority !== undefined)
+        taskDataToSave.priority = this.taskData.priority;
+
+      // オプショナルフィールド（undefinedでない場合のみ設定）
+      if (this.taskData.tags !== undefined)
+        taskDataToSave.tags = this.taskData.tags || [];
+      if (this.taskData.urls !== undefined)
+        taskDataToSave.urls = this.taskData.urls || [];
+      if (this.taskData.attachments !== undefined)
+        taskDataToSave.attachments = this.taskData.attachments || [];
+      if (this.taskData.assignedMembers !== undefined)
+        taskDataToSave.assignedMembers = this.taskData.assignedMembers || [];
+      if (this.taskData.calendarSyncEnabled !== undefined)
+        taskDataToSave.calendarSyncEnabled =
+          this.taskData.calendarSyncEnabled ?? false;
+      if (
+        this.taskData.parentTaskId !== undefined &&
+        this.taskData.parentTaskId !== null
+      )
+        taskDataToSave.parentTaskId = this.taskData.parentTaskId;
+      if (
+        this.taskData.assigneeEmail !== undefined &&
+        this.taskData.assigneeEmail !== null
+      )
+        taskDataToSave.assigneeEmail = this.taskData.assigneeEmail;
+      if (this.taskData.relatedFiles !== undefined)
+        taskDataToSave.relatedFiles = this.taskData.relatedFiles || [];
+      if (
+        this.taskData.projectThemeColor !== undefined &&
+        this.taskData.projectThemeColor !== null
+      )
+        taskDataToSave.projectThemeColor = this.taskData.projectThemeColor;
+      if (
+        this.taskData.detailSettings !== undefined &&
+        this.taskData.detailSettings !== null
+      )
+        taskDataToSave.detailSettings = this.taskData.detailSettings;
 
       console.log('保存するタスクデータ:', {
         ...taskDataToSave,
@@ -1151,9 +1230,12 @@ export class TaskDetailComponent implements OnInit {
       const maxChildTasks = 5;
       if (childTaskCount >= maxChildTasks) {
         this.snackBar.open(
-          this.languageService.translateWithParams('taskDetail.error.maxChildTasks', {
-            count: maxChildTasks.toString(),
-          }),
+          this.languageService.translateWithParams(
+            'taskDetail.error.maxChildTasks',
+            {
+              count: maxChildTasks.toString(),
+            }
+          ),
           this.languageService.translate('common.close'),
           { duration: 5000 }
         );
@@ -1162,7 +1244,9 @@ export class TaskDetailComponent implements OnInit {
     } catch (error) {
       console.error('子タスク数チェックエラー:', error);
       this.snackBar.open(
-        this.languageService.translate('taskDetail.error.childTaskCountCheckFailed'),
+        this.languageService.translate(
+          'taskDetail.error.childTaskCountCheckFailed'
+        ),
         this.languageService.translate('common.close'),
         {
           duration: 3000,
@@ -1223,10 +1307,12 @@ export class TaskDetailComponent implements OnInit {
     );
 
     if (childTasksCount > 0) {
-      confirmMessage += '\n\n' + this.languageService.translateWithParams(
-        'taskDetail.deleteConfirm.childTasksWarning',
-        { count: childTasksCount.toString() }
-      );
+      confirmMessage +=
+        '\n\n' +
+        this.languageService.translateWithParams(
+          'taskDetail.deleteConfirm.childTasksWarning',
+          { count: childTasksCount.toString() }
+        );
     }
 
     if (confirm(confirmMessage)) {
@@ -1242,7 +1328,9 @@ export class TaskDetailComponent implements OnInit {
           })
           .catch((error: Error) => {
             console.error('タスク削除エラー:', error);
-            alert(this.languageService.translate('taskDetail.error.deleteFailed'));
+            alert(
+              this.languageService.translate('taskDetail.error.deleteFailed')
+            );
           });
       }
     }
@@ -1308,7 +1396,9 @@ export class TaskDetailComponent implements OnInit {
     } catch (error: any) {
       console.error('カレンダー連携の更新に失敗しました', error);
 
-      const errorMsg = error?.message || this.languageService.translate('taskDetail.error.unknownErrorOccurred');
+      const errorMsg =
+        error?.message ||
+        this.languageService.translate('taskDetail.error.unknownErrorOccurred');
       const alertMessage = this.languageService.translateWithParams(
         'taskDetail.error.calendarSyncFailed',
         { errorMessage: errorMsg }
@@ -1504,7 +1594,9 @@ export class TaskDetailComponent implements OnInit {
             detailSettings: { ...this.detailSettings },
           } as Task;
           this.snackBar.open(
-            this.languageService.translate('taskDetail.success.detailSettingsSaved'),
+            this.languageService.translate(
+              'taskDetail.success.detailSettingsSaved'
+            ),
             this.languageService.translate('common.close'),
             {
               duration: 3000,
@@ -1515,7 +1607,9 @@ export class TaskDetailComponent implements OnInit {
         .catch((error) => {
           console.error('詳細設定の保存エラー:', error);
           this.snackBar.open(
-            this.languageService.translate('taskDetail.error.detailSettingsSaveFailed'),
+            this.languageService.translate(
+              'taskDetail.error.detailSettingsSaveFailed'
+            ),
             this.languageService.translate('common.close'),
             {
               duration: 3000,
@@ -1677,9 +1771,14 @@ export class TaskDetailComponent implements OnInit {
     try {
       // alertの代わりにsnackBarを使用（ブロッキングしない）
       this.snackBar.open(
-        this.languageService.translateWithParams('taskDetail.alert.parentTaskStatusChange', {
-          taskName: this.task.taskName || this.languageService.translate('common.nameNotSet'),
-        }),
+        this.languageService.translateWithParams(
+          'taskDetail.alert.parentTaskStatusChange',
+          {
+            taskName:
+              this.task.taskName ||
+              this.languageService.translate('common.nameNotSet'),
+          }
+        ),
         this.languageService.translate('common.close'),
         { duration: 3000 }
       );
@@ -1699,7 +1798,9 @@ export class TaskDetailComponent implements OnInit {
     } catch (error) {
       console.error('親タスクのステータス更新に失敗しました', error);
       this.snackBar.open(
-        this.languageService.translate('taskDetail.error.parentTaskStatusUpdateFailed'),
+        this.languageService.translate(
+          'taskDetail.error.parentTaskStatusUpdateFailed'
+        ),
         this.languageService.translate('common.close'),
         {
           duration: 3000,
@@ -1772,7 +1873,9 @@ export class TaskDetailComponent implements OnInit {
   }
 
   onChildDueDateChange(): void {
-    this.childFilterDueDate = this.formatChildFilterDate(this.childFilterDueDateObj);
+    this.childFilterDueDate = this.formatChildFilterDate(
+      this.childFilterDueDateObj
+    );
     this.applyChildFilter();
   }
 
@@ -1841,7 +1944,9 @@ export class TaskDetailComponent implements OnInit {
 
   /** 子タスクの担当者をカンマ区切りで表示 */
   getChildTaskAssigneeDisplay(child: Task): string {
-    const unassignedText = this.languageService.translate('taskDetail.unassigned');
+    const unassignedText = this.languageService.translate(
+      'taskDetail.unassigned'
+    );
     if (child.assignedMembers && child.assignedMembers.length > 0) {
       const display = getMemberNamesAsString(
         child.assignedMembers,
@@ -1895,7 +2000,9 @@ export class TaskDetailComponent implements OnInit {
 
   exportChildTasksToCSV(): void {
     if (!this.filteredChildTasks.length) {
-      alert(this.languageService.translate('taskDetail.error.noChildTasksToExport'));
+      alert(
+        this.languageService.translate('taskDetail.error.noChildTasksToExport')
+      );
       return;
     }
 

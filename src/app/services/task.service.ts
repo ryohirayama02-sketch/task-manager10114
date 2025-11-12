@@ -48,7 +48,9 @@ export class TaskService {
       tags: 'logs.field.tags',
     };
     const translationKey = fieldKeyMap[fieldKey];
-    return translationKey ? this.languageService.translate(translationKey) : fieldKey;
+    return translationKey
+      ? this.languageService.translate(translationKey)
+      : fieldKey;
   }
 
   /** 🔹 Firestoreからタスク一覧を取得 */
@@ -105,28 +107,37 @@ export class TaskService {
                       this.firestore,
                       `projects/${projectId}/tasks`
                     );
-                    const taskPromise = getDocs(tasksRef).then((tasksSnapshot) => {
-                      tasksSnapshot.docs.forEach((taskDoc) => {
-                        const taskData = taskDoc.data();
-                        const projectThemeColor = resolveProjectThemeColor(
-                          projectData as any
-                        );
-                        // assignedMembersが正しく含まれているか確認
-                        const assignedMembers = taskData['assignedMembers'];
-                        if (assignedMembers) {
-                          console.log('🔍 [TaskService.getQuickTasks] タスク:', taskData['taskName']);
-                          console.log('   - assignedMembers:', assignedMembers);
-                        }
-                        allTasks.push({
-                          id: taskDoc.id,
-                          projectId,
-                          projectName: projectData['projectName'] || 'プロジェクト',
-                          ...taskData,
-                          assignedMembers: assignedMembers || undefined, // assignedMembersを明示的に設定
-                          projectThemeColor,
-                        } as Task);
-                      });
-                    });
+                    const taskPromise = getDocs(tasksRef).then(
+                      (tasksSnapshot) => {
+                        tasksSnapshot.docs.forEach((taskDoc) => {
+                          const taskData = taskDoc.data();
+                          const projectThemeColor = resolveProjectThemeColor(
+                            projectData as any
+                          );
+                          // assignedMembersが正しく含まれているか確認
+                          const assignedMembers = taskData['assignedMembers'];
+                          if (assignedMembers) {
+                            console.log(
+                              '🔍 [TaskService.getQuickTasks] タスク:',
+                              taskData['taskName']
+                            );
+                            console.log(
+                              '   - assignedMembers:',
+                              assignedMembers
+                            );
+                          }
+                          allTasks.push({
+                            id: taskDoc.id,
+                            projectId,
+                            projectName:
+                              projectData['projectName'] || 'プロジェクト',
+                            ...taskData,
+                            assignedMembers: assignedMembers || undefined, // assignedMembersを明示的に設定
+                            projectThemeColor,
+                          } as Task);
+                        });
+                      }
+                    );
                     promises.push(taskPromise);
                   });
 
@@ -137,7 +148,10 @@ export class TaskService {
                         // assignedMembersが正しく含まれているか確認
                         const assignedMembers = taskData['assignedMembers'];
                         if (assignedMembers) {
-                          console.log('🔍 [TaskService.getQuickTasks] スタンドアロンタスク:', taskData['taskName']);
+                          console.log(
+                            '🔍 [TaskService.getQuickTasks] スタンドアロンタスク:',
+                            taskData['taskName']
+                          );
                           console.log('   - assignedMembers:', assignedMembers);
                         }
                         allTasks.push({
@@ -173,7 +187,8 @@ export class TaskService {
                         const isWithin =
                           due >= startDateStr &&
                           due <= targetDateStr &&
-                          (task.status === '未着手' || task.status === '作業中');
+                          (task.status === '未着手' ||
+                            task.status === '作業中');
 
                         let assignees: string[] = [];
 
@@ -189,39 +204,51 @@ export class TaskService {
 
                         // ② assignedMembers（メンバーIDからメンバー名に変換）
                         if (Array.isArray((task as any).assignedMembers)) {
-                          (task as any).assignedMembers.forEach((memberId: any) => {
-                            if (typeof memberId === 'string') {
-                              // メンバーIDからメンバー名を取得
-                              const member = allMembers.find((m) => m.id === memberId);
-                              const memberName = member ? member.name : memberId;
-                              
-                              // メンバー名がカンマ区切りの場合も分割
-                              const names = memberName
-                                .split(',')
-                                .map((n) => n.trim().toLowerCase())
-                                .filter((n) => n.length > 0);
-                              
-                              assignees.push(...names);
-                            } else if (typeof memberId === 'object') {
-                              if (memberId.memberName)
-                                assignees.push(
-                                  memberId.memberName.trim().toLowerCase()
+                          (task as any).assignedMembers.forEach(
+                            (memberId: any) => {
+                              if (typeof memberId === 'string') {
+                                // メンバーIDからメンバー名を取得
+                                const member = allMembers.find(
+                                  (m) => m.id === memberId
                                 );
-                              if (memberId.name)
-                                assignees.push(memberId.name.trim().toLowerCase());
-                              if (memberId.memberEmail)
-                                assignees.push(
-                                  memberId.memberEmail.trim().toLowerCase()
-                                );
-                              if (memberId.email)
-                                assignees.push(memberId.email.trim().toLowerCase());
+                                const memberName = member
+                                  ? member.name
+                                  : memberId;
+
+                                // メンバー名がカンマ区切りの場合も分割
+                                const names = memberName
+                                  .split(',')
+                                  .map((n) => n.trim().toLowerCase())
+                                  .filter((n) => n.length > 0);
+
+                                assignees.push(...names);
+                              } else if (typeof memberId === 'object') {
+                                if (memberId.memberName)
+                                  assignees.push(
+                                    memberId.memberName.trim().toLowerCase()
+                                  );
+                                if (memberId.name)
+                                  assignees.push(
+                                    memberId.name.trim().toLowerCase()
+                                  );
+                                if (memberId.memberEmail)
+                                  assignees.push(
+                                    memberId.memberEmail.trim().toLowerCase()
+                                  );
+                                if (memberId.email)
+                                  assignees.push(
+                                    memberId.email.trim().toLowerCase()
+                                  );
+                              }
                             }
-                          });
+                          );
                         }
 
                         // ③ assigneeEmail
                         if (task.assigneeEmail) {
-                          assignees.push(task.assigneeEmail.trim().toLowerCase());
+                          assignees.push(
+                            task.assigneeEmail.trim().toLowerCase()
+                          );
                         }
 
                         assignees = [...new Set(assignees)];
@@ -229,7 +256,9 @@ export class TaskService {
                         const match =
                           members.length > 0
                             ? assignees.some((a) => members.includes(a))
-                            : assignees.includes(userEmail?.toLowerCase() || '');
+                            : assignees.includes(
+                                userEmail?.toLowerCase() || ''
+                              );
 
                         // ✅ デバッグ: マッチしたタスクをログ出力
                         if (match && isWithin) {
@@ -267,22 +296,30 @@ export class TaskService {
   async getParentTaskCount(projectId: string): Promise<number> {
     const tasksRef = collection(this.firestore, `projects/${projectId}/tasks`);
     const snapshot = await getDocs(tasksRef);
-    
+
     // parentTaskIdが空文字列、undefined、nullのタスクを親タスクとしてカウント
     let parentTaskCount = 0;
     snapshot.forEach((doc) => {
       const data = doc.data();
       const parentTaskId = data['parentTaskId'];
-      if (!parentTaskId || parentTaskId === '' || parentTaskId === null || parentTaskId === undefined) {
+      if (
+        !parentTaskId ||
+        parentTaskId === '' ||
+        parentTaskId === null ||
+        parentTaskId === undefined
+      ) {
         parentTaskCount++;
       }
     });
-    
+
     return parentTaskCount;
   }
 
   /** 🔹 親タスク内の子タスク数を取得 */
-  async getChildTaskCount(projectId: string, parentTaskId: string): Promise<number> {
+  async getChildTaskCount(
+    projectId: string,
+    parentTaskId: string
+  ): Promise<number> {
     const tasksRef = collection(this.firestore, `projects/${projectId}/tasks`);
     const childTasksQuery = query(
       tasksRef,
@@ -293,7 +330,11 @@ export class TaskService {
   }
 
   /** 🔹 タスク名の重複チェック（ルーム全体の親タスク・子タスク両方） */
-  async taskNameExists(projectId: string, taskName: string, excludeTaskId?: string): Promise<boolean> {
+  async taskNameExists(
+    projectId: string,
+    taskName: string,
+    excludeTaskId?: string
+  ): Promise<boolean> {
     if (!taskName || taskName.trim() === '') {
       return false;
     }
@@ -301,39 +342,51 @@ export class TaskService {
     if (!roomId) {
       return false;
     }
-    
+
     // ルーム内のすべてのプロジェクトを取得
     const projectsRef = collection(this.firestore, 'projects');
     const roomProjectsQuery = query(projectsRef, where('roomId', '==', roomId));
     const projectsSnapshot = await getDocs(roomProjectsQuery);
-    
+
     const trimmedTaskName = taskName.trim();
-    
+
     // 各プロジェクトのタスクをチェック（親タスク・子タスク両方）
     for (const projectDoc of projectsSnapshot.docs) {
       const projectIdToCheck = projectDoc.id;
-      const tasksRef = collection(this.firestore, `projects/${projectIdToCheck}/tasks`);
+      const tasksRef = collection(
+        this.firestore,
+        `projects/${projectIdToCheck}/tasks`
+      );
       const tasksSnapshot = await getDocs(tasksRef);
-      
+
       // すべてのタスク（親タスク・子タスク問わず）で、名前が一致するものを検索
       for (const taskDoc of tasksSnapshot.docs) {
         const data = taskDoc.data();
-        
+
         if (data['taskName'] === trimmedTaskName) {
           // 編集時は自分自身を除外
-          if (excludeTaskId && taskDoc.id === excludeTaskId && projectIdToCheck === projectId) {
+          if (
+            excludeTaskId &&
+            taskDoc.id === excludeTaskId &&
+            projectIdToCheck === projectId
+          ) {
             continue;
           }
           return true;
         }
       }
     }
-    
+
     return false;
   }
 
   /** 🔹 子タスク名の重複チェック（ルーム全体の親タスク・子タスク両方） */
-  async childTaskNameExists(projectId: string, parentTaskId: string, taskName: string, excludeTaskId?: string): Promise<boolean> {
+  async childTaskNameExists(
+    projectId: string,
+    parentTaskId: string,
+    taskName: string,
+    excludeTaskId?: string
+  ): Promise<boolean> {
     if (!taskName || taskName.trim() === '') {
       return false;
     }
@@ -341,34 +394,41 @@ export class TaskService {
     if (!roomId) {
       return false;
     }
-    
+
     // ルーム内のすべてのプロジェクトを取得
     const projectsRef = collection(this.firestore, 'projects');
     const roomProjectsQuery = query(projectsRef, where('roomId', '==', roomId));
     const projectsSnapshot = await getDocs(roomProjectsQuery);
-    
+
     const trimmedTaskName = taskName.trim();
-    
+
     // 各プロジェクトのタスクをチェック（親タスク・子タスク両方）
     for (const projectDoc of projectsSnapshot.docs) {
       const projectIdToCheck = projectDoc.id;
-      const tasksRef = collection(this.firestore, `projects/${projectIdToCheck}/tasks`);
+      const tasksRef = collection(
+        this.firestore,
+        `projects/${projectIdToCheck}/tasks`
+      );
       const tasksSnapshot = await getDocs(tasksRef);
-      
+
       // すべてのタスク（親タスク・子タスク問わず）で、名前が一致するものを検索
       for (const taskDoc of tasksSnapshot.docs) {
         const data = taskDoc.data();
-        
+
         if (data['taskName'] === trimmedTaskName) {
           // 編集時は自分自身を除外
-          if (excludeTaskId && taskDoc.id === excludeTaskId && projectIdToCheck === projectId) {
+          if (
+            excludeTaskId &&
+            taskDoc.id === excludeTaskId &&
+            projectIdToCheck === projectId
+          ) {
             continue;
           }
           return true;
         }
       }
     }
-    
+
     return false;
   }
 
@@ -384,27 +444,38 @@ export class TaskService {
       this.firestore,
       `projects/${projectId}/tasks/${taskId}`
     );
-    
+
     // roomIdが未設定の場合は自動的に設定
     const roomId = this.authService.getCurrentRoomId();
     if (roomId && (!oldTaskData?.roomId || !taskData.roomId)) {
       taskData.roomId = roomId;
     }
-    
+
     // tagsが未設定の場合は空配列に設定（Firestoreに確実に保存されるように）
     if (!taskData.tags) {
       taskData.tags = [];
     }
-    
+
+    // undefinedの値を削除（Firestoreはundefinedを許可しない）
+    const cleanedTaskData: any = {};
+    for (const [key, value] of Object.entries(taskData)) {
+      if (value !== undefined) {
+        cleanedTaskData[key] = value;
+      }
+    }
+
     console.log('[TaskService.updateTask] 更新するタスクデータ:', {
       taskId,
       projectId,
-      tags: taskData.tags,
-      tagsLength: taskData.tags?.length || 0,
-      taskDataKeys: Object.keys(taskData)
+      tags: cleanedTaskData.tags,
+      tagsLength: cleanedTaskData.tags?.length || 0,
+      taskDataKeys: Object.keys(cleanedTaskData),
+      removedUndefinedKeys: Object.keys(taskData).filter(
+        (key) => taskData[key] === undefined
+      ),
     });
-    
-    await updateDoc(taskRef, taskData);
+
+    await updateDoc(taskRef, cleanedTaskData);
 
     const changeDetails: ChangeDetail[] = [];
     const unknownText = this.languageService.translate('logs.status.unknown');
@@ -485,7 +556,7 @@ export class TaskService {
     const newTags = taskData.tags || [];
     const oldTagsStr = JSON.stringify(oldTags.sort());
     const newTagsStr = JSON.stringify(newTags.sort());
-    
+
     console.log('[TaskService.updateTask] タグ比較デバッグ:', {
       oldTags,
       newTags,
@@ -496,7 +567,7 @@ export class TaskService {
       oldTaskDataKeys: oldTaskData ? Object.keys(oldTaskData) : [],
       taskDataKeys: Object.keys(taskData),
     });
-    
+
     if (oldTagsStr !== newTagsStr) {
       console.log('[TaskService.updateTask] タグの変更を検出しました');
       // 追加されたタグ
@@ -521,10 +592,17 @@ export class TaskService {
     }
 
     if (changeDetails.length > 0) {
-      const taskName = taskData.taskName || this.languageService.translate('logs.field.taskName');
-      const taskUpdatedText = this.languageService.translateWithParams('logs.message.taskUpdatedWithName', { taskName });
-      const projectName = taskData.projectName || this.languageService.translate('logs.projectFallback');
-      
+      const taskName =
+        taskData.taskName ||
+        this.languageService.translate('logs.field.taskName');
+      const taskUpdatedText = this.languageService.translateWithParams(
+        'logs.message.taskUpdatedWithName',
+        { taskName }
+      );
+      const projectName =
+        taskData.projectName ||
+        this.languageService.translate('logs.projectFallback');
+
       await this.editLogService.logEdit(
         projectId,
         projectName,
@@ -561,10 +639,13 @@ export class TaskService {
       },
     ];
 
-    const statusChangedText = this.languageService.translateWithParams('logs.message.statusChanged', {
-      oldStatus: oldStatus || unknownText,
-      newStatus: newStatus,
-    });
+    const statusChangedText = this.languageService.translateWithParams(
+      'logs.message.statusChanged',
+      {
+        oldStatus: oldStatus || unknownText,
+        newStatus: newStatus,
+      }
+    );
 
     await this.editLogService.logEdit(
       projectId,
@@ -588,9 +669,15 @@ export class TaskService {
     const ref = collection(this.firestore, 'tasks');
     const result = await addDoc(ref, { ...task, roomId });
 
-    const projectName = task.projectName || this.languageService.translate('logs.projectFallback');
-    const taskName = task.taskName || this.languageService.translate('logs.field.taskName');
-    const taskCreatedText = this.languageService.translateWithParams('logs.message.taskCreatedWithName', { taskName });
+    const projectName =
+      task.projectName ||
+      this.languageService.translate('logs.projectFallback');
+    const taskName =
+      task.taskName || this.languageService.translate('logs.field.taskName');
+    const taskCreatedText = this.languageService.translateWithParams(
+      'logs.message.taskCreatedWithName',
+      { taskName }
+    );
     await this.editLogService.logEdit(
       task.projectId || 'unknown',
       projectName,
@@ -607,7 +694,11 @@ export class TaskService {
     if (!projectId) throw new Error('プロジェクトIDが必要です');
 
     // 子タスクを再帰的に削除
-    await this.deleteChildTasksRecursively(taskId, projectId, taskData.projectName || 'プロジェクト');
+    await this.deleteChildTasksRecursively(
+      taskId,
+      projectId,
+      taskData.projectName || 'プロジェクト'
+    );
 
     // 添付ファイルを削除
     if (taskData.attachments && Array.isArray(taskData.attachments)) {
@@ -628,9 +719,16 @@ export class TaskService {
     await deleteDoc(ref);
 
     // 削除ログを記録
-    const projectName = taskData.projectName || this.languageService.translate('logs.projectFallback');
-    const taskName = taskData.taskName || this.languageService.translate('logs.field.taskName');
-    const taskDeletedText = this.languageService.translateWithParams('logs.message.taskDeletedWithName', { taskName });
+    const projectName =
+      taskData.projectName ||
+      this.languageService.translate('logs.projectFallback');
+    const taskName =
+      taskData.taskName ||
+      this.languageService.translate('logs.field.taskName');
+    const taskDeletedText = this.languageService.translateWithParams(
+      'logs.message.taskDeletedWithName',
+      { taskName }
+    );
     await this.editLogService.logEdit(
       projectId,
       projectName,
@@ -665,13 +763,22 @@ export class TaskService {
       const childTaskData = childTaskDoc.data();
       const childTaskId = childTaskDoc.id;
 
-      console.log(`子タスクを削除中: ${childTaskData['taskName']} (ID: ${childTaskId})`);
+      console.log(
+        `子タスクを削除中: ${childTaskData['taskName']} (ID: ${childTaskId})`
+      );
 
       // 子タスクの子タスクも再帰的に削除
-      await this.deleteChildTasksRecursively(childTaskId, projectId, projectName);
+      await this.deleteChildTasksRecursively(
+        childTaskId,
+        projectId,
+        projectName
+      );
 
       // 子タスクの添付ファイルを削除
-      if (childTaskData['attachments'] && Array.isArray(childTaskData['attachments'])) {
+      if (
+        childTaskData['attachments'] &&
+        Array.isArray(childTaskData['attachments'])
+      ) {
         for (const attachment of childTaskData['attachments']) {
           if (attachment.type === 'file' && attachment.storagePath) {
             try {
