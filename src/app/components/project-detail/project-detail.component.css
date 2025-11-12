@@ -867,6 +867,51 @@ textarea {
   margin-left: 4px;
 }
 
+/* フィルターセクションのメンバー選択欄の選択肢を改行可能にする */
+.filter-section mat-select ::ng-deep .mat-mdc-select-panel {
+  min-width: 200px !important;
+  max-width: 500px !important;
+  width: auto !important;
+}
+
+.filter-section mat-select ::ng-deep .mat-mdc-option {
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  line-height: 1.4 !important;
+  min-height: 48px !important;
+  height: auto !important;
+  padding: 12px 16px !important;
+  overflow: visible !important;
+  max-width: 100% !important;
+}
+
+.filter-section mat-select ::ng-deep .mat-mdc-option .mdc-list-item__primary-text {
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  line-height: 1.4 !important;
+  overflow: visible !important;
+  max-width: 100% !important;
+  display: block !important;
+}
+
+.filter-section mat-select ::ng-deep .mat-mdc-option .mdc-list-item {
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  overflow: visible !important;
+  max-width: 100% !important;
+}
+
+.filter-section mat-select ::ng-deep .mat-mdc-option .mdc-list-item__content {
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  overflow: visible !important;
+  max-width: 100% !important;
+}
+
 /* タスク一覧 */
 .tasks-grid {
   display: grid;
@@ -911,11 +956,15 @@ textarea {
   justify-self: flex-end;
   align-items: flex-start;
   flex-shrink: 0;
+  justify-content: flex-end;
+  margin-left: auto;
 }
 
 .task-card-meta mat-chip-set {
   display: flex;
   gap: 6px;
+  justify-content: flex-end;
+  margin-left: auto;
 }
 
 .task-card-title-text {

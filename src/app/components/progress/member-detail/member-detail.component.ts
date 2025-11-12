@@ -294,13 +294,13 @@ export class MemberDetailComponent implements OnInit {
   applyTaskFilters() {
     if (!this.memberDetail) return;
     let filtered = [...this.memberDetail.tasks];
-    
+
     // 期間フィルターを適用
     if (this.periodStartDate || this.periodEndDate) {
       filtered = filtered.filter((task) => {
         const dueDate = task.dueDate ? new Date(task.dueDate) : null;
         if (!dueDate) return false;
-        
+
         // 日付のみを比較（時刻を00:00:00にリセット）
         const dueDateOnly = this.getDateOnly(dueDate);
         const startDateOnly = this.periodStartDate
@@ -309,17 +309,13 @@ export class MemberDetailComponent implements OnInit {
         const endDateOnly = this.periodEndDate
           ? this.getDateOnly(this.periodEndDate)
           : null;
-        
-        const afterStart = startDateOnly
-          ? dueDateOnly >= startDateOnly
-          : true;
-        const beforeEnd = endDateOnly
-          ? dueDateOnly <= endDateOnly
-          : true;
+
+        const afterStart = startDateOnly ? dueDateOnly >= startDateOnly : true;
+        const beforeEnd = endDateOnly ? dueDateOnly <= endDateOnly : true;
         return afterStart && beforeEnd;
       });
     }
-    
+
     if (this.filterProjects.length > 0) {
       filtered = filtered.filter((task) =>
         this.filterProjects.includes(task.projectName)
@@ -375,7 +371,7 @@ export class MemberDetailComponent implements OnInit {
       filteredTasks = filteredTasks.filter((task) => {
         const dueDate = task.dueDate ? new Date(task.dueDate) : null;
         if (!dueDate) return false;
-        
+
         // 日付のみを比較（時刻を00:00:00にリセット）
         const dueDateOnly = this.getDateOnly(dueDate);
         const startDateOnly = this.periodStartDate
@@ -384,13 +380,9 @@ export class MemberDetailComponent implements OnInit {
         const endDateOnly = this.periodEndDate
           ? this.getDateOnly(this.periodEndDate)
           : null;
-        
-        const afterStart = startDateOnly
-          ? dueDateOnly >= startDateOnly
-          : true;
-        const beforeEnd = endDateOnly
-          ? dueDateOnly <= endDateOnly
-          : true;
+
+        const afterStart = startDateOnly ? dueDateOnly >= startDateOnly : true;
+        const beforeEnd = endDateOnly ? dueDateOnly <= endDateOnly : true;
         return afterStart && beforeEnd;
       });
     }
@@ -419,12 +411,12 @@ export class MemberDetailComponent implements OnInit {
       targetTasks = this.memberDetail.tasks.filter((task) => {
         const dueDate = task.dueDate ? new Date(task.dueDate) : null;
         if (!dueDate) return false;
-        
+
         // 日付のみを比較（時刻を00:00:00にリセット）
         const dueDateOnly = this.getDateOnly(dueDate);
         const startDateOnly = this.getDateOnly(this.periodStartDate!);
         const endDateOnly = this.getDateOnly(this.periodEndDate!);
-        
+
         const afterStart = dueDateOnly >= startDateOnly;
         const beforeEnd = dueDateOnly <= endDateOnly;
         return afterStart && beforeEnd;
@@ -553,7 +545,9 @@ export class MemberDetailComponent implements OnInit {
       : this.memberDetail.tasks;
 
     if (!tasks.length) {
-      alert(this.languageService.translate('progress.member.filter.noTasksToExport'));
+      alert(
+        this.languageService.translate('progress.member.filter.noTasksToExport')
+      );
       return;
     }
 

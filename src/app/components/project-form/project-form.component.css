@@ -61,6 +61,188 @@
   display: none !important;
 }
 
+/* プレイスホルダーの色を明示的に設定（すべてのフィールドに適用） */
+.project-form-container ::ng-deep .mat-mdc-form-field input::placeholder,
+.project-form-container ::ng-deep .mat-mdc-form-field textarea::placeholder {
+  color: rgba(0, 0, 0, 0.6) !important;
+  opacity: 1 !important;
+}
+
+.project-form-container ::ng-deep .mat-mdc-form-field input:not(:focus)::placeholder,
+.project-form-container ::ng-deep .mat-mdc-form-field textarea:not(:focus)::placeholder {
+  color: rgba(0, 0, 0, 0.6) !important;
+  opacity: 1 !important;
+}
+
+/* Material Designのプレイスホルダー（mat-labelが非表示の時） */
+.project-form-container ::ng-deep .mat-mdc-form-field:not(.mat-focused) .mat-mdc-text-field-wrapper input::placeholder,
+.project-form-container ::ng-deep .mat-mdc-form-field:not(.mat-focused) .mat-mdc-text-field-wrapper textarea::placeholder {
+  color: rgba(0, 0, 0, 0.6) !important;
+  opacity: 1 !important;
+}
+
+/* 開始日・終了日のdatepickerフィールドの値の色（値が入力されている時） */
+.project-form-container ::ng-deep .date-field input {
+  color: rgba(0, 0, 0, 0.87) !important;
+}
+
+.project-form-container ::ng-deep .date-field input:not(:focus) {
+  color: rgba(0, 0, 0, 0.87) !important;
+}
+
+/* 値が空の時だけプレイスホルダー色 */
+.project-form-container ::ng-deep .date-field input:placeholder-shown {
+  color: rgba(0, 0, 0, 0.6) !important;
+}
+
+.project-form-container ::ng-deep .date-field input:not(:focus):placeholder-shown {
+  color: rgba(0, 0, 0, 0.6) !important;
+}
+
+/* 開始日・終了日のdatepickerフィールドのプレイスホルダー（値が空の時のみ） */
+.project-form-container ::ng-deep .date-field input::placeholder {
+  color: rgba(0, 0, 0, 0.6) !important;
+  opacity: 1 !important;
+}
+
+.project-form-container ::ng-deep .date-field input:not(:focus)::placeholder {
+  color: rgba(0, 0, 0, 0.6) !important;
+  opacity: 1 !important;
+}
+
+/* mat-selectのプレイスホルダー（責任者、メンバー選択など） */
+.project-form-container ::ng-deep .mat-mdc-select-placeholder {
+  color: rgba(0, 0, 0, 0.6) !important;
+  opacity: 1 !important;
+}
+
+.project-form-container ::ng-deep .mat-mdc-select:not(.mat-mdc-select-focused) .mat-mdc-select-placeholder {
+  color: rgba(0, 0, 0, 0.6) !important;
+  opacity: 1 !important;
+}
+
+/* mat-selectの値が空でない時は通常の色（デフォルト、より優先度を高く） */
+.project-form-container ::ng-deep .mat-mdc-form-field:not(.mat-focused) .mat-mdc-select-value-text {
+  color: rgba(0, 0, 0, 0.87) !important;
+}
+
+.project-form-container ::ng-deep .mat-mdc-form-field:not(.mat-focused) .mat-mdc-select .mat-mdc-select-value {
+  color: rgba(0, 0, 0, 0.87) !important;
+}
+
+/* mat-selectの値が空の時のプレイスホルダー表示 */
+.project-form-container ::ng-deep .mat-mdc-form-field:not(.mat-focused) .mat-mdc-select-value-text:empty {
+  color: rgba(0, 0, 0, 0.6) !important;
+}
+
+.project-form-container ::ng-deep .mat-mdc-form-field:not(.mat-focused) .mat-mdc-select .mat-mdc-select-value:has(.mat-mdc-select-value-text:empty) {
+  color: rgba(0, 0, 0, 0.6) !important;
+}
+
+/* 責任者選択フィールドのプレイスホルダー（値が空の時のみ） */
+.project-form-container ::ng-deep .responsible-selection .mat-mdc-form-field:not(.mat-focused) .mat-mdc-select-value-text:empty {
+  color: rgba(0, 0, 0, 0.6) !important;
+}
+
+.project-form-container ::ng-deep .responsible-selection .mat-mdc-form-field:not(.mat-focused) .mat-mdc-select-value-text:not(:empty) {
+  color: rgba(0, 0, 0, 0.87) !important;
+}
+
+.project-form-container ::ng-deep .responsible-selection .mat-mdc-form-field:not(.mat-focused) .mat-mdc-select .mat-mdc-select-value:has(.mat-mdc-select-value-text:empty) {
+  color: rgba(0, 0, 0, 0.6) !important;
+}
+
+/* 責任者選択フィールドで値が空の時にプレイスホルダーを表示 */
+.project-form-container ::ng-deep .responsible-selection .mat-mdc-form-field:not(.mat-focused) .mat-mdc-select-placeholder {
+  display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+}
+
+/* 責任者選択フィールドで値が空の時にプレイスホルダーを表示（値が空の時、より確実に） */
+.project-form-container ::ng-deep .responsible-selection .mat-mdc-form-field:not(.mat-focused) .mat-mdc-select-value-text:empty {
+  color: rgba(0, 0, 0, 0.6) !important;
+  opacity: 1 !important;
+}
+
+/* 責任者選択フィールドで値が空の時にプレイスホルダーを表示（mat-selectのplaceholder要素） */
+.project-form-container ::ng-deep .responsible-selection .mat-mdc-form-field:not(.mat-focused) .mat-mdc-select:not(.mat-mdc-select-focused) .mat-mdc-select-placeholder {
+  display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+}
+
+/* メンバー選択フィールドのプレイスホルダー（値が空の時のみ） */
+.project-form-container ::ng-deep .member-selection:not(.responsible-selection) .mat-mdc-form-field:not(.mat-focused) .mat-mdc-select-value-text:empty {
+  color: rgba(0, 0, 0, 0.6) !important;
+}
+
+.project-form-container ::ng-deep .member-selection:not(.responsible-selection) .mat-mdc-form-field:not(.mat-focused) .mat-mdc-select-value-text:not(:empty) {
+  color: rgba(0, 0, 0, 0.87) !important;
+}
+
+.project-form-container ::ng-deep .member-selection:not(.responsible-selection) .mat-mdc-form-field:not(.mat-focused) .mat-mdc-select .mat-mdc-select-value:has(.mat-mdc-select-value-text:empty) {
+  color: rgba(0, 0, 0, 0.6) !important;
+}
+
+/* 開始日・終了日フィールドの値の色（値が入力されている時） */
+.project-form-container ::ng-deep .date-fields .date-field .mat-mdc-text-field-wrapper input {
+  color: rgba(0, 0, 0, 0.87) !important;
+}
+
+.project-form-container ::ng-deep .date-fields .date-field .mat-mdc-text-field-wrapper input:not(:focus) {
+  color: rgba(0, 0, 0, 0.87) !important;
+}
+
+/* 値が空の時だけプレイスホルダー色 */
+.project-form-container ::ng-deep .date-fields .date-field .mat-mdc-text-field-wrapper input:placeholder-shown {
+  color: rgba(0, 0, 0, 0.6) !important;
+}
+
+.project-form-container ::ng-deep .date-fields .date-field .mat-mdc-text-field-wrapper input:not(:focus):placeholder-shown {
+  color: rgba(0, 0, 0, 0.6) !important;
+}
+
+/* 開始日・終了日フィールドのプレイスホルダー（値が空の時のみ） */
+.project-form-container ::ng-deep .date-fields .date-field .mat-mdc-form-field:not(.mat-focused) input::placeholder {
+  color: rgba(0, 0, 0, 0.6) !important;
+  opacity: 1 !important;
+}
+
+.project-form-container ::ng-deep .date-fields .date-field .mat-mdc-text-field-wrapper input::placeholder {
+  color: rgba(0, 0, 0, 0.6) !important;
+  opacity: 1 !important;
+}
+
+.project-form-container ::ng-deep .date-fields .date-field .mat-mdc-text-field-wrapper input:not(:focus)::placeholder {
+  color: rgba(0, 0, 0, 0.6) !important;
+  opacity: 1 !important;
+}
+
+/* マイルストーン名フィールドのプレイスホルダー */
+.project-form-container ::ng-deep .milestone-date input::placeholder {
+  color: rgba(0, 0, 0, 0.6) !important;
+  opacity: 1 !important;
+}
+
+.project-form-container ::ng-deep .milestone-date input:not(:focus)::placeholder {
+  color: rgba(0, 0, 0, 0.6) !important;
+  opacity: 1 !important;
+}
+
+/* URL入力フィールドのプレイスホルダー */
+.project-form-container ::ng-deep .url-input-field input::placeholder {
+  color: rgba(0, 0, 0, 0.6) !important;
+  opacity: 1 !important;
+}
+
+.project-form-container ::ng-deep .url-input-field input:not(:focus)::placeholder {
+  color: rgba(0, 0, 0, 0.6) !important;
+  opacity: 1 !important;
+}
+
 /* 日付入力フィールド */
 .date-field {
   position: relative;

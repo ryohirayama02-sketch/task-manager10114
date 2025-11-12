@@ -164,6 +164,25 @@ body[data-language="ja"] .mat-form-field-label {
   display: none !important;
 }
 
+/* タスクカード内のチップセットを右寄せにする */
+mat-card .mdc-evolution-chip-set__chips,
+mat-card .mdc-evolution-chip-set__chips[role="presentation"],
+mat-card [class*="mdc-evolution-chip-set__chips"] {
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin-left: auto !important;
+}
+
+/* タスクカード内のチップセットの親要素も右寄せにする */
+mat-card .mdc-evolution-chip-set,
+mat-card [class*="mdc-evolution-chip-set"] {
+  display: flex !important;
+  justify-content: flex-end !important;
+  width: 100% !important;
+}
+
 /* モバイルでの追加対策 */
 @media (max-width: 480px) {
   /* すべての要素で確実に改行 */
