@@ -41,7 +41,7 @@ import { LanguageService } from '../../services/language.service';
 })
 export class MemberManagementComponent implements OnInit {
   members: Member[] = [];
-  displayedColumns: string[] = ['name', 'email', 'createdAt', 'actions'];
+  displayedColumns: string[] = ['name', 'email', 'actions'];
   loading = false;
   private memberAddedFeedback = false;
   memberCountLimitReached = false;
