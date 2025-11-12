@@ -589,6 +589,92 @@ mat-chip {
   border-radius: 16px;
   padding: 8px 12px;
   font-size: 14px;
+  cursor: default !important;
+  user-select: none;
+  pointer-events: none; /* クリックやホバーを完全に無効化 */
+  /* Material Designのホバー効果を無効化 */
+  --mdc-chip-hover-state-layer-color: transparent !important;
+  --mdc-chip-hover-state-layer-opacity: 0 !important;
+  --mdc-chip-focus-state-layer-color: transparent !important;
+  --mdc-chip-focus-state-layer-opacity: 0 !important;
+  --mdc-chip-pressed-state-layer-color: transparent !important;
+  --mdc-chip-pressed-state-layer-opacity: 0 !important;
+}
+
+/* タグチップのホバー効果を完全に無効化（テキストのように） */
+mat-chip:hover,
+mat-chip:focus,
+mat-chip:active,
+mat-chip:visited {
+  background-color: #e3f2fd !important;
+  color: #1976d2 !important;
+  cursor: default !important;
+  pointer-events: none !important;
+}
+
+mat-chip ::ng-deep .mdc-evolution-chip__surface {
+  cursor: default !important;
+  background-color: #e3f2fd !important;
+  pointer-events: none !important;
+}
+
+mat-chip ::ng-deep .mdc-evolution-chip__surface:hover,
+mat-chip ::ng-deep .mdc-evolution-chip__surface:focus,
+mat-chip ::ng-deep .mdc-evolution-chip__surface:active {
+  background-color: #e3f2fd !important;
+  cursor: default !important;
+  pointer-events: none !important;
+}
+
+/* ホバー時のオーバーレイを完全に無効化 */
+mat-chip ::ng-deep .mdc-evolution-chip__surface::before,
+mat-chip ::ng-deep .mdc-evolution-chip__surface::after {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+mat-chip:hover ::ng-deep .mdc-evolution-chip__surface::before,
+mat-chip:hover ::ng-deep .mdc-evolution-chip__surface::after,
+mat-chip:focus ::ng-deep .mdc-evolution-chip__surface::before,
+mat-chip:focus ::ng-deep .mdc-evolution-chip__surface::after {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+mat-chip ::ng-deep .mdc-evolution-chip__ripple {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+mat-chip ::ng-deep .mdc-evolution-chip__hover-overlay {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+mat-chip ::ng-deep .mdc-evolution-chip__focus-ring {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+mat-chip ::ng-deep .mdc-evolution-chip__state-layer {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* チップ全体のインタラクションを無効化 */
+mat-chip ::ng-deep * {
+  pointer-events: none !important;
+  cursor: default !important;
+}
+
+/* 削除アイコンは編集モードでのみ有効化（必要に応じて） */
+mat-chip[removable] ::ng-deep mat-icon[matChipRemove] {
+  pointer-events: auto !important;
+  cursor: pointer !important;
 }
 
 mat-chip mat-icon {
