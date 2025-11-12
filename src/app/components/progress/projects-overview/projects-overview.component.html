@@ -3,10 +3,10 @@
     <h2>{{ 'progress.projects.title' | translate }}</h2>
     <div class="header-actions">
       <mat-form-field appearance="outline" class="sort-filter">
-        <mat-label>{{ 'progress.projects.sortBy' | translate }}</mat-label>
         <mat-select
           [value]="sortOption"
           (selectionChange)="onSortChange($event.value)"
+          [placeholder]="'progress.projects.sortBy' | translate"
         >
           <mat-option *ngFor="let option of sortOptions" [value]="option.value">
             {{ option.label }}

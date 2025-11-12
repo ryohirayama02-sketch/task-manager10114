@@ -36,11 +36,11 @@
   <!-- フィルター -->
   <div class="filter-section">
     <mat-form-field appearance="outline">
-      <mat-label>{{ 'kanban.filter.priority' | translate }}</mat-label>
       <mat-select
         [(ngModel)]="filterPriority"
         (selectionChange)="applyFilters()"
         multiple
+        [placeholder]="'kanban.filter.priority' | translate"
       >
         <mat-option value="高">{{ getPriorityDisplay('高') }}</mat-option>
         <mat-option value="中">{{ getPriorityDisplay('中') }}</mat-option>
@@ -49,11 +49,11 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline">
-      <mat-label>{{ 'kanban.filter.assignee' | translate }}</mat-label>
       <mat-select
         [(ngModel)]="filterAssignee"
         (selectionChange)="applyFilters()"
         multiple
+        [placeholder]="'kanban.filter.assignee' | translate"
       >
         <mat-option
           *ngFor="let assignee of getUniqueAssignees()"

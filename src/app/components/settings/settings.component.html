@@ -118,9 +118,6 @@
                 class="channel-settings"
               >
                 <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>{{
-                    "settings.notifications.address" | translate
-                  }}</mat-label>
                   <input
                     matInput
                     type="email"
@@ -128,7 +125,7 @@
                       notificationSettings.notificationChannels.email.address
                     "
                     name="emailAddress"
-                    placeholder="example@email.com"
+                    [placeholder]="'settings.notifications.address' | translate"
                   />
                 </mat-form-field>
               </div>
@@ -178,10 +175,10 @@
                 <label>{{ "settings.common.notifyTime" | translate }}</label>
                 <div class="time-picker">
                   <mat-form-field appearance="outline" class="time-field">
-                    <mat-label>{{ "taskDetail.hour" | translate }}</mat-label>
                     <mat-select
                       [(ngModel)]="taskDeadlineTime.hour"
                       name="deadlineHour"
+                      [placeholder]="'taskDetail.hour' | translate"
                     >
                       <mat-option
                         *ngFor="let hour of hourOptions"
@@ -193,10 +190,10 @@
                   </mat-form-field>
                   <span class="time-separator">:</span>
                   <mat-form-field appearance="outline" class="time-field">
-                    <mat-label>{{ "taskDetail.minute" | translate }}</mat-label>
                     <mat-select
                       [(ngModel)]="taskDeadlineTime.minute"
                       name="deadlineMinute"
+                      [placeholder]="'taskDetail.minute' | translate"
                     >
                       <mat-option
                         *ngFor="let minute of minuteOptions"
@@ -239,10 +236,10 @@
                 <label>{{ "settings.common.notifyTime" | translate }}</label>
                 <div class="time-picker">
                   <mat-form-field appearance="outline" class="time-field">
-                    <mat-label>{{ "taskDetail.hour" | translate }}</mat-label>
                     <mat-select
                       [(ngModel)]="dailyReminderTime.hour"
                       name="dailyReminderHour"
+                      [placeholder]="'taskDetail.hour' | translate"
                     >
                       <mat-option
                         *ngFor="let hour of hourOptions"
@@ -254,10 +251,10 @@
                   </mat-form-field>
                   <span class="time-separator">:</span>
                   <mat-form-field appearance="outline" class="time-field">
-                    <mat-label>{{ "taskDetail.minute" | translate }}</mat-label>
                     <mat-select
                       [(ngModel)]="dailyReminderTime.minute"
                       name="dailyReminderMinute"
+                      [placeholder]="'taskDetail.minute' | translate"
                     >
                       <mat-option
                         *ngFor="let minute of minuteOptions"
@@ -300,15 +297,13 @@
             >
               <div class="setting-row">
                 <mat-form-field appearance="outline">
-                  <mat-label>{{
-                    "settings.worktime.period" | translate
-                  }}</mat-label>
                   <mat-select
                     [(ngModel)]="
                       notificationSettings.workTimeOverflowNotifications
                         .checkPeriodDays
                     "
                     name="checkPeriod"
+                    [placeholder]="'settings.worktime.period' | translate"
                   >
                     <mat-option
                       *ngFor="let days of checkPeriodOptions"
@@ -321,15 +316,13 @@
                 </mat-form-field>
 
                 <mat-form-field appearance="outline">
-                  <mat-label>{{
-                    "settings.worktime.max" | translate
-                  }}</mat-label>
                   <mat-select
                     [(ngModel)]="
                       notificationSettings.workTimeOverflowNotifications
                         .maxWorkHours
                     "
                     name="maxWorkHours"
+                    [placeholder]="'settings.worktime.max' | translate"
                   >
                     <mat-option
                       *ngFor="let hours of workTimeOptions"
@@ -345,10 +338,10 @@
                 <label>{{ "settings.common.notifyTime" | translate }}</label>
                 <div class="time-picker">
                   <mat-form-field appearance="outline" class="time-field">
-                    <mat-label>{{ "taskDetail.hour" | translate }}</mat-label>
                     <mat-select
                       [(ngModel)]="workTimeOverflowTime.hour"
                       name="workTimeHour"
+                      [placeholder]="'taskDetail.hour' | translate"
                     >
                       <mat-option
                         *ngFor="let hour of hourOptions"
@@ -360,10 +353,10 @@
                   </mat-form-field>
                   <span class="time-separator">:</span>
                   <mat-form-field appearance="outline" class="time-field">
-                    <mat-label>{{ "taskDetail.minute" | translate }}</mat-label>
                     <mat-select
                       [(ngModel)]="workTimeOverflowTime.minute"
                       name="workTimeMinute"
+                      [placeholder]="'taskDetail.minute' | translate"
                     >
                       <mat-option
                         *ngFor="let minute of minuteOptions"

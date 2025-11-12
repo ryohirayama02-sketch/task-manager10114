@@ -4,10 +4,10 @@
     <h1>{{ "quickTasks.title" | translate }}</h1>
     <div class="filter-controls">
       <mat-form-field appearance="outline" class="days-filter">
-        <mat-label>{{ "quickTasks.dueDate" | translate }}</mat-label>
         <mat-select
           [(value)]="daysFilter"
           (selectionChange)="onDaysFilterChange()"
+          [placeholder]="'quickTasks.dueDate' | translate"
         >
           <mat-option *ngFor="let days of daysOptions" [value]="days">
             {{ days }}{{ "quickTasks.daysSuffix" | translate }}
