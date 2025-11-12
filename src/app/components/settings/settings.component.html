@@ -624,11 +624,11 @@
       <mat-card-content>
         <div class="language-settings">
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>{{ "settings.language.field" | translate }}</mat-label>
             <mat-select
               [(ngModel)]="selectedLanguage"
               name="uiLanguage"
               [disabled]="isSavingLanguage"
+              [placeholder]="'settings.language.field' | translate"
             >
               <mat-option
                 *ngFor="let option of languageOptions"
