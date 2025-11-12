@@ -1,9 +1,9 @@
 <div class="page-header">
   <button mat-button (click)="goBack()" class="back-button">
     <mat-icon>arrow_back</mat-icon>
-    {{ 'projectDetail.back' | translate }}
+    {{ "projectDetail.back" | translate }}
   </button>
-  <h2>{{ 'projectDetail.title' | translate }}</h2>
+  <h2>{{ "projectDetail.title" | translate }}</h2>
 </div>
 
 <div
@@ -17,7 +17,9 @@
         type="button"
         class="calendar-switch"
         [class.on]="isInlineEditMode"
-        [disabled]="isSavingInlineEdit || (isInlineEditMode && !canSaveProject())"
+        [disabled]="
+          isSavingInlineEdit || (isInlineEditMode && !canSaveProject())
+        "
         (click)="onInlineEditToggleClick()"
         role="switch"
         [attr.aria-checked]="isInlineEditMode"
@@ -25,31 +27,45 @@
         <span class="calendar-switch-handle"></span>
       </button>
       <span class="calendar-switch-label">
-        {{ 'projectDetail.editMode' | translate }} {{ isInlineEditMode ? ('projectDetail.on' | translate) : ('projectDetail.off' | translate) }}
+        {{ "projectDetail.editMode" | translate }}
+        {{
+          isInlineEditMode
+            ? ("projectDetail.on" | translate)
+            : ("projectDetail.off" | translate)
+        }}
       </span>
     </div>
   </div>
 
   <div class="project-header">
     <div class="project-info">
-      <div class="project-info-display" *ngIf="!isInlineEditMode; else inlineEditForm">
+      <div
+        class="project-info-display"
+        *ngIf="!isInlineEditMode; else inlineEditForm"
+      >
         <h3>{{ project.projectName }}</h3>
-        <p><strong>{{ 'projectDetail.overview' | translate }}:</strong> {{ project.overview || ("projectDetail.notSet" | translate) }}</p>
         <p>
-          <strong>{{ 'projectDetail.period' | translate }}:</strong>
+          <strong>{{ "projectDetail.overview" | translate }}:</strong>
+          {{ project.overview || ("projectDetail.notSet" | translate) }}
+        </p>
+        <p>
+          <strong>{{ "projectDetail.period" | translate }}:</strong>
           {{ toDateDisplay(project.startDate) }} -
           {{ toDateDisplay(project.endDate) }}
         </p>
         <p>
-          <strong>{{ 'projectDetail.responsible' | translate }}:</strong>
+          <strong>{{ "projectDetail.responsible" | translate }}:</strong>
           {{ getResponsiblesDisplay() }}
         </p>
-        <p><strong>{{ 'projectDetail.members' | translate }}:</strong> {{ getMembersDisplay() || ("projectDetail.notSet" | translate) }}</p>
+        <p>
+          <strong>{{ "projectDetail.members" | translate }}:</strong>
+          {{ getMembersDisplay() || ("projectDetail.notSet" | translate) }}
+        </p>
         <div
           class="project-attachments"
           *ngIf="project.attachments?.length; else noProjectAttachments"
         >
-          <strong>{{ 'projectDetail.materials' | translate }}:</strong>
+          <strong>{{ "projectDetail.materials" | translate }}:</strong>
           <div class="attachment-links">
             <a
               *ngFor="let attachment of project.attachments"
@@ -58,7 +74,7 @@
               rel="noopener noreferrer"
             >
               <mat-icon>
-                {{ attachment.type === 'link' ? 'link' : 'attach_file' }}
+                {{ attachment.type === "link" ? "link" : "attach_file" }}
               </mat-icon>
               {{ attachment.name }}
             </a>
@@ -69,49 +85,59 @@
       <ng-template #inlineEditForm>
         <form class="project-inline-edit-form" novalidate>
           <mat-form-field appearance="outline" class="full-width-field">
-            <mat-label>{{ 'projectDetail.projectName' | translate }} * <span class="required-hint">{{ 'projectDetail.required' | translate }}</span></mat-label>
             <input
               matInput
               [(ngModel)]="editableProject!.projectName"
               name="inlineProjectName"
+              [placeholder]="
+                'projectDetail.projectNamePlaceholderFull' | translate
+              "
               required
               maxlength="30"
             />
-            <mat-hint align="end">{{ (editableProject!.projectName || '').length }}/30</mat-hint>
+            <mat-hint align="end"
+              >{{ (editableProject!.projectName || "").length }}/30</mat-hint
+            >
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width-field">
-            <mat-label>{{ 'projectDetail.overview' | translate }}</mat-label>
             <textarea
               matInput
               rows="3"
               [(ngModel)]="editableProject!.overview"
               name="inlineOverview"
+              [placeholder]="'projectDetail.overviewPlaceholder' | translate"
               maxlength="200"
             ></textarea>
-            <mat-hint align="end">{{ (editableProject!.overview || '').length }}/200</mat-hint>
+            <mat-hint align="end"
+              >{{ (editableProject!.overview || "").length }}/200</mat-hint
+            >
           </mat-form-field>
 
           <div class="inline-date-row">
             <mat-form-field appearance="outline" class="date-field">
-              <mat-label>{{ 'projectDetail.startDate' | translate }} * <span class="required-hint">{{ 'projectDetail.required' | translate }}</span></mat-label>
               <input
                 matInput
                 [matDatepicker]="inlineStartDatePicker"
                 [(ngModel)]="inlineStartDateObj"
                 (dateChange)="onInlineStartDateChange()"
                 [max]="inlineEndDateObj || maxDate"
-                [ngModelOptions]="{standalone: true}"
-                placeholder="開始日"
-                readonly
+                [ngModelOptions]="{ standalone: true }"
+                [placeholder]="
+                  'projectDetail.startDatePlaceholderFull' | translate
+                "
+                (click)="inlineStartDatePicker.open()"
+                (keydown)="$event.preventDefault()"
                 required
               />
-              <mat-datepicker-toggle matIconSuffix [for]="inlineStartDatePicker"></mat-datepicker-toggle>
+              <mat-datepicker-toggle
+                matIconSuffix
+                [for]="inlineStartDatePicker"
+              ></mat-datepicker-toggle>
               <mat-datepicker #inlineStartDatePicker></mat-datepicker>
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="date-field">
-              <mat-label>{{ 'projectDetail.endDate' | translate }} * <span class="required-hint">{{ 'projectDetail.required' | translate }}</span></mat-label>
               <input
                 matInput
                 [matDatepicker]="inlineEndDatePicker"
@@ -119,23 +145,31 @@
                 (dateChange)="onInlineEndDateChange()"
                 [min]="inlineStartDateObj || undefined"
                 [max]="maxDate"
-                [ngModelOptions]="{standalone: true}"
-                placeholder="終了日"
-                readonly
+                [ngModelOptions]="{ standalone: true }"
+                [placeholder]="
+                  'projectDetail.endDatePlaceholderFull' | translate
+                "
+                (click)="inlineEndDatePicker.open()"
+                (keydown)="$event.preventDefault()"
                 required
               />
-              <mat-datepicker-toggle matIconSuffix [for]="inlineEndDatePicker"></mat-datepicker-toggle>
+              <mat-datepicker-toggle
+                matIconSuffix
+                [for]="inlineEndDatePicker"
+              ></mat-datepicker-toggle>
               <mat-datepicker #inlineEndDatePicker></mat-datepicker>
             </mat-form-field>
           </div>
 
           <mat-form-field appearance="outline" class="full-width-field">
-            <mat-label>{{ 'projectDetail.responsible' | translate }} * <span class="required-hint">{{ 'projectDetail.required' | translate }}</span></mat-label>
             <mat-select
               multiple
               [(ngModel)]="selectedResponsibleIds"
               name="inlineResponsibleIds"
               (ngModelChange)="onResponsibleSelectionChange($event)"
+              [placeholder]="
+                'projectDetail.selectResponsiblePlaceholderFull' | translate
+              "
               [disabled]="membersLoading"
               required
             >
@@ -145,7 +179,10 @@
             </mat-select>
           </mat-form-field>
 
-          <div class="selected-members-chips" *ngIf="selectedResponsibles.length > 0">
+          <div
+            class="selected-members-chips"
+            *ngIf="selectedResponsibles.length > 0"
+          >
             <mat-chip-set>
               <mat-chip
                 *ngFor="let member of selectedResponsibles"
@@ -161,13 +198,14 @@
           </div>
 
           <mat-form-field appearance="outline" class="full-width-field">
-            <mat-label>{{ 'projectDetail.assignee' | translate }} * <span class="required-hint">{{ 'projectDetail.required' | translate }}</span></mat-label>
             <mat-select
               multiple
               [(ngModel)]="selectedMemberIds"
               name="inlineMemberIds"
               (ngModelChange)="onMembersSelectionChange($event)"
-              placeholder="{{ 'projectDetail.selectMember' | translate }}"
+              [placeholder]="
+                'projectDetail.selectMemberPlaceholderFull' | translate
+              "
               [disabled]="membersLoading"
               required
             >
@@ -177,7 +215,10 @@
             </mat-select>
           </mat-form-field>
 
-          <div class="selected-members-chips" *ngIf="selectedMembers.length > 0">
+          <div
+            class="selected-members-chips"
+            *ngIf="selectedMembers.length > 0"
+          >
             <mat-chip-set>
               <mat-chip
                 *ngFor="let member of selectedMembers"
@@ -199,7 +240,7 @@
                 (click)="fileInput.click()"
                 [disabled]="isUploading"
               >
-                {{ 'projectDetail.addFile' | translate }}
+                {{ "projectDetail.addFile" | translate }}
               </button>
               <input
                 #fileInput
@@ -211,11 +252,10 @@
               />
 
               <mat-form-field appearance="outline" class="url-input-field">
-                <mat-label>{{ 'projectDetail.enterUrl' | translate }}</mat-label>
                 <input
                   matInput
                   [(ngModel)]="newUrlInput"
-                  placeholder="https://example.com"
+                  [placeholder]="'projectDetail.urlPlaceholder' | translate"
                   (keyup.enter)="addUrl(newUrlInput)"
                   name="newUrl"
                 />
@@ -225,13 +265,13 @@
                 type="button"
                 (click)="addUrl(newUrlInput)"
               >
-                {{ 'projectDetail.add' | translate }}
+                {{ "projectDetail.add" | translate }}
               </button>
             </div>
 
             <!-- アップロード中のファイル表示 -->
             <div class="pending-files" *ngIf="pendingFiles.length > 0">
-              <p>{{ 'projectDetail.uploadingFiles' | translate }}:</p>
+              <p>{{ "projectDetail.uploadingFiles" | translate }}:</p>
               <div class="pending-files-list">
                 <div
                   class="pending-file-item"
@@ -244,28 +284,43 @@
             </div>
 
             <div class="attachment-list" *ngIf="editableAttachments.length > 0">
-              <h4>{{ 'projectDetail.registeredMaterials' | translate }}</h4>
+              <h4>{{ "projectDetail.registeredMaterials" | translate }}</h4>
               <div
                 class="attachment-chip"
-                *ngFor="let attachment of editableAttachments; trackBy: trackAttachment"
+                *ngFor="
+                  let attachment of editableAttachments;
+                  trackBy: trackAttachment
+                "
               >
-                <span class="material-icon">{{ attachment.type === 'link' ? '🔗' : '📎' }}</span>
+                <span class="material-icon">{{
+                  attachment.type === "link" ? "🔗" : "📎"
+                }}</span>
                 <a
                   [href]="attachment.url"
                   target="_blank"
                   rel="noopener noreferrer"
                   class="material-link"
                 >
-                  {{ attachment.type === 'link' ? extractUrlLabel(attachment.url) : attachment.name }}
+                  {{
+                    attachment.type === "link"
+                      ? extractUrlLabel(attachment.url)
+                      : attachment.name
+                  }}
                 </a>
-                <ng-container *ngIf="attachment.type === 'file' && attachment.size">
-                  <span class="size-text">({{ formatFileSize(attachment.size) }})</span>
+                <ng-container
+                  *ngIf="attachment.type === 'file' && attachment.size"
+                >
+                  <span class="size-text"
+                    >({{ formatFileSize(attachment.size) }})</span
+                  >
                 </ng-container>
                 <button
                   mat-icon-button
                   type="button"
                   (click)="removeAttachment(attachment)"
-                  [attr.aria-label]="'projectDetail.removeAttachment' | translate"
+                  [attr.aria-label]="
+                    'projectDetail.removeAttachment' | translate
+                  "
                 >
                   <mat-icon>close</mat-icon>
                 </button>
@@ -274,54 +329,75 @@
 
             <div
               class="no-attachments"
-              *ngIf="editableAttachments.length === 0 && pendingFiles.length === 0"
+              *ngIf="
+                editableAttachments.length === 0 && pendingFiles.length === 0
+              "
             >
-              {{ 'projectDetail.noRegisteredMaterials' | translate }}
+              {{ "projectDetail.noRegisteredMaterials" | translate }}
             </div>
 
             <div class="uploading-indicator" *ngIf="isUploading">
               <mat-spinner diameter="24"></mat-spinner>
-              <span>{{ 'projectDetail.uploadingAttachments' | translate }}</span>
+              <span>{{
+                "projectDetail.uploadingAttachments" | translate
+              }}</span>
             </div>
           </div>
 
           <div class="inline-milestones">
-            <h4>{{ 'projectDetail.milestones' | translate }}</h4>
+            <h4>{{ "projectDetail.milestones" | translate }}</h4>
             <div class="milestones-container">
               <div
-                *ngFor="let milestone of editableMilestones; let i = index; trackBy: trackMilestone"
+                *ngFor="
+                  let milestone of editableMilestones;
+                  let i = index;
+                  trackBy: trackMilestone
+                "
                 class="milestone-item"
               >
                 <mat-form-field appearance="outline" class="milestone-date">
-                  <mat-label>{{ 'projectDetail.date' | translate }}</mat-label>
                   <input
                     matInput
                     [matDatepicker]="milestoneDatePicker"
                     [value]="getMilestoneDateObj(i)"
                     (dateChange)="onMilestoneDateChange(i, $event)"
                     [max]="maxDate"
-                    readonly
+                    [placeholder]="
+                      'projectDetail.milestoneDatePlaceholder' | translate
+                    "
+                    (click)="milestoneDatePicker.open()"
+                    (keydown)="$event.preventDefault()"
                   />
-                  <mat-datepicker-toggle matIconSuffix [for]="milestoneDatePicker"></mat-datepicker-toggle>
+                  <mat-datepicker-toggle
+                    matIconSuffix
+                    [for]="milestoneDatePicker"
+                  ></mat-datepicker-toggle>
                   <mat-datepicker #milestoneDatePicker></mat-datepicker>
                 </mat-form-field>
                 <mat-form-field appearance="outline" class="milestone-name">
-                  <mat-label>{{ 'projectDetail.milestoneName' | translate }}</mat-label>
                   <input
                     matInput
                     type="text"
                     [(ngModel)]="milestone.name"
                     name="inlineMilestoneName{{ i }}"
-                    [placeholder]="('projectDetail.milestoneName' | translate) + ' ' + ('projectDetail.milestoneNamePlaceholder' | translate)"
+                    [placeholder]="
+                      ('projectDetail.milestoneName' | translate) +
+                      ' ' +
+                      ('projectDetail.milestoneNamePlaceholder' | translate)
+                    "
                     maxlength="30"
                   />
-                  <mat-hint align="end">{{ (milestone.name || '').length }}/30</mat-hint>
+                  <mat-hint align="end"
+                    >{{ (milestone.name || "").length }}/30</mat-hint
+                  >
                 </mat-form-field>
                 <button
                   mat-icon-button
                   type="button"
                   (click)="removeMilestone(i)"
-                  [attr.aria-label]="'projectDetail.removeMilestone' | translate"
+                  [attr.aria-label]="
+                    'projectDetail.removeMilestone' | translate
+                  "
                   color="warn"
                 >
                   <mat-icon>delete</mat-icon>
@@ -329,17 +405,18 @@
               </div>
               <button mat-button type="button" (click)="addMilestone()">
                 <mat-icon>add</mat-icon>
-                {{ 'projectDetail.addMilestone' | translate }}
+                {{ "projectDetail.addMilestone" | translate }}
               </button>
             </div>
           </div>
-
         </form>
       </ng-template>
     </div>
 
     <ng-template #noProjectAttachments>
-      <p><strong>{{ 'projectDetail.materials' | translate }}:</strong> -</p>
+      <p>
+        <strong>{{ "projectDetail.materials" | translate }}:</strong> -
+      </p>
     </ng-template>
 
     <!-- 進捗率円グラフ -->
@@ -359,7 +436,7 @@
     *ngIf="project.milestones && project.milestones.length > 0"
     style="margin-top: 20px"
   >
-    <h4>{{ 'projectDetail.milestones' | translate }}</h4>
+    <h4>{{ "projectDetail.milestones" | translate }}</h4>
     <div *ngFor="let milestone of project.milestones" class="milestone-item">
       <div class="milestone-date">
         {{ milestone.date | date : "yyyy/MM/dd" }}
@@ -369,8 +446,12 @@
   </div>
 
   <!-- プロジェクトカラー選択 -->
-  <div class="theme-color-section" *ngIf="isInlineEditMode" style="margin-top: 20px">
-    <h4>{{ 'projectDetail.themeColor' | translate }}</h4>
+  <div
+    class="theme-color-section"
+    *ngIf="isInlineEditMode"
+    style="margin-top: 20px"
+  >
+    <h4>{{ "projectDetail.themeColor" | translate }}</h4>
     <div class="theme-color-selector">
       <button
         type="button"
@@ -392,7 +473,12 @@
         (click)="selectThemeColor(color)"
         [matTooltip]="getThemeColorLabel(color)"
         [attr.aria-pressed]="isThemeColorSelected(color)"
-        [attr.aria-label]="('projectDetail.ariaLabel.themeColor' | translate).replace('{colorName}', getThemeColorLabel(color))"
+        [attr.aria-label]="
+          ('projectDetail.ariaLabel.themeColor' | translate).replace(
+            '{colorName}',
+            getThemeColorLabel(color)
+          )
+        "
       >
         <mat-icon *ngIf="isThemeColorSelected(color)">check</mat-icon>
       </button>
@@ -400,13 +486,15 @@
   </div>
 
   <!-- プロジェクトチャット -->
-  <app-project-chat *ngIf="projectId" [projectId]="projectId" [chatTitle]="'projectDetail.chatTitle' | translate" [members]="members">
+  <app-project-chat
+    *ngIf="projectId"
+    [projectId]="projectId"
+    [chatTitle]="'projectDetail.chatTitle' | translate"
+    [members]="members"
+  >
   </app-project-chat>
 
-  <div
-    class="project-delete-actions"
-    *ngIf="isInlineEditMode"
-  >
+  <div class="project-delete-actions" *ngIf="isInlineEditMode">
     <button
       mat-raised-button
       color="warn"
@@ -415,7 +503,7 @@
       [disabled]="isSavingInlineEdit || isDeletingProject"
     >
       <mat-icon>delete</mat-icon>
-      {{ 'projectDetail.deleteProject' | translate }}
+      {{ "projectDetail.deleteProject" | translate }}
     </button>
   </div>
 </div>
@@ -427,14 +515,14 @@
   [style.background]="getTasksSectionBackground()"
 >
   <div class="tasks-header">
-    <h3>{{ 'projectDetail.taskList' | translate }}</h3>
+    <h3>{{ "projectDetail.taskList" | translate }}</h3>
     <div class="tasks-actions">
       <button mat-raised-button color="accent" (click)="openAddTaskDialog()">
-        {{ 'projectDetail.addTask' | translate }}
+        {{ "projectDetail.addTask" | translate }}
       </button>
       <button mat-raised-button color="accent" (click)="exportToCSV()">
         <mat-icon>download</mat-icon>
-        {{ 'projectDetail.export' | translate }}
+        {{ "projectDetail.export" | translate }}
       </button>
     </div>
   </div>
@@ -442,9 +530,12 @@
   <!-- フィルター -->
   <div class="filter-section">
     <mat-form-field appearance="outline">
-      <mat-label>{{ 'projectDetail.status' | translate }}</mat-label>
-      <mat-select [(ngModel)]="filterStatus" (selectionChange)="applyFilter()" [placeholder]="'projectDetail.status' | translate">
-        <mat-option value="">{{ 'projectDetail.all' | translate }}</mat-option>
+      <mat-select
+        [(ngModel)]="filterStatus"
+        (selectionChange)="applyFilter()"
+        [placeholder]="'projectDetail.status' | translate"
+      >
+        <mat-option value="">{{ "projectDetail.all" | translate }}</mat-option>
         <mat-option *ngFor="let status of statusOptions" [value]="status">
           {{ getStatusDisplay(status) }}
         </mat-option>
@@ -452,13 +543,12 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline">
-      <mat-label>{{ 'projectDetail.priority' | translate }}</mat-label>
       <mat-select
         [(ngModel)]="filterPriority"
         (selectionChange)="applyFilter()"
         [placeholder]="'projectDetail.priority' | translate"
       >
-        <mat-option value="">{{ 'projectDetail.all' | translate }}</mat-option>
+        <mat-option value="">{{ "projectDetail.all" | translate }}</mat-option>
         <mat-option *ngFor="let priority of priorityOptions" [value]="priority">
           {{ getPriorityDisplay(priority) }}
         </mat-option>
@@ -466,13 +556,12 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline">
-      <mat-label>{{ 'projectDetail.assignee' | translate }}</mat-label>
       <mat-select
         [(ngModel)]="filterAssignee"
         (selectionChange)="applyFilter()"
-        placeholder="{{ 'projectDetail.selectAssignee' | translate }}"
+        [placeholder]="'projectDetail.selectAssignee' | translate"
       >
-        <mat-option value="">{{ 'projectDetail.all' | translate }}</mat-option>
+        <mat-option value="">{{ "projectDetail.all" | translate }}</mat-option>
         <mat-option *ngFor="let assignee of assigneeOptions" [value]="assignee">
           {{ assignee }}
         </mat-option>
@@ -480,22 +569,26 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="due-date-filter-field">
-      <mat-label>{{ 'projectDetail.dueDate' | translate }}</mat-label>
       <input
         matInput
         [matDatepicker]="dueDatePicker"
         [(ngModel)]="filterDueDateObj"
         (dateChange)="onDueDateChange()"
         [max]="maxDate"
-        readonly
+        [placeholder]="'projectDetail.selectDueDate' | translate"
+        (click)="dueDatePicker.open()"
+        (keydown)="$event.preventDefault()"
       />
-      <mat-datepicker-toggle matIconSuffix [for]="dueDatePicker"></mat-datepicker-toggle>
+      <mat-datepicker-toggle
+        matIconSuffix
+        [for]="dueDatePicker"
+      ></mat-datepicker-toggle>
       <mat-datepicker #dueDatePicker></mat-datepicker>
     </mat-form-field>
 
     <button mat-stroked-button (click)="resetFilter()">
       <mat-icon>refresh</mat-icon>
-      {{ 'projectDetail.reset' | translate }}
+      {{ "projectDetail.reset" | translate }}
     </button>
   </div>
 
@@ -536,7 +629,9 @@
           <div class="task-main-info">
             <div class="task-detail-item task-detail-member">
               <mat-icon>person</mat-icon>
-              <span class="task-member-name">{{ getTaskAssigneeDisplay(task) }}</span>
+              <span class="task-member-name">{{
+                getTaskAssigneeDisplay(task)
+              }}</span>
               <div class="task-member-due">
                 <mat-icon>schedule</mat-icon>
                 <span>{{ task.dueDate }}</span>
@@ -548,7 +643,10 @@
             *ngIf="task.parentTaskId && taskNameById[task.parentTaskId]"
           >
             <mat-icon>subdirectory_arrow_right</mat-icon>
-            <span class="task-parent-name">{{ 'projectDetail.parentTask' | translate }}: {{ taskNameById[task.parentTaskId] }}</span>
+            <span class="task-parent-name"
+              >{{ "projectDetail.parentTask" | translate }}:
+              {{ taskNameById[task.parentTaskId] }}</span
+            >
           </div>
         </div>
       </mat-card-content>
@@ -558,13 +656,13 @@
   <!-- タスクが存在しない場合 -->
   <div *ngIf="filteredTasks.length === 0" class="no-tasks">
     <mat-icon>assignment</mat-icon>
-    <p>{{ 'projectDetail.noTasks' | translate }}</p>
+    <p>{{ "projectDetail.noTasks" | translate }}</p>
     <button mat-raised-button color="primary" (click)="openAddTaskDialog()">
-      {{ 'projectDetail.addTask' | translate }}
+      {{ "projectDetail.addTask" | translate }}
     </button>
   </div>
 </div>
 
 <ng-template #loading>
-  <p>{{ 'projectDetail.loading' | translate }}</p>
+  <p>{{ "projectDetail.loading" | translate }}</p>
 </ng-template>

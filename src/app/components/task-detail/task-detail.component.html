@@ -3,7 +3,12 @@
     <mat-icon>arrow_back</mat-icon>
     {{ "taskDetail.back" | translate }}
   </button>
-  <h2>{{ (task?.parentTaskId ? "taskDetail.childTaskTitle" : "taskDetail.title") | translate }}</h2>
+  <h2>
+    {{
+      (task?.parentTaskId ? "taskDetail.childTaskTitle" : "taskDetail.title")
+        | translate
+    }}
+  </h2>
 </div>
 
 <div
@@ -49,13 +54,21 @@
         appearance="outline"
         class="full-width-field task-name-edit-field"
       >
-        <mat-label>{{
-          task.parentTaskId
-            ? ("taskDetail.childTaskName" | translate)
-            : ("taskDetail.taskName" | translate)
-        }} * <span class="required-hint">{{ 'taskDetail.required' | translate }}</span></mat-label>
-        <input matInput [(ngModel)]="taskData.taskName" name="taskName" maxlength="30" required />
-        <mat-hint align="end">{{ (taskData.taskName || '').length }}/30</mat-hint>
+        <input
+          matInput
+          [(ngModel)]="taskData.taskName"
+          name="taskName"
+          [placeholder]="
+            task.parentTaskId
+              ? ('taskDetail.childTaskNamePlaceholderFull' | translate)
+              : ('taskDetail.taskNamePlaceholderFull' | translate)
+          "
+          maxlength="30"
+          required
+        />
+        <mat-hint align="end"
+          >{{ (taskData.taskName || "").length }}/30</mat-hint
+        >
       </mat-form-field>
     </div>
 
@@ -75,23 +88,31 @@
 
         <p>
           <strong>{{ "taskDetail.description" | translate }}:</strong>
-          {{ taskData.description || ('taskDetail.noDescription' | translate) }}
+          {{ taskData.description || ("taskDetail.noDescription" | translate) }}
         </p>
 
         <p>
           <strong>{{ "taskDetail.period" | translate }}:</strong>
           {{ formatDateForDisplay(taskData.startDate) }}
-          {{ 'taskDetail.periodSeparator' | translate }}
+          {{ "taskDetail.periodSeparator" | translate }}
           {{ formatDateForDisplay(taskData.dueDate) }}
         </p>
 
         <p>
           <strong>{{ "taskDetail.assignee" | translate }}:</strong>
-          <span *ngIf="taskData.assignedMembers && taskData.assignedMembers.length > 0">
+          <span
+            *ngIf="
+              taskData.assignedMembers && taskData.assignedMembers.length > 0
+            "
+          >
             {{ getAssignedMembersDisplay() }}
           </span>
-          <span *ngIf="!taskData.assignedMembers || taskData.assignedMembers.length === 0">
-          {{ getCurrentMemberNameByName(taskData.assignee) || "—" }}
+          <span
+            *ngIf="
+              !taskData.assignedMembers || taskData.assignedMembers.length === 0
+            "
+          >
+            {{ getCurrentMemberNameByName(taskData.assignee) || "—" }}
           </span>
         </p>
 
@@ -178,7 +199,11 @@
         <form class="task-inline-edit-form" novalidate>
           <mat-form-field appearance="outline" class="full-width-field">
             <mat-label>{{ "taskDetail.projectName" | translate }}</mat-label>
-            <input matInput [value]="taskData.projectName || project?.projectName || ''" disabled />
+            <input
+              matInput
+              [value]="taskData.projectName || project?.projectName || ''"
+              disabled
+            />
           </mat-form-field>
 
           <mat-form-field
@@ -191,7 +216,6 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width-field">
-            <mat-label>{{ "taskDetail.description" | translate }}</mat-label>
             <textarea
               matInput
               rows="3"
@@ -200,29 +224,35 @@
               [placeholder]="'taskDetail.descriptionPlaceholder' | translate"
               maxlength="200"
             ></textarea>
-            <mat-hint align="end">{{ (taskData.description || '').length }}/200</mat-hint>
+            <mat-hint align="end"
+              >{{ (taskData.description || "").length }}/200</mat-hint
+            >
           </mat-form-field>
 
           <div class="inline-date-row">
             <mat-form-field appearance="outline" class="date-field">
-              <mat-label>{{ "taskDetail.startDate" | translate }} * <span class="required-hint">{{ 'taskDetail.required' | translate }}</span></mat-label>
               <input
                 matInput
                 [matDatepicker]="taskStartDatePicker"
                 [(ngModel)]="taskStartDateObj"
                 (dateChange)="onTaskStartDateChange()"
                 [max]="taskDueDateObj || maxDate"
-                [ngModelOptions]="{standalone: true}"
-                placeholder="開始日"
-                readonly
+                [ngModelOptions]="{ standalone: true }"
+                [placeholder]="
+                  'taskDetail.startDatePlaceholderFull' | translate
+                "
+                (click)="taskStartDatePicker.open()"
+                (keydown)="$event.preventDefault()"
                 required
               />
-              <mat-datepicker-toggle matIconSuffix [for]="taskStartDatePicker"></mat-datepicker-toggle>
+              <mat-datepicker-toggle
+                matIconSuffix
+                [for]="taskStartDatePicker"
+              ></mat-datepicker-toggle>
               <mat-datepicker #taskStartDatePicker></mat-datepicker>
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="date-field">
-              <mat-label>{{ "taskDetail.dueDate" | translate }} * <span class="required-hint">{{ 'taskDetail.required' | translate }}</span></mat-label>
               <input
                 matInput
                 [matDatepicker]="taskDueDatePicker"
@@ -230,24 +260,28 @@
                 (dateChange)="onTaskDueDateChange()"
                 [min]="taskStartDateObj || undefined"
                 [max]="maxDate"
-                [ngModelOptions]="{standalone: true}"
-                readonly
+                [ngModelOptions]="{ standalone: true }"
+                [placeholder]="'taskDetail.dueDatePlaceholderFull' | translate"
+                (click)="taskDueDatePicker.open()"
+                (keydown)="$event.preventDefault()"
                 required
               />
-              <mat-datepicker-toggle matIconSuffix [for]="taskDueDatePicker"></mat-datepicker-toggle>
+              <mat-datepicker-toggle
+                matIconSuffix
+                [for]="taskDueDatePicker"
+              ></mat-datepicker-toggle>
               <mat-datepicker #taskDueDatePicker></mat-datepicker>
             </mat-form-field>
           </div>
 
           <mat-form-field appearance="outline" class="full-width-field">
-            <mat-label>{{ "taskDetail.assignee" | translate }} * <span class="required-hint">{{ 'taskDetail.required' | translate }}</span></mat-label>
             <mat-select
               [(ngModel)]="selectedAssignedMemberIds"
               name="assignedMembers"
               multiple
               (ngModelChange)="onAssignedMembersChange($event)"
               [disabled]="membersLoading"
-              [placeholder]="'taskDetail.assignee' | translate"
+              [placeholder]="'taskDetail.assigneePlaceholderFull' | translate"
               required
             >
               <mat-option
@@ -274,8 +308,11 @@
           </div>
 
           <mat-form-field appearance="outline" class="full-width-field">
-            <mat-label>{{ "taskDetail.status" | translate }}</mat-label>
-            <mat-select [(ngModel)]="taskData.status" name="status" [placeholder]="'taskDetail.status' | translate">
+            <mat-select
+              [(ngModel)]="taskData.status"
+              name="status"
+              [placeholder]="'taskDetail.status' | translate"
+            >
               <mat-option value="未着手">{{
                 "taskDetail.status.notStarted" | translate
               }}</mat-option>
@@ -289,8 +326,11 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width-field">
-            <mat-label>{{ "taskDetail.priority" | translate }}</mat-label>
-            <mat-select [(ngModel)]="taskData.priority" name="priority" [placeholder]="'taskDetail.priority' | translate">
+            <mat-select
+              [(ngModel)]="taskData.priority"
+              name="priority"
+              [placeholder]="'taskDetail.priority' | translate"
+            >
               <mat-option value="高">{{
                 "taskDetail.priority.high" | translate
               }}</mat-option>
@@ -326,11 +366,10 @@
                 hidden
               />
               <mat-form-field appearance="outline" class="url-input-field">
-                <mat-label>{{ "taskDetail.enterUrl" | translate }}</mat-label>
                 <input
                   matInput
                   [(ngModel)]="newUrlInput"
-                  placeholder="https://example.com"
+                  [placeholder]="'taskDetail.urlPlaceholder' | translate"
                   (keyup.enter)="addUrl(newUrlInput)"
                   name="newUrl"
                 />
@@ -437,15 +476,20 @@
                 </mat-chip>
               </mat-chip-set>
               <mat-form-field appearance="outline" class="tag-input-field">
-                <mat-label>{{ "taskDetail.addTag" | translate }}</mat-label>
                 <input
                   matInput
                   #tagInput
-                  [placeholder]="('taskDetail.enterTag' | translate) + ' ' + ('taskDetail.tagPlaceholder' | translate)"
+                  [placeholder]="
+                    ('taskDetail.enterTag' | translate) +
+                    ' ' +
+                    ('taskDetail.tagPlaceholder' | translate)
+                  "
                   (keyup.enter)="addTag(tagInput.value); tagInput.value = ''"
                   maxlength="20"
                 />
-                <mat-hint align="end">{{ tagInput.value?.length || 0 }}/20</mat-hint>
+                <mat-hint align="end"
+                  >{{ tagInput.value?.length || 0 }}/20</mat-hint
+                >
               </mat-form-field>
             </p>
           </div>
@@ -508,11 +552,10 @@
               </mat-chip>
             </mat-chip-set>
             <mat-form-field appearance="outline" class="tag-input-field">
-              <mat-label>{{ "taskDetail.addTag" | translate }}</mat-label>
               <input
                 matInput
                 #tagInput
-                placeholder="{{ 'taskDetail.enterTag' | translate }}"
+                [placeholder]="'taskDetail.enterTag' | translate"
                 (keyup.enter)="addTag(tagInput.value); tagInput.value = ''"
               />
             </mat-form-field>
@@ -538,15 +581,12 @@
               </mat-chip>
             </mat-chip-set>
             <mat-form-field appearance="outline" class="tag-input-field">
-              <mat-label>{{
-                "taskDetail.enterUrlOrFileName" | translate
-              }}</mat-label>
               <input
                 matInput
                 #fileInput
-                placeholder="{{
+                [placeholder]="
                   'taskDetail.enterUrlOrFileNamePlaceholder' | translate
-                }}"
+                "
                 (keyup.enter)="
                   addRelatedFile(fileInput.value); fileInput.value = ''
                 "
@@ -648,7 +688,6 @@
 
       <div class="child-filter-section">
         <mat-form-field appearance="outline">
-          <mat-label>{{ "taskDetail.status" | translate }}</mat-label>
           <mat-select
             [(ngModel)]="childFilterStatus"
             (selectionChange)="applyChildFilter()"
@@ -662,7 +701,6 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>{{ "taskDetail.priority" | translate }}</mat-label>
           <mat-select
             [(ngModel)]="childFilterPriority"
             (selectionChange)="applyChildFilter()"
@@ -679,7 +717,6 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>{{ "taskDetail.assignee" | translate }}</mat-label>
           <mat-select
             [(ngModel)]="childFilterAssignee"
             (selectionChange)="applyChildFilter()"
@@ -696,18 +733,21 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>{{ "taskDetail.dueDate" | translate }}</mat-label>
           <input
             matInput
             [matDatepicker]="childDueDatePicker"
             [(ngModel)]="childFilterDueDateObj"
             (dateChange)="onChildDueDateChange()"
             [max]="maxDate"
-            [ngModelOptions]="{standalone: true}"
-            placeholder="日にち"
-            readonly
+            [ngModelOptions]="{ standalone: true }"
+            [placeholder]="'taskDetail.selectDueDate' | translate"
+            (click)="childDueDatePicker.open()"
+            (keydown)="$event.preventDefault()"
           />
-          <mat-datepicker-toggle matIconSuffix [for]="childDueDatePicker"></mat-datepicker-toggle>
+          <mat-datepicker-toggle
+            matIconSuffix
+            [for]="childDueDatePicker"
+          ></mat-datepicker-toggle>
           <mat-datepicker #childDueDatePicker></mat-datepicker>
         </mat-form-field>
 
@@ -758,11 +798,14 @@
                 <div class="child-task-detail-item child-task-detail-member">
                   <mat-icon>person</mat-icon>
                   <span class="child-task-member-name">{{
-                    getChildTaskAssigneeDisplay(child) || ('taskDetail.unassigned' | translate)
+                    getChildTaskAssigneeDisplay(child) ||
+                      ("taskDetail.unassigned" | translate)
                   }}</span>
                   <div class="child-task-member-due">
                     <mat-icon>schedule</mat-icon>
-                    <span>{{ child.dueDate || ('taskDetail.notSet' | translate) }}</span>
+                    <span>{{
+                      child.dueDate || ("taskDetail.notSet" | translate)
+                    }}</span>
                   </div>
                 </div>
               </div>

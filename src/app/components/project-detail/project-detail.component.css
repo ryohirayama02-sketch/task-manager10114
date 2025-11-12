@@ -1,3 +1,263 @@
+/* ===== 全フィールド共通のプレースホルダー表示 ===== */
+
+/* 値が空の場合、ラベルを非表示にしてプレースホルダーを表示（全フィールド） */
+.project-card
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value)
+  .mat-mdc-form-field-label-wrapper {
+  display: none !important;
+}
+
+/* mat-selectの場合、ラベルを非表示にしてプレースホルダーを表示 */
+.project-card
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value)
+  .mat-mdc-form-field-label {
+  display: none !important;
+}
+
+.project-card
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value)
+  .mat-mdc-form-field-label-wrapper
+  .mat-mdc-form-field-label {
+  display: none !important;
+}
+
+/* mat-selectの場合、値が空の配列でもラベルを非表示にする（multiple select対応） */
+.project-card
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-select
+  .mat-mdc-select-value-text:empty
+  ~ .mat-mdc-select-placeholder,
+.project-card
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-select
+  .mat-mdc-select-value:has(.mat-mdc-select-value-text:empty)
+  ~ .mat-mdc-select-placeholder {
+  display: block !important;
+}
+
+/* mat-selectの場合、値が空の配列でもラベルを非表示にする（より確実に） */
+.project-card
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-select
+  .mat-mdc-select-value-text:empty
+  + .mat-mdc-form-field-label-wrapper {
+  display: none !important;
+}
+
+/* mat-selectの場合、値が空の配列でもラベルを非表示にする（値が空の場合、フォーカスされていない場合） */
+.project-card
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-select
+  .mat-mdc-select-value-text:empty
+  ~ *
+  .mat-mdc-form-field-label-wrapper {
+  display: none !important;
+}
+
+/* mat-selectの場合、値が空の配列でもラベルを非表示にする（値が空の場合、フォーカスされていない場合、より確実に） */
+.project-card
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-select
+  .mat-mdc-select-value-text:empty {
+  display: none !important;
+}
+
+.project-card
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-select
+  .mat-mdc-select-value:has(.mat-mdc-select-value-text:empty) {
+  display: none !important;
+}
+
+/* mat-selectの場合、値が空の配列でもラベルを非表示にする（値が空の場合、フォーカスされていない場合、最も確実に） */
+.project-card
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value)
+  .mat-mdc-form-field-label-wrapper,
+.project-card
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-select
+  .mat-mdc-select-value-text:empty
+  ~ *
+  .mat-mdc-form-field-label-wrapper,
+.project-card
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-select
+  .mat-mdc-select-value:has(.mat-mdc-select-value-text:empty)
+  ~ *
+  .mat-mdc-form-field-label-wrapper {
+  display: none !important;
+}
+
+/* 責任者・メンバー選択欄のラベルは非表示（プレースホルダーを表示するため） */
+.project-card ::ng-deep .full-width-field .mat-mdc-form-field-label-wrapper,
+.project-card ::ng-deep .full-width-field .mat-mdc-form-field-label,
+.project-card ::ng-deep .full-width-field mat-label {
+  display: none !important;
+}
+
+/* 責任者・メンバー選択欄のプレースホルダーを常に表示 */
+.project-card ::ng-deep .full-width-field .mat-mdc-select-placeholder {
+  display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+}
+
+.project-card
+  ::ng-deep
+  .full-width-field
+  .mat-mdc-select
+  .mat-mdc-select-trigger
+  .mat-mdc-select-placeholder {
+  display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+}
+
+/* 責任者・メンバー選択欄の値が空の場合、プレースホルダーを表示 */
+.project-card
+  ::ng-deep
+  .full-width-field
+  .mat-mdc-select
+  .mat-mdc-select-value-text:empty
+  ~ .mat-mdc-select-placeholder {
+  display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+}
+
+.project-card
+  ::ng-deep
+  .full-width-field
+  .mat-mdc-select
+  .mat-mdc-select-value:has(.mat-mdc-select-value-text:empty)
+  ~ .mat-mdc-select-placeholder {
+  display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+}
+
+.project-card
+  ::ng-deep
+  .full-width-field
+  .mat-mdc-select
+  .mat-mdc-select-trigger:has(.mat-mdc-select-value-text:empty)
+  .mat-mdc-select-placeholder {
+  display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+}
+
+/* 責任者・メンバー選択欄の値が選択されている場合、プレースホルダーを非表示 */
+.project-card
+  ::ng-deep
+  .full-width-field
+  .mat-mdc-select
+  .mat-mdc-select-trigger:not(:has(.mat-mdc-select-value-text:empty))
+  .mat-mdc-select-placeholder {
+  display: none !important;
+}
+
+/* 日付フィールドのカーソルをポインターに */
+.project-card ::ng-deep .date-field input,
+.project-card ::ng-deep .milestone-date input {
+  cursor: pointer !important;
+}
+
+/* プレイスホルダーの色を明示的に設定（すべてのフィールドに適用） */
+.project-card ::ng-deep .mat-mdc-form-field input::placeholder,
+.project-card ::ng-deep .mat-mdc-form-field textarea::placeholder {
+  color: rgba(0, 0, 0, 0.6) !important;
+  opacity: 1 !important;
+}
+
+.project-card ::ng-deep .mat-mdc-form-field input:not(:focus)::placeholder,
+.project-card ::ng-deep .mat-mdc-form-field textarea:not(:focus)::placeholder {
+  color: rgba(0, 0, 0, 0.6) !important;
+  opacity: 1 !important;
+}
+
+/* フィルターセクションのラベルを非表示（プレースホルダーを表示するため） */
+.filter-section ::ng-deep .mat-mdc-form-field-label-wrapper,
+.filter-section ::ng-deep .mat-mdc-form-field-label,
+.filter-section ::ng-deep mat-label {
+  display: none !important;
+}
+
+/* フィルターセクションのmat-selectプレースホルダーを常に表示 */
+.filter-section ::ng-deep .mat-mdc-select-placeholder {
+  display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+}
+
+.filter-section
+  ::ng-deep
+  .mat-mdc-select
+  .mat-mdc-select-trigger
+  .mat-mdc-select-placeholder {
+  display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+}
+
+/* フィルターセクションの値が空の場合、プレースホルダーを表示 */
+.filter-section
+  ::ng-deep
+  .mat-mdc-select
+  .mat-mdc-select-value-text:empty
+  ~ .mat-mdc-select-placeholder {
+  display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+}
+
+.filter-section
+  ::ng-deep
+  .mat-mdc-select
+  .mat-mdc-select-value:has(.mat-mdc-select-value-text:empty)
+  ~ .mat-mdc-select-placeholder {
+  display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+}
+
+.filter-section
+  ::ng-deep
+  .mat-mdc-select
+  .mat-mdc-select-trigger:has(.mat-mdc-select-value-text:empty)
+  .mat-mdc-select-placeholder {
+  display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+}
+
+/* フィルターセクションの期日フィールドのカーソルをポインターに */
+.filter-section ::ng-deep .due-date-filter-field input {
+  cursor: pointer !important;
+}
+
 .page-header {
   display: flex;
   align-items: center;
@@ -215,7 +475,7 @@
   font-size: 20px;
 }
 
-.inline-date-row input[type='date'] {
+.inline-date-row input[type="date"] {
   cursor: pointer;
   color-scheme: light;
   -webkit-appearance: none;
@@ -223,7 +483,7 @@
   appearance: none;
 }
 
-.inline-date-row input[type='date']::-webkit-calendar-picker-indicator {
+.inline-date-row input[type="date"]::-webkit-calendar-picker-indicator {
   position: absolute;
   right: 8px;
   top: 50%;
@@ -237,12 +497,12 @@
   opacity: 0;
 }
 
-.inline-date-row input[type='date']::-webkit-inner-spin-button,
-.inline-date-row input[type='date']::-webkit-clear-button {
+.inline-date-row input[type="date"]::-webkit-inner-spin-button,
+.inline-date-row input[type="date"]::-webkit-clear-button {
   display: none;
 }
 
-.inline-date-row input[type='date']::-moz-calendar-picker-indicator {
+.inline-date-row input[type="date"]::-moz-calendar-picker-indicator {
   position: absolute;
   right: 8px;
   top: 50%;
@@ -412,7 +672,8 @@
   border-radius: 12px;
   border: 1px solid rgba(0, 0, 0, 0.25);
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease,
+    border-color 0.15s ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -445,12 +706,12 @@
 
 .theme-color-option.no-color-option {
   background: repeating-linear-gradient(
-      135deg,
-      #f5f5f5,
-      #f5f5f5 6px,
-      #e0e0e0 6px,
-      #e0e0e0 12px
-    );
+    135deg,
+    #f5f5f5,
+    #f5f5f5 6px,
+    #e0e0e0 6px,
+    #e0e0e0 12px
+  );
   color: #424242;
   font-weight: 600;
   font-size: 12px;
@@ -540,7 +801,7 @@
   font-size: 20px;
 }
 
-.inline-milestones .milestone-date-field input[type='date'] {
+.inline-milestones .milestone-date-field input[type="date"] {
   cursor: pointer;
   color-scheme: light;
   -webkit-appearance: none;
@@ -548,7 +809,9 @@
   appearance: none;
 }
 
-.inline-milestones .milestone-date-field input[type='date']::-webkit-calendar-picker-indicator {
+.inline-milestones
+  .milestone-date-field
+  input[type="date"]::-webkit-calendar-picker-indicator {
   position: absolute;
   right: 8px;
   top: 50%;
@@ -562,12 +825,18 @@
   opacity: 0;
 }
 
-.inline-milestones .milestone-date-field input[type='date']::-webkit-inner-spin-button,
-.inline-milestones .milestone-date-field input[type='date']::-webkit-clear-button {
+.inline-milestones
+  .milestone-date-field
+  input[type="date"]::-webkit-inner-spin-button,
+.inline-milestones
+  .milestone-date-field
+  input[type="date"]::-webkit-clear-button {
   display: none;
 }
 
-.inline-milestones .milestone-date-field input[type='date']::-moz-calendar-picker-indicator {
+.inline-milestones
+  .milestone-date-field
+  input[type="date"]::-moz-calendar-picker-indicator {
   position: absolute;
   right: 8px;
   top: 50%;
@@ -580,7 +849,6 @@
   height: 20px;
   opacity: 0;
 }
-
 
 .project-delete-actions {
   margin-top: 24px;
@@ -851,7 +1119,10 @@ textarea {
 }
 
 /* 期日フィルターフィールドのカレンダーアイコンの余白 */
-.filter-section .due-date-filter-field ::ng-deep .mat-mdc-form-field-icon-suffix {
+.filter-section
+  .due-date-filter-field
+  ::ng-deep
+  .mat-mdc-form-field-icon-suffix {
   padding-right: 8px;
 }
 
@@ -863,7 +1134,11 @@ textarea {
   padding-right: 8px;
 }
 
-.filter-section .due-date-filter-field ::ng-deep .mat-mdc-form-field-icon-suffix .mat-datepicker-toggle {
+.filter-section
+  .due-date-filter-field
+  ::ng-deep
+  .mat-mdc-form-field-icon-suffix
+  .mat-datepicker-toggle {
   margin-left: 4px;
 }
 
@@ -886,7 +1161,11 @@ textarea {
   max-width: 100% !important;
 }
 
-.filter-section mat-select ::ng-deep .mat-mdc-option .mdc-list-item__primary-text {
+.filter-section
+  mat-select
+  ::ng-deep
+  .mat-mdc-option
+  .mdc-list-item__primary-text {
   white-space: normal !important;
   word-wrap: break-word !important;
   overflow-wrap: break-word !important;

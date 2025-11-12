@@ -740,24 +740,68 @@ export class LanguageService {
     'projectDetail.on': { ja: 'ON', en: 'ON' },
     'projectDetail.off': { ja: 'OFF', en: 'OFF' },
     'projectDetail.overview': { ja: '説明', en: 'Overview' },
+    'projectDetail.overviewPlaceholder': {
+      ja: 'プロジェクトの詳細説明を入力してください（200文字以内）',
+      en: 'Enter project details (max 200 characters)',
+    },
     'projectDetail.notSet': { ja: '未設定', en: 'Not Set' },
     'projectDetail.period': { ja: '期間', en: 'Period' },
     'projectDetail.responsible': { ja: '責任者', en: 'Project Owner' },
+    'projectDetail.selectResponsiblePlaceholder': {
+      ja: '責任者を選択してください（複数選択可）',
+      en: 'Select project owners (multiple selection)',
+    },
+    'projectDetail.selectResponsiblePlaceholderFull': {
+      ja: '責任者を選択してください（複数選択可）（入力必須）',
+      en: 'Select project owners (multiple selection) (Required)',
+    },
     'projectDetail.members': { ja: 'メンバー', en: 'Members' },
     'projectDetail.materials': { ja: '資料', en: 'Materials' },
     'projectDetail.tasks': { ja: 'タスク', en: 'Tasks' },
     'projectDetail.saveChanges': { ja: '変更を保存', en: 'Save Changes' },
     'projectDetail.delete': { ja: 'プロジェクトを削除', en: 'Delete Project' },
     'projectDetail.projectName': { ja: 'プロジェクト名', en: 'Project Name' },
+    'projectDetail.projectNamePlaceholder': {
+      ja: '例: 新商品開発プロジェクト',
+      en: 'e.g.: New Product Development Project',
+    },
+    'projectDetail.projectNamePlaceholderFull': {
+      ja: '例: 新商品開発プロジェクト（入力必須）',
+      en: 'e.g.: New Product Development Project (Required)',
+    },
     'projectDetail.startDate': { ja: '開始日', en: 'Start Date' },
+    'projectDetail.startDatePlaceholder': {
+      ja: '開始日を選択',
+      en: 'Select start date',
+    },
+    'projectDetail.startDatePlaceholderFull': {
+      ja: '開始日を選択（選択必須）',
+      en: 'Select start date (Selection Required)',
+    },
     'projectDetail.endDate': { ja: '終了日', en: 'End Date' },
+    'projectDetail.endDatePlaceholder': {
+      ja: '終了日を選択',
+      en: 'Select end date',
+    },
+    'projectDetail.endDatePlaceholderFull': {
+      ja: '終了日を選択（選択必須）',
+      en: 'Select end date (Selection Required)',
+    },
     'projectDetail.assignee': { ja: 'メンバー', en: 'Members' },
     'projectDetail.selectMember': {
       ja: 'メンバーを選択',
       en: 'Select Members',
     },
+    'projectDetail.selectMemberPlaceholderFull': {
+      ja: 'メンバーを選択してください（複数選択可）（入力必須）',
+      en: 'Select members (multiple selection) (Required)',
+    },
     'projectDetail.addFile': { ja: 'ファイルを追加', en: 'Add File' },
     'projectDetail.enterUrl': { ja: 'URLを入力', en: 'Enter URL' },
+    'projectDetail.urlPlaceholder': {
+      ja: 'https://example.com',
+      en: 'https://example.com',
+    },
     'projectDetail.add': { ja: '追加', en: 'Add' },
     'projectDetail.materialName': { ja: '資料名', en: 'Material Name' },
     'projectDetail.designMaterial': { ja: '設計資料', en: 'Design Document' },
@@ -785,6 +829,10 @@ export class LanguageService {
     },
     'projectDetail.milestones': { ja: 'マイルストーン', en: 'Milestones' },
     'projectDetail.date': { ja: '日付', en: 'Date' },
+    'projectDetail.milestoneDatePlaceholder': {
+      ja: '日付を選択',
+      en: 'Select date',
+    },
     'projectDetail.milestoneName': {
       ja: 'マイルストーン名',
       en: 'Milestone Name',
@@ -1014,6 +1062,18 @@ export class LanguageService {
     'taskDetail.off': { ja: 'OFF', en: 'OFF' },
     'taskDetail.description': { ja: 'タスク説明', en: 'Description' },
     'taskDetail.taskName': { ja: 'タスク名', en: 'Task Name' },
+    'taskDetail.taskNamePlaceholder': {
+      ja: 'タスク名を入力してください',
+      en: 'Enter task name',
+    },
+    'taskDetail.taskNamePlaceholderFull': {
+      ja: 'タスク名を入力してください（入力必須）',
+      en: 'Enter task name (Required)',
+    },
+    'taskDetail.childTaskNamePlaceholderFull': {
+      ja: '子タスク名を入力してください（入力必須）',
+      en: 'Enter child task name (Required)',
+    },
     'taskDetail.childTaskName': { ja: '子タスク名', en: 'Child Task Name' },
     'taskDetail.projectName': { ja: 'プロジェクト名', en: 'Project Name' },
     'taskDetail.parentTaskName': { ja: '親タスク名', en: 'Parent Task Name' },
@@ -1024,10 +1084,34 @@ export class LanguageService {
     'taskDetail.parentTask': { ja: '親タスク', en: 'Parent Task' },
     'taskDetail.period': { ja: '期間', en: 'Period' },
     'taskDetail.assignee': { ja: '担当者', en: 'Assignee' },
+    'taskDetail.assigneePlaceholder': {
+      ja: '担当者を選択してください（複数選択可）',
+      en: 'Select assignees (multiple selection)',
+    },
+    'taskDetail.assigneePlaceholderFull': {
+      ja: '担当者を選択してください（複数選択可）（入力必須）',
+      en: 'Select assignees (multiple selection) (Required)',
+    },
     'taskDetail.status': { ja: 'ステータス', en: 'Status' },
     'taskDetail.priority': { ja: '優先度', en: 'Priority' },
     'taskDetail.startDate': { ja: '開始日', en: 'Start Date' },
+    'taskDetail.startDatePlaceholder': {
+      ja: '開始日を選択',
+      en: 'Select start date',
+    },
+    'taskDetail.startDatePlaceholderFull': {
+      ja: '開始日を選択（選択必須）',
+      en: 'Select start date (Selection Required)',
+    },
     'taskDetail.dueDate': { ja: '終了日', en: 'Due Date' },
+    'taskDetail.dueDatePlaceholder': {
+      ja: '期日を選択',
+      en: 'Select due date',
+    },
+    'taskDetail.dueDatePlaceholderFull': {
+      ja: '期日を選択（選択必須）',
+      en: 'Select due date (Selection Required)',
+    },
     'taskDetail.unassigned': { ja: '未割当', en: 'Unassigned' },
     'taskDetail.status.notStarted': { ja: '未着手', en: 'Not Started' },
     'taskDetail.status.inProgress': { ja: '作業中', en: 'In Progress' },
@@ -1058,6 +1142,10 @@ export class LanguageService {
       en: 'Enter https://... or file name',
     },
     'taskDetail.enterUrl': { ja: 'URLを入力', en: 'Enter URL' },
+    'taskDetail.urlPlaceholder': {
+      ja: 'https://example.com',
+      en: 'https://example.com',
+    },
     'taskDetail.add': { ja: '追加', en: 'Add' },
     'taskDetail.taskChat': { ja: 'タスクチャット', en: 'Task Chat' },
     'taskDetail.createSubtask': { ja: '子タスク', en: 'Create Subtask' },
