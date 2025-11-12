@@ -46,25 +46,18 @@
 
         <!-- タスク名 -->
         <mat-form-field appearance="outline" class="full-width-field">
-          <mat-label
-            >{{
-              isSubtaskCreation
-                ? ("taskCreate.subtaskName" | translate)
-                : ("taskCreate.taskName" | translate)
-            }}
-            *
-            <span class="required-hint">{{
-              "taskCreate.required" | translate
-            }}</span></mat-label
-          >
           <input
             matInput
             [(ngModel)]="taskForm.taskName"
             name="taskName"
             [placeholder]="
               isSubtaskCreation
-                ? ('taskCreate.subtaskNamePlaceholder' | translate)
-                : ('taskCreate.taskNamePlaceholder' | translate)
+                ? ('taskCreate.subtaskNamePlaceholder' | translate) +
+                  ' ' +
+                  ('taskCreate.required' | translate)
+                : ('taskCreate.taskNamePlaceholder' | translate) +
+                  ' ' +
+                  ('taskCreate.required' | translate)
             "
             required
             maxlength="30"
@@ -76,7 +69,6 @@
 
         <!-- 説明 -->
         <mat-form-field appearance="outline" class="full-width-field">
-          <mat-label>{{ "taskCreate.description" | translate }}</mat-label>
           <textarea
             matInput
             rows="3"
@@ -93,12 +85,6 @@
         <!-- 日付範囲 -->
         <div class="date-row">
           <mat-form-field appearance="outline" class="date-field">
-            <mat-label
-              >{{ "taskCreate.startDate" | translate }} *
-              <span class="required-hint">{{
-                "taskCreate.required" | translate
-              }}</span></mat-label
-            >
             <input
               matInput
               [matDatepicker]="startDatePicker"
@@ -108,7 +94,11 @@
               (keydown)="$event.preventDefault()"
               [max]="dueDateObj || maxDate"
               [ngModelOptions]="{ standalone: true }"
-              [placeholder]="'taskCreate.startDatePlaceholder' | translate"
+              [placeholder]="
+                ('taskCreate.startDatePlaceholder' | translate) +
+                ' ' +
+                ('taskCreate.selectRequired' | translate)
+              "
               required
             />
             <mat-datepicker-toggle
@@ -119,12 +109,6 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="date-field">
-            <mat-label
-              >{{ "taskCreate.dueDate" | translate }} *
-              <span class="required-hint">{{
-                "taskCreate.required" | translate
-              }}</span></mat-label
-            >
             <input
               matInput
               [matDatepicker]="dueDatePicker"
@@ -135,7 +119,11 @@
               [min]="startDateObj || undefined"
               [max]="maxDate"
               [ngModelOptions]="{ standalone: true }"
-              [placeholder]="'taskCreate.dueDatePlaceholder' | translate"
+              [placeholder]="
+                ('taskCreate.dueDatePlaceholder' | translate) +
+                ' ' +
+                ('taskCreate.selectRequired' | translate)
+              "
               required
             />
             <mat-datepicker-toggle
@@ -147,19 +135,20 @@
         </div>
 
         <!-- 担当者 -->
-        <mat-form-field appearance="outline" class="full-width-field">
-          <mat-label
-            >{{ "taskCreate.assignee" | translate }} *
-            <span class="required-hint">{{
-              "taskCreate.required" | translate
-            }}</span></mat-label
-          >
+        <mat-form-field
+          appearance="outline"
+          class="full-width-field assignee-field"
+        >
           <mat-select
             [(ngModel)]="selectedMemberIds"
             name="assignee"
             multiple
             (ngModelChange)="onMembersSelectionChange($event)"
-            [placeholder]="'taskCreate.assignee' | translate"
+            [placeholder]="
+              ('taskCreate.assignee' | translate) +
+              ' ' +
+              ('taskCreate.required' | translate)
+            "
             required
           >
             <mat-option
@@ -176,7 +165,6 @@
 
         <!-- ステータス -->
         <mat-form-field appearance="outline" class="full-width-field">
-          <mat-label>{{ "taskCreate.status" | translate }}</mat-label>
           <mat-select
             [(ngModel)]="taskForm.status"
             name="status"
@@ -190,7 +178,6 @@
 
         <!-- 優先度 -->
         <mat-form-field appearance="outline" class="full-width-field">
-          <mat-label>{{ "taskCreate.priority" | translate }}</mat-label>
           <mat-select
             [(ngModel)]="taskForm.priority"
             name="priority"
@@ -228,7 +215,6 @@
               hidden
             />
             <mat-form-field appearance="outline" class="url-input-field">
-              <mat-label>{{ "taskCreate.enterUrl" | translate }}</mat-label>
               <input
                 matInput
                 [(ngModel)]="newUrlInput"
@@ -336,7 +322,6 @@
             </mat-chip>
           </mat-chip-set>
           <mat-form-field appearance="outline" class="tag-input-field">
-            <mat-label>{{ "taskCreate.addTag" | translate }}</mat-label>
             <input
               matInput
               #tagInput

@@ -1319,6 +1319,7 @@ export class LanguageService {
       en: 'Enter task details (max 200 characters)',
     },
     'taskCreate.required': { ja: '（入力必須）', en: '(Required)' },
+    'taskCreate.selectRequired': { ja: '（選択必須）', en: '(Selection Required)' },
     'taskCreate.noMembersInProject': {
       ja: 'プロジェクトにメンバーが登録されていません',
       en: 'No members registered in project',

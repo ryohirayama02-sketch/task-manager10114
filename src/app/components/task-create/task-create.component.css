@@ -109,26 +109,45 @@
   color: rgba(0, 0, 0, 0.6) !important;
 }
 
-.task-create-container ::ng-deep .date-field input:not(:focus):placeholder-shown {
+.task-create-container
+  ::ng-deep
+  .date-field
+  input:not(:focus):placeholder-shown {
   color: rgba(0, 0, 0, 0.6) !important;
 }
 
 /* Material datepickerの入力欄でプレースホルダーを表示 */
-.task-create-container ::ng-deep .date-field .mat-mdc-text-field-wrapper input::placeholder {
+.task-create-container
+  ::ng-deep
+  .date-field
+  .mat-mdc-text-field-wrapper
+  input::placeholder {
   opacity: 1 !important;
   color: rgba(0, 0, 0, 0.6) !important;
 }
 
-.task-create-container ::ng-deep .date-field .mat-mdc-text-field-wrapper input:not(:focus)::placeholder {
+.task-create-container
+  ::ng-deep
+  .date-field
+  .mat-mdc-text-field-wrapper
+  input:not(:focus)::placeholder {
   opacity: 1 !important;
   color: rgba(0, 0, 0, 0.6) !important;
 }
 
-.task-create-container ::ng-deep .date-field .mat-mdc-text-field-wrapper input:placeholder-shown {
+.task-create-container
+  ::ng-deep
+  .date-field
+  .mat-mdc-text-field-wrapper
+  input:placeholder-shown {
   color: rgba(0, 0, 0, 0.6) !important;
 }
 
-.task-create-container ::ng-deep .date-field .mat-mdc-text-field-wrapper input:not(:focus):placeholder-shown {
+.task-create-container
+  ::ng-deep
+  .date-field
+  .mat-mdc-text-field-wrapper
+  input:not(:focus):placeholder-shown {
   color: rgba(0, 0, 0, 0.6) !important;
 }
 
@@ -137,53 +156,104 @@
   color: rgba(0, 0, 0, 0.87) !important;
 }
 
-.task-create-container ::ng-deep .date-field .mat-mdc-text-field-wrapper input:not(:placeholder-shown) {
+.task-create-container
+  ::ng-deep
+  .date-field
+  .mat-mdc-text-field-wrapper
+  input:not(:placeholder-shown) {
   color: rgba(0, 0, 0, 0.87) !important;
 }
 
 /* Material datepickerでラベルがある場合でもプレースホルダーを表示 */
-.task-create-container ::ng-deep .date-field .mat-mdc-form-field:not(.mat-focused) .mat-mdc-text-field-wrapper input:placeholder-shown {
+.task-create-container
+  ::ng-deep
+  .date-field
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-text-field-wrapper
+  input:placeholder-shown {
   color: rgba(0, 0, 0, 0.6) !important;
 }
 
-.task-create-container ::ng-deep .date-field .mat-mdc-form-field:not(.mat-focused) .mat-mdc-text-field-wrapper input::placeholder {
+.task-create-container
+  ::ng-deep
+  .date-field
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-text-field-wrapper
+  input::placeholder {
   opacity: 1 !important;
   color: rgba(0, 0, 0, 0.6) !important;
 }
 
 /* ラベルが上に移動していてもプレースホルダーを表示 */
-.task-create-container ::ng-deep .date-field .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value) .mat-mdc-text-field-wrapper input::placeholder {
+.task-create-container
+  ::ng-deep
+  .date-field
+  .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value)
+  .mat-mdc-text-field-wrapper
+  input::placeholder {
   opacity: 1 !important;
   color: rgba(0, 0, 0, 0.6) !important;
   display: block !important;
 }
 
-.task-create-container ::ng-deep .date-field .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value) .mat-mdc-text-field-wrapper input {
+.task-create-container
+  ::ng-deep
+  .date-field
+  .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value)
+  .mat-mdc-text-field-wrapper
+  input {
   color: rgba(0, 0, 0, 0.6) !important;
 }
 
 /* 値が空の場合、ラベルが上に移動していてもプレースホルダーを表示 */
-.task-create-container ::ng-deep .date-field .mat-mdc-form-field:not(.mat-focused) .mat-mdc-text-field-wrapper .mat-mdc-form-field-input-control input:placeholder-shown {
+.task-create-container
+  ::ng-deep
+  .date-field
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-text-field-wrapper
+  .mat-mdc-form-field-input-control
+  input:placeholder-shown {
   color: rgba(0, 0, 0, 0.6) !important;
 }
 
-.task-create-container ::ng-deep .date-field .mat-mdc-form-field:not(.mat-focused) .mat-mdc-text-field-wrapper .mat-mdc-form-field-input-control input::placeholder {
+.task-create-container
+  ::ng-deep
+  .date-field
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-text-field-wrapper
+  .mat-mdc-form-field-input-control
+  input::placeholder {
   opacity: 1 !important;
   color: rgba(0, 0, 0, 0.6) !important;
 }
 
 /* 値が空の場合、入力欄のテキスト色をプレースホルダー色に */
-.task-create-container ::ng-deep .date-field .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value) .mat-mdc-text-field-wrapper .mat-mdc-form-field-input-control input {
+.task-create-container
+  ::ng-deep
+  .date-field
+  .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value)
+  .mat-mdc-text-field-wrapper
+  .mat-mdc-form-field-input-control
+  input {
   color: rgba(0, 0, 0, 0.6) !important;
 }
 
 /* 値が空の場合、ラベルを非表示にしてプレースホルダーを表示 */
-.task-create-container ::ng-deep .date-field .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value) .mat-mdc-form-field-label-wrapper {
+.task-create-container
+  ::ng-deep
+  .date-field
+  .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value)
+  .mat-mdc-form-field-label-wrapper {
   display: none !important;
 }
 
 /* 値が空の場合、ラベルが非表示でもプレースホルダーを表示 */
-.task-create-container ::ng-deep .date-field .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value) .mat-mdc-text-field-wrapper input::placeholder {
+.task-create-container
+  ::ng-deep
+  .date-field
+  .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value)
+  .mat-mdc-text-field-wrapper
+  input::placeholder {
   opacity: 1 !important;
   color: rgba(0, 0, 0, 0.6) !important;
   visibility: visible !important;
@@ -192,79 +262,247 @@
 /* ===== 全フィールド共通のプレースホルダー表示 ===== */
 
 /* 値が空の場合、ラベルを非表示にしてプレースホルダーを表示（全フィールド） */
-.task-create-container ::ng-deep .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value) .mat-mdc-form-field-label-wrapper {
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value)
+  .mat-mdc-form-field-label-wrapper {
   display: none !important;
 }
 
 /* mat-selectの場合、ラベルを非表示にしてプレースホルダーを表示 */
-.task-create-container ::ng-deep .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value) .mat-mdc-form-field-label {
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value)
+  .mat-mdc-form-field-label {
   display: none !important;
 }
 
-.task-create-container ::ng-deep .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value) .mat-mdc-form-field-label-wrapper .mat-mdc-form-field-label {
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value)
+  .mat-mdc-form-field-label-wrapper
+  .mat-mdc-form-field-label {
   display: none !important;
 }
 
 /* mat-selectの場合、値が空の配列でもラベルを非表示にする（multiple select対応） */
-.task-create-container ::ng-deep .mat-mdc-form-field:not(.mat-focused) .mat-mdc-select .mat-mdc-select-value-text:empty ~ .mat-mdc-select-placeholder,
-.task-create-container ::ng-deep .mat-mdc-form-field:not(.mat-focused) .mat-mdc-select .mat-mdc-select-value:has(.mat-mdc-select-value-text:empty) ~ .mat-mdc-select-placeholder {
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-select
+  .mat-mdc-select-value-text:empty
+  ~ .mat-mdc-select-placeholder,
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-select
+  .mat-mdc-select-value:has(.mat-mdc-select-value-text:empty)
+  ~ .mat-mdc-select-placeholder {
   display: block !important;
 }
 
 /* mat-selectの場合、値が空の配列でもラベルを非表示にする（より確実に） */
-.task-create-container ::ng-deep .mat-mdc-form-field:not(.mat-focused) .mat-mdc-select .mat-mdc-select-value-text:empty + .mat-mdc-form-field-label-wrapper {
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-select
+  .mat-mdc-select-value-text:empty
+  + .mat-mdc-form-field-label-wrapper {
   display: none !important;
 }
 
 /* mat-selectの場合、値が空の配列でもラベルを非表示にする（値が空の場合、フォーカスされていない場合） */
-.task-create-container ::ng-deep .mat-mdc-form-field:not(.mat-focused) .mat-mdc-select .mat-mdc-select-value-text:empty ~ * .mat-mdc-form-field-label-wrapper {
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-select
+  .mat-mdc-select-value-text:empty
+  ~ *
+  .mat-mdc-form-field-label-wrapper {
   display: none !important;
 }
 
 /* mat-selectの場合、値が空の配列でもラベルを非表示にする（値が空の場合、フォーカスされていない場合、より確実に） */
-.task-create-container ::ng-deep .mat-mdc-form-field:not(.mat-focused) .mat-mdc-select .mat-mdc-select-value-text:empty {
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-select
+  .mat-mdc-select-value-text:empty {
   display: none !important;
 }
 
-.task-create-container ::ng-deep .mat-mdc-form-field:not(.mat-focused) .mat-mdc-select .mat-mdc-select-value:has(.mat-mdc-select-value-text:empty) {
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-select
+  .mat-mdc-select-value:has(.mat-mdc-select-value-text:empty) {
   display: none !important;
 }
 
 /* mat-selectの場合、値が空の配列でもラベルを非表示にする（値が空の場合、フォーカスされていない場合、最も確実に） */
-.task-create-container ::ng-deep .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value) .mat-mdc-form-field-label-wrapper,
-.task-create-container ::ng-deep .mat-mdc-form-field:not(.mat-focused) .mat-mdc-select .mat-mdc-select-value-text:empty ~ * .mat-mdc-form-field-label-wrapper,
-.task-create-container ::ng-deep .mat-mdc-form-field:not(.mat-focused) .mat-mdc-select .mat-mdc-select-value:has(.mat-mdc-select-value-text:empty) ~ * .mat-mdc-form-field-label-wrapper {
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value)
+  .mat-mdc-form-field-label-wrapper,
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-select
+  .mat-mdc-select-value-text:empty
+  ~ *
+  .mat-mdc-form-field-label-wrapper,
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-select
+  .mat-mdc-select-value:has(.mat-mdc-select-value-text:empty)
+  ~ *
+  .mat-mdc-form-field-label-wrapper {
+  display: none !important;
+}
+
+/* 担当者欄のラベルは非表示（プレースホルダーを表示するため） */
+.task-create-container
+  ::ng-deep
+  .assignee-field
+  .mat-mdc-form-field-label-wrapper,
+.task-create-container ::ng-deep .assignee-field .mat-mdc-form-field-label,
+.task-create-container ::ng-deep .assignee-field mat-label {
+  display: none !important;
+}
+
+/* 担当者欄のプレースホルダーを常に表示 */
+.task-create-container ::ng-deep .assignee-field .mat-mdc-select-placeholder {
+  display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+}
+
+.task-create-container
+  ::ng-deep
+  .assignee-field
+  .mat-mdc-select
+  .mat-mdc-select-trigger
+  .mat-mdc-select-placeholder {
+  display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+}
+
+/* 担当者欄の値が空の場合、プレースホルダーを表示 */
+.task-create-container
+  ::ng-deep
+  .assignee-field
+  .mat-mdc-select
+  .mat-mdc-select-value-text:empty
+  ~ .mat-mdc-select-placeholder {
+  display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+}
+
+.task-create-container
+  ::ng-deep
+  .assignee-field
+  .mat-mdc-select
+  .mat-mdc-select-value:has(.mat-mdc-select-value-text:empty)
+  ~ .mat-mdc-select-placeholder {
+  display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+}
+
+.task-create-container
+  ::ng-deep
+  .assignee-field
+  .mat-mdc-select
+  .mat-mdc-select-trigger:has(.mat-mdc-select-value-text:empty)
+  .mat-mdc-select-placeholder {
+  display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+}
+
+/* 担当者欄の値が選択されている場合、プレースホルダーを非表示 */
+.task-create-container
+  ::ng-deep
+  .assignee-field
+  .mat-mdc-select
+  .mat-mdc-select-trigger:not(:has(.mat-mdc-select-value-text:empty))
+  .mat-mdc-select-placeholder {
   display: none !important;
 }
 
 /* input/textareaのプレースホルダーを常に表示 */
-.task-create-container ::ng-deep .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value) .mat-mdc-text-field-wrapper input::placeholder,
-.task-create-container ::ng-deep .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value) .mat-mdc-text-field-wrapper textarea::placeholder {
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value)
+  .mat-mdc-text-field-wrapper
+  input::placeholder,
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value)
+  .mat-mdc-text-field-wrapper
+  textarea::placeholder {
   opacity: 1 !important;
   color: rgba(0, 0, 0, 0.6) !important;
   visibility: visible !important;
 }
 
 /* input/textareaの値が空の場合、テキスト色をプレースホルダー色に */
-.task-create-container ::ng-deep .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value) .mat-mdc-text-field-wrapper .mat-mdc-form-field-input-control input,
-.task-create-container ::ng-deep .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value) .mat-mdc-text-field-wrapper .mat-mdc-form-field-input-control textarea {
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value)
+  .mat-mdc-text-field-wrapper
+  .mat-mdc-form-field-input-control
+  input,
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value)
+  .mat-mdc-text-field-wrapper
+  .mat-mdc-form-field-input-control
+  textarea {
   color: rgba(0, 0, 0, 0.6) !important;
 }
 
 /* input/textareaのプレースホルダー表示（値が空の場合） */
-.task-create-container ::ng-deep .mat-mdc-form-field:not(.mat-focused) .mat-mdc-text-field-wrapper input:placeholder-shown,
-.task-create-container ::ng-deep .mat-mdc-form-field:not(.mat-focused) .mat-mdc-text-field-wrapper textarea:placeholder-shown {
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-text-field-wrapper
+  input:placeholder-shown,
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-text-field-wrapper
+  textarea:placeholder-shown {
   color: rgba(0, 0, 0, 0.6) !important;
 }
 
-.task-create-container ::ng-deep .mat-mdc-form-field:not(.mat-focused) .mat-mdc-text-field-wrapper input::placeholder,
-.task-create-container ::ng-deep .mat-mdc-form-field:not(.mat-focused) .mat-mdc-text-field-wrapper textarea::placeholder {
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-text-field-wrapper
+  input::placeholder,
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-text-field-wrapper
+  textarea::placeholder {
   opacity: 1 !important;
   color: rgba(0, 0, 0, 0.6) !important;
 }
 
 /* mat-selectのプレースホルダーを表示（値が空の場合） */
-.task-create-container ::ng-deep .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value) .mat-mdc-select-placeholder {
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value)
+  .mat-mdc-select-placeholder {
   display: block !important;
   opacity: 1 !important;
   color: rgba(0, 0, 0, 0.6) !important;
@@ -274,14 +512,24 @@
 /* このルールは削除 - 値が空でない場合でもプレースホルダーを表示してしまうため */
 
 /* mat-selectの値が空の配列の場合でもプレースホルダーを表示（multiple select対応） */
-.task-create-container ::ng-deep .mat-mdc-form-field:not(.mat-focused) .mat-mdc-select .mat-mdc-select-value-text:empty ~ .mat-mdc-select-placeholder {
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-select
+  .mat-mdc-select-value-text:empty
+  ~ .mat-mdc-select-placeholder {
   display: block !important;
   opacity: 1 !important;
   color: rgba(0, 0, 0, 0.6) !important;
   visibility: visible !important;
 }
 
-.task-create-container ::ng-deep .mat-mdc-form-field:not(.mat-focused) .mat-mdc-select .mat-mdc-select-value:has(.mat-mdc-select-value-text:empty) ~ .mat-mdc-select-placeholder {
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-select
+  .mat-mdc-select-value:has(.mat-mdc-select-value-text:empty)
+  ~ .mat-mdc-select-placeholder {
   display: block !important;
   opacity: 1 !important;
   color: rgba(0, 0, 0, 0.6) !important;
@@ -289,14 +537,26 @@
 }
 
 /* mat-selectの値が空の配列の場合でもプレースホルダーを表示（値が空の場合、フォーカスされていない場合、より確実に） */
-.task-create-container ::ng-deep .mat-mdc-form-field:not(.mat-focused) .mat-mdc-select .mat-mdc-select-trigger .mat-mdc-select-value-text:empty ~ .mat-mdc-select-placeholder {
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-select
+  .mat-mdc-select-trigger
+  .mat-mdc-select-value-text:empty
+  ~ .mat-mdc-select-placeholder {
   display: block !important;
   opacity: 1 !important;
   color: rgba(0, 0, 0, 0.6) !important;
   visibility: visible !important;
 }
 
-.task-create-container ::ng-deep .mat-mdc-form-field:not(.mat-focused) .mat-mdc-select .mat-mdc-select-trigger .mat-mdc-select-value:has(.mat-mdc-select-value-text:empty) ~ .mat-mdc-select-placeholder {
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-select
+  .mat-mdc-select-trigger
+  .mat-mdc-select-value:has(.mat-mdc-select-value-text:empty)
+  ~ .mat-mdc-select-placeholder {
   display: block !important;
   opacity: 1 !important;
   color: rgba(0, 0, 0, 0.6) !important;
@@ -304,7 +564,12 @@
 }
 
 /* mat-selectの値が空の配列の場合でもプレースホルダーを表示（値が空の場合、フォーカスされていない場合、最も確実に） */
-.task-create-container ::ng-deep .mat-mdc-form-field:not(.mat-focused) .mat-mdc-select .mat-mdc-select-trigger:has(.mat-mdc-select-value-text:empty) .mat-mdc-select-placeholder {
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-select
+  .mat-mdc-select-trigger:has(.mat-mdc-select-value-text:empty)
+  .mat-mdc-select-placeholder {
   display: block !important;
   opacity: 1 !important;
   color: rgba(0, 0, 0, 0.6) !important;
@@ -312,19 +577,57 @@
 }
 
 /* mat-selectの値が空でない場合はプレースホルダーを非表示（優先度を高く、最初に定義） */
-.task-create-container ::ng-deep .mat-mdc-form-field:not(.mat-focused).mat-form-field-has-value .mat-mdc-select .mat-mdc-select-trigger .mat-mdc-select-placeholder,
-.task-create-container ::ng-deep .mat-mdc-form-field:not(.mat-focused) .mat-mdc-select .mat-mdc-select-trigger:not(:has(.mat-mdc-select-value-text:empty)) .mat-mdc-select-placeholder,
-.task-create-container ::ng-deep .mat-mdc-form-field:not(.mat-focused) .mat-mdc-select .mat-mdc-select-trigger:has(.mat-mdc-select-value-text:not(:empty)) .mat-mdc-select-placeholder,
-.task-create-container ::ng-deep .mat-mdc-form-field:not(.mat-focused) .mat-mdc-select .mat-mdc-select-trigger .mat-mdc-select-value:not(:has(.mat-mdc-select-value-text:empty)) ~ .mat-mdc-select-placeholder {
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused).mat-form-field-has-value
+  .mat-mdc-select
+  .mat-mdc-select-trigger
+  .mat-mdc-select-placeholder,
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-select
+  .mat-mdc-select-trigger:not(:has(.mat-mdc-select-value-text:empty))
+  .mat-mdc-select-placeholder,
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-select
+  .mat-mdc-select-trigger:has(.mat-mdc-select-value-text:not(:empty))
+  .mat-mdc-select-placeholder,
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-select
+  .mat-mdc-select-trigger
+  .mat-mdc-select-value:not(:has(.mat-mdc-select-value-text:empty))
+  ~ .mat-mdc-select-placeholder {
   display: none !important;
   opacity: 0 !important;
   visibility: hidden !important;
 }
 
 /* mat-selectの値が空の場合、プレースホルダーを常に表示（値が空の場合、フォーカスされていない場合、最も確実に、すべてのパターンに対応、最終手段） */
-.task-create-container ::ng-deep .mat-mdc-form-field:not(.mat-focused) .mat-mdc-select .mat-mdc-select-trigger:has(.mat-mdc-select-value-text:empty) .mat-mdc-select-placeholder,
-.task-create-container ::ng-deep .mat-mdc-form-field:not(.mat-focused) .mat-mdc-select .mat-mdc-select-trigger .mat-mdc-select-value:has(.mat-mdc-select-value-text:empty) ~ .mat-mdc-select-placeholder,
-.task-create-container ::ng-deep .mat-mdc-form-field:not(.mat-focused) .mat-mdc-select .mat-mdc-select-trigger .mat-mdc-select-value-text:empty ~ .mat-mdc-select-placeholder {
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-select
+  .mat-mdc-select-trigger:has(.mat-mdc-select-value-text:empty)
+  .mat-mdc-select-placeholder,
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-select
+  .mat-mdc-select-trigger
+  .mat-mdc-select-value:has(.mat-mdc-select-value-text:empty)
+  ~ .mat-mdc-select-placeholder,
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-select
+  .mat-mdc-select-trigger
+  .mat-mdc-select-value-text:empty
+  ~ .mat-mdc-select-placeholder {
   display: block !important;
   opacity: 1 !important;
   color: rgba(0, 0, 0, 0.6) !important;
@@ -334,17 +637,28 @@
 }
 
 /* mat-selectの値が空の時のプレースホルダー表示 */
-.task-create-container ::ng-deep .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value) .mat-mdc-select-value-text:empty {
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value)
+  .mat-mdc-select-value-text:empty {
   color: rgba(0, 0, 0, 0.6) !important;
   opacity: 1 !important;
 }
 
-.task-create-container ::ng-deep .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value) .mat-mdc-select .mat-mdc-select-value:has(.mat-mdc-select-value-text:empty) {
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value)
+  .mat-mdc-select
+  .mat-mdc-select-value:has(.mat-mdc-select-value-text:empty) {
   color: rgba(0, 0, 0, 0.6) !important;
 }
 
 /* mat-selectの値が空の時、プレースホルダー要素を確実に表示 */
-.task-create-container ::ng-deep .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value) .mat-mdc-select .mat-mdc-select-placeholder {
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value)
+  .mat-mdc-select
+  .mat-mdc-select-placeholder {
   display: block !important;
   opacity: 1 !important;
   color: rgba(0, 0, 0, 0.6) !important;
@@ -352,7 +666,11 @@
 }
 
 /* ラベルが上に移動していても、プレースホルダーを表示 */
-.task-create-container ::ng-deep .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value) .mat-mdc-select-trigger .mat-mdc-select-placeholder {
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value)
+  .mat-mdc-select-trigger
+  .mat-mdc-select-placeholder {
   display: block !important;
   opacity: 1 !important;
   color: rgba(0, 0, 0, 0.6) !important;
@@ -360,16 +678,31 @@
 }
 
 /* mat-selectのトリガー内のプレースホルダーを確実に表示 */
-.task-create-container ::ng-deep .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value) .mat-mdc-select .mat-mdc-select-trigger {
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value)
+  .mat-mdc-select
+  .mat-mdc-select-trigger {
   color: rgba(0, 0, 0, 0.6) !important;
 }
 
-.task-create-container ::ng-deep .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value) .mat-mdc-select .mat-mdc-select-trigger .mat-mdc-select-value {
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value)
+  .mat-mdc-select
+  .mat-mdc-select-trigger
+  .mat-mdc-select-value {
   color: rgba(0, 0, 0, 0.6) !important;
 }
 
 /* 値が空の場合、mat-selectのトリガー内のプレースホルダーを表示 */
-.task-create-container ::ng-deep .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value) .mat-mdc-select .mat-mdc-select-trigger .mat-mdc-select-value .mat-mdc-select-placeholder {
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value)
+  .mat-mdc-select
+  .mat-mdc-select-trigger
+  .mat-mdc-select-value
+  .mat-mdc-select-placeholder {
   display: block !important;
   opacity: 1 !important;
   color: rgba(0, 0, 0, 0.6) !important;
@@ -377,8 +710,19 @@
 }
 
 /* ラベルが上に移動していても、mat-selectのプレースホルダーを表示（より具体的なセレクタ） */
-.task-create-container ::ng-deep .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value) .mat-mdc-select .mat-mdc-select-trigger .mat-mdc-select-value-text:empty + .mat-mdc-select-placeholder,
-.task-create-container ::ng-deep .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value) .mat-mdc-select .mat-mdc-select-trigger .mat-mdc-select-placeholder {
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value)
+  .mat-mdc-select
+  .mat-mdc-select-trigger
+  .mat-mdc-select-value-text:empty
+  + .mat-mdc-select-placeholder,
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-has-value)
+  .mat-mdc-select
+  .mat-mdc-select-trigger
+  .mat-mdc-select-placeholder {
   display: block !important;
   opacity: 1 !important;
   color: rgba(0, 0, 0, 0.6) !important;
@@ -388,18 +732,32 @@
 }
 
 /* mat-selectの値が空でない時は通常の色 */
-.task-create-container ::ng-deep .mat-mdc-form-field:not(.mat-focused).mat-form-field-has-value .mat-mdc-select-value-text {
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused).mat-form-field-has-value
+  .mat-mdc-select-value-text {
   color: rgba(0, 0, 0, 0.87) !important;
 }
 
 /* mat-selectの値が空でない時はプレースホルダーを非表示 */
-.task-create-container ::ng-deep .mat-mdc-form-field.mat-form-field-has-value .mat-mdc-select-placeholder {
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field.mat-form-field-has-value
+  .mat-mdc-select-placeholder {
   display: none !important;
 }
 
 /* 値が空でない時は通常の色 */
-.task-create-container ::ng-deep .mat-mdc-form-field.mat-form-field-has-value .mat-mdc-text-field-wrapper input:not(:placeholder-shown),
-.task-create-container ::ng-deep .mat-mdc-form-field.mat-form-field-has-value .mat-mdc-text-field-wrapper textarea:not(:placeholder-shown) {
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field.mat-form-field-has-value
+  .mat-mdc-text-field-wrapper
+  input:not(:placeholder-shown),
+.task-create-container
+  ::ng-deep
+  .mat-mdc-form-field.mat-form-field-has-value
+  .mat-mdc-text-field-wrapper
+  textarea:not(:placeholder-shown) {
   color: rgba(0, 0, 0, 0.87) !important;
 }
 
@@ -408,6 +766,19 @@
   font-weight: 600;
   margin-bottom: 8px;
   color: #555;
+}
+
+/* 担当者欄のラベルスタイル */
+.form-field-label {
+  margin-bottom: 8px;
+}
+
+.form-field-label label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 0;
 }
 
 .date-input-wrapper {
@@ -662,7 +1033,7 @@ mat-chip-set {
   margin: 0;
 }
 
-.calendar-sync-section input[type='checkbox'] {
+.calendar-sync-section input[type="checkbox"] {
   cursor: pointer;
 }
 
