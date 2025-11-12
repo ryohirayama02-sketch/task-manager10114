@@ -33,6 +33,21 @@
   flex-wrap: wrap;
 }
 
+.period-field {
+  width: 180px;
+  min-width: 160px;
+  font-size: 14px;
+}
+
+.period-field ::ng-deep .mat-mdc-form-field-label {
+  display: none;
+}
+
+.period-field ::ng-deep input::placeholder {
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 14px;
+}
+
 .period-button {
   background: #1976d2;
   color: white;
@@ -333,6 +348,10 @@
 
 /* レスポンシブデザイン */
 @media (max-width: 768px) {
+  .period-field ::ng-deep input::placeholder {
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 14px;
+  }
   .members-list {
     grid-template-columns: 1fr;
   }

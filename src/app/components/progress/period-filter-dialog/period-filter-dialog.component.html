@@ -2,7 +2,6 @@
 <mat-dialog-content>
   <div class="period-dialog-content">
     <mat-form-field appearance="outline" class="date-field">
-      <mat-label>{{ 'progress.member.periodDialog.startDate' | translate }}</mat-label>
       <input
         matInput
         [matDatepicker]="startDatePicker"
@@ -13,13 +12,13 @@
         (focus)="onInputFocus($event)"
         (keydown)="onInputKeydown($event)"
         readonly
+        [placeholder]="'progress.member.periodDialog.startDate' | translate"
       />
       <mat-datepicker-toggle matIconSuffix [for]="startDatePicker"></mat-datepicker-toggle>
       <mat-datepicker #startDatePicker></mat-datepicker>
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="date-field">
-      <mat-label>{{ 'progress.member.periodDialog.endDate' | translate }}</mat-label>
       <input
         matInput
         [matDatepicker]="endDatePicker"
@@ -31,6 +30,7 @@
         (focus)="onInputFocus($event)"
         (keydown)="onInputKeydown($event)"
         readonly
+        [placeholder]="'progress.member.periodDialog.endDate' | translate"
       />
       <mat-datepicker-toggle matIconSuffix [for]="endDatePicker"></mat-datepicker-toggle>
       <mat-datepicker #endDatePicker></mat-datepicker>
