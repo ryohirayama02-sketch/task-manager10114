@@ -847,13 +847,12 @@
             }}</mat-panel-title>
           </mat-expansion-panel-header>
           <div class="setting-item">
-            <label>{{ "taskDetail.estimatedTime" | translate }}</label>
             <div class="time-picker">
               <mat-form-field appearance="outline" class="time-field">
-                <mat-label>{{ "taskDetail.hour" | translate }}</mat-label>
                 <mat-select
                   [(ngModel)]="estimatedHours.hour"
                   (selectionChange)="onEstimatedTimeChange()"
+                  [placeholder]="'taskDetail.hour' | translate"
                 >
                   <mat-option
                     *ngFor="let hour of hourOptions"
@@ -865,10 +864,10 @@
               </mat-form-field>
               <span class="time-separator">:</span>
               <mat-form-field appearance="outline" class="time-field">
-                <mat-label>{{ "taskDetail.minute" | translate }}</mat-label>
                 <mat-select
                   [(ngModel)]="estimatedHours.minute"
                   (selectionChange)="onEstimatedTimeChange()"
+                  [placeholder]="'taskDetail.minute' | translate"
                 >
                   <mat-option
                     *ngFor="let minute of minuteOptions"
