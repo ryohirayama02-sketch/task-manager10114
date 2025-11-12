@@ -367,9 +367,7 @@
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: normal;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
+  white-space: nowrap;
   min-width: 0;
   line-height: 1.4;
 }
@@ -405,9 +403,7 @@
 .project-name-text {
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: normal;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
+  white-space: nowrap;
   flex: 1;
   min-width: 0;
   line-height: 1.4;
@@ -425,16 +421,16 @@
   flex-direction: column;
   gap: 2px;
   margin-bottom: 2px;
+  overflow: hidden;
 }
 
 .task-meta span {
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: normal;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
+  white-space: nowrap;
   max-width: 100%;
   line-height: 1.4;
+  min-width: 0;
 }
 
 .priority {
