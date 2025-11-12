@@ -243,7 +243,59 @@ export class LogsComponent implements OnInit, OnDestroy {
     }
 
     // フォールバック：従来の方法
-    const baseLabel = log.changeDescription?.trim() || '';
+    let baseLabel = log.changeDescription?.trim() || '';
+    
+    // 日本語のメッセージパターンを英語に翻訳
+    if (baseLabel && this.languageService.getCurrentLanguage() === 'en') {
+      // プロジェクト作成パターン: プロジェクト「{name}」を作成しました
+      const projectCreatedMatch = baseLabel.match(/プロジェクト「([^」]+)」を作成しました/);
+      if (projectCreatedMatch) {
+        const projectName = projectCreatedMatch[1];
+        baseLabel = this.languageService.translateWithParams('logs.message.projectCreatedWithName', { projectName });
+      }
+      
+      // プロジェクト削除パターン: プロジェクト「{name}」を削除しました
+      const projectDeletedMatch = baseLabel.match(/プロジェクト「([^」]+)」を削除しました/);
+      if (projectDeletedMatch) {
+        const projectName = projectDeletedMatch[1];
+        baseLabel = this.languageService.translateWithParams('logs.message.projectDeletedWithName', { projectName });
+      }
+      
+      // タスク作成パターン: タスク「{name}」を作成しました
+      const taskCreatedMatch = baseLabel.match(/タスク「([^」]+)」を作成しました/);
+      if (taskCreatedMatch) {
+        const taskName = taskCreatedMatch[1];
+        baseLabel = this.languageService.translateWithParams('logs.message.taskCreatedWithName', { taskName });
+      }
+      
+      // タスク削除パターン: タスク「{name}」を削除しました
+      const taskDeletedMatch = baseLabel.match(/タスク「([^」]+)」を削除しました/);
+      if (taskDeletedMatch) {
+        const taskName = taskDeletedMatch[1];
+        baseLabel = this.languageService.translateWithParams('logs.message.taskDeletedWithName', { taskName });
+      }
+      
+      // プロジェクト更新パターン: プロジェクトを更新しました
+      if (baseLabel === 'プロジェクトを更新しました' || baseLabel.startsWith('プロジェクトを更新しました')) {
+        baseLabel = baseLabel.replace('プロジェクトを更新しました', this.languageService.translate('logs.projectUpdated'));
+      }
+      
+      // タスク更新パターン: タスク「{name}」を更新しました
+      const taskUpdatedMatch = baseLabel.match(/タスク「([^」]+)」を更新しました/);
+      if (taskUpdatedMatch) {
+        const taskName = taskUpdatedMatch[1];
+        baseLabel = this.languageService.translateWithParams('logs.message.taskUpdatedWithName', { taskName });
+      }
+      
+      // ステータス変更パターン: タスクのステータスを「{old}」→「{new}」に変更しました
+      const statusChangedMatch = baseLabel.match(/タスクのステータスを「([^」]+)」→「([^」]+)」に変更しました/);
+      if (statusChangedMatch) {
+        const oldStatus = statusChangedMatch[1];
+        const newStatus = statusChangedMatch[2];
+        baseLabel = this.languageService.translateWithParams('logs.message.statusChanged', { oldStatus, newStatus });
+      }
+    }
+    
     const oldValue = log.oldValue?.toString().trim();
     const newValue = log.newValue?.toString().trim();
     const hasOld = !!oldValue;

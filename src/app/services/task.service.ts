@@ -588,12 +588,16 @@ export class TaskService {
     const ref = collection(this.firestore, 'tasks');
     const result = await addDoc(ref, { ...task, roomId });
 
+    const projectName = task.projectName || this.languageService.translate('logs.projectFallback');
+    const taskName = task.taskName || this.languageService.translate('logs.field.taskName');
+    const taskCreatedText = this.languageService.translateWithParams('logs.message.taskCreatedWithName', { taskName });
     await this.editLogService.logEdit(
       task.projectId || 'unknown',
-      task.projectName || 'プロジェクト',
+      projectName,
       'create',
-      `タスク「${task.taskName || 'タスク'}」を作成しました`,
-      result.id
+      taskCreatedText,
+      result.id,
+      taskName
     );
     return result;
   }
@@ -624,13 +628,16 @@ export class TaskService {
     await deleteDoc(ref);
 
     // 削除ログを記録
+    const projectName = taskData.projectName || this.languageService.translate('logs.projectFallback');
+    const taskName = taskData.taskName || this.languageService.translate('logs.field.taskName');
+    const taskDeletedText = this.languageService.translateWithParams('logs.message.taskDeletedWithName', { taskName });
     await this.editLogService.logEdit(
       projectId,
-      taskData.projectName || 'プロジェクト',
+      projectName,
       'delete',
-      `タスク「${taskData.taskName}」を削除しました`,
+      taskDeletedText,
       taskId,
-      taskData.taskName
+      taskName
     );
   }
 

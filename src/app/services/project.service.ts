@@ -377,15 +377,17 @@ export class ProjectService {
 
     // 編集ログを記録
     console.log('📝 編集ログを記録します...');
+    const projectName = project.projectName || this.languageService.translate('logs.projectFallback');
+    const projectCreatedText = this.languageService.translateWithParams('logs.message.projectCreatedWithName', { projectName });
     await this.editLogService.logEdit(
       result.id,
-      project.projectName || 'プロジェクト',
+      projectName,
       'create',
-      `プロジェクト「${project.projectName || 'プロジェクト'}」を作成しました`,
+      projectCreatedText,
       undefined,
       undefined,
       undefined,
-      project.projectName || 'プロジェクト'
+      projectName
     );
 
     console.log('✅ プロジェクト作成とログ記録が完了しました');
@@ -784,16 +786,16 @@ export class ProjectService {
 
     // 編集ログを記録
     console.log('📝 編集ログを記録します...');
+    const projectName = projectData.projectName || this.languageService.translate('logs.projectFallback');
+    const projectDeletedText = this.languageService.translateWithParams('logs.message.projectDeletedWithName', { projectName });
     await this.editLogService.logEdit(
       projectId,
-      projectData.projectName || 'プロジェクト',
+      projectName,
       'delete',
-      `プロジェクト「${
-        projectData.projectName || 'プロジェクト'
-      }」を削除しました`,
+      projectDeletedText,
       undefined,
       undefined,
-      projectData.projectName || 'プロジェクト',
+      projectName,
       undefined
     );
 
