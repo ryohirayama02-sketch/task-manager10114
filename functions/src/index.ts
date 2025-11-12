@@ -679,6 +679,17 @@ async function getTodayTasksForUser(
         }
 
         if (match) {
+          // 詳細設定のタスク期限通知がOFFの場合はスキップ
+          const detailSettings = taskData.detailSettings;
+          if (detailSettings?.notifications?.beforeDeadline === false) {
+            console.log(
+              `⏭️ タスク「${
+                taskData.taskName || taskData.task
+              }」: 詳細設定で通知OFFのためスキップ`
+            );
+            return;
+          }
+
           console.log(
             `✅ マッチしたタスク: ${taskData.taskName || taskData.task}`
           );
@@ -1234,29 +1245,29 @@ export const sendDailyTaskReminders = onSchedule(
           `✅ 通知時刻一致！ユーザー ${settingUserId} の通知を処理開始`
         );
 
-        // 通知オフ期間をチェック
-        if (settings.quietHours?.enabled) {
-          if (
-            settings.quietHours.weekends &&
-            (currentDay === 0 || currentDay === 6)
-          ) {
-            continue;
-          }
+        // 通知オフ期間をチェック（機能を無効化）
+        // if (settings.quietHours?.enabled) {
+        //   if (
+        //     settings.quietHours.weekends &&
+        //     (currentDay === 0 || currentDay === 6)
+        //   ) {
+        //     continue;
+        //   }
 
-          const startTime = settings.quietHours.startTime;
-          const endTime = settings.quietHours.endTime;
-          if (startTime && endTime) {
-            if (startTime <= endTime) {
-              if (currentTime >= startTime && currentTime <= endTime) {
-                continue;
-              }
-            } else {
-              if (currentTime >= startTime || currentTime <= endTime) {
-                continue;
-              }
-            }
-          }
-        }
+        //   const startTime = settings.quietHours.startTime;
+        //   const endTime = settings.quietHours.endTime;
+        //   if (startTime && endTime) {
+        //     if (startTime <= endTime) {
+        //       if (currentTime >= startTime && currentTime <= endTime) {
+        //         continue;
+        //       }
+        //     } else {
+        //       if (currentTime >= startTime || currentTime <= endTime) {
+        //         continue;
+        //       }
+        //     }
+        //   }
+        // }
 
         // メール通知が有効かチェック
         if (!settings.notificationChannels?.email?.enabled) {
@@ -1422,29 +1433,29 @@ export const sendTaskDeadlineNotifications = onSchedule(
 
         console.log(`✅ 通知時刻一致！ユーザー ${userId} の通知を処理開始`);
 
-        // 通知オフ期間をチェック
-        if (settings.quietHours?.enabled) {
-          if (
-            settings.quietHours.weekends &&
-            (currentDay === 0 || currentDay === 6)
-          ) {
-            continue;
-          }
+        // 通知オフ期間をチェック（機能を無効化）
+        // if (settings.quietHours?.enabled) {
+        //   if (
+        //     settings.quietHours.weekends &&
+        //     (currentDay === 0 || currentDay === 6)
+        //   ) {
+        //     continue;
+        //   }
 
-          const startTime = settings.quietHours.startTime;
-          const endTime = settings.quietHours.endTime;
-          if (startTime && endTime) {
-            if (startTime <= endTime) {
-              if (currentTime >= startTime && currentTime <= endTime) {
-                continue;
-              }
-            } else {
-              if (currentTime >= startTime || currentTime <= endTime) {
-                continue;
-              }
-            }
-          }
-        }
+        //   const startTime = settings.quietHours.startTime;
+        //   const endTime = settings.quietHours.endTime;
+        //   if (startTime && endTime) {
+        //     if (startTime <= endTime) {
+        //       if (currentTime >= startTime && currentTime <= endTime) {
+        //         continue;
+        //       }
+        //     } else {
+        //       if (currentTime >= startTime || currentTime <= endTime) {
+        //         continue;
+        //       }
+        //     }
+        //   }
+        // }
 
         // メール通知が有効かチェック
         if (!settings.notificationChannels?.email?.enabled) {
@@ -1731,47 +1742,47 @@ export const sendTaskDeadlineNotificationsManual = onCall(
           continue;
         }
 
-        // 通知オフ期間をチェック
-        if (settings.quietHours?.enabled) {
-          if (
-            settings.quietHours.weekends &&
-            (currentDay === 0 || currentDay === 6)
-          ) {
-            console.log(`⏭️ 週末のためスキップ`);
-            results.push({
-              userId: settingUserId,
-              skipped: true,
-              reason: '週末',
-            });
-            continue;
-          }
+        // 通知オフ期間をチェック（機能を無効化）
+        // if (settings.quietHours?.enabled) {
+        //   if (
+        //     settings.quietHours.weekends &&
+        //     (currentDay === 0 || currentDay === 6)
+        //   ) {
+        //     console.log(`⏭️ 週末のためスキップ`);
+        //     results.push({
+        //       userId: settingUserId,
+        //       skipped: true,
+        //       reason: '週末',
+        //     });
+        //     continue;
+        //   }
 
-          const startTime = settings.quietHours.startTime;
-          const endTime = settings.quietHours.endTime;
-          if (startTime && endTime) {
-            if (startTime <= endTime) {
-              if (currentTime >= startTime && currentTime <= endTime) {
-                console.log(`⏭️ 通知オフ期間中のためスキップ`);
-                results.push({
-                  userId: settingUserId,
-                  skipped: true,
-                  reason: '通知オフ期間中',
-                });
-                continue;
-              }
-            } else {
-              if (currentTime >= startTime || currentTime <= endTime) {
-                console.log(`⏭️ 通知オフ期間中のためスキップ`);
-                results.push({
-                  userId: settingUserId,
-                  skipped: true,
-                  reason: '通知オフ期間中',
-                });
-                continue;
-              }
-            }
-          }
-        }
+        //   const startTime = settings.quietHours.startTime;
+        //   const endTime = settings.quietHours.endTime;
+        //   if (startTime && endTime) {
+        //     if (startTime <= endTime) {
+        //       if (currentTime >= startTime && currentTime <= endTime) {
+        //         console.log(`⏭️ 通知オフ期間中のためスキップ`);
+        //         results.push({
+        //           userId: settingUserId,
+        //           skipped: true,
+        //           reason: '通知オフ期間中',
+        //         });
+        //         continue;
+        //       }
+        //     } else {
+        //       if (currentTime >= startTime || currentTime <= endTime) {
+        //         console.log(`⏭️ 通知オフ期間中のためスキップ`);
+        //         results.push({
+        //           userId: settingUserId,
+        //           skipped: true,
+        //           reason: '通知オフ期間中',
+        //         });
+        //         continue;
+        //       }
+        //     }
+        //   }
+        // }
 
         // メール通知が有効かチェック
         if (!settings.notificationChannels?.email?.enabled) {
@@ -2224,6 +2235,11 @@ async function getUserWorkTimeSummary(
       const taskData = taskDoc.data();
       const detailSettings = taskData.detailSettings;
 
+      // 詳細設定のタスク期限通知がOFFの場合はスキップ
+      if (detailSettings?.notifications?.beforeDeadline === false) {
+        return;
+      }
+
       // 予定時間を取得
       const estimatedHoursStr = detailSettings?.workTime?.estimatedHours;
       if (!estimatedHoursStr || typeof estimatedHoursStr !== 'string') {
@@ -2528,29 +2544,29 @@ export const sendWorkTimeOverflowNotifications = onSchedule(
           `✅ 通知時刻一致！ユーザー ${settingUserId} の通知を処理開始`
         );
 
-        // 通知オフ期間をチェック
-        if (settings.quietHours?.enabled) {
-          if (
-            settings.quietHours.weekends &&
-            (currentDay === 0 || currentDay === 6)
-          ) {
-            continue;
-          }
+        // 通知オフ期間をチェック（機能を無効化）
+        // if (settings.quietHours?.enabled) {
+        //   if (
+        //     settings.quietHours.weekends &&
+        //     (currentDay === 0 || currentDay === 6)
+        //   ) {
+        //     continue;
+        //   }
 
-          const startTime = settings.quietHours.startTime;
-          const endTime = settings.quietHours.endTime;
-          if (startTime && endTime) {
-            if (startTime <= endTime) {
-              if (currentTime >= startTime && currentTime <= endTime) {
-                continue;
-              }
-            } else {
-              if (currentTime >= startTime || currentTime <= endTime) {
-                continue;
-              }
-            }
-          }
-        }
+        //   const startTime = settings.quietHours.startTime;
+        //   const endTime = settings.quietHours.endTime;
+        //   if (startTime && endTime) {
+        //     if (startTime <= endTime) {
+        //       if (currentTime >= startTime && currentTime <= endTime) {
+        //         continue;
+        //       }
+        //     } else {
+        //       if (currentTime >= startTime || currentTime <= endTime) {
+        //         continue;
+        //       }
+        //     }
+        //   }
+        // }
 
         // メール通知が有効かチェック
         if (!settings.notificationChannels?.email?.enabled) {
@@ -2848,47 +2864,47 @@ export const sendWorkTimeOverflowNotificationsManual = onCall(
           continue;
         }
 
-        // 通知オフ期間をチェック
-        if (settings.quietHours?.enabled) {
-          if (
-            settings.quietHours.weekends &&
-            (currentDay === 0 || currentDay === 6)
-          ) {
-            console.log(`⏭️ 週末のためスキップ`);
-            results.push({
-              userId: settingUserId,
-              skipped: true,
-              reason: '週末',
-            });
-            continue;
-          }
+        // 通知オフ期間をチェック（機能を無効化）
+        // if (settings.quietHours?.enabled) {
+        //   if (
+        //     settings.quietHours.weekends &&
+        //     (currentDay === 0 || currentDay === 6)
+        //   ) {
+        //     console.log(`⏭️ 週末のためスキップ`);
+        //     results.push({
+        //       userId: settingUserId,
+        //       skipped: true,
+        //       reason: '週末',
+        //     });
+        //     continue;
+        //   }
 
-          const startTime = settings.quietHours.startTime;
-          const endTime = settings.quietHours.endTime;
-          if (startTime && endTime) {
-            if (startTime <= endTime) {
-              if (currentTime >= startTime && currentTime <= endTime) {
-                console.log(`⏭️ 通知オフ期間中のためスキップ`);
-                results.push({
-                  userId: settingUserId,
-                  skipped: true,
-                  reason: '通知オフ期間中',
-                });
-                continue;
-              }
-            } else {
-              if (currentTime >= startTime || currentTime <= endTime) {
-                console.log(`⏭️ 通知オフ期間中のためスキップ`);
-                results.push({
-                  userId: settingUserId,
-                  skipped: true,
-                  reason: '通知オフ期間中',
-                });
-                continue;
-              }
-            }
-          }
-        }
+        //   const startTime = settings.quietHours.startTime;
+        //   const endTime = settings.quietHours.endTime;
+        //   if (startTime && endTime) {
+        //     if (startTime <= endTime) {
+        //       if (currentTime >= startTime && currentTime <= endTime) {
+        //         console.log(`⏭️ 通知オフ期間中のためスキップ`);
+        //         results.push({
+        //           userId: settingUserId,
+        //           skipped: true,
+        //           reason: '通知オフ期間中',
+        //         });
+        //         continue;
+        //       }
+        //     } else {
+        //       if (currentTime >= startTime || currentTime <= endTime) {
+        //         console.log(`⏭️ 通知オフ期間中のためスキップ`);
+        //         results.push({
+        //           userId: settingUserId,
+        //           skipped: true,
+        //           reason: '通知オフ期間中',
+        //         });
+        //         continue;
+        //       }
+        //     }
+        //   }
+        // }
 
         // メール通知が有効かチェック
         if (!settings.notificationChannels?.email?.enabled) {
@@ -3231,47 +3247,47 @@ export const sendDailyTaskRemindersManual = onCall(
           continue;
         }
 
-        // 通知オフ期間をチェック
-        if (settings.quietHours?.enabled) {
-          if (
-            settings.quietHours.weekends &&
-            (currentDay === 0 || currentDay === 6)
-          ) {
-            console.log(`⏭️ 週末のためスキップ`);
-            results.push({
-              userId: settingUserId,
-              skipped: true,
-              reason: '週末',
-            });
-            continue;
-          }
+        // 通知オフ期間をチェック（機能を無効化）
+        // if (settings.quietHours?.enabled) {
+        //   if (
+        //     settings.quietHours.weekends &&
+        //     (currentDay === 0 || currentDay === 6)
+        //   ) {
+        //     console.log(`⏭️ 週末のためスキップ`);
+        //     results.push({
+        //       userId: settingUserId,
+        //       skipped: true,
+        //       reason: '週末',
+        //     });
+        //     continue;
+        //   }
 
-          const startTime = settings.quietHours.startTime;
-          const endTime = settings.quietHours.endTime;
-          if (startTime && endTime) {
-            if (startTime <= endTime) {
-              if (currentTime >= startTime && currentTime <= endTime) {
-                console.log(`⏭️ 通知オフ期間中のためスキップ`);
-                results.push({
-                  userId: settingUserId,
-                  skipped: true,
-                  reason: '通知オフ期間中',
-                });
-                continue;
-              }
-            } else {
-              if (currentTime >= startTime || currentTime <= endTime) {
-                console.log(`⏭️ 通知オフ期間中のためスキップ`);
-                results.push({
-                  userId: settingUserId,
-                  skipped: true,
-                  reason: '通知オフ期間中',
-                });
-                continue;
-              }
-            }
-          }
-        }
+        //   const startTime = settings.quietHours.startTime;
+        //   const endTime = settings.quietHours.endTime;
+        //   if (startTime && endTime) {
+        //     if (startTime <= endTime) {
+        //       if (currentTime >= startTime && currentTime <= endTime) {
+        //         console.log(`⏭️ 通知オフ期間中のためスキップ`);
+        //         results.push({
+        //           userId: settingUserId,
+        //           skipped: true,
+        //           reason: '通知オフ期間中',
+        //         });
+        //         continue;
+        //       }
+        //     } else {
+        //       if (currentTime >= startTime || currentTime <= endTime) {
+        //         console.log(`⏭️ 通知オフ期間中のためスキップ`);
+        //         results.push({
+        //           userId: settingUserId,
+        //           skipped: true,
+        //           reason: '通知オフ期間中',
+        //         });
+        //         continue;
+        //       }
+        //     }
+        //   }
+        // }
 
         // メール通知が有効かチェック
         if (!settings.notificationChannels?.email?.enabled) {

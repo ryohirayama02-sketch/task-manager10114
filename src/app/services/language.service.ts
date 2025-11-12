@@ -1179,6 +1179,10 @@ export class LanguageService {
       ja: '子タスク完了まで完了ステータスにできない',
       en: 'Cannot complete until all subtasks are done',
     },
+    'taskDetail.parentTaskReopensWhenSubtaskIncomplete': {
+      ja: '子タスクの完了が解除されると、親タスクも作業中に変更される',
+      en: 'When a subtask is marked as incomplete, the parent task will also be changed to "In Progress"',
+    },
     'taskDetail.timeTracking': {
       ja: '作業予定時間入力',
       en: 'Estimated Time Input',

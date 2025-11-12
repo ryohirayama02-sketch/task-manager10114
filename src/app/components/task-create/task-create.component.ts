@@ -149,11 +149,7 @@ export class TaskCreatePageComponent implements OnInit {
         description: duplicateData.description || '',
         calendarSyncEnabled: duplicateData.calendarSyncEnabled ?? false,
         attachments: [], // 複製時は添付ファイルは含めない
-        urls: Array.isArray(duplicateData.urls)
-          ? [...duplicateData.urls]
-          : duplicateData.urls
-          ? [duplicateData.urls]
-          : [],
+        urls: [], // 複製時はURLリンクも含めない
       };
 
       // assignedMembersがある場合は、selectedMemberIdsに設定
@@ -215,7 +211,12 @@ export class TaskCreatePageComponent implements OnInit {
                 }
               },
               error: (error) => {
-                console.error(this.languageService.translate('taskCreate.error.parentTaskFetchFailed'), error);
+                console.error(
+                  this.languageService.translate(
+                    'taskCreate.error.parentTaskFetchFailed'
+                  ),
+                  error
+                );
               },
             });
         }
@@ -233,7 +234,12 @@ export class TaskCreatePageComponent implements OnInit {
                 }
               },
               error: (error) => {
-                console.error(this.languageService.translate('taskCreate.error.parentTaskFetchFailed'), error);
+                console.error(
+                  this.languageService.translate(
+                    'taskCreate.error.parentTaskFetchFailed'
+                  ),
+                  error
+                );
               },
             });
         }
@@ -421,7 +427,9 @@ export class TaskCreatePageComponent implements OnInit {
 
     Array.from(files).forEach((file) => {
       if (file.size > this.MAX_FILE_SIZE) {
-        const message = this.languageService.translate('taskCreate.error.fileSizeExceeded').replace('{{fileName}}', file.name);
+        const message = this.languageService
+          .translate('taskCreate.error.fileSizeExceeded')
+          .replace('{{fileName}}', file.name);
         this.snackBar.open(
           message,
           this.languageService.translate('taskCreate.close'),
@@ -520,7 +528,9 @@ export class TaskCreatePageComponent implements OnInit {
 
   async save() {
     if (!this.taskForm.taskName.trim()) {
-      alert(this.languageService.translate('taskCreate.error.taskNameRequired'));
+      alert(
+        this.languageService.translate('taskCreate.error.taskNameRequired')
+      );
       return;
     }
 
@@ -547,7 +557,9 @@ export class TaskCreatePageComponent implements OnInit {
     }
 
     if (!this.projectId) {
-      alert(this.languageService.translate('taskCreate.error.projectNotSpecified'));
+      alert(
+        this.languageService.translate('taskCreate.error.projectNotSpecified')
+      );
       return;
     }
 
@@ -562,7 +574,9 @@ export class TaskCreatePageComponent implements OnInit {
         );
         const maxChildTasks = 5;
         if (childTaskCount >= maxChildTasks) {
-          const message = this.languageService.translate('taskCreate.error.maxChildTasks').replace('{{count}}', maxChildTasks.toString());
+          const message = this.languageService
+            .translate('taskCreate.error.maxChildTasks')
+            .replace('{{count}}', maxChildTasks.toString());
           this.snackBar.open(
             message,
             this.languageService.translate('taskCreate.close'),
@@ -577,7 +591,9 @@ export class TaskCreatePageComponent implements OnInit {
         );
         const maxParentTasks = 10;
         if (parentTaskCount >= maxParentTasks) {
-          const message = this.languageService.translate('taskCreate.error.maxParentTasks').replace('{{count}}', maxParentTasks.toString());
+          const message = this.languageService
+            .translate('taskCreate.error.maxParentTasks')
+            .replace('{{count}}', maxParentTasks.toString());
           this.snackBar.open(
             message,
             this.languageService.translate('taskCreate.close'),
@@ -611,7 +627,9 @@ export class TaskCreatePageComponent implements OnInit {
           );
           if (exists) {
             this.snackBar.open(
-              this.languageService.translate('taskCreate.error.childTaskNameExists'),
+              this.languageService.translate(
+                'taskCreate.error.childTaskNameExists'
+              ),
               this.languageService.translate('taskCreate.close'),
               {
                 duration: 5000,
@@ -675,8 +693,12 @@ export class TaskCreatePageComponent implements OnInit {
           console.log('カレンダー連携フラグを保存しました');
         } catch (error: any) {
           console.error('Calendar sync error:', error);
-          const errorMsg = error?.message || this.languageService.translate('taskCreate.error.saveFailed');
-          const message = this.languageService.translate('taskCreate.error.calendarSyncFailed').replace('{{error}}', errorMsg);
+          const errorMsg =
+            error?.message ||
+            this.languageService.translate('taskCreate.error.saveFailed');
+          const message = this.languageService
+            .translate('taskCreate.error.calendarSyncFailed')
+            .replace('{{error}}', errorMsg);
           this.snackBar.open(
             message,
             this.languageService.translate('taskCreate.close'),
@@ -739,7 +761,9 @@ export class TaskCreatePageComponent implements OnInit {
         uploaded.push(attachment);
       } catch (error) {
         console.error('Attachment upload failed:', error);
-        const message = this.languageService.translate('taskCreate.error.attachmentUploadFailed').replace('{{fileName}}', pending.file.name);
+        const message = this.languageService
+          .translate('taskCreate.error.attachmentUploadFailed')
+          .replace('{{fileName}}', pending.file.name);
         this.snackBar.open(
           message,
           this.languageService.translate('taskCreate.close'),

@@ -995,6 +995,14 @@ mat-chip mat-icon {
   margin-bottom: 20px;
 }
 
+.setting-item .setting-description {
+  margin-top: 8px;
+  margin-left: 32px;
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.6);
+  line-height: 1.5;
+}
+
 .setting-item label {
   display: block;
   font-weight: 600;

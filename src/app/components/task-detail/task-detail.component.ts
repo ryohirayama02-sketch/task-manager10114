@@ -1275,12 +1275,14 @@ export class TaskDetailComponent implements OnInit {
     }
 
     // タスク作成画面に遷移し、複製データを渡す
+    // 資料情報（attachments, urls）は引き継がない
+    const { attachments, urls, ...taskDataWithoutMaterials } = this.taskData;
     const navigationState: any = {
       projectName: this.project.projectName,
       projectId: this.task.projectId,
       returnUrl: this.router.url,
       duplicateData: {
-        ...this.taskData,
+        ...taskDataWithoutMaterials,
         parentTaskId: this.task.parentTaskId || undefined, // 子タスクの場合は親タスクIDを保持
       },
     };
