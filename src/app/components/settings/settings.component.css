@@ -597,6 +597,37 @@ mat-card-actions button {
     font-size: 16px;
   }
 
+  .home-screen-selection ::ng-deep .mat-mdc-form-field {
+    min-height: 64px;
+  }
+
+  .home-screen-selection ::ng-deep .mat-mdc-select-value {
+    padding-top: 16px;
+    padding-bottom: 16px;
+    min-height: 24px;
+    font-size: 16px;
+    line-height: 24px;
+  }
+
+  .home-screen-selection ::ng-deep .mat-mdc-select-placeholder {
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 16px;
+    padding-top: 16px;
+    padding-bottom: 16px;
+  }
+
+  .home-screen-selection ::ng-deep .mat-mdc-form-field-infix {
+    padding-top: 0;
+    padding-bottom: 0;
+    min-height: 56px;
+  }
+
+  .home-screen-selection ::ng-deep .mat-mdc-text-field-wrapper {
+    padding-bottom: 0;
+    padding-top: 0;
+    min-height: 56px;
+  }
+
   .room-value {
     word-break: break-all;
     overflow-wrap: break-word;
@@ -658,6 +689,32 @@ mat-card-actions button {
   display: flex;
   flex-direction: column;
   gap: 24px;
+}
+
+.home-screen-selection mat-form-field {
+  width: 100%;
+  max-width: 100%;
+}
+
+.home-screen-selection ::ng-deep .mat-mdc-select-placeholder {
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 16px;
+}
+
+.home-screen-selection ::ng-deep .mat-mdc-select-value {
+  padding-top: 16px;
+  padding-bottom: 16px;
+  margin-top: 0;
+  min-height: 20px;
+}
+
+.home-screen-selection ::ng-deep .mat-mdc-form-field {
+  min-height: 56px;
+}
+
+.home-screen-selection ::ng-deep .mat-mdc-text-field-wrapper {
+  padding-bottom: 0;
+  padding-top: 0;
 }
 
 .home-screen-preview {

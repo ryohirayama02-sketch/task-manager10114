@@ -577,18 +577,17 @@
       <mat-card-content>
         <div class="home-screen-selection">
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>{{ "settings.home.field" | translate }}</mat-label>
             <mat-select
               [(ngModel)]="selectedHomeScreen"
               (selectionChange)="onHomeScreenChange()"
               [disabled]="isSaving"
               name="homeScreen"
+              [placeholder]="'settings.home.field' | translate"
             >
               <mat-option
                 *ngFor="let option of homeScreenOptions"
                 [value]="option.value"
               >
-                <mat-icon>{{ option.icon }}</mat-icon>
                 {{ getHomeScreenLabel(option.value) }}
               </mat-option>
             </mat-select>
