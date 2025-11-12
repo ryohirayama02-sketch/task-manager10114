@@ -10,6 +10,9 @@
         (dateChange)="onStartDateChange()"
         [max]="endDateObj || maxDate"
         [ngModelOptions]="{standalone: true}"
+        (focus)="onInputFocus($event)"
+        (keydown)="onInputKeydown($event)"
+        readonly
       />
       <mat-datepicker-toggle matIconSuffix [for]="startDatePicker"></mat-datepicker-toggle>
       <mat-datepicker #startDatePicker></mat-datepicker>
@@ -25,6 +28,9 @@
         [min]="startDateObj || undefined"
         [max]="maxDate"
         [ngModelOptions]="{standalone: true}"
+        (focus)="onInputFocus($event)"
+        (keydown)="onInputKeydown($event)"
+        readonly
       />
       <mat-datepicker-toggle matIconSuffix [for]="endDatePicker"></mat-datepicker-toggle>
       <mat-datepicker #endDatePicker></mat-datepicker>

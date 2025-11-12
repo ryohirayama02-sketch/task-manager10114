@@ -12,6 +12,8 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 import { ProjectService } from '../../services/project.service';
 import { MemberManagementService } from '../../services/member-management.service';
 import { TaskAttachmentService } from '../../services/task-attachment.service';
@@ -41,6 +43,8 @@ import {
     MatTooltipModule,
     MatProgressSpinnerModule,
     MatSnackBarModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
     TranslatePipe,
   ],
   templateUrl: './task-create.component.html',
@@ -85,6 +89,9 @@ export class TaskCreatePageComponent implements OnInit {
   statusOptions: string[] = [];
   priorityOptions: string[] = [];
   projectThemeColor = DEFAULT_PROJECT_THEME_COLOR;
+  startDateObj: Date | null = null; // Material date picker用
+  dueDateObj: Date | null = null; // Material date picker用
+  maxDate = new Date(9999, 11, 31); // 9999-12-31
 
   constructor(
     private router: Router,
@@ -473,6 +480,28 @@ export class TaskCreatePageComponent implements OnInit {
     }
 
     return true;
+  }
+
+  onStartDateChange(): void {
+    if (this.startDateObj) {
+      const year = this.startDateObj.getFullYear();
+      const month = String(this.startDateObj.getMonth() + 1).padStart(2, '0');
+      const day = String(this.startDateObj.getDate()).padStart(2, '0');
+      this.taskForm.startDate = `${year}-${month}-${day}`;
+    } else {
+      this.taskForm.startDate = '';
+    }
+  }
+
+  onDueDateChange(): void {
+    if (this.dueDateObj) {
+      const year = this.dueDateObj.getFullYear();
+      const month = String(this.dueDateObj.getMonth() + 1).padStart(2, '0');
+      const day = String(this.dueDateObj.getDate()).padStart(2, '0');
+      this.taskForm.dueDate = `${year}-${month}-${day}`;
+    } else {
+      this.taskForm.dueDate = '';
+    }
   }
 
   async save() {

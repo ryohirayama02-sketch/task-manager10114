@@ -498,6 +498,7 @@ export class LanguageService {
     'progress.member.periodDialog.endDate': { ja: '終了日', en: 'End Date' },
     'progress.member.periodDialog.cancel': { ja: 'キャンセル', en: 'Cancel' },
     'progress.member.periodDialog.confirm': { ja: '確定', en: 'Confirm' },
+    'progress.member.periodDialog.reset': { ja: 'リセット', en: 'Reset' },
     'progress.member.taskList': { ja: 'タスク一覧', en: 'Tasks' },
     'progress.member.filter.project': { ja: 'プロジェクト', en: 'Project' },
     'progress.member.filter.dueDate': { ja: '期日', en: 'Due Date' },

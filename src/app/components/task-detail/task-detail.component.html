@@ -204,42 +204,38 @@
           </mat-form-field>
 
           <div class="inline-date-row">
-            <div class="date-field">
-              <label for="startDate">{{
-                "taskDetail.startDate" | translate
-              }} * <span class="required-hint">{{ 'taskDetail.required' | translate }}</span></label>
-              <div class="date-input-wrapper">
-                <input
-                  id="startDate"
-                  class="date-input"
-                  type="date"
-                  [(ngModel)]="taskData.startDate"
-                  (change)="onStartDateChange()"
-                  name="startDate"
-                  [max]="taskData.dueDate || '9999-12-31'"
-                  required
-                />
-              </div>
-            </div>
+            <mat-form-field appearance="outline" class="date-field">
+              <mat-label>{{ "taskDetail.startDate" | translate }} * <span class="required-hint">{{ 'taskDetail.required' | translate }}</span></mat-label>
+              <input
+                matInput
+                [matDatepicker]="taskStartDatePicker"
+                [(ngModel)]="taskStartDateObj"
+                (dateChange)="onTaskStartDateChange()"
+                [max]="taskDueDateObj || maxDate"
+                [ngModelOptions]="{standalone: true}"
+                readonly
+                required
+              />
+              <mat-datepicker-toggle matIconSuffix [for]="taskStartDatePicker"></mat-datepicker-toggle>
+              <mat-datepicker #taskStartDatePicker></mat-datepicker>
+            </mat-form-field>
 
-            <div class="date-field">
-              <label for="dueDate">{{
-                "taskDetail.dueDate" | translate
-              }} * <span class="required-hint">{{ 'taskDetail.required' | translate }}</span></label>
-              <div class="date-input-wrapper">
-                <input
-                  id="dueDate"
-                  class="date-input"
-                  type="date"
-                  [(ngModel)]="taskData.dueDate"
-                  (change)="onDueDateChange()"
-                  name="dueDate"
-                  [min]="taskData.startDate || ''"
-                  max="9999-12-31"
-                  required
-                />
-              </div>
-            </div>
+            <mat-form-field appearance="outline" class="date-field">
+              <mat-label>{{ "taskDetail.dueDate" | translate }} * <span class="required-hint">{{ 'taskDetail.required' | translate }}</span></mat-label>
+              <input
+                matInput
+                [matDatepicker]="taskDueDatePicker"
+                [(ngModel)]="taskDueDateObj"
+                (dateChange)="onTaskDueDateChange()"
+                [min]="taskStartDateObj || undefined"
+                [max]="maxDate"
+                [ngModelOptions]="{standalone: true}"
+                readonly
+                required
+              />
+              <mat-datepicker-toggle matIconSuffix [for]="taskDueDatePicker"></mat-datepicker-toggle>
+              <mat-datepicker #taskDueDatePicker></mat-datepicker>
+            </mat-form-field>
           </div>
 
           <mat-form-field appearance="outline" class="full-width-field">
@@ -698,21 +694,15 @@
           <mat-label>{{ "taskDetail.dueDate" | translate }}</mat-label>
           <input
             matInput
-            #childDueDateInput
-            type="date"
-            [(ngModel)]="childFilterDueDate"
-            (change)="applyChildFilter()"
-            max="9999-12-31"
+            [matDatepicker]="childDueDatePicker"
+            [(ngModel)]="childFilterDueDateObj"
+            (dateChange)="onChildDueDateChange()"
+            [max]="maxDate"
+            [ngModelOptions]="{standalone: true}"
+            readonly
           />
-          <button
-            mat-icon-button
-            matSuffix
-            type="button"
-            (click)="openChildDatePicker(childDueDateInput)"
-            [attr.aria-label]="'taskDetail.selectDueDate' | translate"
-          >
-            <mat-icon>event</mat-icon>
-          </button>
+          <mat-datepicker-toggle matIconSuffix [for]="childDueDatePicker"></mat-datepicker-toggle>
+          <mat-datepicker #childDueDatePicker></mat-datepicker>
         </mat-form-field>
 
         <button mat-stroked-button (click)="resetChildFilter()">

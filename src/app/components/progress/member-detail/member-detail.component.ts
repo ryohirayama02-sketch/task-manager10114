@@ -27,7 +27,6 @@ import {
 import { Inject } from '@angular/core';
 import { TranslatePipe } from '../../../pipes/translate.pipe';
 import { LanguageService } from '../../../services/language.service';
-import { PeriodFilterDialogComponent } from '../period-filter-dialog/period-filter-dialog.component';
 import { MemberManagementService } from '../../../services/member-management.service';
 import { Member } from '../../../models/member.model';
 
@@ -98,6 +97,9 @@ export class MemberDetailComponent implements OnInit {
 
   periodStartDate: Date | null = null;
   periodEndDate: Date | null = null;
+  periodStartDateObj: Date | null = null; // Material date picker用
+  periodEndDateObj: Date | null = null; // Material date picker用
+  maxDate = new Date(9999, 11, 31); // 9999-12-31
 
   ngOnInit() {
     const memberName = this.route.snapshot.paramMap.get('memberName');
@@ -387,12 +389,6 @@ export class MemberDetailComponent implements OnInit {
     return Math.round((completedTasks / targetTasks.length) * 100);
   }
 
-  resetPeriodFilter() {
-    this.periodStartDate = null;
-    this.periodEndDate = null;
-    this.applyPeriodFilter();
-  }
-
   calculatePriorityBreakdown(tasks: Task[]): {
     high: number;
     medium: number;
@@ -466,23 +462,30 @@ export class MemberDetailComponent implements OnInit {
     };
   }
 
-  // ⬇️ この下に追加
-  openPeriodDialog() {
-    const dialogRef = this.dialog.open(PeriodFilterDialogComponent, {
-      width: '500px',
-      data: {
-        startDate: this.periodStartDate,
-        endDate: this.periodEndDate,
-      },
-    });
+  onPeriodStartDateChange(): void {
+    if (this.periodStartDateObj) {
+      this.periodStartDate = this.periodStartDateObj;
+    } else {
+      this.periodStartDate = null;
+    }
+    this.applyPeriodFilter();
+  }
 
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result) {
-        this.periodStartDate = result.startDate;
-        this.periodEndDate = result.endDate;
-        this.applyPeriodFilter();
-      }
-    });
+  onPeriodEndDateChange(): void {
+    if (this.periodEndDateObj) {
+      this.periodEndDate = this.periodEndDateObj;
+    } else {
+      this.periodEndDate = null;
+    }
+    this.applyPeriodFilter();
+  }
+
+  resetPeriodFilter(): void {
+    this.periodStartDateObj = null;
+    this.periodEndDateObj = null;
+    this.periodStartDate = null;
+    this.periodEndDate = null;
+    this.applyPeriodFilter();
   }
 
   /** ✅ タスク一覧をCSV形式で出力 */

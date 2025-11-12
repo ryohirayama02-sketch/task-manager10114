@@ -13,6 +13,7 @@ import { routes } from './app.routes';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { MatButtonModule } from '@angular/material/button';
 import { environment } from '../environments/environment';
+import { MAT_DATE_LOCALE } from '@angular/material/core';
 
 // ✅ firebase/auth から persistence と resolver を import
 import {
@@ -44,5 +45,8 @@ export const appConfig: ApplicationConfig = {
     provideFirestore(() => getFirestore()),
     provideFunctions(() => getFunctions()),
     provideStorage(() => getStorage()),
+
+    // ✅ Material Datepicker を英語ロケールに設定
+    { provide: MAT_DATE_LOCALE, useValue: 'en-US' },
   ],
 };

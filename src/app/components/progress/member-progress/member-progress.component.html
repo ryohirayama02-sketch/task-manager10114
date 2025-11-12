@@ -5,19 +5,42 @@
       {{ 'progress.members.description' | translate }}
     </p>
 
-    <!-- 期間ボタン -->
-    <div class="header-actions">
-      <button mat-button class="period-button" (click)="openPeriodDialog()">
-        <mat-icon>date_range</mat-icon>
-        {{
-          periodStartDate && periodEndDate
-            ? (periodStartDate | date : 'MM/dd') + ' - ' + (periodEndDate | date : 'MM/dd')
-            : periodStartDate
-            ? (periodStartDate | date : 'MM/dd') + ' ' + ('progress.members.after' | translate)
-            : periodEndDate
-            ? (periodEndDate | date : 'MM/dd') + ' ' + ('progress.members.before' | translate)
-            : ('progress.members.period' | translate)
-        }}
+    <!-- 期間選択 -->
+    <div class="header-actions period-filters">
+      <mat-form-field appearance="outline" class="period-field">
+        <mat-label>{{ 'progress.member.periodDialog.startDate' | translate }}</mat-label>
+        <input
+          matInput
+          [matDatepicker]="periodStartDatePicker"
+          [(ngModel)]="periodStartDateObj"
+          (dateChange)="onPeriodStartDateChange()"
+          [max]="periodEndDateObj || maxDate"
+          [ngModelOptions]="{standalone: true}"
+          readonly
+        />
+        <mat-datepicker-toggle matIconSuffix [for]="periodStartDatePicker"></mat-datepicker-toggle>
+        <mat-datepicker #periodStartDatePicker></mat-datepicker>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="period-field">
+        <mat-label>{{ 'progress.member.periodDialog.endDate' | translate }}</mat-label>
+        <input
+          matInput
+          [matDatepicker]="periodEndDatePicker"
+          [(ngModel)]="periodEndDateObj"
+          (dateChange)="onPeriodEndDateChange()"
+          [min]="periodStartDateObj || undefined"
+          [max]="maxDate"
+          [ngModelOptions]="{standalone: true}"
+          readonly
+        />
+        <mat-datepicker-toggle matIconSuffix [for]="periodEndDatePicker"></mat-datepicker-toggle>
+        <mat-datepicker #periodEndDatePicker></mat-datepicker>
+      </mat-form-field>
+
+      <button mat-button (click)="resetPeriodFilter()" *ngIf="periodStartDateObj || periodEndDateObj">
+        <mat-icon>clear</mat-icon>
+        {{ 'progress.member.periodDialog.reset' | translate }}
       </button>
     </div>
   </div>

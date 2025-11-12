@@ -129,6 +129,8 @@ export class ProjectDetailComponent implements OnInit {
   filterAssignee: string = '';
   filterDueDate: string = '';
   filterDueDateObj: Date | null = null; // Material date picker用
+  inlineStartDateObj: Date | null = null; // Material date picker用（編集モードの開始日）
+  inlineEndDateObj: Date | null = null; // Material date picker用（編集モードの終了日）
   maxDate = new Date(9999, 11, 31); // 9999-12-31
   assigneeOptions: string[] = [];
 
@@ -450,6 +452,9 @@ export class ProjectDetailComponent implements OnInit {
             .join(', ')
         : this.project.tags || '',
     };
+    // Dateオブジェクトを初期化
+    this.inlineStartDateObj = this.project.startDate ? new Date(this.project.startDate) : null;
+    this.inlineEndDateObj = this.project.endDate ? new Date(this.project.endDate) : null;
     this.editableTags = this.parseTags(this.project.tags);
     this.editableMilestones = (this.project.milestones || []).map(
       (milestone) => ({
@@ -1752,6 +1757,46 @@ export class ProjectDetailComponent implements OnInit {
 
   /** タスクの担当者を表示（カンマ区切り対応） */
   /** 開始日変更時の処理 */
+  onInlineStartDateChange(): void {
+    if (this.inlineStartDateObj && this.editableProject) {
+      const year = this.inlineStartDateObj.getFullYear();
+      const month = String(this.inlineStartDateObj.getMonth() + 1).padStart(2, '0');
+      const day = String(this.inlineStartDateObj.getDate()).padStart(2, '0');
+      this.editableProject.startDate = `${year}-${month}-${day}`;
+    } else if (this.editableProject) {
+      this.editableProject.startDate = '';
+    }
+  }
+
+  onInlineEndDateChange(): void {
+    if (this.inlineEndDateObj && this.editableProject) {
+      const year = this.inlineEndDateObj.getFullYear();
+      const month = String(this.inlineEndDateObj.getMonth() + 1).padStart(2, '0');
+      const day = String(this.inlineEndDateObj.getDate()).padStart(2, '0');
+      this.editableProject.endDate = `${year}-${month}-${day}`;
+    } else if (this.editableProject) {
+      this.editableProject.endDate = '';
+    }
+  }
+
+  getMilestoneDateObj(index: number): Date | null {
+    if (this.editableMilestones[index]?.date) {
+      return new Date(this.editableMilestones[index].date);
+    }
+    return null;
+  }
+
+  onMilestoneDateChange(index: number, event: any): void {
+    if (event.value && this.editableMilestones[index]) {
+      const year = event.value.getFullYear();
+      const month = String(event.value.getMonth() + 1).padStart(2, '0');
+      const day = String(event.value.getDate()).padStart(2, '0');
+      this.editableMilestones[index].date = `${year}-${month}-${day}`;
+    } else if (this.editableMilestones[index]) {
+      this.editableMilestones[index].date = '';
+    }
+  }
+
   onStartDateChange(): void {
     if (this.editableProject && this.editableProject.startDate && this.editableProject.endDate) {
       const startDate = new Date(this.editableProject.startDate);

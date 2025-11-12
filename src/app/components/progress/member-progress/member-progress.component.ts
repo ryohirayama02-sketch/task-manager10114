@@ -8,8 +8,12 @@ import { Router } from '@angular/router';
 import { ProjectService } from '../../../services/project.service';
 import { Task } from '../../../models/task.model';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { PeriodFilterDialogComponent } from '../period-filter-dialog/period-filter-dialog.component';
 import { TranslatePipe } from '../../../pipes/translate.pipe';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { FormsModule } from '@angular/forms';
 import { LanguageService } from '../../../services/language.service';
 import { MemberManagementService } from '../../../services/member-management.service';
 import { Member } from '../../../models/member.model';
@@ -37,6 +41,11 @@ interface MemberProgress {
     MatIconModule,
     MatProgressSpinnerModule,
     MatDialogModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
+    MatFormFieldModule,
+    MatInputModule,
+    FormsModule,
     TranslatePipe,
   ],
   templateUrl: './member-progress.component.html',
@@ -55,6 +64,9 @@ export class MemberProgressComponent implements OnInit {
   private allMembers: Member[] = []; // メンバー一覧
   periodStartDate: Date | null = null;
   periodEndDate: Date | null = null;
+  periodStartDateObj: Date | null = null; // Material date picker用
+  periodEndDateObj: Date | null = null; // Material date picker用
+  maxDate = new Date(9999, 11, 31); // 9999-12-31
 
   ngOnInit() {
     // メンバー一覧を読み込み
@@ -261,21 +273,29 @@ export class MemberProgressComponent implements OnInit {
     this.router.navigate(['/progress/members', memberName]);
   }
 
-  openPeriodDialog() {
-    const dialogRef = this.dialog.open(PeriodFilterDialogComponent, {
-      width: '500px',
-      data: {
-        startDate: this.periodStartDate,
-        endDate: this.periodEndDate,
-      },
-    });
+  onPeriodStartDateChange(): void {
+    if (this.periodStartDateObj) {
+      this.periodStartDate = this.periodStartDateObj;
+    } else {
+      this.periodStartDate = null;
+    }
+    this.applyPeriodFilter();
+  }
 
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result) {
-        this.periodStartDate = result.startDate;
-        this.periodEndDate = result.endDate;
-        this.applyPeriodFilter();
-      }
-    });
+  onPeriodEndDateChange(): void {
+    if (this.periodEndDateObj) {
+      this.periodEndDate = this.periodEndDateObj;
+    } else {
+      this.periodEndDate = null;
+    }
+    this.applyPeriodFilter();
+  }
+
+  resetPeriodFilter(): void {
+    this.periodStartDateObj = null;
+    this.periodEndDateObj = null;
+    this.periodStartDate = null;
+    this.periodEndDate = null;
+    this.applyPeriodFilter();
   }
 }

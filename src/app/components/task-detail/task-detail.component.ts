@@ -15,6 +15,8 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 import { Auth } from '@angular/fire/auth';
 import { Firestore, doc, updateDoc } from '@angular/fire/firestore';
 import { ProjectService } from '../../services/project.service';
@@ -62,6 +64,8 @@ import { LanguageService } from '../../services/language.service';
     MatProgressSpinnerModule,
     MatSlideToggleModule,
     MatSnackBarModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
     ProjectChatComponent,
     TranslatePipe,
   ],
@@ -105,8 +109,12 @@ export class TaskDetailComponent implements OnInit {
   childFilterPriority = '';
   childFilterAssignee = '';
   childFilterDueDate = '';
+  childFilterDueDateObj: Date | null = null; // Material date picker用（子タスクフィルター）
   childAssigneeOptions: string[] = [];
   projectThemeColor = DEFAULT_PROJECT_THEME_COLOR;
+  taskStartDateObj: Date | null = null; // Material date picker用（編集モードの開始日）
+  taskDueDateObj: Date | null = null; // Material date picker用（編集モードの終了日）
+  maxDate = new Date(9999, 11, 31); // 9999-12-31
   parentTaskName: string | null = null;
   projectMembers: Member[] = [];
   selectedAssignedMemberIds: string[] = [];
@@ -575,6 +583,9 @@ export class TaskDetailComponent implements OnInit {
     } else {
       // 読み取りモードから編集中へ
       this.isEditing = true;
+      // Dateオブジェクトを初期化
+      this.taskStartDateObj = this.taskData.startDate ? new Date(this.taskData.startDate) : null;
+      this.taskDueDateObj = this.taskData.dueDate ? new Date(this.taskData.dueDate) : null;
 
       // 編集モードON時にタスクのスナップショットを保持（リアルタイム更新でthis.taskが変更される前に）
       if (this.task) {
@@ -736,6 +747,28 @@ export class TaskDetailComponent implements OnInit {
   }
 
   /** 開始日変更時の処理 */
+  onTaskStartDateChange(): void {
+    if (this.taskStartDateObj) {
+      const year = this.taskStartDateObj.getFullYear();
+      const month = String(this.taskStartDateObj.getMonth() + 1).padStart(2, '0');
+      const day = String(this.taskStartDateObj.getDate()).padStart(2, '0');
+      this.taskData.startDate = `${year}-${month}-${day}`;
+    } else {
+      this.taskData.startDate = '';
+    }
+  }
+
+  onTaskDueDateChange(): void {
+    if (this.taskDueDateObj) {
+      const year = this.taskDueDateObj.getFullYear();
+      const month = String(this.taskDueDateObj.getMonth() + 1).padStart(2, '0');
+      const day = String(this.taskDueDateObj.getDate()).padStart(2, '0');
+      this.taskData.dueDate = `${year}-${month}-${day}`;
+    } else {
+      this.taskData.dueDate = '';
+    }
+  }
+
   onStartDateChange(): void {
     if (this.taskData.startDate && this.taskData.dueDate) {
       const startDate = new Date(this.taskData.startDate);
@@ -1736,6 +1769,18 @@ export class TaskDetailComponent implements OnInit {
     }
 
     void this.reopenParentTaskIfNeeded(children);
+  }
+
+  onChildDueDateChange(): void {
+    if (this.childFilterDueDateObj) {
+      const year = this.childFilterDueDateObj.getFullYear();
+      const month = String(this.childFilterDueDateObj.getMonth() + 1).padStart(2, '0');
+      const day = String(this.childFilterDueDateObj.getDate()).padStart(2, '0');
+      this.childFilterDueDate = `${year}-${month}-${day}`;
+    } else {
+      this.childFilterDueDate = '';
+    }
+    this.applyChildFilter();
   }
 
   applyChildFilter(): void {

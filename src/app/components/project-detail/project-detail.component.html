@@ -92,43 +92,39 @@
             <mat-hint align="end">{{ (editableProject!.overview || '').length }}/200</mat-hint>
           </mat-form-field>
 
-          <div class="inline-date-row" [attr.lang]="getCurrentLang()">
-            <div class="date-field">
-              <label for="inlineStartDate">{{ 'projectDetail.startDate' | translate }} * <span class="required-hint">{{ 'projectDetail.required' | translate }}</span></label>
-              <div class="date-input-wrapper">
-                <input
-                  id="inlineStartDate"
-                  class="date-input"
-                  type="date"
-                  [(ngModel)]="editableProject!.startDate"
-                  (change)="onStartDateChange()"
-                  name="inlineStartDate"
-                  [max]="editableProject!.endDate || '9999-12-31'"
-                  [attr.lang]="getCurrentLang()"
-                  required
-                />
-                <mat-icon class="date-icon">event</mat-icon>
-              </div>
-            </div>
+          <div class="inline-date-row">
+            <mat-form-field appearance="outline" class="date-field">
+              <mat-label>{{ 'projectDetail.startDate' | translate }} * <span class="required-hint">{{ 'projectDetail.required' | translate }}</span></mat-label>
+              <input
+                matInput
+                [matDatepicker]="inlineStartDatePicker"
+                [(ngModel)]="inlineStartDateObj"
+                (dateChange)="onInlineStartDateChange()"
+                [max]="inlineEndDateObj || maxDate"
+                [ngModelOptions]="{standalone: true}"
+                readonly
+                required
+              />
+              <mat-datepicker-toggle matIconSuffix [for]="inlineStartDatePicker"></mat-datepicker-toggle>
+              <mat-datepicker #inlineStartDatePicker></mat-datepicker>
+            </mat-form-field>
 
-            <div class="date-field">
-              <label for="inlineEndDate">{{ 'projectDetail.endDate' | translate }} * <span class="required-hint">{{ 'projectDetail.required' | translate }}</span></label>
-              <div class="date-input-wrapper">
-                <input
-                  id="inlineEndDate"
-                  class="date-input"
-                  type="date"
-                  [(ngModel)]="editableProject!.endDate"
-                  (change)="onEndDateChange()"
-                  name="inlineEndDate"
-                  [min]="editableProject!.startDate || ''"
-                  max="9999-12-31"
-                  [attr.lang]="getCurrentLang()"
-                  required
-                />
-                <mat-icon class="date-icon">event</mat-icon>
-              </div>
-            </div>
+            <mat-form-field appearance="outline" class="date-field">
+              <mat-label>{{ 'projectDetail.endDate' | translate }} * <span class="required-hint">{{ 'projectDetail.required' | translate }}</span></mat-label>
+              <input
+                matInput
+                [matDatepicker]="inlineEndDatePicker"
+                [(ngModel)]="inlineEndDateObj"
+                (dateChange)="onInlineEndDateChange()"
+                [min]="inlineStartDateObj || undefined"
+                [max]="maxDate"
+                [ngModelOptions]="{standalone: true}"
+                readonly
+                required
+              />
+              <mat-datepicker-toggle matIconSuffix [for]="inlineEndDatePicker"></mat-datepicker-toggle>
+              <mat-datepicker #inlineEndDatePicker></mat-datepicker>
+            </mat-form-field>
           </div>
 
           <mat-form-field appearance="outline" class="full-width-field">
@@ -294,20 +290,19 @@
                 *ngFor="let milestone of editableMilestones; let i = index; trackBy: trackMilestone"
                 class="milestone-item"
               >
-                <div class="milestone-date-field" [attr.lang]="getCurrentLang()">
-                  <label [attr.for]="'inlineMilestoneDate' + i">{{ 'projectDetail.date' | translate }}</label>
-                  <div class="date-input-wrapper">
-                    <input
-                      [id]="'inlineMilestoneDate' + i"
-                      class="date-input"
-                      type="date"
-                      [(ngModel)]="milestone.date"
-                      name="inlineMilestoneDate{{ i }}"
-                      [attr.lang]="getCurrentLang()"
-                    />
-                    <mat-icon class="date-icon">event</mat-icon>
-                  </div>
-                </div>
+                <mat-form-field appearance="outline" class="milestone-date">
+                  <mat-label>{{ 'projectDetail.date' | translate }}</mat-label>
+                  <input
+                    matInput
+                    [matDatepicker]="milestoneDatePicker"
+                    [value]="getMilestoneDateObj(i)"
+                    (dateChange)="onMilestoneDateChange(i, $event)"
+                    [max]="maxDate"
+                    readonly
+                  />
+                  <mat-datepicker-toggle matIconSuffix [for]="milestoneDatePicker"></mat-datepicker-toggle>
+                  <mat-datepicker #milestoneDatePicker></mat-datepicker>
+                </mat-form-field>
                 <mat-form-field appearance="outline" class="milestone-name">
                   <mat-label>{{ 'projectDetail.milestoneName' | translate }}</mat-label>
                   <input

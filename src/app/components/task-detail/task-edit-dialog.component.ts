@@ -10,6 +10,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 import { firstValueFrom } from 'rxjs';
 import { TaskService } from '../../services/task.service';
 import { MemberManagementService } from '../../services/member-management.service';
@@ -32,6 +34,8 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
     MatIconModule,
     MatSnackBarModule,
     MatProgressSpinnerModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
     TranslatePipe,
   ],
   template: `
@@ -157,31 +161,37 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
           </mat-form-field>
 
           <!-- 開始日 -->
-          <div class="date-field">
-            <label for="startDate">{{ "taskEditDialog.startDate" | translate }}</label>
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>{{ "taskEditDialog.startDate" | translate }}</mat-label>
             <input
-              id="startDate"
-              type="date"
-              [(ngModel)]="task.startDate"
-              name="startDate"
-              [placeholder]="'taskEditDialog.startDatePlaceholder' | translate"
-              class="date-input"
+              matInput
+              [matDatepicker]="startDatePicker"
+              [(ngModel)]="startDateObj"
+              (dateChange)="onStartDateChange()"
+              [max]="dueDateObj || maxDate"
+              [ngModelOptions]="{standalone: true}"
+              readonly
             />
-          </div>
+            <mat-datepicker-toggle matIconSuffix [for]="startDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #startDatePicker></mat-datepicker>
+          </mat-form-field>
 
           <!-- 期日 -->
-          <div class="date-field">
-            <label for="dueDate">{{ "taskEditDialog.dueDate" | translate }}</label>
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>{{ "taskEditDialog.dueDate" | translate }}</mat-label>
             <input
-              id="dueDate"
-              type="date"
-              [(ngModel)]="task.dueDate"
-              name="dueDate"
-              [min]="task.startDate || ''"
-              [placeholder]="'taskEditDialog.dueDatePlaceholder' | translate"
-              class="date-input"
+              matInput
+              [matDatepicker]="dueDatePicker"
+              [(ngModel)]="dueDateObj"
+              (dateChange)="onDueDateChange()"
+              [min]="startDateObj || undefined"
+              [max]="maxDate"
+              [ngModelOptions]="{standalone: true}"
+              readonly
             />
-          </div>
+            <mat-datepicker-toggle matIconSuffix [for]="dueDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #dueDatePicker></mat-datepicker>
+          </mat-form-field>
         </form>
       </div>
 
@@ -475,6 +485,9 @@ export class TaskEditDialogComponent implements OnInit {
   isSaving = false;
   tagInputValue = '';
   private childTasksForValidation: Task[] = [];
+  startDateObj: Date | null = null; // Material date picker用
+  dueDateObj: Date | null = null; // Material date picker用
+  maxDate = new Date(9999, 11, 31); // 9999-12-31
 
   constructor(
     private taskService: TaskService,
@@ -499,10 +512,35 @@ export class TaskEditDialogComponent implements OnInit {
       ? [this.task.tags]
       : [];
     this.childTasksForValidation = data.childTasks || [];
+    // Dateオブジェクトを初期化
+    this.startDateObj = this.task.startDate ? new Date(this.task.startDate) : null;
+    this.dueDateObj = this.task.dueDate ? new Date(this.task.dueDate) : null;
   }
 
   async ngOnInit(): Promise<void> {
     await this.loadMembers();
+  }
+
+  onStartDateChange(): void {
+    if (this.startDateObj) {
+      const year = this.startDateObj.getFullYear();
+      const month = String(this.startDateObj.getMonth() + 1).padStart(2, '0');
+      const day = String(this.startDateObj.getDate()).padStart(2, '0');
+      this.task.startDate = `${year}-${month}-${day}`;
+    } else {
+      this.task.startDate = '';
+    }
+  }
+
+  onDueDateChange(): void {
+    if (this.dueDateObj) {
+      const year = this.dueDateObj.getFullYear();
+      const month = String(this.dueDateObj.getMonth() + 1).padStart(2, '0');
+      const day = String(this.dueDateObj.getDate()).padStart(2, '0');
+      this.task.dueDate = `${year}-${month}-${day}`;
+    } else {
+      this.task.dueDate = '';
+    }
   }
 
   /** メンバー一覧を読み込み */

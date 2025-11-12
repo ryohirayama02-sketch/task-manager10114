@@ -87,4 +87,12 @@ export class PeriodFilterDialogComponent {
     }
     return false;
   }
+
+  onInputFocus(event: FocusEvent): void {
+    (event.target as HTMLInputElement).blur();
+  }
+
+  onInputKeydown(event: KeyboardEvent): void {
+    event.preventDefault();
+  }
 }

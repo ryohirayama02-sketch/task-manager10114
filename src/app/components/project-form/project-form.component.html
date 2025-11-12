@@ -54,10 +54,10 @@
               [matDatepicker]="startDatePicker"
               [(ngModel)]="startDateObj"
               (dateChange)="onStartDateChange()"
-              (input)="onStartDateInput($event)"
               [max]="maxDate"
               [ngModelOptions]="{standalone: true}"
               [placeholder]="'projectForm.startDatePlaceholder' | translate"
+              readonly
             />
             <mat-datepicker-toggle matIconSuffix [for]="startDatePicker"></mat-datepicker-toggle>
             <mat-datepicker #startDatePicker></mat-datepicker>
@@ -71,11 +71,11 @@
               [matDatepicker]="endDatePicker"
               [(ngModel)]="endDateObj"
               (dateChange)="onEndDateChange()"
-              (input)="onEndDateInput($event)"
               [min]="startDateObj || undefined"
               [max]="maxDate"
               [ngModelOptions]="{standalone: true}"
               [placeholder]="'projectForm.endDatePlaceholder' | translate"
+              readonly
             />
             <mat-datepicker-toggle matIconSuffix [for]="endDatePicker"></mat-datepicker-toggle>
             <mat-datepicker #endDatePicker></mat-datepicker>

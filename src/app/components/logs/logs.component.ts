@@ -5,9 +5,13 @@ import { EditLog } from '../../models/task.model';
 import { DocumentSnapshot, Firestore, collection, query, where, collectionData } from '@angular/fire/firestore';
 import { FormsModule } from '@angular/forms';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { PeriodFilterDialogComponent } from '../progress/period-filter-dialog/period-filter-dialog.component';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
+import { MatInputModule } from '@angular/material/input';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 import { ProjectService } from '../../services/project.service';
 import { MemberManagementService } from '../../services/member-management.service';
 import { Member } from '../../models/member.model';
@@ -33,6 +37,11 @@ import { LanguageService } from '../../services/language.service';
     MatDialogModule,
     MatFormFieldModule,
     MatSelectModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
+    MatInputModule,
+    MatIconModule,
+    MatButtonModule,
     TranslatePipe,
   ],
   templateUrl: './logs.component.html',
@@ -63,6 +72,9 @@ export class LogsComponent implements OnInit, OnDestroy {
   memberOptions: string[] = [];
   periodStartDate: Date | null = null;
   periodEndDate: Date | null = null;
+  periodStartDateObj: Date | null = null; // Material date picker用
+  periodEndDateObj: Date | null = null; // Material date picker用
+  maxDate = new Date(9999, 11, 31); // 9999-12-31
   private projectNameMap = new Map<string, string>();
   private allMembers: Member[] = []; // メンバー一覧
   private currentProjectNames = new Set<string>(); // 現在存在するプロジェクト名のセット
@@ -424,24 +436,30 @@ export class LogsComponent implements OnInit, OnDestroy {
     this.applyFilters();
   }
 
-  openPeriodDialog(): void {
-    const dialogRef = this.dialog.open(PeriodFilterDialogComponent, {
-      width: '300px',
-      data: {
-        startDate: this.periodStartDate,
-        endDate: this.periodEndDate,
-      },
-    });
+  onPeriodStartDateChange(): void {
+    if (this.periodStartDateObj) {
+      this.periodStartDate = this.periodStartDateObj;
+    } else {
+      this.periodStartDate = null;
+    }
+    this.applyFilters();
+  }
 
-    dialogRef.afterClosed().subscribe((result) => {
-      if (!result) {
-        return;
-      }
+  onPeriodEndDateChange(): void {
+    if (this.periodEndDateObj) {
+      this.periodEndDate = this.periodEndDateObj;
+    } else {
+      this.periodEndDate = null;
+    }
+    this.applyFilters();
+  }
 
-      this.periodStartDate = result.startDate;
-      this.periodEndDate = result.endDate;
-      this.applyFilters();
-    });
+  resetPeriodFilter(): void {
+    this.periodStartDateObj = null;
+    this.periodEndDateObj = null;
+    this.periodStartDate = null;
+    this.periodEndDate = null;
+    this.applyFilters();
   }
 
   periodLabel(): string {
