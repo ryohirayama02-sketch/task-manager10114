@@ -1,5 +1,13 @@
 <h2>{{ 'gantt.title' | translate }}</h2>
 
+<!-- 画面幅警告 -->
+<div *ngIf="isScreenTooNarrow" class="screen-width-warning">
+  <div class="warning-content">
+    <mat-icon class="warning-icon">warning</mat-icon>
+    <span class="warning-text">{{ 'gantt.screenWidthWarning' | translate }}</span>
+  </div>
+</div>
+
 <!-- プロジェクト選択とフィルター -->
 <div class="controls-section" style="justify-content: space-between; align-items: flex-start;">
   <div class="project-selector">

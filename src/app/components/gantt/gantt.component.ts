@@ -139,6 +139,11 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
   private hasUserHorizontalScrolled = false;
   private isApplyingHorizontalScroll = false;
   private timelineScrollListener?: () => void;
+  private windowResizeListener?: () => void;
+
+  // 画面幅警告
+  isScreenTooNarrow: boolean = false;
+  readonly MIN_SCREEN_WIDTH = 750;
 
   constructor(
     private projectService: ProjectService,
@@ -164,6 +169,7 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
     this.initializeDateRange();
     this.observeUserProjects();
     this.setupScrollSync();
+    this.setupScreenWidthWarning();
 
     this.projectSelectionService
       .getSelectedProjectIds()
@@ -178,6 +184,7 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
     this.initializeHeaderHeightSync();
     this.initializeHorizontalScrollTracking();
     this.applyPendingHorizontalScroll();
+    this.checkScreenWidth();
   }
 
   ngOnDestroy(): void {
@@ -187,6 +194,11 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
       container.removeEventListener('scroll', this.timelineScrollListener);
     }
     this.timelineScrollListener = undefined;
+    
+    if (this.windowResizeListener) {
+      window.removeEventListener('resize', this.windowResizeListener);
+    }
+    this.windowResizeListener = undefined;
   }
 
   /** 日付範囲を初期化 */
@@ -1175,5 +1187,19 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
     const currentLanguage = this.languageService.getCurrentLanguage();
     const separator = currentLanguage === 'ja' ? ' ～ ' : ' - ';
     return `${task.taskName} (${statusDisplay}) - ${startDate}${separator}${dueDate}`;
+  }
+
+  /** 画面幅警告を設定 */
+  private setupScreenWidthWarning(): void {
+    this.checkScreenWidth();
+    this.windowResizeListener = () => {
+      this.checkScreenWidth();
+    };
+    window.addEventListener('resize', this.windowResizeListener);
+  }
+
+  /** 画面幅をチェック */
+  private checkScreenWidth(): void {
+    this.isScreenTooNarrow = window.innerWidth < this.MIN_SCREEN_WIDTH;
   }
 }
