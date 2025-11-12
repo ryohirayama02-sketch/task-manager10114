@@ -13,8 +13,7 @@
       <div class="filters-grid">
         <!-- 担当者 -->
         <mat-form-field appearance="outline" class="filter-field">
-          <mat-label>{{ 'taskSearch.assignee' | translate }}</mat-label>
-          <mat-select [(ngModel)]="filters.assignee" multiple>
+          <mat-select [(ngModel)]="filters.assignee" multiple [placeholder]="'taskSearch.assignee' | translate">
             <mat-option *ngFor="let assignee of assignees" [value]="assignee">
               {{ assignee }}
             </mat-option>
@@ -23,8 +22,7 @@
 
         <!-- 優先度 -->
         <mat-form-field appearance="outline" class="filter-field">
-          <mat-label>{{ 'taskSearch.priority' | translate }}</mat-label>
-          <mat-select [(ngModel)]="filters.priority" multiple>
+          <mat-select [(ngModel)]="filters.priority" multiple [placeholder]="'taskSearch.priority' | translate">
             <mat-option *ngFor="let priority of priorities" [value]="priority">
               {{ getPriorityDisplay(priority) }}
             </mat-option>
@@ -33,8 +31,7 @@
 
         <!-- ステータス -->
         <mat-form-field appearance="outline" class="filter-field">
-          <mat-label>{{ 'taskSearch.status' | translate }}</mat-label>
-          <mat-select [(ngModel)]="filters.status" multiple>
+          <mat-select [(ngModel)]="filters.status" multiple [placeholder]="'taskSearch.status' | translate">
             <mat-option *ngFor="let status of statuses" [value]="status">
               {{ getStatusDisplay(status) }}
             </mat-option>
@@ -43,8 +40,7 @@
 
         <!-- タグ -->
         <mat-form-field appearance="outline" class="filter-field">
-          <mat-label>{{ 'taskSearch.tags' | translate }}</mat-label>
-          <mat-select [(ngModel)]="filters.tags" multiple [disabled]="allTags.length === 0">
+          <mat-select [(ngModel)]="filters.tags" multiple [disabled]="allTags.length === 0" [placeholder]="'taskSearch.tags' | translate">
             <mat-option *ngFor="let tag of allTags" [value]="tag">
               {{ tag }}
             </mat-option>
@@ -57,7 +53,6 @@
 
         <!-- フリーワード -->
         <mat-form-field appearance="outline" class="filter-field full-width">
-          <mat-label>{{ 'taskSearch.freeWord' | translate }}</mat-label>
           <input
             matInput
             [(ngModel)]="filters.freeWord"

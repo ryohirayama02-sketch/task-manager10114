@@ -1582,10 +1582,7 @@ export class LanguageService {
       en: 'No tasks with tags found in the room',
     },
     'taskSearch.freeWord': { ja: 'フリーワード', en: 'Free Word' },
-    'taskSearch.freeWordPlaceholder': {
-      ja: 'タスク名、説明、プロジェクト名で検索',
-      en: 'Search by task name, description, or project name',
-    },
+    'taskSearch.freeWordPlaceholder': { ja: 'フリーワード', en: 'Free word' },
     'taskSearch.searching': { ja: '検索中...', en: 'Searching...' },
     'taskSearch.search': { ja: '検索', en: 'Search' },
     'taskSearch.clear': { ja: 'クリア', en: 'Clear' },
