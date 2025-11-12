@@ -225,22 +225,78 @@ export class MemberProgressComponent implements OnInit {
 
   private filterTasksByPeriod(tasks: Task[]): Task[] {
     if (!this.periodStartDate && !this.periodEndDate) {
+      console.log('期間フィルターなし: 全タスクを表示', tasks.length);
       return tasks;
     }
 
-    return tasks.filter((task) => {
-      const dueDate = task.dueDate ? new Date(task.dueDate) : null;
-      if (!dueDate) return false;
-
-      const afterStart = this.periodStartDate
-        ? dueDate >= this.periodStartDate
-        : true;
-      const beforeEnd = this.periodEndDate
-        ? dueDate <= this.periodEndDate
-        : true;
-
-      return afterStart && beforeEnd;
+    console.log('期間フィルター適用:', {
+      startDate: this.periodStartDate,
+      endDate: this.periodEndDate,
+      totalTasks: tasks.length,
     });
+
+    const filteredTasks = tasks.filter((task) => {
+      if (!task.dueDate) {
+        return false;
+      }
+
+      // 日付文字列をDateオブジェクトに変換
+      const dueDate = new Date(task.dueDate);
+      if (isNaN(dueDate.getTime())) {
+        console.warn('無効な日付:', task.dueDate, task.taskName);
+        return false;
+      }
+
+      // 日付を日単位で比較するため、時刻を0時に設定
+      const taskDateOnly = new Date(
+        dueDate.getFullYear(),
+        dueDate.getMonth(),
+        dueDate.getDate()
+      );
+
+      // 開始日の時刻を0時に設定
+      const startDateOnly = this.periodStartDate
+        ? new Date(
+            this.periodStartDate.getFullYear(),
+            this.periodStartDate.getMonth(),
+            this.periodStartDate.getDate()
+          )
+        : null;
+
+      // 終了日の時刻を23:59:59.999に設定（その日の終わりまで含める）
+      const endDateOnly = this.periodEndDate
+        ? new Date(
+            this.periodEndDate.getFullYear(),
+            this.periodEndDate.getMonth(),
+            this.periodEndDate.getDate(),
+            23,
+            59,
+            59,
+            999
+          )
+        : null;
+
+      const afterStart = startDateOnly
+        ? taskDateOnly >= startDateOnly
+        : true;
+      const beforeEnd = endDateOnly ? taskDateOnly <= endDateOnly : true;
+
+      const matches = afterStart && beforeEnd;
+      if (matches) {
+        console.log('タスクが期間内:', {
+          taskName: task.taskName,
+          dueDate: task.dueDate,
+          taskDateOnly: taskDateOnly.toISOString(),
+          startDateOnly: startDateOnly?.toISOString(),
+          endDateOnly: endDateOnly?.toISOString(),
+        });
+      }
+
+      return matches;
+    });
+
+    console.log('フィルター後のタスク数:', filteredTasks.length);
+    return filteredTasks;
   }
 
   getStatusColor(status: string): string {
@@ -274,19 +330,25 @@ export class MemberProgressComponent implements OnInit {
   }
 
   onPeriodStartDateChange(): void {
+    console.log('開始日変更:', this.periodStartDateObj);
     if (this.periodStartDateObj) {
       this.periodStartDate = this.periodStartDateObj;
+      console.log('開始日を設定:', this.periodStartDate);
     } else {
       this.periodStartDate = null;
+      console.log('開始日をクリア');
     }
     this.applyPeriodFilter();
   }
 
   onPeriodEndDateChange(): void {
+    console.log('終了日変更:', this.periodEndDateObj);
     if (this.periodEndDateObj) {
       this.periodEndDate = this.periodEndDateObj;
+      console.log('終了日を設定:', this.periodEndDate);
     } else {
       this.periodEndDate = null;
+      console.log('終了日をクリア');
     }
     this.applyPeriodFilter();
   }
