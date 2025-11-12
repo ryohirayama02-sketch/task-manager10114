@@ -12,11 +12,14 @@
       <form [formGroup]="projectForm" (ngSubmit)="onSubmit()">
         <!-- プロジェクト名 -->
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>{{ "projectForm.projectName" | translate }} * <span class="required-hint">{{ 'projectForm.required' | translate }}</span></mat-label>
           <input
             matInput
             formControlName="projectName"
-            [placeholder]="'projectForm.projectNamePlaceholderFull' | translate"
+            [placeholder]="
+              ('projectForm.projectNamePlaceholderFull' | translate) +
+              ' ' +
+              ('projectForm.required' | translate)
+            "
             autocomplete="off"
             maxlength="30"
           />
@@ -33,7 +36,6 @@
 
         <!-- プロジェクト説明 -->
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>{{ "projectForm.overview" | translate }}</mat-label>
           <textarea
             matInput
             formControlName="overview"
@@ -42,30 +44,36 @@
             maxlength="200"
           ></textarea>
           <mat-icon matSuffix>description</mat-icon>
-          <mat-hint align="end">{{ (projectForm.get('overview')?.value || '').length }}/200</mat-hint>
+          <mat-hint align="end"
+            >{{
+              (projectForm.get("overview")?.value || "").length
+            }}/200</mat-hint
+          >
         </mat-form-field>
 
         <!-- 開始日・終了日 -->
         <div class="date-fields">
           <mat-form-field appearance="outline" class="date-field half-width">
-            <mat-label>{{ "projectForm.startDate" | translate }} * <span class="required-hint">{{ 'projectForm.required' | translate }}</span></mat-label>
             <input
               matInput
               [matDatepicker]="startDatePicker"
               [(ngModel)]="startDateObj"
               (dateChange)="onStartDateChange()"
               [max]="endDateObj || maxDate"
-              [ngModelOptions]="{standalone: true}"
-              placeholder="開始日"
-              readonly
+              [ngModelOptions]="{ standalone: true }"
+              [placeholder]="'projectForm.startDatePlaceholderFull' | translate"
+              (click)="startDatePicker.open()"
+              (keydown)="$event.preventDefault()"
             />
-            <mat-datepicker-toggle matIconSuffix [for]="startDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker-toggle
+              matIconSuffix
+              [for]="startDatePicker"
+            ></mat-datepicker-toggle>
             <mat-datepicker #startDatePicker></mat-datepicker>
             <mat-error *ngIf="startDateError">{{ startDateError }}</mat-error>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="date-field half-width">
-            <mat-label>{{ "projectForm.endDate" | translate }} * <span class="required-hint">{{ 'projectForm.required' | translate }}</span></mat-label>
             <input
               matInput
               [matDatepicker]="endDatePicker"
@@ -73,11 +81,15 @@
               (dateChange)="onEndDateChange()"
               [min]="startDateObj || undefined"
               [max]="maxDate"
-              [ngModelOptions]="{standalone: true}"
-              placeholder="終了日"
-              readonly
+              [ngModelOptions]="{ standalone: true }"
+              [placeholder]="'projectForm.endDatePlaceholderFull' | translate"
+              (click)="endDatePicker.open()"
+              (keydown)="$event.preventDefault()"
             />
-            <mat-datepicker-toggle matIconSuffix [for]="endDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker-toggle
+              matIconSuffix
+              [for]="endDatePicker"
+            ></mat-datepicker-toggle>
             <mat-datepicker #endDatePicker></mat-datepicker>
             <mat-error *ngIf="endDateError">{{ endDateError }}</mat-error>
           </mat-form-field>
@@ -86,7 +98,9 @@
         <!-- 責任者選択 -->
         <div class="member-selection responsible-selection">
           <div class="member-selection-header">
-            <h3>{{ "projectForm.responsible" | translate }} * <span class="required-hint">{{ 'projectForm.required' | translate }}</span></h3>
+            <h3>
+              {{ "projectForm.responsible" | translate }}
+            </h3>
           </div>
 
           <!-- ローディング表示 -->
@@ -98,14 +112,15 @@
           <!-- 責任者選択 -->
           <div *ngIf="!loading && members.length > 0">
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>{{
-                "projectForm.selectResponsible" | translate
-              }}</mat-label>
               <mat-select
                 formControlName="responsible"
                 multiple
                 (selectionChange)="onResponsibleSelectionChange($event.value)"
-                [placeholder]="'projectForm.selectResponsiblePlaceholder' | translate"
+                [placeholder]="
+                  ('projectForm.selectResponsiblePlaceholder' | translate) +
+                  ' ' +
+                  ('projectForm.required' | translate)
+                "
                 required
               >
                 <mat-option *ngFor="let member of members" [value]="member.id">
@@ -121,7 +136,8 @@
             >
               <div class="selected-members-header">
                 <span class="member-count-text"
-                  >{{ selectedResponsibles.length }}{{ 'projectForm.membersSelected' | translate }}</span
+                  >{{ selectedResponsibles.length
+                  }}{{ "projectForm.membersSelected" | translate }}</span
                 >
               </div>
               <div class="member-chips-inline">
@@ -150,7 +166,7 @@
             <p>
               <button mat-button color="primary" routerLink="/members">
                 {{ "projectForm.manageMembers" | translate }}</button
-              >{{ 'projectForm.registerMember' | translate }}
+              >{{ "projectForm.registerMember" | translate }}
             </p>
           </div>
         </div>
@@ -159,9 +175,10 @@
         <div class="member-selection">
           <div class="member-selection-header">
             <h3>
-              {{ "projectForm.projectMembers" | translate }} * <span class="required-hint">{{ 'projectForm.required' | translate }}</span>
+              {{ "projectForm.projectMembers" | translate }}
               <span class="member-count" *ngIf="selectedMembers.length > 0">
-                ({{ selectedMembers.length }}{{ 'projectForm.membersSelected' | translate }})
+                ({{ selectedMembers.length
+                }}{{ "projectForm.membersSelected" | translate }})
               </span>
             </h3>
           </div>
@@ -175,14 +192,15 @@
           <!-- メンバー選択 -->
           <div *ngIf="!loading && members.length > 0">
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>{{
-                "projectForm.selectMembers" | translate
-              }}</mat-label>
               <mat-select
                 formControlName="members"
                 multiple
                 (selectionChange)="onMemberSelectionChange($event.value)"
-                [placeholder]="'projectForm.selectMembersPlaceholder' | translate"
+                [placeholder]="
+                  ('projectForm.selectMembersPlaceholder' | translate) +
+                  ' ' +
+                  ('projectForm.required' | translate)
+                "
                 required
               >
                 <mat-option *ngFor="let member of members" [value]="member.id">
@@ -196,7 +214,8 @@
             <div *ngIf="selectedMembers.length > 0" class="selected-members">
               <div class="selected-members-header">
                 <span class="member-count-text"
-                  >{{ selectedMembers.length }}{{ 'projectForm.membersSelected' | translate }}</span
+                  >{{ selectedMembers.length
+                  }}{{ "projectForm.membersSelected" | translate }}</span
                 >
               </div>
               <div class="member-chips-inline">
@@ -225,7 +244,7 @@
             <p>
               <button mat-button color="primary" routerLink="/members">
                 {{ "projectForm.manageMembers" | translate }}</button
-              >{{ 'projectForm.registerMember' | translate }}
+              >{{ "projectForm.registerMember" | translate }}
             </p>
           </div>
         </div>
@@ -244,31 +263,41 @@
               [formGroupName]="i"
             >
               <mat-form-field appearance="outline" class="milestone-date">
-                <mat-label>{{ "projectForm.date" | translate }}</mat-label>
                 <input
                   matInput
                   [matDatepicker]="milestoneDatePicker"
                   [value]="getMilestoneDate(i)"
                   (dateChange)="onMilestoneDateChange(i, $event)"
                   [max]="maxDate"
-                  readonly
+                  [placeholder]="
+                    'projectForm.milestoneDatePlaceholder' | translate
+                  "
+                  (click)="milestoneDatePicker.open()"
+                  (keydown)="$event.preventDefault()"
                 />
-                <mat-datepicker-toggle matIconSuffix [for]="milestoneDatePicker" [matTooltip]="'projectForm.openCalendar' | translate"></mat-datepicker-toggle>
+                <mat-datepicker-toggle
+                  matIconSuffix
+                  [for]="milestoneDatePicker"
+                  [matTooltip]="'projectForm.openCalendar' | translate"
+                ></mat-datepicker-toggle>
                 <mat-datepicker #milestoneDatePicker></mat-datepicker>
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="milestone-name">
-                <mat-label>{{
-                  "projectForm.milestoneName" | translate
-                }}</mat-label>
                 <input
                   matInput
                   type="text"
                   formControlName="name"
-                  [placeholder]="'projectForm.milestoneNamePlaceholder' | translate"
+                  [placeholder]="
+                    'projectForm.milestoneNamePlaceholder' | translate
+                  "
                   maxlength="30"
                 />
-                <mat-hint align="end">{{ (milestone.get('name')?.value || '').length }}/30</mat-hint>
+                <mat-hint align="end"
+                  >{{
+                    (milestone.get("name")?.value || "").length
+                  }}/30</mat-hint
+                >
               </mat-form-field>
 
               <button
@@ -353,15 +382,14 @@
 
           <div class="link-attachments">
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>{{
-                "projectForm.attachmentUrl" | translate
-              }}</mat-label>
               <input
                 matInput
                 [(ngModel)]="linkUrl"
-                [ngModelOptions]="{standalone: true}"
+                [ngModelOptions]="{ standalone: true }"
                 name="attachmentUrl"
-                [placeholder]="'projectForm.attachmentUrlPlaceholder' | translate"
+                [placeholder]="
+                  'projectForm.attachmentUrlPlaceholder' | translate
+                "
                 (keyup.enter)="addLinkAttachment()"
               />
             </mat-form-field>
@@ -438,7 +466,10 @@
               (click)="selectThemeColor(color)"
               [matTooltip]="getThemeColorLabel(color)"
               [attr.aria-pressed]="isThemeColorSelected(color)"
-              [attr.aria-label]="('projectForm.themeColorLabel' | translate) + getThemeColorLabel(color)"
+              [attr.aria-label]="
+                ('projectForm.themeColorLabel' | translate) +
+                getThemeColorLabel(color)
+              "
             >
               <mat-icon *ngIf="isThemeColorSelected(color)">check</mat-icon>
             </button>
@@ -455,12 +486,25 @@
         mat-raised-button
         color="primary"
         (click)="onSubmit()"
-        [disabled]="projectForm.invalid || isSubmitting || isUploading || projectCountLimitReached || !startDateObj || !endDateObj || selectedResponsibles.length === 0 || selectedMembers.length === 0"
+        [disabled]="
+          projectForm.invalid ||
+          isSubmitting ||
+          isUploading ||
+          projectCountLimitReached ||
+          !startDateObj ||
+          !endDateObj ||
+          selectedResponsibles.length === 0 ||
+          selectedMembers.length === 0
+        "
         [matTooltip]="projectCountLimitMessage"
       >
         <mat-icon *ngIf="!isSubmitting">add</mat-icon>
         <mat-spinner *ngIf="isSubmitting" diameter="20"></mat-spinner>
-        {{ isSubmitting ? ('projectForm.creating' | translate) : ('projectForm.register' | translate) }}
+        {{
+          isSubmitting
+            ? ("projectForm.creating" | translate)
+            : ("projectForm.register" | translate)
+        }}
       </button>
       <div *ngIf="projectCountLimitReached" class="limit-warning">
         {{ projectCountLimitMessage }}

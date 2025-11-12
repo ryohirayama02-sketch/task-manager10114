@@ -149,7 +149,10 @@ export class LanguageService {
     'login.cardSubtitle': { ja: 'ログイン', en: 'Sign In' },
     'login.emailLabel': { ja: 'メールアドレス', en: 'Email Address' },
     'login.passwordLabel': { ja: 'パスワード', en: 'Password' },
-    'login.passwordPlaceholderInput': { ja: 'パスワードを入力', en: 'Enter password' },
+    'login.passwordPlaceholderInput': {
+      ja: 'パスワードを入力',
+      en: 'Enter password',
+    },
     'login.signInButton': { ja: 'ログイン', en: 'Sign In' },
     'login.signUpButton': { ja: '新規登録', en: 'Sign Up' },
     'login.orDivider': { ja: 'または', en: 'or' },
@@ -410,10 +413,22 @@ export class LanguageService {
     'progress.projects.responsible': { ja: '責任者', en: 'Responsible' },
     'progress.projects.members': { ja: 'メンバー', en: 'Members' },
     'progress.projects.completed': { ja: '完了', en: 'Completed' },
-    'progress.projects.overviewNotSet': { ja: '（説明未設定）', en: '(Not Set)' },
-    'progress.projects.membersNotSet': { ja: '（メンバー情報未設定）', en: '(Members Not Set)' },
-    'progress.projects.responsibleNotSet': { ja: '（責任者未設定）', en: '(Responsible Not Set)' },
-    'progress.projects.noProjectsFound': { ja: 'プロジェクトが見つかりません', en: 'No projects found' },
+    'progress.projects.overviewNotSet': {
+      ja: '（説明未設定）',
+      en: '(Not Set)',
+    },
+    'progress.projects.membersNotSet': {
+      ja: '（メンバー情報未設定）',
+      en: '(Members Not Set)',
+    },
+    'progress.projects.responsibleNotSet': {
+      ja: '（責任者未設定）',
+      en: '(Responsible Not Set)',
+    },
+    'progress.projects.noProjectsFound': {
+      ja: 'プロジェクトが見つかりません',
+      en: 'No projects found',
+    },
     // 進捗画面（メンバー概要）
     'progress.members.title': {
       ja: '全メンバーの進捗',
@@ -440,7 +455,10 @@ export class LanguageService {
     'progress.members.before': { ja: '以前', en: 'before' },
     'progress.members.role': { ja: '役職:', en: 'Role:' },
     'progress.members.email': { ja: 'メール:', en: 'Email:' },
-    'progress.members.completedTasks': { ja: '完了タスク:', en: 'Completed Tasks:' },
+    'progress.members.completedTasks': {
+      ja: '完了タスク:',
+      en: 'Completed Tasks:',
+    },
     'progress.members.inProgress': { ja: '作業中:', en: 'In Progress:' },
     'progress.members.notStarted': { ja: '未着手:', en: 'Not Started:' },
     'progress.members.count': { ja: '件', en: 'tasks' },
@@ -497,8 +515,14 @@ export class LanguageService {
       en: 'All Tasks Status and Priority',
     },
     'progress.member.period': { ja: '期間', en: 'Period' },
-    'progress.member.periodDialog.title': { ja: '期間を選択', en: 'Select Period' },
-    'progress.member.periodDialog.startDate': { ja: '開始日', en: 'Start Date' },
+    'progress.member.periodDialog.title': {
+      ja: '期間を選択',
+      en: 'Select Period',
+    },
+    'progress.member.periodDialog.startDate': {
+      ja: '開始日',
+      en: 'Start Date',
+    },
     'progress.member.periodDialog.endDate': { ja: '終了日', en: 'End Date' },
     'progress.member.periodDialog.cancel': { ja: 'キャンセル', en: 'Cancel' },
     'progress.member.periodDialog.confirm': { ja: '確定', en: 'Confirm' },
@@ -513,12 +537,18 @@ export class LanguageService {
     'progress.member.filter.sortFar': { ja: '遠い順', en: 'Later' },
     'progress.member.filter.reset': { ja: 'リセット', en: 'Reset' },
     'progress.member.filter.export': { ja: '出力', en: 'Export' },
-    'progress.member.table.projectName': { ja: 'プロジェクト名', en: 'Project Name' },
+    'progress.member.table.projectName': {
+      ja: 'プロジェクト名',
+      en: 'Project Name',
+    },
     'progress.member.table.taskName': { ja: 'タスク名', en: 'Task Name' },
     'progress.member.table.status': { ja: 'ステータス', en: 'Status' },
     'progress.member.table.dueDate': { ja: '期日', en: 'Due Date' },
     'progress.member.table.priority': { ja: '優先度', en: 'Priority' },
-    'progress.member.noMemberFound': { ja: 'メンバーが見つかりません', en: 'Member Not Found' },
+    'progress.member.noMemberFound': {
+      ja: 'メンバーが見つかりません',
+      en: 'Member Not Found',
+    },
     'progress.member.noMemberFoundDesc': {
       ja: '指定されたメンバーのタスクが見つかりません。',
       en: 'No tasks found for the specified member.',
@@ -547,7 +577,10 @@ export class LanguageService {
       ja: '以内に期限が来る未完了のタスクはありません。',
       en: 'There are no incomplete tasks with deadlines within the selected period.',
     },
-    'quickTasks.debugInfo': { ja: '🔍 デバッグ情報', en: '🔍 Debug Information' },
+    'quickTasks.debugInfo': {
+      ja: '🔍 デバッグ情報',
+      en: '🔍 Debug Information',
+    },
     'quickTasks.totalTasks': { ja: '全タスク数:', en: 'Total Tasks:' },
     'quickTasks.userRelatedTasks': {
       ja: '現在のユーザーに関連するタスク数:',
@@ -805,25 +838,82 @@ export class LanguageService {
     'projectDetail.priority.high.short': { ja: '高', en: 'H' },
     'projectDetail.priority.medium.short': { ja: '中', en: 'M' },
     'projectDetail.priority.low.short': { ja: '低', en: 'L' },
-    'projectDetail.chatTitle': { ja: 'プロジェクトチャット', en: 'Project Chat' },
-    'projectDetail.error.projectNotFound': { ja: 'プロジェクトが見つかりませんでした', en: 'Project not found' },
-    'projectDetail.error.projectNameRequired': { ja: 'プロジェクト名を入力してください', en: 'Please enter project name' },
-    'projectDetail.error.datesRequired': { ja: '開始日と終了日は必須です', en: 'Start date and end date are required' },
-    'projectDetail.error.startDateAfterEndDate': { ja: '開始日は終了日より前の日付を設定してください', en: 'Start date must be before end date' },
-    'projectDetail.error.responsibleRequired': { ja: '責任者は1人以上選択してください', en: 'Please select at least one project owner' },
-    'projectDetail.error.membersRequired': { ja: 'プロジェクトメンバーは1人以上選択してください', en: 'Please select at least one project member' },
-    'projectDetail.success.saved': { ja: 'プロジェクトを保存しました', en: 'Project saved successfully' },
-    'projectDetail.error.updateFailed': { ja: 'プロジェクトの更新に失敗しました', en: 'Failed to update project' },
-    'projectDetail.success.deleted': { ja: 'プロジェクト「{projectName}」を削除しました', en: 'Project "{projectName}" deleted successfully' },
-    'projectDetail.error.deleteFailed': { ja: 'プロジェクトの削除に失敗しました', en: 'Failed to delete project' },
-    'projectDetail.error.fileSizeExceeded': { ja: '{fileName} は5MBを超えています。別のファイルを選択してください。', en: '{fileName} exceeds 5MB. Please select another file.' },
-    'projectDetail.error.invalidUrl': { ja: 'URLの形式が正しくありません', en: 'Invalid URL format' },
-    'projectDetail.error.urlAlreadyAdded': { ja: 'このURLは既に追加されています', en: 'This URL has already been added' },
-    'projectDetail.error.attachmentUploadFailed': { ja: '{fileName} のアップロードに失敗しました', en: 'Failed to upload {fileName}' },
-    'projectDetail.error.attachmentDeleteFailed': { ja: '資料の削除に失敗しました', en: 'Failed to delete material' },
-    'projectDetail.error.membersLoadFailed': { ja: 'メンバー一覧の取得に失敗しました', en: 'Failed to load members' },
-    'projectDetail.error.maxParentTasks': { ja: '親タスクは最大{count}個作成できます', en: 'You can create up to {count} parent tasks' },
-    'projectDetail.error.noDataToExport': { ja: '出力するデータがありません', en: 'No data to export' },
+    'projectDetail.chatTitle': {
+      ja: 'プロジェクトチャット',
+      en: 'Project Chat',
+    },
+    'projectDetail.error.projectNotFound': {
+      ja: 'プロジェクトが見つかりませんでした',
+      en: 'Project not found',
+    },
+    'projectDetail.error.projectNameRequired': {
+      ja: 'プロジェクト名を入力してください',
+      en: 'Please enter project name',
+    },
+    'projectDetail.error.datesRequired': {
+      ja: '開始日と終了日は必須です',
+      en: 'Start date and end date are required',
+    },
+    'projectDetail.error.startDateAfterEndDate': {
+      ja: '開始日は終了日より前の日付を設定してください',
+      en: 'Start date must be before end date',
+    },
+    'projectDetail.error.responsibleRequired': {
+      ja: '責任者は1人以上選択してください',
+      en: 'Please select at least one project owner',
+    },
+    'projectDetail.error.membersRequired': {
+      ja: 'プロジェクトメンバーは1人以上選択してください',
+      en: 'Please select at least one project member',
+    },
+    'projectDetail.success.saved': {
+      ja: 'プロジェクトを保存しました',
+      en: 'Project saved successfully',
+    },
+    'projectDetail.error.updateFailed': {
+      ja: 'プロジェクトの更新に失敗しました',
+      en: 'Failed to update project',
+    },
+    'projectDetail.success.deleted': {
+      ja: 'プロジェクト「{projectName}」を削除しました',
+      en: 'Project "{projectName}" deleted successfully',
+    },
+    'projectDetail.error.deleteFailed': {
+      ja: 'プロジェクトの削除に失敗しました',
+      en: 'Failed to delete project',
+    },
+    'projectDetail.error.fileSizeExceeded': {
+      ja: '{fileName} は5MBを超えています。別のファイルを選択してください。',
+      en: '{fileName} exceeds 5MB. Please select another file.',
+    },
+    'projectDetail.error.invalidUrl': {
+      ja: 'URLの形式が正しくありません',
+      en: 'Invalid URL format',
+    },
+    'projectDetail.error.urlAlreadyAdded': {
+      ja: 'このURLは既に追加されています',
+      en: 'This URL has already been added',
+    },
+    'projectDetail.error.attachmentUploadFailed': {
+      ja: '{fileName} のアップロードに失敗しました',
+      en: 'Failed to upload {fileName}',
+    },
+    'projectDetail.error.attachmentDeleteFailed': {
+      ja: '資料の削除に失敗しました',
+      en: 'Failed to delete material',
+    },
+    'projectDetail.error.membersLoadFailed': {
+      ja: 'メンバー一覧の取得に失敗しました',
+      en: 'Failed to load members',
+    },
+    'projectDetail.error.maxParentTasks': {
+      ja: '親タスクは最大{count}個作成できます',
+      en: 'You can create up to {count} parent tasks',
+    },
+    'projectDetail.error.noDataToExport': {
+      ja: '出力するデータがありません',
+      en: 'No data to export',
+    },
     'projectDetail.csv.header.taskName': { ja: 'タスク名', en: 'Task Name' },
     'projectDetail.csv.header.status': { ja: 'ステータス', en: 'Status' },
     'projectDetail.csv.header.dueDate': { ja: '期日', en: 'Due Date' },
@@ -831,28 +921,82 @@ export class LanguageService {
     'projectDetail.csv.header.assignee': { ja: '担当者', en: 'Assignee' },
     'projectDetail.csv.header.startDate': { ja: '開始日', en: 'Start Date' },
     'projectDetail.csv.header.description': { ja: '説明', en: 'Description' },
-    'projectDetail.milestoneNamePlaceholder': { ja: '（30文字以内）', en: '(max 30 characters)' },
-    'projectDetail.tooltip.noColor': { ja: '色を選択しない', en: 'Don\'t select color' },
-    'projectDetail.ariaLabel.themeColorNone': { ja: 'テーマ色 なし', en: 'Theme Color None' },
-    'projectDetail.ariaLabel.themeColor': { ja: 'テーマ色 {colorName}', en: 'Theme Color {colorName}' },
-    'projectDetail.deleteConfirm.title': { ja: 'プロジェクト削除の確認', en: 'Confirm Project Deletion' },
-    'projectDetail.deleteConfirm.message': { ja: '以下のプロジェクトを削除しますか？', en: 'Do you want to delete the following project?' },
-    'projectDetail.deleteConfirm.tasksWarning': { ja: 'このプロジェクトに紐づく{count}件のタスク（親タスク・子タスク含む）も一緒に削除されます。', en: '{count} tasks (including parent and child tasks) associated with this project will also be deleted.' },
-    'projectDetail.deleteConfirm.irreversibleWarning': { ja: 'この操作は取り消せません。プロジェクトに関連するすべてのタスクとデータが削除されます。', en: 'This operation cannot be undone. All tasks and data related to this project will be deleted.' },
+    'projectDetail.milestoneNamePlaceholder': {
+      ja: '（30文字以内）',
+      en: '(max 30 characters)',
+    },
+    'projectDetail.tooltip.noColor': {
+      ja: '色を選択しない',
+      en: "Don't select color",
+    },
+    'projectDetail.ariaLabel.themeColorNone': {
+      ja: 'テーマ色 なし',
+      en: 'Theme Color None',
+    },
+    'projectDetail.ariaLabel.themeColor': {
+      ja: 'テーマ色 {colorName}',
+      en: 'Theme Color {colorName}',
+    },
+    'projectDetail.deleteConfirm.title': {
+      ja: 'プロジェクト削除の確認',
+      en: 'Confirm Project Deletion',
+    },
+    'projectDetail.deleteConfirm.message': {
+      ja: '以下のプロジェクトを削除しますか？',
+      en: 'Do you want to delete the following project?',
+    },
+    'projectDetail.deleteConfirm.tasksWarning': {
+      ja: 'このプロジェクトに紐づく{count}件のタスク（親タスク・子タスク含む）も一緒に削除されます。',
+      en: '{count} tasks (including parent and child tasks) associated with this project will also be deleted.',
+    },
+    'projectDetail.deleteConfirm.irreversibleWarning': {
+      ja: 'この操作は取り消せません。プロジェクトに関連するすべてのタスクとデータが削除されます。',
+      en: 'This operation cannot be undone. All tasks and data related to this project will be deleted.',
+    },
     'projectDetail.deleteConfirm.cancel': { ja: 'キャンセル', en: 'Cancel' },
     'projectDetail.deleteConfirm.delete': { ja: '削除する', en: 'Delete' },
-    'projectDetail.memberRemoveConfirm.title': { ja: 'メンバーをプロジェクトから外す', en: 'Remove Member from Project' },
-    'projectDetail.memberRemoveConfirm.message': { ja: '以下のメンバーをプロジェクトから外しますか？', en: 'Do you want to remove the following member from the project?' },
-    'projectDetail.memberRemoveConfirm.affectedTasksWarning': { ja: 'このメンバーが担当している{count}件のタスク・子タスクから担当者を削除します。', en: 'This member will be removed from {count} tasks and subtasks they are assigned to.' },
-    'projectDetail.memberRemoveConfirm.tasksToDeleteWarning': { ja: 'このメンバーしか担当者がいない{count}件のタスク・子タスクは削除されます。', en: '{count} tasks and subtasks with no other assignees will be deleted.' },
-    'projectDetail.memberRemoveConfirm.irreversibleWarning': { ja: 'この操作は取り消せません。担当者が空になったタスクは削除されます。', en: 'This operation cannot be undone. Tasks with no assignees will be deleted.' },
-    'projectDetail.memberRemoveConfirm.cancel': { ja: 'キャンセル', en: 'Cancel' },
+    'projectDetail.memberRemoveConfirm.title': {
+      ja: 'メンバーをプロジェクトから外す',
+      en: 'Remove Member from Project',
+    },
+    'projectDetail.memberRemoveConfirm.message': {
+      ja: '以下のメンバーをプロジェクトから外しますか？',
+      en: 'Do you want to remove the following member from the project?',
+    },
+    'projectDetail.memberRemoveConfirm.affectedTasksWarning': {
+      ja: 'このメンバーが担当している{count}件のタスク・子タスクから担当者を削除します。',
+      en: 'This member will be removed from {count} tasks and subtasks they are assigned to.',
+    },
+    'projectDetail.memberRemoveConfirm.tasksToDeleteWarning': {
+      ja: 'このメンバーしか担当者がいない{count}件のタスク・子タスクは削除されます。',
+      en: '{count} tasks and subtasks with no other assignees will be deleted.',
+    },
+    'projectDetail.memberRemoveConfirm.irreversibleWarning': {
+      ja: 'この操作は取り消せません。担当者が空になったタスクは削除されます。',
+      en: 'This operation cannot be undone. Tasks with no assignees will be deleted.',
+    },
+    'projectDetail.memberRemoveConfirm.cancel': {
+      ja: 'キャンセル',
+      en: 'Cancel',
+    },
     'projectDetail.memberRemoveConfirm.remove': { ja: '外す', en: 'Remove' },
-    'projectDetail.memberRemoveConfirm.success': { ja: 'メンバーをプロジェクトから外しました', en: 'Member removed from project successfully' },
-    'projectDetail.memberRemoveConfirm.error': { ja: 'メンバーの削除に失敗しました', en: 'Failed to remove member' },
+    'projectDetail.memberRemoveConfirm.success': {
+      ja: 'メンバーをプロジェクトから外しました',
+      en: 'Member removed from project successfully',
+    },
+    'projectDetail.memberRemoveConfirm.error': {
+      ja: 'メンバーの削除に失敗しました',
+      en: 'Failed to remove member',
+    },
     // プロジェクトチャット
-    'projectChat.loading': { ja: 'チャットを読み込み中...', en: 'Loading chat...' },
-    'projectChat.noMessages': { ja: 'まだメッセージはありません', en: 'No messages yet' },
+    'projectChat.loading': {
+      ja: 'チャットを読み込み中...',
+      en: 'Loading chat...',
+    },
+    'projectChat.noMessages': {
+      ja: 'まだメッセージはありません',
+      en: 'No messages yet',
+    },
     'projectChat.messagePlaceholder': {
       ja: 'メッセージを入力（最大100文字）',
       en: 'Enter message (max 100 characters)',
@@ -965,66 +1109,201 @@ export class LanguageService {
     'taskDetail.noDescription': { ja: '説明なし', en: 'No Description' },
     'taskDetail.periodSeparator': { ja: '～', en: ' - ' },
     'taskDetail.notSet': { ja: '未設定', en: 'Not Set' },
-    'taskDetail.error.projectNotFound': { ja: 'プロジェクトが見つかりませんでした', en: 'Project not found' },
-    'taskDetail.error.taskNotFound': { ja: 'タスクが見つかりませんでした', en: 'Task not found' },
-    'taskDetail.error.taskNameRequired': { ja: 'タスク名を入力してください', en: 'Please enter task name' },
-    'taskDetail.error.datesRequired': { ja: '開始日と終了日は必須です', en: 'Start date and end date are required' },
-    'taskDetail.error.startDateAfterDueDate': { ja: '開始日は期限日より前の日付を設定してください', en: 'Start date must be before due date' },
-    'taskDetail.error.assigneeRequired': { ja: '担当者は1人以上選択してください', en: 'Please select at least one assignee' },
-    'taskDetail.error.childTaskNameExists': { ja: 'この子タスク名は既に使用されています', en: 'This child task name is already in use' },
-    'taskDetail.error.taskNameExists': { ja: 'このタスク名は既に使用されています', en: 'This task name is already in use' },
-    'taskDetail.success.saved': { ja: 'タスクを保存しました', en: 'Task saved successfully' },
-    'taskDetail.success.childTaskSaved': { ja: '子タスクを保存しました', en: 'Child task saved successfully' },
-    'taskDetail.error.saveFailed': { ja: 'タスクの保存に失敗しました: {errorMessage}', en: 'Failed to save task: {errorMessage}' },
-    'taskDetail.error.unknownError': { ja: '不明なエラーが発生しました', en: 'An unknown error occurred' },
-    'taskDetail.deleteConfirm.message': { ja: 'タスク「{taskName}」を削除してもよろしいですか？この操作は元に戻せません。', en: 'Do you want to delete task "{taskName}"? This operation cannot be undone.' },
-    'taskDetail.deleteConfirm.childTasksWarning': { ja: '注意: このタスクに紐づく{count}件の子タスクも一緒に削除されます。', en: 'Note: {count} child tasks associated with this task will also be deleted.' },
-    'taskDetail.error.deleteFailed': { ja: 'タスクの削除に失敗しました', en: 'Failed to delete task' },
-    'taskDetail.error.calendarSyncFailed': { ja: 'カレンダー連携に失敗しました: {errorMessage}', en: 'Calendar sync failed: {errorMessage}' },
-    'taskDetail.error.unknownErrorOccurred': { ja: 'エラーが発生しました', en: 'An error occurred' },
-    'taskDetail.error.maxChildTasks': { ja: '子タスクは最大{count}個作成できます', en: 'You can create up to {count} child tasks' },
-    'taskDetail.error.childTaskCountCheckFailed': { ja: '子タスク数の確認に失敗しました', en: 'Failed to check child task count' },
-    'taskDetail.error.detailSettingsSaveFailed': { ja: '詳細設定の保存に失敗しました', en: 'Failed to save detail settings' },
-    'taskDetail.success.detailSettingsSaved': { ja: '詳細設定を保存しました', en: 'Detail settings saved successfully' },
-    'taskDetail.alert.parentTaskStatusChange': { ja: '「親タスク：{taskName}」のステータスを作業中に変更します', en: 'The parent task "{taskName}" status will be changed to in progress' },
-    'taskDetail.error.parentTaskStatusUpdateFailed': { ja: '親タスクのステータス更新に失敗しました', en: 'Failed to update parent task status' },
-    'taskDetail.error.noChildTasksToExport': { ja: '出力する子タスクがありません', en: 'No child tasks to export' },
+    'taskDetail.error.projectNotFound': {
+      ja: 'プロジェクトが見つかりませんでした',
+      en: 'Project not found',
+    },
+    'taskDetail.error.taskNotFound': {
+      ja: 'タスクが見つかりませんでした',
+      en: 'Task not found',
+    },
+    'taskDetail.error.taskNameRequired': {
+      ja: 'タスク名を入力してください',
+      en: 'Please enter task name',
+    },
+    'taskDetail.error.datesRequired': {
+      ja: '開始日と終了日は必須です',
+      en: 'Start date and end date are required',
+    },
+    'taskDetail.error.startDateAfterDueDate': {
+      ja: '開始日は期限日より前の日付を設定してください',
+      en: 'Start date must be before due date',
+    },
+    'taskDetail.error.assigneeRequired': {
+      ja: '担当者は1人以上選択してください',
+      en: 'Please select at least one assignee',
+    },
+    'taskDetail.error.childTaskNameExists': {
+      ja: 'この子タスク名は既に使用されています',
+      en: 'This child task name is already in use',
+    },
+    'taskDetail.error.taskNameExists': {
+      ja: 'このタスク名は既に使用されています',
+      en: 'This task name is already in use',
+    },
+    'taskDetail.success.saved': {
+      ja: 'タスクを保存しました',
+      en: 'Task saved successfully',
+    },
+    'taskDetail.success.childTaskSaved': {
+      ja: '子タスクを保存しました',
+      en: 'Child task saved successfully',
+    },
+    'taskDetail.error.saveFailed': {
+      ja: 'タスクの保存に失敗しました: {errorMessage}',
+      en: 'Failed to save task: {errorMessage}',
+    },
+    'taskDetail.error.unknownError': {
+      ja: '不明なエラーが発生しました',
+      en: 'An unknown error occurred',
+    },
+    'taskDetail.deleteConfirm.message': {
+      ja: 'タスク「{taskName}」を削除してもよろしいですか？この操作は元に戻せません。',
+      en: 'Do you want to delete task "{taskName}"? This operation cannot be undone.',
+    },
+    'taskDetail.deleteConfirm.childTasksWarning': {
+      ja: '注意: このタスクに紐づく{count}件の子タスクも一緒に削除されます。',
+      en: 'Note: {count} child tasks associated with this task will also be deleted.',
+    },
+    'taskDetail.error.deleteFailed': {
+      ja: 'タスクの削除に失敗しました',
+      en: 'Failed to delete task',
+    },
+    'taskDetail.error.calendarSyncFailed': {
+      ja: 'カレンダー連携に失敗しました: {errorMessage}',
+      en: 'Calendar sync failed: {errorMessage}',
+    },
+    'taskDetail.error.unknownErrorOccurred': {
+      ja: 'エラーが発生しました',
+      en: 'An error occurred',
+    },
+    'taskDetail.error.maxChildTasks': {
+      ja: '子タスクは最大{count}個作成できます',
+      en: 'You can create up to {count} child tasks',
+    },
+    'taskDetail.error.childTaskCountCheckFailed': {
+      ja: '子タスク数の確認に失敗しました',
+      en: 'Failed to check child task count',
+    },
+    'taskDetail.error.detailSettingsSaveFailed': {
+      ja: '詳細設定の保存に失敗しました',
+      en: 'Failed to save detail settings',
+    },
+    'taskDetail.success.detailSettingsSaved': {
+      ja: '詳細設定を保存しました',
+      en: 'Detail settings saved successfully',
+    },
+    'taskDetail.alert.parentTaskStatusChange': {
+      ja: '「親タスク：{taskName}」のステータスを作業中に変更します',
+      en: 'The parent task "{taskName}" status will be changed to in progress',
+    },
+    'taskDetail.error.parentTaskStatusUpdateFailed': {
+      ja: '親タスクのステータス更新に失敗しました',
+      en: 'Failed to update parent task status',
+    },
+    'taskDetail.error.noChildTasksToExport': {
+      ja: '出力する子タスクがありません',
+      en: 'No child tasks to export',
+    },
     'taskEditDialog.title': { ja: 'タスク編集', en: 'Edit Task' },
     'taskEditDialog.taskName': { ja: 'タスク名', en: 'Task Name' },
-    'taskEditDialog.taskNamePlaceholder': { ja: 'タスク名を入力してください', en: 'Please enter task name' },
+    'taskEditDialog.taskNamePlaceholder': {
+      ja: 'タスク名を入力してください',
+      en: 'Please enter task name',
+    },
     'taskEditDialog.description': { ja: '説明', en: 'Description' },
-    'taskEditDialog.descriptionPlaceholder': { ja: 'タスクの詳細説明を入力してください（200文字以内）', en: 'Enter task description (max 200 characters)' },
+    'taskEditDialog.descriptionPlaceholder': {
+      ja: 'タスクの詳細説明を入力してください（200文字以内）',
+      en: 'Enter task description (max 200 characters)',
+    },
     'taskEditDialog.tags': { ja: 'タグ', en: 'Tags' },
-    'taskEditDialog.tagPlaceholder': { ja: 'タグ名を入力してEnter（20文字以内）', en: 'Enter tag name and press Enter (max 20 characters)' },
+    'taskEditDialog.tagPlaceholder': {
+      ja: 'タグ名を入力してEnter（20文字以内）',
+      en: 'Enter tag name and press Enter (max 20 characters)',
+    },
     'taskEditDialog.removeTag': { ja: '{tag} を削除', en: 'Remove {tag}' },
     'taskEditDialog.assignee': { ja: '担当者', en: 'Assignee' },
     'taskEditDialog.noAssignee': { ja: '担当者なし', en: 'No Assignee' },
-    'taskEditDialog.loadingMembers': { ja: 'メンバーを読み込み中...', en: 'Loading members...' },
-    'taskEditDialog.noMembers': { ja: 'メンバーが登録されていません。先にメンバー管理画面でメンバーを登録してください。', en: 'No members registered. Please register members in the member management screen first.' },
+    'taskEditDialog.loadingMembers': {
+      ja: 'メンバーを読み込み中...',
+      en: 'Loading members...',
+    },
+    'taskEditDialog.noMembers': {
+      ja: 'メンバーが登録されていません。先にメンバー管理画面でメンバーを登録してください。',
+      en: 'No members registered. Please register members in the member management screen first.',
+    },
     'taskEditDialog.status': { ja: 'ステータス', en: 'Status' },
     'taskEditDialog.priority': { ja: '優先度', en: 'Priority' },
     'taskEditDialog.startDate': { ja: '開始日', en: 'Start Date' },
-    'taskEditDialog.startDatePlaceholder': { ja: '開始日を選択', en: 'Select start date' },
+    'taskEditDialog.startDatePlaceholder': {
+      ja: '開始日を選択',
+      en: 'Select start date',
+    },
     'taskEditDialog.dueDate': { ja: '期日', en: 'Due Date' },
-    'taskEditDialog.dueDatePlaceholder': { ja: '期日を選択', en: 'Select due date' },
+    'taskEditDialog.dueDatePlaceholder': {
+      ja: '期日を選択',
+      en: 'Select due date',
+    },
     'taskEditDialog.deleteTask': { ja: 'タスク削除', en: 'Delete Task' },
     'taskEditDialog.cancel': { ja: 'キャンセル', en: 'Cancel' },
     'taskEditDialog.save': { ja: '保存', en: 'Save' },
     'taskEditDialog.saving': { ja: '保存中...', en: 'Saving...' },
-    'taskEditDialog.error.membersLoadFailed': { ja: 'メンバーの読み込みに失敗しました', en: 'Failed to load members' },
-    'taskEditDialog.error.taskNameRequired': { ja: 'タスク名を入力してください', en: 'Please enter task name' },
-    'taskEditDialog.error.childTaskNameExists': { ja: 'この子タスク名は既に使用されています', en: 'This child task name is already in use' },
-    'taskEditDialog.error.taskNameExists': { ja: 'このタスク名は既に使用されています', en: 'This task name is already in use' },
-    'taskEditDialog.error.incompleteChildTask': { ja: '「子タスク：{taskName}」が完了していません', en: 'Child task "{taskName}" is not completed' },
-    'taskEditDialog.success.updated': { ja: 'タスクを更新しました', en: 'Task updated successfully' },
-    'taskEditDialog.error.updateFailed': { ja: 'タスクの更新に失敗しました', en: 'Failed to update task' },
-    'taskEditDialog.success.deleted': { ja: 'タスク「{taskName}」を削除しました', en: 'Task "{taskName}" deleted successfully' },
-    'taskEditDialog.success.deletedWithChildren': { ja: 'タスク「{taskName}」を削除しました（{count}件の子タスクも削除されました）', en: 'Task "{taskName}" deleted successfully ({count} child tasks also deleted)' },
-    'taskEditDialog.error.deleteFailed': { ja: 'タスクの削除に失敗しました', en: 'Failed to delete task' },
-    'taskDeleteConfirmDialog.title': { ja: 'タスク削除の確認', en: 'Confirm Task Deletion' },
-    'taskDeleteConfirmDialog.message': { ja: '以下のタスクを削除しますか？', en: 'Do you want to delete the following task?' },
-    'taskDeleteConfirmDialog.childTasksWarning': { ja: 'このタスクに紐づく{count}件の子タスクも一緒に削除されます。', en: '{count} child tasks associated with this task will also be deleted.' },
-    'taskDeleteConfirmDialog.irreversibleWarning': { ja: 'この操作は取り消せません。タスクに関連するすべてのデータが削除されます。', en: 'This operation cannot be undone. All data related to this task will be deleted.' },
+    'taskEditDialog.error.membersLoadFailed': {
+      ja: 'メンバーの読み込みに失敗しました',
+      en: 'Failed to load members',
+    },
+    'taskEditDialog.error.taskNameRequired': {
+      ja: 'タスク名を入力してください',
+      en: 'Please enter task name',
+    },
+    'taskEditDialog.error.childTaskNameExists': {
+      ja: 'この子タスク名は既に使用されています',
+      en: 'This child task name is already in use',
+    },
+    'taskEditDialog.error.taskNameExists': {
+      ja: 'このタスク名は既に使用されています',
+      en: 'This task name is already in use',
+    },
+    'taskEditDialog.error.incompleteChildTask': {
+      ja: '「子タスク：{taskName}」が完了していません',
+      en: 'Child task "{taskName}" is not completed',
+    },
+    'taskEditDialog.success.updated': {
+      ja: 'タスクを更新しました',
+      en: 'Task updated successfully',
+    },
+    'taskEditDialog.error.updateFailed': {
+      ja: 'タスクの更新に失敗しました',
+      en: 'Failed to update task',
+    },
+    'taskEditDialog.success.deleted': {
+      ja: 'タスク「{taskName}」を削除しました',
+      en: 'Task "{taskName}" deleted successfully',
+    },
+    'taskEditDialog.success.deletedWithChildren': {
+      ja: 'タスク「{taskName}」を削除しました（{count}件の子タスクも削除されました）',
+      en: 'Task "{taskName}" deleted successfully ({count} child tasks also deleted)',
+    },
+    'taskEditDialog.error.deleteFailed': {
+      ja: 'タスクの削除に失敗しました',
+      en: 'Failed to delete task',
+    },
+    'taskDeleteConfirmDialog.title': {
+      ja: 'タスク削除の確認',
+      en: 'Confirm Task Deletion',
+    },
+    'taskDeleteConfirmDialog.message': {
+      ja: '以下のタスクを削除しますか？',
+      en: 'Do you want to delete the following task?',
+    },
+    'taskDeleteConfirmDialog.childTasksWarning': {
+      ja: 'このタスクに紐づく{count}件の子タスクも一緒に削除されます。',
+      en: '{count} child tasks associated with this task will also be deleted.',
+    },
+    'taskDeleteConfirmDialog.irreversibleWarning': {
+      ja: 'この操作は取り消せません。タスクに関連するすべてのデータが削除されます。',
+      en: 'This operation cannot be undone. All data related to this task will be deleted.',
+    },
     'taskDeleteConfirmDialog.cancel': { ja: 'キャンセル', en: 'Cancel' },
     'taskDeleteConfirmDialog.delete': { ja: '削除する', en: 'Delete' },
     'taskDetail.descriptionPlaceholder': {
@@ -1071,10 +1350,24 @@ export class LanguageService {
     },
     'projectForm.startDate': { ja: '開始日', en: 'Start Date' },
     'projectForm.startDateLabel': { ja: '年 / 月 / 日', en: 'YYYY / MM / DD' },
-    'projectForm.startDatePlaceholder': { ja: 'YYYY/MM/DD', en: 'MM/DD/YYYY' },
+    'projectForm.startDatePlaceholder': {
+      ja: '開始日を選択',
+      en: 'Select start date',
+    },
+    'projectForm.startDatePlaceholderFull': {
+      ja: '開始日を選択（選択必須）',
+      en: 'Select start date (Selection Required)',
+    },
     'projectForm.endDate': { ja: '終了日', en: 'End Date' },
     'projectForm.endDateLabel': { ja: '年 / 月 / 日', en: 'YYYY / MM / DD' },
-    'projectForm.endDatePlaceholder': { ja: 'YYYY/MM/DD', en: 'MM/DD/YYYY' },
+    'projectForm.endDatePlaceholder': {
+      ja: '終了日を選択',
+      en: 'Select end date',
+    },
+    'projectForm.endDatePlaceholderFull': {
+      ja: '終了日を選択（選択必須）',
+      en: 'Select end date (Selection Required)',
+    },
     'projectForm.responsible': { ja: '責任者', en: 'Project Owner' },
     'projectForm.loadingMembers': {
       ja: 'メンバーを読み込み中...',
@@ -1108,6 +1401,10 @@ export class LanguageService {
     },
     'projectForm.milestones': { ja: 'マイルストーン', en: 'Milestones' },
     'projectForm.date': { ja: '日付', en: 'Date' },
+    'projectForm.milestoneDatePlaceholder': {
+      ja: '日付を選択',
+      en: 'Select date',
+    },
     'projectForm.openCalendar': { ja: 'カレンダーを開く', en: 'Open Calendar' },
     'projectForm.milestoneNamePlaceholder': {
       ja: 'マイルストーン名（30文字以内）',
@@ -1167,7 +1464,10 @@ export class LanguageService {
       ja: 'プロジェクトは最大{{count}}個作成できます',
       en: 'You can create up to {{count}} projects',
     },
-    'projectForm.registerMember': { ja: 'でメンバーを登録してください。', en: ' to register members.' },
+    'projectForm.registerMember': {
+      ja: 'でメンバーを登録してください。',
+      en: ' to register members.',
+    },
     'projectForm.selectResponsiblePlaceholder': {
       ja: '責任者を選択してください（複数選択可）',
       en: 'Select project owners (multiple selection)',
@@ -1182,8 +1482,14 @@ export class LanguageService {
     },
     'projectForm.cancel': { ja: 'キャンセル', en: 'Cancel' },
     'projectForm.delete': { ja: '削除', en: 'Delete' },
-    'projectForm.dontSelectColor': { ja: '色を選択しない', en: 'Don\'t select color' },
-    'projectForm.themeColorNone': { ja: 'テーマ色 なし', en: 'Theme Color None' },
+    'projectForm.dontSelectColor': {
+      ja: '色を選択しない',
+      en: "Don't select color",
+    },
+    'projectForm.themeColorNone': {
+      ja: 'テーマ色 なし',
+      en: 'Theme Color None',
+    },
     'projectForm.themeColorLabel': { ja: 'テーマ色 ', en: 'Theme Color ' },
     'projectForm.projectNamePlaceholderFull': {
       ja: '例: 新商品開発プロジェクト',
@@ -1280,27 +1586,48 @@ export class LanguageService {
     'projectForm.themeColor.yellow': { ja: 'イエロー', en: 'Yellow' },
     'projectForm.themeColor.lime': { ja: 'ライム', en: 'Lime' },
     'projectForm.themeColor.mint': { ja: 'ミント', en: 'Mint' },
-    'projectForm.themeColor.blueGreen': { ja: 'ブルーグリーン', en: 'Blue Green' },
+    'projectForm.themeColor.blueGreen': {
+      ja: 'ブルーグリーン',
+      en: 'Blue Green',
+    },
     'projectForm.themeColor.skyBlue': { ja: 'スカイブルー', en: 'Sky Blue' },
-    'projectForm.themeColor.lavenderBlue': { ja: 'ラベンダーブルー', en: 'Lavender Blue' },
+    'projectForm.themeColor.lavenderBlue': {
+      ja: 'ラベンダーブルー',
+      en: 'Lavender Blue',
+    },
     'projectForm.themeColor.purple': { ja: 'パープル', en: 'Purple' },
     // タスク作成画面
     'taskCreate.title': { ja: 'タスク作成', en: 'Create Task' },
     'taskCreate.back': { ja: '戻る', en: 'Back' },
     'taskCreate.taskName': { ja: 'タスク名', en: 'Task Name' },
-    'taskCreate.taskNamePlaceholder': { ja: 'タスク名を入力してください', en: 'Enter task name' },
-    'taskCreate.subtaskNamePlaceholder': { ja: '子タスク名を入力してください', en: 'Enter subtask name' },
+    'taskCreate.taskNamePlaceholder': {
+      ja: 'タスク名を入力してください',
+      en: 'Enter task name',
+    },
+    'taskCreate.subtaskNamePlaceholder': {
+      ja: '子タスク名を入力してください',
+      en: 'Enter subtask name',
+    },
     'taskCreate.description': { ja: '説明', en: 'Description' },
     'taskCreate.startDate': { ja: '開始日', en: 'Start Date' },
-    'taskCreate.startDatePlaceholder': { ja: '開始日を選択', en: 'Select start date' },
+    'taskCreate.startDatePlaceholder': {
+      ja: '開始日を選択',
+      en: 'Select start date',
+    },
     'taskCreate.dueDate': { ja: '終了日', en: 'Due Date' },
-    'taskCreate.dueDatePlaceholder': { ja: '終了日を選択', en: 'Select due date' },
+    'taskCreate.dueDatePlaceholder': {
+      ja: '終了日を選択',
+      en: 'Select due date',
+    },
     'taskCreate.assignee': { ja: '担当者', en: 'Assignee' },
     'taskCreate.status': { ja: 'ステータス', en: 'Status' },
     'taskCreate.priority': { ja: '優先度', en: 'Priority' },
     'taskCreate.tags': { ja: 'タグ', en: 'Tags' },
     'taskCreate.addTag': { ja: 'タグを追加', en: 'Add Tag' },
-    'taskCreate.enterTag': { ja: 'タグを入力してEnter', en: 'Enter tag and press Enter' },
+    'taskCreate.enterTag': {
+      ja: 'タグを入力してEnter',
+      en: 'Enter tag and press Enter',
+    },
     'taskCreate.calendarSync': { ja: 'カレンダー連携', en: 'Calendar Sync' },
     'taskCreate.cancel': { ja: 'キャンセル', en: 'Cancel' },
     'taskCreate.createTask': { ja: 'タスクを作成', en: 'Create Task' },
@@ -1312,14 +1639,23 @@ export class LanguageService {
     'taskCreate.uploadingFiles': { ja: 'アップロード中', en: 'Uploading' },
     'taskCreate.createSubtask': { ja: '子タスク作成', en: 'Create Subtask' },
     'taskCreate.subtaskName': { ja: '子タスク名', en: 'Subtask Name' },
-    'taskCreate.parentTaskInfo.projectName': { ja: 'プロジェクト名:', en: 'Project Name:' },
-    'taskCreate.parentTaskInfo.parentTaskName': { ja: '親タスク名:', en: 'Parent Task Name:' },
+    'taskCreate.parentTaskInfo.projectName': {
+      ja: 'プロジェクト名:',
+      en: 'Project Name:',
+    },
+    'taskCreate.parentTaskInfo.parentTaskName': {
+      ja: '親タスク名:',
+      en: 'Parent Task Name:',
+    },
     'taskCreate.descriptionPlaceholder': {
       ja: 'タスクの詳細説明を入力してください（200文字以内）',
       en: 'Enter task details (max 200 characters)',
     },
     'taskCreate.required': { ja: '（入力必須）', en: '(Required)' },
-    'taskCreate.selectRequired': { ja: '（選択必須）', en: '(Selection Required)' },
+    'taskCreate.selectRequired': {
+      ja: '（選択必須）',
+      en: '(Selection Required)',
+    },
     'taskCreate.noMembersInProject': {
       ja: 'プロジェクトにメンバーが登録されていません',
       en: 'No members registered in project',
@@ -1328,7 +1664,10 @@ export class LanguageService {
       ja: 'https://example.com',
       en: 'https://example.com',
     },
-    'taskCreate.tagMaxLength': { ja: '（20文字以内）', en: '(max 20 characters)' },
+    'taskCreate.tagMaxLength': {
+      ja: '（20文字以内）',
+      en: '(max 20 characters)',
+    },
     'taskCreate.save': { ja: '保存', en: 'Save' },
     'taskCreate.error.taskNameRequired': {
       ja: 'タスク名を入力してください',
@@ -1475,74 +1814,206 @@ export class LanguageService {
       ja: '管理メンバーは最大{count}人登録できます',
       en: 'You can register up to {count} members',
     },
-    'memberManagement.memberAdded': { ja: 'メンバーを追加しました', en: 'Member added successfully' },
+    'memberManagement.memberAdded': {
+      ja: 'メンバーを追加しました',
+      en: 'Member added successfully',
+    },
     'memberManagement.loadFailed': {
       ja: 'メンバー一覧の読み込みに失敗しました',
       en: 'Failed to load members',
     },
-    'memberManagement.memberUpdated': { ja: 'メンバーを更新しました', en: 'Member updated successfully' },
+    'memberManagement.memberUpdated': {
+      ja: 'メンバーを更新しました',
+      en: 'Member updated successfully',
+    },
     'memberManagement.deleteConfirm': {
       ja: '「{name}」を削除してもよろしいですか？',
       en: 'Are you sure you want to delete "{name}"?',
     },
-    'memberManagement.memberDeleted': { ja: 'メンバーを削除しました', en: 'Member deleted successfully' },
+    'memberManagement.memberDeleted': {
+      ja: 'メンバーを削除しました',
+      en: 'Member deleted successfully',
+    },
     'memberManagement.deleteFailed': {
       ja: 'メンバーの削除に失敗しました',
       en: 'Failed to delete member',
     },
     'memberManagement.editMember': { ja: 'メンバーを編集', en: 'Edit Member' },
-    'memberManagement.namePlaceholder': { ja: '例: 田中太郎', en: 'e.g.: John Doe' },
-    'memberManagement.emailPlaceholder': { ja: '例: tanaka@example.com', en: 'e.g.: john@example.com' },
+    'memberManagement.namePlaceholder': {
+      ja: '例: 田中太郎',
+      en: 'e.g.: John Doe',
+    },
+    'memberManagement.emailPlaceholder': {
+      ja: '例: tanaka@example.com',
+      en: 'e.g.: john@example.com',
+    },
     'memberManagement.cancel': { ja: 'キャンセル', en: 'Cancel' },
     'memberManagement.add': { ja: '追加', en: 'Add' },
     'memberManagement.adding': { ja: '追加中...', en: 'Adding...' },
     'memberManagement.update': { ja: '更新', en: 'Update' },
     'memberManagement.saving': { ja: '保存中...', en: 'Saving...' },
-    'memberManagement.saveFailed': { ja: '保存に失敗しました', en: 'Failed to save' },
-    'memberManagement.checkInput': { ja: '入力内容を確認してください', en: 'Please check your input' },
-    'memberManagement.noComma': { ja: '名前に「,」（カンマ）は使用できません', en: 'Comma (,) cannot be used in name' },
-    'memberManagement.nameExists': { ja: 'この名前は既に登録されています', en: 'This name is already registered' },
-    'memberManagement.emailExists': { ja: 'このメールアドレスは既に登録されています', en: 'This email address is already registered' },
-    'memberManagement.countCheckFailed': { ja: 'メンバー数の確認に失敗しました', en: 'Failed to check member count' },
-    'memberManagement.addFailed': { ja: 'メンバーの追加に失敗しました', en: 'Failed to add member' },
-    'memberManagement.nameRequired': { ja: '名前は必須です', en: 'Name is required' },
-    'memberManagement.emailRequired': { ja: 'メールアドレスは必須です', en: 'Email address is required' },
-    'memberManagement.validEmail': { ja: '有効なメールアドレスを入力してください', en: 'Please enter a valid email address' },
-    'memberManagement.minLength': { ja: '1文字以上入力してください', en: 'Please enter at least 1 character' },
-    'memberManagement.nameMaxLength': { ja: '名前は20文字以内で入力してください', en: 'Name must be 20 characters or less' },
-    'memberManagement.emailMaxLength': { ja: 'メールアドレスは254文字以内で入力してください', en: 'Email address must be 254 characters or less' },
+    'memberManagement.saveFailed': {
+      ja: '保存に失敗しました',
+      en: 'Failed to save',
+    },
+    'memberManagement.checkInput': {
+      ja: '入力内容を確認してください',
+      en: 'Please check your input',
+    },
+    'memberManagement.noComma': {
+      ja: '名前に「,」（カンマ）は使用できません',
+      en: 'Comma (,) cannot be used in name',
+    },
+    'memberManagement.nameExists': {
+      ja: 'この名前は既に登録されています',
+      en: 'This name is already registered',
+    },
+    'memberManagement.emailExists': {
+      ja: 'このメールアドレスは既に登録されています',
+      en: 'This email address is already registered',
+    },
+    'memberManagement.countCheckFailed': {
+      ja: 'メンバー数の確認に失敗しました',
+      en: 'Failed to check member count',
+    },
+    'memberManagement.addFailed': {
+      ja: 'メンバーの追加に失敗しました',
+      en: 'Failed to add member',
+    },
+    'memberManagement.nameRequired': {
+      ja: '名前は必須です',
+      en: 'Name is required',
+    },
+    'memberManagement.emailRequired': {
+      ja: 'メールアドレスは必須です',
+      en: 'Email address is required',
+    },
+    'memberManagement.validEmail': {
+      ja: '有効なメールアドレスを入力してください',
+      en: 'Please enter a valid email address',
+    },
+    'memberManagement.minLength': {
+      ja: '1文字以上入力してください',
+      en: 'Please enter at least 1 character',
+    },
+    'memberManagement.nameMaxLength': {
+      ja: '名前は20文字以内で入力してください',
+      en: 'Name must be 20 characters or less',
+    },
+    'memberManagement.emailMaxLength': {
+      ja: 'メールアドレスは254文字以内で入力してください',
+      en: 'Email address must be 254 characters or less',
+    },
     'memberManagement.close': { ja: '閉じる', en: 'Close' },
     // 設定画面（追加）
-    'settings.roomEnterRequired': { ja: 'ルームに入室してください', en: 'Please enter a room' },
-    'settings.loadFailed': { ja: '設定の読み込みに失敗しました: {error}', en: 'Failed to load settings: {error}' },
-    'settings.emailRequired': { ja: 'メールアドレスを入力してください', en: 'Please enter email address' },
-    'settings.validEmailRequired': { ja: '有効なメールアドレスを入力してください', en: 'Please enter a valid email address' },
-    'settings.testNotificationSent': { ja: 'テスト通知を送信しました ✅', en: 'Test notification sent ✅' },
-    'settings.testNotificationFailed': { ja: 'テスト通知の送信に失敗しました', en: 'Failed to send test notification' },
-    'settings.testNotificationFailedWithError': { ja: 'テスト通知の送信に失敗しました: {error}', en: 'Failed to send test notification: {error}' },
-    'settings.enableEmailNotification': { ja: 'メール通知を有効にしてください', en: 'Please enable email notifications' },
-    'settings.deadlineNotificationSent': { ja: '期限が近いタスクのメール通知を送信しました ({taskCount}件のタスク、{userCount}人のユーザー)', en: 'Deadline notification sent ({taskCount} tasks, {userCount} users)' },
-    'settings.emailNotificationFailed': { ja: 'メール通知の送信に失敗しました', en: 'Failed to send email notification' },
-    'settings.deadlineTestCompleted': { ja: 'タスク期限通知のテスト実行が完了しました\n成功: {successCount}件、スキップ: {skippedCount}件、エラー: {errorCount}件\n対象タスク: {taskCount}件\n詳細はコンソールを確認してください', en: 'Task deadline notification test completed\nSuccess: {successCount}, Skipped: {skippedCount}, Errors: {errorCount}\nTarget tasks: {taskCount}\nSee console for details' },
-    'settings.deadlineTestFailed': { ja: 'タスク期限通知のテスト実行に失敗しました', en: 'Task deadline notification test failed' },
+    'settings.roomEnterRequired': {
+      ja: 'ルームに入室してください',
+      en: 'Please enter a room',
+    },
+    'settings.loadFailed': {
+      ja: '設定の読み込みに失敗しました: {error}',
+      en: 'Failed to load settings: {error}',
+    },
+    'settings.emailRequired': {
+      ja: 'メールアドレスを入力してください',
+      en: 'Please enter email address',
+    },
+    'settings.validEmailRequired': {
+      ja: '有効なメールアドレスを入力してください',
+      en: 'Please enter a valid email address',
+    },
+    'settings.testNotificationSent': {
+      ja: 'テスト通知を送信しました ✅',
+      en: 'Test notification sent ✅',
+    },
+    'settings.testNotificationFailed': {
+      ja: 'テスト通知の送信に失敗しました',
+      en: 'Failed to send test notification',
+    },
+    'settings.testNotificationFailedWithError': {
+      ja: 'テスト通知の送信に失敗しました: {error}',
+      en: 'Failed to send test notification: {error}',
+    },
+    'settings.enableEmailNotification': {
+      ja: 'メール通知を有効にしてください',
+      en: 'Please enable email notifications',
+    },
+    'settings.deadlineNotificationSent': {
+      ja: '期限が近いタスクのメール通知を送信しました ({taskCount}件のタスク、{userCount}人のユーザー)',
+      en: 'Deadline notification sent ({taskCount} tasks, {userCount} users)',
+    },
+    'settings.emailNotificationFailed': {
+      ja: 'メール通知の送信に失敗しました',
+      en: 'Failed to send email notification',
+    },
+    'settings.deadlineTestCompleted': {
+      ja: 'タスク期限通知のテスト実行が完了しました\n成功: {successCount}件、スキップ: {skippedCount}件、エラー: {errorCount}件\n対象タスク: {taskCount}件\n詳細はコンソールを確認してください',
+      en: 'Task deadline notification test completed\nSuccess: {successCount}, Skipped: {skippedCount}, Errors: {errorCount}\nTarget tasks: {taskCount}\nSee console for details',
+    },
+    'settings.deadlineTestFailed': {
+      ja: 'タスク期限通知のテスト実行に失敗しました',
+      en: 'Task deadline notification test failed',
+    },
     'settings.error': { ja: 'エラー: {error}', en: 'Error: {error}' },
-    'settings.workTimeTestCompleted': { ja: '作業時間オーバー通知のテスト実行が完了しました\n成功: {successCount}件、スキップ: {skippedCount}件、エラー: {errorCount}件\n作業時間オーバーユーザー: {overflowUserCount}人\n送信通知数: {notificationCount}件\n詳細はコンソールを確認してください', en: 'Work time overflow notification test completed\nSuccess: {successCount}, Skipped: {skippedCount}, Errors: {errorCount}\nOverflow users: {overflowUserCount}\nNotifications sent: {notificationCount}\nSee console for details' },
-    'settings.workTimeTestFailed': { ja: '作業時間オーバー通知のテスト実行に失敗しました', en: 'Work time overflow notification test failed' },
-    'settings.dailyTestCompleted': { ja: '今日のタスク通知のテスト実行が完了しました\n成功: {successCount}件、スキップ: {skippedCount}件、エラー: {errorCount}件\n通知タスク数: {taskCount}件\n詳細はコンソールを確認してください', en: "Today's task notification test completed\nSuccess: {successCount}, Skipped: {skippedCount}, Errors: {errorCount}\nNotification tasks: {taskCount}\nSee console for details" },
-    'settings.dailyTestFailed': { ja: '今日のタスク通知のテスト実行に失敗しました', en: "Today's task notification test failed" },
-    'settings.userNotificationSent': { ja: 'ユーザー個別のタスク通知を送信しました ({taskCount}件のタスク、{userCount}人のユーザー)', en: 'User-specific task notification sent ({taskCount} tasks, {userCount} users)' },
-    'settings.userNotificationFailed': { ja: 'ユーザー個別のタスク通知の送信に失敗しました', en: 'Failed to send user-specific task notification' },
-    'settings.homeScreenSaved': { ja: 'ホーム画面設定を保存しました', en: 'Home screen settings saved' },
-    'settings.homeScreenSaveFailed': { ja: 'ホーム画面設定の保存に失敗しました', en: 'Failed to save home screen settings' },
+    'settings.workTimeTestCompleted': {
+      ja: '作業時間オーバー通知のテスト実行が完了しました\n成功: {successCount}件、スキップ: {skippedCount}件、エラー: {errorCount}件\n作業時間オーバーユーザー: {overflowUserCount}人\n送信通知数: {notificationCount}件\n詳細はコンソールを確認してください',
+      en: 'Work time overflow notification test completed\nSuccess: {successCount}, Skipped: {skippedCount}, Errors: {errorCount}\nOverflow users: {overflowUserCount}\nNotifications sent: {notificationCount}\nSee console for details',
+    },
+    'settings.workTimeTestFailed': {
+      ja: '作業時間オーバー通知のテスト実行に失敗しました',
+      en: 'Work time overflow notification test failed',
+    },
+    'settings.dailyTestCompleted': {
+      ja: '今日のタスク通知のテスト実行が完了しました\n成功: {successCount}件、スキップ: {skippedCount}件、エラー: {errorCount}件\n通知タスク数: {taskCount}件\n詳細はコンソールを確認してください',
+      en: "Today's task notification test completed\nSuccess: {successCount}, Skipped: {skippedCount}, Errors: {errorCount}\nNotification tasks: {taskCount}\nSee console for details",
+    },
+    'settings.dailyTestFailed': {
+      ja: '今日のタスク通知のテスト実行に失敗しました',
+      en: "Today's task notification test failed",
+    },
+    'settings.userNotificationSent': {
+      ja: 'ユーザー個別のタスク通知を送信しました ({taskCount}件のタスク、{userCount}人のユーザー)',
+      en: 'User-specific task notification sent ({taskCount} tasks, {userCount} users)',
+    },
+    'settings.userNotificationFailed': {
+      ja: 'ユーザー個別のタスク通知の送信に失敗しました',
+      en: 'Failed to send user-specific task notification',
+    },
+    'settings.homeScreenSaved': {
+      ja: 'ホーム画面設定を保存しました',
+      en: 'Home screen settings saved',
+    },
+    'settings.homeScreenSaveFailed': {
+      ja: 'ホーム画面設定の保存に失敗しました',
+      en: 'Failed to save home screen settings',
+    },
     'settings.changeRoom': { ja: 'ルームを変更', en: 'Change Room' },
     'settings.deleteRoom': { ja: 'ルームを削除', en: 'Delete Room' },
-    'settings.roomIdNotAvailable': { ja: 'ルームIDが取得できませんでした', en: 'Could not get room ID' },
-    'settings.roomDeleted': { ja: 'ルームを削除しました', en: 'Room deleted successfully' },
-    'settings.roomDeleteFailed': { ja: 'ルームの削除に失敗しました', en: 'Failed to delete room' },
-    'settings.quietHoursTimeSameError': { ja: '開始時間と終了時間を同じにすることはできません', en: 'Start time and end time cannot be the same' },
+    'settings.roomIdNotAvailable': {
+      ja: 'ルームIDが取得できませんでした',
+      en: 'Could not get room ID',
+    },
+    'settings.roomDeleted': {
+      ja: 'ルームを削除しました',
+      en: 'Room deleted successfully',
+    },
+    'settings.roomDeleteFailed': {
+      ja: 'ルームの削除に失敗しました',
+      en: 'Failed to delete room',
+    },
+    'settings.quietHoursTimeSameError': {
+      ja: '開始時間と終了時間を同じにすることはできません',
+      en: 'Start time and end time cannot be the same',
+    },
     'settings.deleteRoomTitle': { ja: 'ルームを削除', en: 'Delete Room' },
-    'settings.deleteRoomConfirm': { ja: '本当にルーム「{roomName}」を削除しますか？', en: 'Are you sure you want to delete room "{roomName}"?' },
-    'settings.deleteRoomWarning': { ja: 'この操作は取り消せません。ルームに関連するすべてのデータ（プロジェクト、タスク、メンバーなど）が削除されます。', en: 'This operation cannot be undone. All data related to the room (projects, tasks, members, etc.) will be deleted.' },
+    'settings.deleteRoomConfirm': {
+      ja: '本当にルーム「{roomName}」を削除しますか？',
+      en: 'Are you sure you want to delete room "{roomName}"?',
+    },
+    'settings.deleteRoomWarning': {
+      ja: 'この操作は取り消せません。ルームに関連するすべてのデータ（プロジェクト、タスク、メンバーなど）が削除されます。',
+      en: 'This operation cannot be undone. All data related to the room (projects, tasks, members, etc.) will be deleted.',
+    },
     'settings.cancel': { ja: 'キャンセル', en: 'Cancel' },
     'settings.delete': { ja: '削除', en: 'Delete' },
     // 編集ログ画面
@@ -1567,15 +2038,36 @@ export class LanguageService {
     'logs.after': { ja: '以降', en: 'after' },
     'logs.before': { ja: '以前', en: 'before' },
     'logs.taskUpdated': { ja: 'タスクを更新しました', en: 'Task updated' },
-    'logs.projectUpdated': { ja: 'プロジェクトを更新しました', en: 'Project updated' },
+    'logs.projectUpdated': {
+      ja: 'プロジェクトを更新しました',
+      en: 'Project updated',
+    },
     'logs.taskCreated': { ja: 'タスクを作成しました', en: 'Task created' },
-    'logs.projectCreated': { ja: 'プロジェクトを作成しました', en: 'Project created' },
+    'logs.projectCreated': {
+      ja: 'プロジェクトを作成しました',
+      en: 'Project created',
+    },
     'logs.taskDeleted': { ja: 'タスクを削除しました', en: 'Task deleted' },
-    'logs.projectDeleted': { ja: 'プロジェクトを削除しました', en: 'Project deleted' },
-    'logs.message.projectCreatedWithName': { ja: 'プロジェクト「{projectName}」を作成しました', en: 'Project "{projectName}" created' },
-    'logs.message.projectDeletedWithName': { ja: 'プロジェクト「{projectName}」を削除しました', en: 'Project "{projectName}" deleted' },
-    'logs.message.taskCreatedWithName': { ja: 'タスク「{taskName}」を作成しました', en: 'Task "{taskName}" created' },
-    'logs.message.taskDeletedWithName': { ja: 'タスク「{taskName}」を削除しました', en: 'Task "{taskName}" deleted' },
+    'logs.projectDeleted': {
+      ja: 'プロジェクトを削除しました',
+      en: 'Project deleted',
+    },
+    'logs.message.projectCreatedWithName': {
+      ja: 'プロジェクト「{projectName}」を作成しました',
+      en: 'Project "{projectName}" created',
+    },
+    'logs.message.projectDeletedWithName': {
+      ja: 'プロジェクト「{projectName}」を削除しました',
+      en: 'Project "{projectName}" deleted',
+    },
+    'logs.message.taskCreatedWithName': {
+      ja: 'タスク「{taskName}」を作成しました',
+      en: 'Task "{taskName}" created',
+    },
+    'logs.message.taskDeletedWithName': {
+      ja: 'タスク「{taskName}」を削除しました',
+      en: 'Task "{taskName}" deleted',
+    },
     'logs.added': { ja: 'が追加', en: ' added' },
     'logs.deleted': { ja: 'が削除', en: ' deleted' },
     'logs.themeColor': { ja: 'テーマ色', en: 'Theme Color' },
@@ -1600,10 +2092,19 @@ export class LanguageService {
     'logs.field.tags': { ja: 'タグ', en: 'Tags' },
     'logs.status.unknown': { ja: '不明', en: 'Unknown' },
     'logs.status.notSet': { ja: '変更なし', en: 'Not Set' },
-    'logs.message.taskUpdatedWithName': { ja: 'タスク「{taskName}」を更新しました', en: 'Task "{taskName}" updated' },
-    'logs.message.statusChanged': { ja: 'タスクのステータスを「{oldStatus}」→「{newStatus}」に変更しました', en: 'Task status changed from "{oldStatus}" to "{newStatus}"' },
+    'logs.message.taskUpdatedWithName': {
+      ja: 'タスク「{taskName}」を更新しました',
+      en: 'Task "{taskName}" updated',
+    },
+    'logs.message.statusChanged': {
+      ja: 'タスクのステータスを「{oldStatus}」→「{newStatus}」に変更しました',
+      en: 'Task status changed from "{oldStatus}" to "{newStatus}"',
+    },
     'logs.message.tagAdded': { ja: '{tag}が追加されました', en: '{tag} added' },
-    'logs.message.tagDeleted': { ja: '{tag}が削除されました', en: '{tag} deleted' },
+    'logs.message.tagDeleted': {
+      ja: '{tag}が削除されました',
+      en: '{tag} deleted',
+    },
     // ルーム情報（設定画面）
     'settings.roomInfo.title': { ja: 'ルーム情報', en: 'Room Information' },
     'settings.roomInfo.subtitle': {
