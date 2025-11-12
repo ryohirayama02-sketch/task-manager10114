@@ -1300,7 +1300,7 @@ export class LanguageService {
     'taskCreate.priority': { ja: '優先度', en: 'Priority' },
     'taskCreate.tags': { ja: 'タグ', en: 'Tags' },
     'taskCreate.addTag': { ja: 'タグを追加', en: 'Add Tag' },
-    'taskCreate.enterTag': { ja: 'タグを入力してEnter', en: 'Enter tag' },
+    'taskCreate.enterTag': { ja: 'タグを入力してEnter', en: 'Enter tag and press Enter' },
     'taskCreate.calendarSync': { ja: 'カレンダー連携', en: 'Calendar Sync' },
     'taskCreate.cancel': { ja: 'キャンセル', en: 'Cancel' },
     'taskCreate.createTask': { ja: 'タスクを作成', en: 'Create Task' },

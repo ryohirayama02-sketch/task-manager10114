@@ -104,10 +104,11 @@
               [matDatepicker]="startDatePicker"
               [(ngModel)]="startDateObj"
               (dateChange)="onStartDateChange()"
+              (click)="startDatePicker.open()"
+              (keydown)="$event.preventDefault()"
               [max]="dueDateObj || maxDate"
               [ngModelOptions]="{ standalone: true }"
               [placeholder]="'taskCreate.startDatePlaceholder' | translate"
-              readonly
               required
             />
             <mat-datepicker-toggle
@@ -129,11 +130,12 @@
               [matDatepicker]="dueDatePicker"
               [(ngModel)]="dueDateObj"
               (dateChange)="onDueDateChange()"
+              (click)="dueDatePicker.open()"
+              (keydown)="$event.preventDefault()"
               [min]="startDateObj || undefined"
               [max]="maxDate"
               [ngModelOptions]="{ standalone: true }"
               [placeholder]="'taskCreate.dueDatePlaceholder' | translate"
-              readonly
               required
             />
             <mat-datepicker-toggle
@@ -338,11 +340,7 @@
             <input
               matInput
               #tagInput
-              [placeholder]="
-                ('taskCreate.enterTag' | translate) +
-                ' ' +
-                ('taskCreate.tagMaxLength' | translate)
-              "
+              [placeholder]="'taskCreate.enterTag' | translate"
               (keydown.enter)="onTagInputEnter($event, tagInput)"
               maxlength="20"
             />
