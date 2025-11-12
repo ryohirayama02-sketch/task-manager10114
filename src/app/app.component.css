@@ -2,17 +2,33 @@
   padding: 20px;
   max-width: 1400px;
   margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .main-content {
   margin-top: 20px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 h1 {
   text-align: center;
   margin-bottom: 20px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .app-title {
   color: #1976d2;
+}
+
+/* モバイル対応 */
+@media (max-width: 480px) {
+  .app-container {
+    padding: 10px;
+  }
 }

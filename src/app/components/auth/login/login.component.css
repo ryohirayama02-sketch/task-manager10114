@@ -124,9 +124,28 @@ mat-spinner {
 
   .login-card {
     max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   mat-card-title {
     font-size: 20px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  mat-card-subtitle {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  .error-message {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  .google-button {
+    white-space: normal;
+    word-wrap: break-word;
   }
 }

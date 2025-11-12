@@ -4,6 +4,7 @@
   padding: 20px;
   width: 100%;
   box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .settings-container h1 {
@@ -49,6 +50,15 @@
   padding: 12px 24px;
   font-size: 16px;
   font-weight: 500;
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .menu-button {
+    min-width: 0;
+    white-space: normal;
+    word-wrap: break-word;
+  }
 }
 
 .menu-button.active {
@@ -259,6 +269,8 @@ mat-card-actions button {
 
   .settings-container h1 {
     font-size: 24px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
   }
 
   .time-range {
@@ -293,6 +305,59 @@ mat-card-actions button {
   .menu-button {
     width: 100%;
     justify-content: center;
+  }
+
+  .setting-row {
+    width: 100%;
+  }
+
+  .time-picker {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .time-field {
+    flex: 1;
+    min-width: 80px;
+  }
+}
+
+@media (max-width: 480px) {
+  .settings-container {
+    padding: 12px;
+  }
+
+  .settings-container h1 {
+    font-size: 20px;
+  }
+
+  .settings-card mat-card-title {
+    font-size: 18px;
+    word-wrap: break-word;
+  }
+
+  .settings-card mat-card-subtitle {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  .room-value {
+    word-break: break-all;
+    overflow-wrap: break-word;
+  }
+
+  .time-field {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .time-picker {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .time-separator {
+    display: none;
   }
 }
 

@@ -9,6 +9,8 @@
 html, body {
   height: 100%;
   width: 100%;
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 body {
@@ -16,6 +18,19 @@ body {
   background: #f5f7fa;
   color: #333;
   line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* オーバーフロー防止の基本ルール */
+img, video, iframe, embed, object {
+  max-width: 100%;
+  height: auto;
+}
+
+/* コンテナ要素のオーバーフロー防止 */
+div, section, article, aside, header, footer, main, nav {
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 /* Material Design のリセット */
@@ -27,4 +42,17 @@ input,
 textarea,
 select {
   font-family: inherit;
+}
+
+/* テーブルやグリッドのオーバーフロー防止 */
+table {
+  width: 100%;
+  table-layout: auto;
+  word-wrap: break-word;
+}
+
+/* 長いテキストの折り返し */
+p, span, div, h1, h2, h3, h4, h5, h6 {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }

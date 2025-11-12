@@ -4,6 +4,7 @@
   margin: 0 auto;
   width: 100%;
   box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .header {
@@ -11,6 +12,29 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+@media (max-width: 480px) {
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .header h2 {
+    font-size: 1.5rem;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  .header-actions {
+    width: 100%;
+  }
+
+  .sort-filter {
+    width: 100%;
+  }
 }
 
 .header-actions {
@@ -21,6 +45,14 @@
 
 .sort-filter {
   min-width: 200px;
+  max-width: 100%;
+}
+
+@media (max-width: 480px) {
+  .sort-filter {
+    min-width: 0;
+    width: 100%;
+  }
 }
 
 .header h2 {
@@ -39,6 +71,36 @@
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .project-card-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .project-card-list {
+    gap: 12px;
+  }
+
+  .project-card {
+    grid-template-columns: 1fr;
+    min-height: auto;
+    max-height: none;
+    padding: 16px;
+  }
+
+  .progress-section {
+    width: 100%;
+    min-width: 0;
+    margin-top: 12px;
+  }
+
+  .project-title {
+    font-size: 1.3rem;
+    max-width: 100%;
+  }
 }
 
 .project-card {

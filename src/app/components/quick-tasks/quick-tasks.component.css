@@ -31,6 +31,15 @@
 
 .days-filter {
   min-width: 150px;
+  max-width: 100%;
+  width: 100%;
+}
+
+@media (max-width: 480px) {
+  .days-filter {
+    min-width: 0;
+    width: 100%;
+  }
 }
 
 /* ローディング */
@@ -367,10 +376,13 @@ mat-card-actions button {
   .header h1 {
     font-size: 1.5rem;
     text-align: center;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
   }
 
   .filter-controls {
     justify-content: center;
+    width: 100%;
   }
 
   .tasks-grid {
@@ -386,6 +398,53 @@ mat-card-actions button {
 
   .task-badges {
     justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .task-title {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+}
+
+@media (max-width: 480px) {
+  .quick-tasks-container {
+    padding: 12px;
+  }
+
+  .header h1 {
+    font-size: 1.25rem;
+  }
+
+  .filter-controls {
+    width: 100%;
+  }
+
+  .days-filter {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .task-card {
+    padding: 12px;
+  }
+
+  .task-title {
+    font-size: 1rem;
+  }
+
+  .priority-chip,
+  .status-chip {
+    font-size: 0.85rem;
+    padding: 0 12px;
+    min-height: 32px;
+  }
+
+  .project-name-pill {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 
