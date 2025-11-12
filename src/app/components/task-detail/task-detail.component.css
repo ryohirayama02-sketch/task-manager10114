@@ -345,6 +345,9 @@ mat-chip mat-icon {
   padding: 24px;
   border-radius: 12px;
   background-color: #ffffff;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .child-tasks-header {
@@ -380,8 +383,11 @@ mat-chip mat-icon {
 
 .child-tasks-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
   gap: 15px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .child-task-card {
@@ -392,6 +398,17 @@ mat-chip mat-icon {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   background-color: #fff;
   height: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.child-task-card .mat-mdc-card-content {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .child-task-card-header {
@@ -399,6 +416,9 @@ mat-chip mat-icon {
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: flex-start;
   gap: 12px;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .child-task-card-header .mat-mdc-card-title {
@@ -413,11 +433,17 @@ mat-chip mat-icon {
   justify-self: flex-end;
   align-items: flex-start;
   flex-shrink: 0;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .child-task-card-meta mat-chip-set {
   display: flex;
   gap: 6px;
+  flex-wrap: wrap;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .child-task-card-title-text {
@@ -441,6 +467,9 @@ mat-chip mat-icon {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .child-task-detail-item {
@@ -451,6 +480,8 @@ mat-chip mat-icon {
   color: #666;
   min-width: 0;
   flex-shrink: 1;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .child-task-detail-item mat-icon {
@@ -464,8 +495,10 @@ mat-chip mat-icon {
   display: flex;
   align-items: center;
   gap: 16px;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .child-task-detail-member {
@@ -489,6 +522,8 @@ mat-chip mat-icon {
   flex: 0 0 auto;
   margin-left: 8px;
   white-space: nowrap;
+  min-width: 0;
+  flex-shrink: 0;
 }
 
 .child-status-chip,
@@ -769,8 +804,34 @@ mat-chip mat-icon {
     gap: 8px;
   }
 
+  .child-tasks-section {
+    padding: 16px;
+    overflow-x: hidden;
+  }
+
   .child-tasks-grid {
     grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .child-task-card {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .child-task-card-header {
+    gap: 8px;
+  }
+
+  .child-task-main-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .child-task-member-due {
+    margin-left: 0;
+    width: 100%;
   }
 
   .action-buttons-container {

@@ -815,6 +815,21 @@ textarea {
   max-width: 200px;
 }
 
+.filter-section mat-form-field .mat-mdc-select-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.filter-section mat-form-field .mat-mdc-select-value-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  display: block;
+}
+
 /* 期日フィルターのdate pickerは幅を広げる */
 .filter-section .due-date-filter-field {
   width: 180px;
