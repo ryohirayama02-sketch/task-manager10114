@@ -308,6 +308,8 @@ h2 {
   flex-shrink: 0;
   padding-left: var(--gantt-scrollbar-width);
   box-sizing: border-box;
+  /* ヘッダーとコンテンツの列線を揃えるため、スクロールバー分のパディングを考慮 */
+  direction: ltr;
 }
 
 .gantt-header-left::before {
@@ -496,11 +498,28 @@ h2 {
   .info-cell {
     padding: 6px;
     font-size: 11px;
+    box-sizing: border-box; /* パディングを含めた幅計算を確実にする */
   }
 
   .header-cell {
-    padding: 8px 6px;
+    padding: 6px; /* info-cellと同じパディングに統一 */
     font-size: 11px;
+    box-sizing: border-box; /* パディングを含めた幅計算を確実にする */
+  }
+
+  /* スマホ画面でのスクロールバー幅の影響を考慮 */
+  .gantt-header-left {
+    padding-left: var(--gantt-scrollbar-width);
+  }
+
+  /* ヘッダーとコンテンツの列線を揃えるため、スクロールバー分のパディングを統一 */
+  .gantt-body-left {
+    direction: rtl; /* スクロールバーを左側に配置 */
+  }
+
+  .gantt-body-left .task-row,
+  .gantt-body-left .task-info {
+    direction: ltr; /* コンテンツの表示方向は従来どおり */
   }
 }
 
@@ -509,7 +528,7 @@ h2 {
   font-weight: 600;
   font-size: 12px;
   color: #495057;
-  border-right: 1px solid #dee2e6;
+  border-right: 1px solid #e9ecef; /* 背景色と同じ色にして線を目立たなくする */
   text-align: center;
   flex-shrink: 0;
   display: flex;
