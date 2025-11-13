@@ -1620,38 +1620,8 @@ export class ProjectDetailComponent implements OnInit {
   }
 
   goBack(): void {
-    if (this.returnUrl) {
-      this.router.navigateByUrl(this.returnUrl, { replaceUrl: true });
-      return;
-    }
-
-    if (window.history.length <= 1) {
-      this.router.navigate(['/progress/projects']);
-      return;
-    }
-
-    const backCount = this.navigationHistory.getBackCount();
-    // 作成画面をスキップするために、必要な回数だけ戻る
-    this.goBackRecursive(backCount);
-  }
-
-  /** 再帰的に戻る操作を実行 */
-  private goBackRecursive(remainingCount: number): void {
-    if (remainingCount <= 0 || window.history.length <= 1) {
-      if (window.history.length <= 1) {
-        this.router.navigate(['/progress/projects']);
-      }
-      return;
-    }
-
-    this.location.back();
-
-    // 次の戻る操作を少し待ってから実行（ブラウザの履歴更新を待つ）
-    if (remainingCount > 1) {
-      setTimeout(() => {
-        this.goBackRecursive(remainingCount - 1);
-      }, 100); // 100ms待機
-    }
+    // 全プロジェクト進捗画面に遷移
+    this.router.navigate(['/progress/projects']);
   }
 
   /** ✅ 「＋タスク」ボタン押下でフォームを開く */

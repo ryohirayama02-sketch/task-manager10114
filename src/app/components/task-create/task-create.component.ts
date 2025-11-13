@@ -1014,12 +1014,24 @@ export class TaskCreatePageComponent implements OnInit {
   }
 
   goBack() {
-    if (this.returnUrl) {
-      // replaceUrl: true を指定して、ブラウザの履歴に新しいエントリを追加しない
-      // これにより、タスク作成画面が履歴に残らず、正しく戻れる
-      this.router.navigateByUrl(this.returnUrl, { replaceUrl: true });
+    if (!this.projectId) {
+      // プロジェクトIDがない場合は、カンバンに戻る
+      this.router.navigate(['/kanban']);
+      return;
+    }
+
+    // 子タスクの場合は親タスク詳細へ、親タスクの場合はプロジェクト詳細へ
+    if (this.parentTaskId) {
+      // 子タスク: 親タスク詳細へ
+      this.router.navigate([
+        '/project',
+        this.projectId,
+        'task',
+        this.parentTaskId,
+      ]);
     } else {
-      this.location.back();
+      // 親タスク: プロジェクト詳細へ
+      this.router.navigate(['/project', this.projectId]);
     }
   }
 }

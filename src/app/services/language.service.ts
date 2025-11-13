@@ -735,7 +735,10 @@ export class LanguageService {
     'calendar.close': { ja: '閉じる', en: 'Close' },
     // プロジェクト詳細
     'projectDetail.title': { ja: 'プロジェクト詳細', en: 'Project Details' },
-    'projectDetail.back': { ja: '戻る', en: 'Back' },
+    'projectDetail.back': {
+      ja: '全プロジェクト進捗へ',
+      en: 'To All Projects Progress',
+    },
     'projectDetail.editMode': { ja: '編集モード', en: 'Edit Mode' },
     'projectDetail.on': { ja: 'ON', en: 'ON' },
     'projectDetail.off': { ja: 'OFF', en: 'OFF' },
@@ -1052,6 +1055,14 @@ export class LanguageService {
     'projectChat.send': { ja: '送信', en: 'Send' },
     // タスク詳細追加キー
     'taskDetail.back': { ja: '戻る', en: 'Back' },
+    'taskDetail.backToProject': {
+      ja: 'プロジェクト詳細へ',
+      en: 'To Project Details',
+    },
+    'taskDetail.backToParentTask': {
+      ja: '親タスク詳細へ',
+      en: 'To Parent Task Details',
+    },
     'taskDetail.title': { ja: 'タスク詳細', en: 'Task Detail' },
     'taskDetail.childTaskTitle': {
       ja: '子タスク詳細',
@@ -1691,6 +1702,14 @@ export class LanguageService {
     // タスク作成画面
     'taskCreate.title': { ja: 'タスク作成', en: 'Create Task' },
     'taskCreate.back': { ja: '戻る', en: 'Back' },
+    'taskCreate.backToProject': {
+      ja: 'プロジェクト詳細へ',
+      en: 'To Project Details',
+    },
+    'taskCreate.backToParentTask': {
+      ja: '親タスク詳細へ',
+      en: 'To Parent Task Details',
+    },
     'taskCreate.taskName': { ja: 'タスク名', en: 'Task Name' },
     'taskCreate.taskNamePlaceholder': {
       ja: 'タスク名を入力してください',

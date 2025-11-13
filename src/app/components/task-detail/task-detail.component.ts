@@ -1656,32 +1656,31 @@ export class TaskDetailComponent implements OnInit {
 
   /** 戻る */
   goBack() {
-    if (window.history.length <= 1) {
-      this.router.navigate(['/kanban']);
-      return;
-    }
-
-    const backCount = this.navigationHistory.getBackCount();
-    // 作成画面をスキップするために、必要な回数だけ戻る
-    this.goBackRecursive(backCount);
-  }
-
-  /** 再帰的に戻る操作を実行 */
-  private goBackRecursive(remainingCount: number) {
-    if (remainingCount <= 0 || window.history.length <= 1) {
-      if (window.history.length <= 1) {
+    if (!this.task) {
+      // タスク情報が読み込まれていない場合は、プロジェクト一覧に戻る
+      const projectId = this.route.snapshot.paramMap.get('projectId');
+      if (projectId) {
+        this.router.navigate(['/project', projectId]);
+      } else {
         this.router.navigate(['/kanban']);
       }
       return;
     }
 
-    this.location.back();
+    const projectId = this.task.projectId;
 
-    // 次の戻る操作を少し待ってから実行（ブラウザの履歴更新を待つ）
-    if (remainingCount > 1) {
-      setTimeout(() => {
-        this.goBackRecursive(remainingCount - 1);
-      }, 100); // 100ms待機
+    // 子タスクの場合は親タスク詳細へ、親タスクの場合はプロジェクト詳細へ
+    if (this.task.parentTaskId) {
+      // 子タスク: 親タスク詳細へ
+      this.router.navigate([
+        '/project',
+        projectId,
+        'task',
+        this.task.parentTaskId,
+      ]);
+    } else {
+      // 親タスク: プロジェクト詳細へ
+      this.router.navigate(['/project', projectId]);
     }
   }
 
