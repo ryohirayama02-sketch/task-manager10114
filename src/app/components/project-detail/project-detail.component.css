@@ -1752,6 +1752,77 @@ textarea {
   gap: 10px;
 }
 
+.tasks-actions button {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 768px) {
+  .tasks-actions {
+    gap: 8px;
+  }
+
+  .tasks-actions button {
+    font-size: 12px;
+    padding: 6px 12px;
+    min-height: 32px;
+    line-height: 1.3;
+  }
+
+  .tasks-actions button ::ng-deep .mat-button-wrapper,
+  .tasks-actions button ::ng-deep .mat-raised-button-wrapper,
+  .tasks-actions button ::ng-deep .mdc-button__label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 12px;
+    line-height: 1.3;
+  }
+
+  .tasks-actions button ::ng-deep mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    line-height: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .tasks-actions {
+    gap: 6px;
+  }
+
+  .tasks-actions button {
+    font-size: 11px;
+    padding: 5px 10px;
+    min-height: 30px;
+    line-height: 1.2;
+  }
+
+  .tasks-actions button ::ng-deep .mat-button-wrapper,
+  .tasks-actions button ::ng-deep .mat-raised-button-wrapper,
+  .tasks-actions button ::ng-deep .mdc-button__label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 11px;
+    line-height: 1.2;
+  }
+
+  .tasks-actions button ::ng-deep mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+    line-height: 14px;
+  }
+
+  .tasks-actions button ::ng-deep .mdc-button {
+    min-height: 30px;
+    height: auto;
+  }
+}
+
 /* フィルターセクション */
 .filter-section {
   display: flex;
