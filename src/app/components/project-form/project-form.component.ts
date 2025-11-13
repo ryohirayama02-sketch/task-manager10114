@@ -107,7 +107,14 @@ export class ProjectFormComponent implements OnInit {
     private languageService: LanguageService
   ) {
     this.projectForm = this.fb.group({
-      projectName: ['', [Validators.required, Validators.minLength(1), Validators.maxLength(30)]],
+      projectName: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(1),
+          Validators.maxLength(30),
+        ],
+      ],
       overview: [''],
       startDate: ['', Validators.required],
       endDate: ['', Validators.required],
@@ -148,38 +155,53 @@ export class ProjectFormComponent implements OnInit {
       const maxCount = 10;
       if (currentCount >= maxCount) {
         this.projectCountLimitReached = true;
-        const message = this.languageService.translate('projectForm.maxProjectLimit');
-        this.projectCountLimitMessage = message.replace('{{count}}', maxCount.toString());
+        const message = this.languageService.translate(
+          'projectForm.maxProjectLimit'
+        );
+        this.projectCountLimitMessage = message.replace(
+          '{{count}}',
+          maxCount.toString()
+        );
       } else {
         this.projectCountLimitReached = false;
         this.projectCountLimitMessage = '';
       }
     } catch (error) {
-      console.error(this.languageService.translate('projectForm.error.projectCountFetch'), error);
+      console.error(
+        this.languageService.translate('projectForm.error.projectCountFetch'),
+        error
+      );
     }
   }
-  
+
   // 開始日変更時の処理（カレンダー選択時）
   onStartDateChange(): void {
     if (this.startDateObj) {
       const year = this.startDateObj.getFullYear();
       // 年が4桁であることをチェック
       if (year < 1000 || year > 9999) {
-        this.startDateError = this.languageService.translate('projectForm.error.yearMustBe4Digits');
+        this.startDateError = this.languageService.translate(
+          'projectForm.error.yearMustBe4Digits'
+        );
         this.startDateObj = null;
         this.projectForm.patchValue({ startDate: '' });
         return;
       }
-      
+
       // 開始日が終了日より後の場合は、終了日を開始日に合わせる
       if (this.endDateObj && this.startDateObj > this.endDateObj) {
         this.endDateObj = new Date(this.startDateObj);
         const endYear = this.endDateObj.getFullYear();
-        const endMonth = String(this.endDateObj.getMonth() + 1).padStart(2, '0');
+        const endMonth = String(this.endDateObj.getMonth() + 1).padStart(
+          2,
+          '0'
+        );
         const endDay = String(this.endDateObj.getDate()).padStart(2, '0');
-        this.projectForm.patchValue({ endDate: `${endYear}-${endMonth}-${endDay}` });
+        this.projectForm.patchValue({
+          endDate: `${endYear}-${endMonth}-${endDay}`,
+        });
       }
-      
+
       this.startDateError = null;
       const month = String(this.startDateObj.getMonth() + 1).padStart(2, '0');
       const day = String(this.startDateObj.getDate()).padStart(2, '0');
@@ -194,7 +216,7 @@ export class ProjectFormComponent implements OnInit {
   onStartDateInput(event: Event): void {
     const input = event.target as HTMLInputElement;
     const value = input.value.trim();
-    
+
     // 空の場合はクリア
     if (!value) {
       this.startDateObj = null;
@@ -220,12 +242,14 @@ export class ProjectFormComponent implements OnInit {
       // 年が4桁であることを再確認
       const year = parsedDate.getFullYear();
       if (year < 1000 || year > 9999) {
-        this.startDateError = this.languageService.translate('projectForm.error.yearMustBe4Digits');
+        this.startDateError = this.languageService.translate(
+          'projectForm.error.yearMustBe4Digits'
+        );
         this.startDateObj = null;
         this.projectForm.patchValue({ startDate: '' });
         return;
       }
-      
+
       // 日付が有効な場合のみ更新
       this.startDateObj = parsedDate;
       this.startDateError = null;
@@ -237,14 +261,16 @@ export class ProjectFormComponent implements OnInit {
       this.startDateError = null;
     }
   }
-  
+
   // 終了日変更時の処理（カレンダー選択時）
   onEndDateChange(): void {
     if (this.endDateObj) {
       const year = this.endDateObj.getFullYear();
       // 年が4桁であることをチェック
       if (year < 1000 || year > 9999) {
-        this.endDateError = this.languageService.translate('projectForm.error.yearMustBe4Digits');
+        this.endDateError = this.languageService.translate(
+          'projectForm.error.yearMustBe4Digits'
+        );
         this.endDateObj = null;
         this.projectForm.patchValue({ endDate: '' });
         return;
@@ -263,7 +289,7 @@ export class ProjectFormComponent implements OnInit {
   onEndDateInput(event: Event): void {
     const input = event.target as HTMLInputElement;
     const value = input.value.trim();
-    
+
     // 空の場合はクリア
     if (!value) {
       this.endDateObj = null;
@@ -289,12 +315,14 @@ export class ProjectFormComponent implements OnInit {
       // 年が4桁であることを再確認
       const year = parsedDate.getFullYear();
       if (year < 1000 || year > 9999) {
-        this.endDateError = this.languageService.translate('projectForm.error.yearMustBe4Digits');
+        this.endDateError = this.languageService.translate(
+          'projectForm.error.yearMustBe4Digits'
+        );
         this.endDateObj = null;
         this.projectForm.patchValue({ endDate: '' });
         return;
       }
-      
+
       // 日付が有効な場合のみ更新
       this.endDateObj = parsedDate;
       this.endDateError = null;
@@ -326,7 +354,12 @@ export class ProjectFormComponent implements OnInit {
       const day = parseInt(isoMatch[3], 10);
       if (month >= 0 && month <= 11 && day >= 1 && day <= 31) {
         const date = new Date(year, month, day);
-        if (this.isValidDate(date) && date.getFullYear() === year && date.getMonth() === month && date.getDate() === day) {
+        if (
+          this.isValidDate(date) &&
+          date.getFullYear() === year &&
+          date.getMonth() === month &&
+          date.getDate() === day
+        ) {
           return date;
         }
       }
@@ -340,7 +373,12 @@ export class ProjectFormComponent implements OnInit {
       const day = parseInt(jpMatch[3], 10);
       if (month >= 0 && month <= 11 && day >= 1 && day <= 31) {
         const date = new Date(year, month, day);
-        if (this.isValidDate(date) && date.getFullYear() === year && date.getMonth() === month && date.getDate() === day) {
+        if (
+          this.isValidDate(date) &&
+          date.getFullYear() === year &&
+          date.getMonth() === month &&
+          date.getDate() === day
+        ) {
           return date;
         }
       }
@@ -354,7 +392,12 @@ export class ProjectFormComponent implements OnInit {
       const year = parseInt(usMatch[3], 10);
       if (month >= 0 && month <= 11 && day >= 1 && day <= 31) {
         const date = new Date(year, month, day);
-        if (this.isValidDate(date) && date.getFullYear() === year && date.getMonth() === month && date.getDate() === day) {
+        if (
+          this.isValidDate(date) &&
+          date.getFullYear() === year &&
+          date.getMonth() === month &&
+          date.getDate() === day
+        ) {
           return date;
         }
       }
@@ -367,10 +410,23 @@ export class ProjectFormComponent implements OnInit {
       const month = parseInt(euMatch[2], 10) - 1;
       const year = parseInt(euMatch[3], 10);
       // MM/DD/YYYYとして既に試した場合はスキップ
-      if (!(month >= 0 && month <= 11 && day >= 1 && day <= 31 && parseInt(euMatch[1], 10) <= 12)) {
+      if (
+        !(
+          month >= 0 &&
+          month <= 11 &&
+          day >= 1 &&
+          day <= 31 &&
+          parseInt(euMatch[1], 10) <= 12
+        )
+      ) {
         if (month >= 0 && month <= 11 && day >= 1 && day <= 31) {
           const date = new Date(year, month, day);
-          if (this.isValidDate(date) && date.getFullYear() === year && date.getMonth() === month && date.getDate() === day) {
+          if (
+            this.isValidDate(date) &&
+            date.getFullYear() === year &&
+            date.getMonth() === month &&
+            date.getDate() === day
+          ) {
             return date;
           }
         }
@@ -404,7 +460,10 @@ export class ProjectFormComponent implements OnInit {
   /**
    * 日付文字列の年が4桁であることをバリデーション
    */
-  private validateYearFormat(dateString: string): { isValid: boolean; errorMessage: string | null } {
+  private validateYearFormat(dateString: string): {
+    isValid: boolean;
+    errorMessage: string | null;
+  } {
     if (!dateString || !dateString.trim()) {
       return { isValid: true, errorMessage: null };
     }
@@ -418,7 +477,9 @@ export class ProjectFormComponent implements OnInit {
       if (year.length !== 4) {
         return {
           isValid: false,
-          errorMessage: this.languageService.translate('projectForm.error.yearMustBe4Digits'),
+          errorMessage: this.languageService.translate(
+            'projectForm.error.yearMustBe4Digits'
+          ),
         };
       }
     }
@@ -430,7 +491,9 @@ export class ProjectFormComponent implements OnInit {
       if (year.length !== 4) {
         return {
           isValid: false,
-          errorMessage: this.languageService.translate('projectForm.error.yearMustBe4Digits'),
+          errorMessage: this.languageService.translate(
+            'projectForm.error.yearMustBe4Digits'
+          ),
         };
       }
     }
@@ -442,7 +505,9 @@ export class ProjectFormComponent implements OnInit {
       if (year.length !== 4) {
         return {
           isValid: false,
-          errorMessage: this.languageService.translate('projectForm.error.yearMustBe4Digits'),
+          errorMessage: this.languageService.translate(
+            'projectForm.error.yearMustBe4Digits'
+          ),
         };
       }
     }
@@ -454,7 +519,9 @@ export class ProjectFormComponent implements OnInit {
       if (year.length !== 4) {
         return {
           isValid: false,
-          errorMessage: this.languageService.translate('projectForm.error.yearMustBe4Digits'),
+          errorMessage: this.languageService.translate(
+            'projectForm.error.yearMustBe4Digits'
+          ),
         };
       }
     }
@@ -474,7 +541,10 @@ export class ProjectFormComponent implements OnInit {
         console.log('メンバー一覧を読み込みました:', members.length, '件');
       },
       error: (error) => {
-        console.error(this.languageService.translate('projectForm.error.membersLoadFailed'), error);
+        console.error(
+          this.languageService.translate('projectForm.error.membersLoadFailed'),
+          error
+        );
         this.snackBar.open(
           this.languageService.translate('projectForm.error.membersLoad'),
           this.languageService.translate('projectForm.close'),
@@ -503,9 +573,7 @@ export class ProjectFormComponent implements OnInit {
    * 責任者選択の変更
    */
   onResponsibleSelectionChange(selectedIds: string[]): void {
-    this.selectedResponsibleIds = Array.isArray(selectedIds)
-      ? selectedIds
-      : [];
+    this.selectedResponsibleIds = Array.isArray(selectedIds) ? selectedIds : [];
     this.selectedResponsibles = this.members.filter((member) =>
       this.selectedResponsibleIds.includes(member.id || '')
     );
@@ -577,10 +645,39 @@ export class ProjectFormComponent implements OnInit {
       return;
     }
 
+    // ファイルとURLの合計が3つを超えないようにチェック
+    const currentTotal = this.attachments.length + this.pendingFiles.length;
+    if (currentTotal >= 3) {
+      this.snackBar.open(
+        this.languageService.translate(
+          'projectForm.error.maxAttachmentsReached'
+        ),
+        this.languageService.translate('projectForm.close'),
+        { duration: 3000 }
+      );
+      input.value = '';
+      return;
+    }
+
     Array.from(files).forEach((file) => {
+      // ファイルとURLの合計が3つを超えないようにチェック
+      if (this.attachments.length + this.pendingFiles.length >= 3) {
+        this.snackBar.open(
+          this.languageService.translate(
+            'projectForm.error.maxAttachmentsReached'
+          ),
+          this.languageService.translate('projectForm.close'),
+          { duration: 3000 }
+        );
+        return;
+      }
+
       if (file.size > this.MAX_FILE_SIZE) {
         this.snackBar.open(
-          file.name + this.languageService.translate('projectForm.error.fileSizeExceeded'),
+          file.name +
+            this.languageService.translate(
+              'projectForm.error.fileSizeExceeded'
+            ),
           this.languageService.translate('projectForm.close'),
           { duration: 4000 }
         );
@@ -596,7 +693,9 @@ export class ProjectFormComponent implements OnInit {
    * アップロード予定のファイルを削除
    */
   removePendingFile(pendingId: string): void {
-    this.pendingFiles = this.pendingFiles.filter((item) => item.id !== pendingId);
+    this.pendingFiles = this.pendingFiles.filter(
+      (item) => item.id !== pendingId
+    );
   }
 
   /**
@@ -629,11 +728,23 @@ export class ProjectFormComponent implements OnInit {
       return;
     }
 
+    // ファイルとURLの合計が3つを超えないようにチェック
+    if (this.attachments.length + this.pendingFiles.length >= 3) {
+      this.snackBar.open(
+        this.languageService.translate(
+          'projectForm.error.maxAttachmentsReached'
+        ),
+        this.languageService.translate('projectForm.close'),
+        { duration: 3000 }
+      );
+      return;
+    }
+
     // 既に同じURLが存在するかチェック
     const exists = this.attachments.some(
       (att) => att.type === 'link' && att.url === trimmedUrl
     );
-    
+
     if (exists) {
       this.snackBar.open(
         this.languageService.translate('projectForm.error.urlAlreadyAdded'),
@@ -659,7 +770,9 @@ export class ProjectFormComponent implements OnInit {
    * 添付済み資料を削除
    */
   removeAttachment(attachment: ProjectAttachment): void {
-    this.attachments = this.attachments.filter((item) => item.id !== attachment.id);
+    this.attachments = this.attachments.filter(
+      (item) => item.id !== attachment.id
+    );
   }
 
   /**
@@ -685,7 +798,10 @@ export class ProjectFormComponent implements OnInit {
     }
 
     // 開始日と終了日の必須チェック
-    if (!this.projectForm.get('startDate')?.value || !this.projectForm.get('endDate')?.value) {
+    if (
+      !this.projectForm.get('startDate')?.value ||
+      !this.projectForm.get('endDate')?.value
+    ) {
       this.snackBar.open(
         this.languageService.translate('projectForm.error.datesRequired'),
         this.languageService.translate('projectForm.close'),
@@ -769,7 +885,8 @@ export class ProjectFormComponent implements OnInit {
 
       const selectedColor: string | null = formData.themeColor ?? null;
       // テーマ色が「なし」の場合は白（#ffffff）に設定
-      const finalThemeColor = selectedColor === null ? '#ffffff' : selectedColor;
+      const finalThemeColor =
+        selectedColor === null ? '#ffffff' : selectedColor;
 
       const responsiblesPayload = this.selectedResponsibles.map((member) => ({
         memberId: member.id || '',
@@ -883,7 +1000,9 @@ export class ProjectFormComponent implements OnInit {
     }
     if (field?.hasError('maxlength')) {
       if (fieldName === 'projectName') {
-        return this.languageService.translate('projectForm.error.projectNameMaxLength');
+        return this.languageService.translate(
+          'projectForm.error.projectNameMaxLength'
+        );
       }
     }
     return '';
@@ -987,7 +1106,9 @@ export class ProjectFormComponent implements OnInit {
     }
   }
 
-  private async uploadPendingFiles(projectId: string): Promise<ProjectAttachment[]> {
+  private async uploadPendingFiles(
+    projectId: string
+  ): Promise<ProjectAttachment[]> {
     const uploaded: ProjectAttachment[] = [];
     if (this.pendingFiles.length === 0) {
       return uploaded;
@@ -998,13 +1119,21 @@ export class ProjectFormComponent implements OnInit {
     try {
       for (const pending of this.pendingFiles) {
         try {
-          const attachment =
-            await this.attachmentService.uploadAttachment(projectId, pending.file);
+          const attachment = await this.attachmentService.uploadAttachment(
+            projectId,
+            pending.file
+          );
           uploaded.push(attachment);
         } catch (error) {
-          console.error(this.languageService.translate('projectForm.error.attachmentUploadFailed'), error);
+          console.error(
+            this.languageService.translate(
+              'projectForm.error.attachmentUploadFailed'
+            ),
+            error
+          );
           this.snackBar.open(
-            pending.file.name + this.languageService.translate('projectForm.error.uploadFailed'),
+            pending.file.name +
+              this.languageService.translate('projectForm.error.uploadFailed'),
             this.languageService.translate('projectForm.close'),
             { duration: 4000 }
           );

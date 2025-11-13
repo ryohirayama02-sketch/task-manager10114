@@ -945,6 +945,10 @@ export class LanguageService {
       ja: 'このURLは既に追加されています',
       en: 'This URL has already been added',
     },
+    'projectDetail.error.maxAttachmentsReached': {
+      ja: 'ファイルとURLの合計は3つまでです',
+      en: 'Maximum 3 attachments (files and URLs) allowed',
+    },
     'projectDetail.error.attachmentUploadFailed': {
       ja: '{fileName} のアップロードに失敗しました',
       en: 'Failed to upload {fileName}',
@@ -1268,6 +1272,10 @@ export class LanguageService {
     'taskDetail.deleteConfirm.childTasksWarning': {
       ja: '注意: このタスクに紐づく{count}件の子タスクも一緒に削除されます。',
       en: 'Note: {count} child tasks associated with this task will also be deleted.',
+    },
+    'taskDetail.error.maxAttachmentsReached': {
+      ja: 'ファイルとURLの合計は3つまでです',
+      en: 'Maximum 3 attachments (files and URLs) allowed',
     },
     'taskDetail.error.deleteFailed': {
       ja: 'タスクの削除に失敗しました',
@@ -1627,6 +1635,10 @@ export class LanguageService {
       ja: 'このURLは既に追加されています',
       en: 'This URL has already been added',
     },
+    'projectForm.error.maxAttachmentsReached': {
+      ja: 'ファイルとURLの合計は3つまでです',
+      en: 'Maximum 3 attachments (files and URLs) allowed',
+    },
     'projectForm.error.datesRequired': {
       ja: '開始日と終了日は必須です',
       en: 'Start date and end date are required',
@@ -1828,6 +1840,10 @@ export class LanguageService {
     'taskCreate.error.invalidUrl': {
       ja: 'URLはhttp://またはhttps://で始まる必要があります',
       en: 'URL must start with http:// or https://',
+    },
+    'taskCreate.error.maxAttachmentsReached': {
+      ja: 'ファイルとURLの合計は3つまでです',
+      en: 'Maximum 3 attachments (files and URLs) allowed',
     },
     'taskCreate.error.attachmentUploadFailed': {
       ja: '{{fileName}} のアップロードに失敗しました',

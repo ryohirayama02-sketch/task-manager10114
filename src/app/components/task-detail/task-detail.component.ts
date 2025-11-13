@@ -1613,6 +1613,23 @@ export class TaskDetailComponent implements OnInit {
       if (!this.taskData.urls) {
         this.taskData.urls = [];
       }
+
+      // ファイルとURLの合計が3つを超えないようにチェック
+      const currentTotal =
+        this.taskData.urls.length +
+        this.editableAttachments.length +
+        this.pendingFiles.length;
+      if (currentTotal >= 3) {
+        this.snackBar.open(
+          this.languageService.translate(
+            'taskDetail.error.maxAttachmentsReached'
+          ),
+          this.languageService.translate('common.close'),
+          { duration: 3000 }
+        );
+        return;
+      }
+
       if (!this.taskData.urls.includes(trimmedUrl)) {
         this.taskData.urls.push(trimmedUrl);
         this.newUrlInput = '';
@@ -2186,7 +2203,40 @@ export class TaskDetailComponent implements OnInit {
       return;
     }
 
+    // ファイルとURLの合計が3つを超えないようにチェック
+    const currentTotal =
+      (this.taskData.urls?.length || 0) +
+      this.editableAttachments.length +
+      this.pendingFiles.length;
+    if (currentTotal >= 3) {
+      this.snackBar.open(
+        this.languageService.translate(
+          'taskDetail.error.maxAttachmentsReached'
+        ),
+        this.languageService.translate('common.close'),
+        { duration: 3000 }
+      );
+      input.value = '';
+      return;
+    }
+
     Array.from(files).forEach((file) => {
+      // ファイルとURLの合計が3つを超えないようにチェック
+      const total =
+        (this.taskData.urls?.length || 0) +
+        this.editableAttachments.length +
+        this.pendingFiles.length;
+      if (total >= 3) {
+        this.snackBar.open(
+          this.languageService.translate(
+            'taskDetail.error.maxAttachmentsReached'
+          ),
+          this.languageService.translate('common.close'),
+          { duration: 3000 }
+        );
+        return;
+      }
+
       if (file.size > this.MAX_FILE_SIZE) {
         this.snackBar.open(
           `${file.name} は5MBを超えています。別のファイルを選択してください。`,

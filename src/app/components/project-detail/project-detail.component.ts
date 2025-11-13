@@ -1419,7 +1419,34 @@ export class ProjectDetailComponent implements OnInit {
       return;
     }
 
+    // ファイルとURLの合計が3つを超えないようにチェック
+    const currentTotal =
+      this.editableAttachments.length + this.pendingFiles.length;
+    if (currentTotal >= 3) {
+      this.snackBar.open(
+        this.languageService.translate(
+          'projectDetail.error.maxAttachmentsReached'
+        ),
+        this.languageService.translate('common.close'),
+        { duration: 3000 }
+      );
+      input.value = '';
+      return;
+    }
+
     Array.from(files).forEach((file) => {
+      // ファイルとURLの合計が3つを超えないようにチェック
+      if (this.editableAttachments.length + this.pendingFiles.length >= 3) {
+        this.snackBar.open(
+          this.languageService.translate(
+            'projectDetail.error.maxAttachmentsReached'
+          ),
+          this.languageService.translate('common.close'),
+          { duration: 3000 }
+        );
+        return;
+      }
+
       if (file.size > this.MAX_FILE_SIZE) {
         this.snackBar.open(
           this.languageService.translateWithParams(
@@ -1447,6 +1474,20 @@ export class ProjectDetailComponent implements OnInit {
       if (!this.isValidUrl(trimmedUrl)) {
         this.snackBar.open(
           this.languageService.translate('projectDetail.error.invalidUrl'),
+          this.languageService.translate('common.close'),
+          {
+            duration: 3000,
+          }
+        );
+        return;
+      }
+
+      // ファイルとURLの合計が3つを超えないようにチェック
+      if (this.editableAttachments.length + this.pendingFiles.length >= 3) {
+        this.snackBar.open(
+          this.languageService.translate(
+            'projectDetail.error.maxAttachmentsReached'
+          ),
           this.languageService.translate('common.close'),
           {
             duration: 3000,

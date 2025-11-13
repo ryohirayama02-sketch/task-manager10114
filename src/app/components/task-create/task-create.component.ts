@@ -428,7 +428,34 @@ export class TaskCreatePageComponent implements OnInit {
       return;
     }
 
+    // ファイルとURLの合計が3つを超えないようにチェック
+    const currentTotal =
+      (this.taskForm.urls?.length || 0) + this.pendingFiles.length;
+    if (currentTotal >= 3) {
+      this.snackBar.open(
+        this.languageService.translate(
+          'taskCreate.error.maxAttachmentsReached'
+        ),
+        this.languageService.translate('taskCreate.close'),
+        { duration: 3000 }
+      );
+      input.value = '';
+      return;
+    }
+
     Array.from(files).forEach((file) => {
+      // ファイルとURLの合計が3つを超えないようにチェック
+      if ((this.taskForm.urls?.length || 0) + this.pendingFiles.length >= 3) {
+        this.snackBar.open(
+          this.languageService.translate(
+            'taskCreate.error.maxAttachmentsReached'
+          ),
+          this.languageService.translate('taskCreate.close'),
+          { duration: 3000 }
+        );
+        return;
+      }
+
       if (file.size > this.MAX_FILE_SIZE) {
         const message = this.languageService
           .translate('taskCreate.error.fileSizeExceeded')
@@ -461,6 +488,19 @@ export class TaskCreatePageComponent implements OnInit {
         );
         return;
       }
+
+      // ファイルとURLの合計が3つを超えないようにチェック
+      if ((this.taskForm.urls?.length || 0) + this.pendingFiles.length >= 3) {
+        this.snackBar.open(
+          this.languageService.translate(
+            'taskCreate.error.maxAttachmentsReached'
+          ),
+          this.languageService.translate('taskCreate.close'),
+          { duration: 3000 }
+        );
+        return;
+      }
+
       if (!this.taskForm.urls.includes(trimmedUrl)) {
         this.taskForm.urls.push(trimmedUrl);
         this.newUrlInput = '';

@@ -329,9 +329,6 @@
         <div class="attachments-section">
           <div class="member-selection-header">
             <h3>{{ "projectForm.attachments" | translate }}</h3>
-            <span class="helper-text">{{
-              "projectForm.attachmentHelper" | translate
-            }}</span>
           </div>
 
           <div class="attachment-actions">
@@ -352,9 +349,6 @@
               (change)="onFilesSelected($event)"
               hidden
             />
-            <span class="attachment-hint">{{
-              "projectForm.attachmentHint" | translate
-            }}</span>
           </div>
 
           <div class="pending-files" *ngIf="pendingFiles.length > 0">
