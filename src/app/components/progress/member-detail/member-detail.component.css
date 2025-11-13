@@ -968,7 +968,8 @@
     max-width: 100%;
     width: 100%;
     white-space: nowrap;
-    overflow: hidden;
+    overflow: visible;
+    text-overflow: clip;
     box-sizing: border-box;
     text-align: center;
     display: inline-block;
@@ -1074,7 +1075,8 @@
     max-width: 100%;
     width: 100%;
     white-space: nowrap;
-    overflow: hidden;
+    overflow: visible;
+    text-overflow: clip;
     box-sizing: border-box;
     text-align: center;
     display: inline-block;

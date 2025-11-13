@@ -4,6 +4,9 @@ import {
   inject,
   HostListener,
   ChangeDetectorRef,
+  AfterViewInit,
+  ViewChild,
+  ElementRef,
 } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -73,7 +76,7 @@ interface MemberDetail {
   templateUrl: './member-detail.component.html',
   styleUrls: ['./member-detail.component.css'],
 })
-export class MemberDetailComponent implements OnInit {
+export class MemberDetailComponent implements OnInit, AfterViewInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private projectService = inject(ProjectService);
@@ -82,6 +85,8 @@ export class MemberDetailComponent implements OnInit {
   private languageService = inject(LanguageService);
   private memberManagementService = inject(MemberManagementService);
   private cdr = inject(ChangeDetectorRef);
+
+  @ViewChild('tasksTable', { static: false }) tasksTable?: ElementRef;
 
   memberDetail: MemberDetail | null = null;
   isLoading = true;
@@ -478,20 +483,73 @@ export class MemberDetailComponent implements OnInit {
   onResize(): void {
     // リサイズ時に変更検知をトリガー
     this.cdr.detectChanges();
+    // セル幅を再チェック
+    setTimeout(() => {
+      this.checkCellWidth();
+    }, 100);
+  }
+
+  ngAfterViewInit(): void {
+    // ビュー初期化後にセル幅をチェック
+    setTimeout(() => {
+      this.checkCellWidth();
+    }, 0);
+  }
+
+  private checkCellWidth(): void {
+    // リサイズ時にも呼び出されるようにする
+    if (this.tasksTable) {
+      // セル幅のチェックはtranslateStatus/translatePriority内で行う
+      this.cdr.detectChanges();
+    }
+  }
+
+  private isCellNarrow(): boolean {
+    if (!this.tasksTable?.nativeElement) {
+      // テーブルが存在しない場合はウィンドウ幅で判定
+      return window.innerWidth <= 768;
+    }
+
+    try {
+      const table = this.tasksTable.nativeElement;
+      const statusHeader = table.querySelector('th.mat-column-status');
+      const priorityHeader = table.querySelector('th.mat-column-priority');
+
+      if (statusHeader) {
+        const statusWidth = statusHeader.getBoundingClientRect().width;
+        // セル幅が60px以下の場合は短縮形を使用
+        if (statusWidth <= 60) {
+          return true;
+        }
+      }
+
+      if (priorityHeader) {
+        const priorityWidth = priorityHeader.getBoundingClientRect().width;
+        // セル幅が60px以下の場合は短縮形を使用
+        if (priorityWidth <= 60) {
+          return true;
+        }
+      }
+    } catch (e) {
+      // エラーが発生した場合はウィンドウ幅で判定
+      return window.innerWidth <= 768;
+    }
+
+    return false;
   }
 
   translateStatus(status: string): string {
-    // スマホ画面（768px以下）の場合は短縮形を返す
-    const isMobile = window.innerWidth <= 768;
+    // セル幅が狭い場合は短縮形を返す
+    const isNarrow = this.isCellNarrow();
 
-    if (isMobile) {
+    if (isNarrow) {
       switch (status) {
         case '完了':
-          return '完';
+          return 'C';
         case '作業中':
-          return '作';
+          return 'IP';
         case '未着手':
-          return '未';
+          return 'NS';
         default:
           return status;
       }
@@ -510,6 +568,22 @@ export class MemberDetailComponent implements OnInit {
   }
 
   translatePriority(priority: string): string {
+    // セル幅が狭い場合は短縮形を返す
+    const isNarrow = this.isCellNarrow();
+
+    if (isNarrow) {
+      switch (priority) {
+        case '高':
+          return 'H';
+        case '中':
+          return 'M';
+        case '低':
+          return 'L';
+        default:
+          return priority;
+      }
+    }
+
     switch (priority) {
       case '高':
         return this.languageService.translate('progress.priority.high');
