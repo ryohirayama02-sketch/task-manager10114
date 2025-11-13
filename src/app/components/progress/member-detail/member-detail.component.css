@@ -177,7 +177,16 @@
   gap: 12px;
 }
 
-.priority-stats-card mat-card-title,
+.priority-stats-card mat-card-title {
+  flex-shrink: 0;
+  min-width: 0;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
 .tasks-card mat-card-title {
   flex-shrink: 0;
   min-width: 0;
