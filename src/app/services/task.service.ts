@@ -695,13 +695,21 @@ export class TaskService {
     }
 
     if (changeDetails.length > 0) {
-      const taskName =
-        taskData.taskName ||
-        this.languageService.translate('logs.field.taskName');
-      const taskUpdatedText = this.languageService.translateWithParams(
-        'logs.message.taskUpdatedWithName',
-        { taskName }
-      );
+      // タスク名を取得（taskDataに含まれていない場合はFirestoreから取得）
+      let taskName = taskData.taskName;
+      if (!taskName) {
+        const taskDoc = await getDoc(taskRef);
+        if (taskDoc.exists()) {
+          taskName = taskDoc.data()?.['taskName'];
+        }
+      }
+      // それでも取得できない場合はフォールバック値を使用
+      if (!taskName) {
+        taskName = this.languageService.translate('logs.field.taskName');
+      }
+
+      const taskUpdatedText =
+        this.languageService.translate('logs.taskUpdated');
       const projectName =
         taskData.projectName ||
         this.languageService.translate('logs.projectFallback');
@@ -712,7 +720,7 @@ export class TaskService {
         'update',
         taskUpdatedText,
         taskId,
-        taskData.taskName || taskName,
+        taskName,
         undefined,
         undefined,
         changeDetails
