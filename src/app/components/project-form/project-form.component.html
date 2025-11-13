@@ -24,6 +24,11 @@
             maxlength="30"
           />
           <mat-icon matSuffix>folder</mat-icon>
+          <mat-hint align="end"
+            >{{
+              (projectForm.get("projectName")?.value || "").length
+            }}/30</mat-hint
+          >
           <mat-error
             *ngIf="
               projectForm.get('projectName')?.invalid &&

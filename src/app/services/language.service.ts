@@ -656,8 +656,8 @@ export class LanguageService {
       en: 'Task projectId or id is missing',
     },
     'gantt.screenWidthWarning': {
-      ja: '注意：ガントを表示するには画面幅が狭いです。大きな画面で見ることを推奨します。',
-      en: 'Warning: The screen width is too narrow to display the Gantt chart. We recommend viewing on a larger screen.',
+      ja: '注意：ガントを表示するには画面幅が狭いです。大きな画面で見てください。',
+      en: 'Warning: The screen width is too narrow to display the Gantt chart. Please view on a larger screen.',
     },
     // カレンダー
     'calendar.title': { ja: 'カレンダー式課題管理', en: 'Calendar View' },
