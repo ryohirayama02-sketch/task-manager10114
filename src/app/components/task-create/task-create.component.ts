@@ -411,7 +411,21 @@ export class TaskCreatePageComponent implements OnInit {
 
   addTag(tag: string) {
     const trimmedTag = tag?.trim();
-    if (trimmedTag && !this.taskForm.tags.includes(trimmedTag)) {
+    if (!trimmedTag) {
+      return;
+    }
+
+    // タグの数が3つを超えないようにチェック
+    if ((this.taskForm.tags?.length || 0) >= 3) {
+      this.snackBar.open(
+        this.languageService.translate('taskCreate.error.maxTagsReached'),
+        this.languageService.translate('taskCreate.close'),
+        { duration: 3000 }
+      );
+      return;
+    }
+
+    if (!this.taskForm.tags.includes(trimmedTag)) {
       this.taskForm.tags.push(trimmedTag);
     }
   }

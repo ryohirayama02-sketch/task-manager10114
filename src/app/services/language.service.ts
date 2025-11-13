@@ -1277,6 +1277,10 @@ export class LanguageService {
       ja: 'ファイルとURLの合計は3つまでです',
       en: 'Maximum 3 attachments (files and URLs) allowed',
     },
+    'taskDetail.error.maxTagsReached': {
+      ja: 'タグは3つまでです',
+      en: 'Maximum 3 tags allowed',
+    },
     'taskDetail.error.deleteFailed': {
       ja: 'タスクの削除に失敗しました',
       en: 'Failed to delete task',
@@ -1844,6 +1848,10 @@ export class LanguageService {
     'taskCreate.error.maxAttachmentsReached': {
       ja: 'ファイルとURLの合計は3つまでです',
       en: 'Maximum 3 attachments (files and URLs) allowed',
+    },
+    'taskCreate.error.maxTagsReached': {
+      ja: 'タグは3つまでです',
+      en: 'Maximum 3 tags allowed',
     },
     'taskCreate.error.attachmentUploadFailed': {
       ja: '{{fileName}} のアップロードに失敗しました',

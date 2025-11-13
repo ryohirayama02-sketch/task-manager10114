@@ -1501,6 +1501,16 @@ export class TaskDetailComponent implements OnInit {
       this.taskData.tags = [];
     }
 
+    // タグの数が3つを超えないようにチェック
+    if (this.taskData.tags.length >= 3) {
+      this.snackBar.open(
+        this.languageService.translate('taskDetail.error.maxTagsReached'),
+        this.languageService.translate('common.close'),
+        { duration: 3000 }
+      );
+      return;
+    }
+
     // 既に存在する場合は追加しない
     if (!this.taskData.tags.includes(trimmedTag)) {
       this.taskData.tags.push(trimmedTag);
