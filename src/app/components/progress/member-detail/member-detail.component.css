@@ -155,7 +155,6 @@
   z-index: 1;
 }
 
-
 .priority-stats-card,
 .tasks-card {
   border-radius: 12px;
@@ -257,7 +256,10 @@
   color: rgba(0, 0, 0, 0.6) !important;
 }
 
-.period-field ::ng-deep .mat-mdc-text-field-wrapper input:not(:focus):placeholder-shown {
+.period-field
+  ::ng-deep
+  .mat-mdc-text-field-wrapper
+  input:not(:focus):placeholder-shown {
   color: rgba(0, 0, 0, 0.6) !important;
 }
 
@@ -279,7 +281,10 @@
   font-size: 14px;
 }
 
-.period-field ::ng-deep .mat-mdc-text-field-wrapper input:not(:focus)::placeholder {
+.period-field
+  ::ng-deep
+  .mat-mdc-text-field-wrapper
+  input:not(:focus)::placeholder {
   color: rgba(0, 0, 0, 0.6) !important;
   opacity: 1 !important;
 }
@@ -294,7 +299,10 @@
   padding-right: 0;
 }
 
-.period-field ::ng-deep .mat-mdc-text-field-wrapper .mat-mdc-form-field-input-control {
+.period-field
+  ::ng-deep
+  .mat-mdc-text-field-wrapper
+  .mat-mdc-form-field-input-control {
   padding-right: 8px;
 }
 
@@ -427,6 +435,7 @@
   gap: 20px;
   flex: 1;
   justify-content: center;
+  align-items: center;
   min-width: 0;
   flex-wrap: wrap;
 }
@@ -447,6 +456,7 @@
 
 .priority-row .priority-details {
   gap: 20px;
+  justify-content: center;
 }
 
 .priority-item {
@@ -698,17 +708,24 @@
 
   .priority-details {
     gap: 12px;
+    justify-content: center;
+  }
+
+  .priority-row .priority-details {
+    gap: 12px;
   }
 
   .priority-item {
     width: 35px;
     height: 35px;
     font-size: 12px;
+    flex-shrink: 0;
   }
 
   .priority-label {
     font-size: 14px;
     width: 35px;
+    text-align: center;
   }
 
   .header-actions {
@@ -806,17 +823,24 @@
 
   .priority-details {
     gap: 8px;
+    justify-content: center;
+  }
+
+  .priority-row .priority-details {
+    gap: 8px;
   }
 
   .priority-item {
     width: 30px;
     height: 30px;
     font-size: 11px;
+    flex-shrink: 0;
   }
 
   .priority-label {
     font-size: 12px;
     width: 30px;
+    text-align: center;
   }
 
   .status-chip,
