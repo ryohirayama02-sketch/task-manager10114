@@ -2,6 +2,7 @@
   padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
+  overflow-y: hidden;
 }
 
 .header {
@@ -43,12 +44,18 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+  overflow-y: hidden;
 }
 
 .member-info-card {
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   background-color: #f8faff;
+  overflow-y: hidden;
+}
+
+.member-info-card ::ng-deep .mat-mdc-card-content {
+  overflow-y: hidden;
 }
 
 .member-info {
@@ -188,6 +195,12 @@
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   background-color: #f8faff;
+  overflow-y: hidden;
+}
+
+.priority-stats-card ::ng-deep .mat-mdc-card-content,
+.tasks-card ::ng-deep .mat-mdc-card-content {
+  overflow-y: hidden;
 }
 
 .priority-stats-card mat-card-header,

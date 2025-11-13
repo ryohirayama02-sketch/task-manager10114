@@ -587,25 +587,40 @@ export class ProjectService {
           });
         }
 
-        // 資料（添付ファイル数）
+        // 資料（添付ファイル）
         if (projectData.attachments !== undefined) {
-          const oldAttachmentCount = Array.isArray(oldProject['attachments'])
-            ? oldProject['attachments'].length
-            : 0;
-          const newAttachmentCount = Array.isArray(projectData.attachments)
-            ? projectData.attachments.length
-            : 0;
-          if (oldAttachmentCount !== newAttachmentCount) {
-            const countUnit =
-              this.languageService.getCurrentLanguage() === 'ja'
-                ? '件'
-                : ' items';
+          const oldAttachments = Array.isArray(oldProject['attachments'])
+            ? oldProject['attachments']
+            : [];
+          const newAttachments = Array.isArray(projectData.attachments)
+            ? projectData.attachments
+            : [];
+
+          // 追加されたファイル
+          const addedAttachments = newAttachments.filter(
+            (newAtt: any) =>
+              !oldAttachments.some((oldAtt: any) => oldAtt.id === newAtt.id)
+          );
+          addedAttachments.forEach((attachment: any) => {
+            const fileName = attachment.name || 'ファイル';
             changeDetails.push({
               field: this.getProjectFieldName('attachments'),
-              oldValue: `${oldAttachmentCount}${countUnit}`,
-              newValue: `${newAttachmentCount}${countUnit}`,
+              newValue: fileName,
             });
-          }
+          });
+
+          // 削除されたファイル
+          const removedAttachments = oldAttachments.filter(
+            (oldAtt: any) =>
+              !newAttachments.some((newAtt: any) => newAtt.id === oldAtt.id)
+          );
+          removedAttachments.forEach((attachment: any) => {
+            const fileName = attachment.name || 'ファイル';
+            changeDetails.push({
+              field: this.getProjectFieldName('attachments'),
+              oldValue: fileName,
+            });
+          });
         }
 
         // 責任者
@@ -631,6 +646,52 @@ export class ProjectService {
             field: this.getProjectFieldName('members'),
             oldValue: oldMembers,
             newValue: newMembers,
+          });
+        }
+
+        // マイルストーン
+        if (projectData.milestones !== undefined) {
+          const oldMilestones = Array.isArray(oldProject['milestones'])
+            ? oldProject['milestones']
+            : [];
+          const newMilestones = Array.isArray(projectData.milestones)
+            ? projectData.milestones
+            : [];
+
+          // 追加されたマイルストーン
+          const addedMilestones = newMilestones.filter(
+            (newMs: any) =>
+              !oldMilestones.some((oldMs: any) => oldMs.id === newMs.id)
+          );
+          addedMilestones.forEach((milestone: any) => {
+            const milestoneName = milestone.name || 'マイルストーン';
+            const milestoneDate = milestone.date || '';
+            const milestoneDisplayName =
+              milestoneDate && milestoneName
+                ? `${milestoneDate}　${milestoneName}`
+                : milestoneName;
+            changeDetails.push({
+              field: this.getProjectFieldName('milestone'),
+              newValue: milestoneDisplayName,
+            });
+          });
+
+          // 削除されたマイルストーン
+          const removedMilestones = oldMilestones.filter(
+            (oldMs: any) =>
+              !newMilestones.some((newMs: any) => newMs.id === oldMs.id)
+          );
+          removedMilestones.forEach((milestone: any) => {
+            const milestoneName = milestone.name || 'マイルストーン';
+            const milestoneDate = milestone.date || '';
+            const milestoneDisplayName =
+              milestoneDate && milestoneName
+                ? `${milestoneDate}　${milestoneName}`
+                : milestoneName;
+            changeDetails.push({
+              field: this.getProjectFieldName('milestone'),
+              oldValue: milestoneDisplayName,
+            });
           });
         }
       }

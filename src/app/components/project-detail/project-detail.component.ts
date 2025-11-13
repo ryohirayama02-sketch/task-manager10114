@@ -702,9 +702,6 @@ export class ProjectDetailComponent implements OnInit {
       this.projectThemeColor = resolveProjectThemeColor(this.project);
       this.project.attachments = attachments;
       this.project.milestones = milestonesPayload;
-      this.snackBar.open('プロジェクトを保存しました', '閉じる', {
-        duration: 3000,
-      });
       this.isInlineEditMode = false;
       this.editableProject = null;
       this.editableTags = [];
@@ -929,9 +926,6 @@ export class ProjectDetailComponent implements OnInit {
       this.projectThemeColor = resolveProjectThemeColor(this.project);
       this.project.attachments = attachments;
       this.project.milestones = milestonesPayload;
-      this.snackBar.open('プロジェクトを保存しました', '閉じる', {
-        duration: 3000,
-      });
       this.isInlineEditMode = false;
       this.editableProject = null;
       this.editableTags = [];

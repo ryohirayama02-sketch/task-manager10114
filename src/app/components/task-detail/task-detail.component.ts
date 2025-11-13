@@ -1180,18 +1180,6 @@ export class TaskDetailComponent implements OnInit {
 
       console.log('タスクが更新されました');
 
-      // 保存成功メッセージを表示
-      const message = this.task?.parentTaskId
-        ? this.languageService.translate('taskDetail.success.childTaskSaved')
-        : this.languageService.translate('taskDetail.success.saved');
-      this.snackBar.open(
-        message,
-        this.languageService.translate('common.close'),
-        {
-          duration: 3000,
-        }
-      );
-
       this.isEditing = false;
       this.isSaving = false;
     } catch (error: Error | unknown) {

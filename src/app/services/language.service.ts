@@ -179,7 +179,10 @@ export class LanguageService {
     },
     'settings.title': { ja: '設定', en: 'Settings' },
     'settings.menu.title': { ja: '設定メニュー', en: 'Settings Menu' },
-    'settings.menu.notifications': { ja: '通知設定', en: 'Notifications' },
+    'settings.menu.notifications': {
+      ja: 'メール通知設定',
+      en: 'Email Notifications',
+    },
     'settings.menu.home': { ja: 'ホーム画面設定', en: 'Home Screen' },
     'settings.menu.language': { ja: '言語設定', en: 'Language' },
     'settings.menu.roomInfo': { ja: 'ルーム情報', en: 'Room Information' },
@@ -188,16 +191,16 @@ export class LanguageService {
       en: 'Loading settings...',
     },
     'settings.notifications.title': {
-      ja: '通知設定',
-      en: 'Notification Settings',
+      ja: 'メール通知設定',
+      en: 'Email Notification Settings',
     },
     'settings.notifications.subtitle': {
-      ja: 'タスクの期限や作業時間に関する通知を設定できます',
-      en: 'Configure notifications for task due dates and working hours',
+      ja: 'タスクの期限や作業時間に関するメール通知を設定できます',
+      en: 'Configure email notifications for task due dates and working hours',
     },
     'settings.notifications.spamWarning': {
-      ja: '通知は迷惑メールとして受信される場合がございます。',
-      en: 'Notifications may be received as spam.',
+      ja: 'メール通知は迷惑メールとして受信される場合がございます。',
+      en: 'Email notifications may be received as spam.',
     },
     'settings.notifications.targets': {
       ja: '通知先設定',

@@ -10,6 +10,7 @@ import {
   query,
   where,
   getDocs,
+  getDoc,
   limit,
 } from '@angular/fire/firestore';
 import { Observable, of, switchMap, firstValueFrom } from 'rxjs';
@@ -47,6 +48,7 @@ export class TaskService {
       taskName: 'logs.field.taskName',
       description: 'logs.field.description',
       tags: 'logs.field.tags',
+      attachments: 'logs.field.attachments',
       calendarSyncEnabled: 'logs.field.calendarSync',
       notificationSettings: 'logs.field.notificationSettings',
       taskOrderManagement: 'logs.field.taskOrderManagement',
@@ -656,6 +658,42 @@ export class TaskService {
       });
     }
 
+    // 資料（添付ファイル）
+    if (taskData.attachments !== undefined) {
+      const oldAttachments = Array.isArray(oldTaskData?.attachments)
+        ? oldTaskData.attachments
+        : [];
+      const newAttachments = Array.isArray(taskData.attachments)
+        ? taskData.attachments
+        : [];
+
+      // 追加されたファイル
+      const addedAttachments = newAttachments.filter(
+        (newAtt: any) =>
+          !oldAttachments.some((oldAtt: any) => oldAtt.id === newAtt.id)
+      );
+      addedAttachments.forEach((attachment: any) => {
+        const fileName = attachment.name || 'ファイル';
+        changeDetails.push({
+          field: this.getTaskFieldName('attachments'),
+          newValue: fileName,
+        });
+      });
+
+      // 削除されたファイル
+      const removedAttachments = oldAttachments.filter(
+        (oldAtt: any) =>
+          !newAttachments.some((newAtt: any) => newAtt.id === oldAtt.id)
+      );
+      removedAttachments.forEach((attachment: any) => {
+        const fileName = attachment.name || 'ファイル';
+        changeDetails.push({
+          field: this.getTaskFieldName('attachments'),
+          oldValue: fileName,
+        });
+      });
+    }
+
     if (changeDetails.length > 0) {
       const taskName =
         taskData.taskName ||
@@ -704,21 +742,25 @@ export class TaskService {
       },
     ];
 
-    const statusChangedText = this.languageService.translateWithParams(
-      'logs.message.statusChanged',
-      {
-        oldStatus: oldStatus || unknownText,
-        newStatus: newStatus,
-      }
+    // タスク名を取得（編集ログの表示用）
+    const taskRef = doc(
+      this.firestore,
+      `projects/${projectId}/tasks/${taskId}`
     );
+    const taskDoc = await getDoc(taskRef);
+    const taskName = taskDoc.exists()
+      ? taskDoc.data()?.['taskName']
+      : undefined;
 
+    // 編集ログを記録（changeDetailsを使用）
+    const taskUpdatedText = this.languageService.translate('logs.taskUpdated');
     await this.editLogService.logEdit(
       projectId,
       projectName || this.languageService.translate('logs.projectFallback'),
       'update',
-      statusChangedText,
+      taskUpdatedText,
       taskId,
-      undefined,
+      taskName,
       oldStatus,
       newStatus,
       changeDetails
