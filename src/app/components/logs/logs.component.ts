@@ -222,35 +222,77 @@ export class LogsComponent implements OnInit, OnDestroy {
 
   /** 変更内容を整形 */
   formatChangeDescription(log: EditLog): string {
-    // 個別の変更詳細がある場合はそれを使用
-    if (log.changes && log.changes.length > 0) {
+    const isJapanese = this.languageService.getCurrentLanguage() === 'ja';
+
+    // 作成・削除の場合
+    if (log.action === 'create') {
+      if (log.taskName) {
+        // タスクを作成しました。（「タスク名」を作成）
+        const taskCreatedText =
+          this.languageService.translate('logs.taskCreated');
+        const createdText = isJapanese ? 'を作成' : ' created';
+        const period = isJapanese ? '。' : '.';
+        const nameInQuotes = isJapanese
+          ? `「${log.taskName}」`
+          : `"${log.taskName}"`;
+        return `${taskCreatedText}${period}（${nameInQuotes}${createdText}）`;
+      } else {
+        // プロジェクトを作成しました。（「プロジェクト名」を作成）
+        const projectCreatedText = this.languageService.translate(
+          'logs.projectCreated'
+        );
+        const createdText = isJapanese ? 'を作成' : ' created';
+        const period = isJapanese ? '。' : '.';
+        const nameInQuotes = isJapanese
+          ? `「${log.projectName}」`
+          : `"${log.projectName}"`;
+        return `${projectCreatedText}${period}（${nameInQuotes}${createdText}）`;
+      }
+    }
+
+    if (log.action === 'delete') {
+      if (log.taskName) {
+        // タスクを削除しました。（「タスク名」を削除）
+        const taskDeletedText =
+          this.languageService.translate('logs.taskDeleted');
+        const deletedText = isJapanese ? 'を削除' : ' deleted';
+        const period = isJapanese ? '。' : '.';
+        const nameInQuotes = isJapanese
+          ? `「${log.taskName}」`
+          : `"${log.taskName}"`;
+        return `${taskDeletedText}${period}（${nameInQuotes}${deletedText}）`;
+      } else {
+        // プロジェクトを削除しました。（「プロジェクト名」を削除）
+        const projectDeletedText = this.languageService.translate(
+          'logs.projectDeleted'
+        );
+        const deletedText = isJapanese ? 'を削除' : ' deleted';
+        const period = isJapanese ? '。' : '.';
+        const nameInQuotes = isJapanese
+          ? `「${log.projectName}」`
+          : `"${log.projectName}"`;
+        return `${projectDeletedText}${period}（${nameInQuotes}${deletedText}）`;
+      }
+    }
+
+    // 更新の場合：個別の変更詳細がある場合はそれを使用
+    if (log.action === 'update' && log.changes && log.changes.length > 0) {
       const changeDescriptions = log.changes
         .map((change) => this.formatChangeDetail(change))
         .filter((desc) => desc.length > 0);
 
       if (changeDescriptions.length > 0) {
-        // アクションラベルを取得
-        let actionLabel = '';
-        if (log.action === 'update') {
-          // タスク名がある場合は「タスクを更新しました」、ない場合は「プロジェクトを更新しました」
-          actionLabel = log.taskName
-            ? this.languageService.translate('logs.taskUpdated')
-            : this.languageService.translate('logs.projectUpdated');
-        } else if (log.action === 'create') {
-          actionLabel = log.taskName
-            ? this.languageService.translate('logs.taskCreated')
-            : this.languageService.translate('logs.projectCreated');
-        } else if (log.action === 'delete') {
-          actionLabel = log.taskName
-            ? this.languageService.translate('logs.taskDeleted')
-            : this.languageService.translate('logs.projectDeleted');
-        } else {
-          actionLabel = this.getActionLabel(log.action);
-        }
-        // 変更内容を括弧で囲む
-        const period =
-          this.languageService.getCurrentLanguage() === 'ja' ? '。' : '.';
-        return `${actionLabel}${period} (${changeDescriptions.join(', ')})`;
+        // タスク名がある場合は「タスクを更新しました」、ない場合は「プロジェクトを更新しました」
+        const actionLabel = log.taskName
+          ? this.languageService.translate('logs.taskUpdated')
+          : this.languageService.translate('logs.projectUpdated');
+        // 変更内容を括弧で囲む（日本語は全角括弧、英語は半角括弧）
+        const openBracket = isJapanese ? '（' : '(';
+        const closeBracket = isJapanese ? '）' : ')';
+        const separator = isJapanese ? '、' : ', ';
+        return `${actionLabel}${openBracket}${changeDescriptions.join(
+          separator
+        )}${closeBracket}`;
       }
     }
 
@@ -419,6 +461,7 @@ export class LogsComponent implements OnInit, OnDestroy {
 
   /** 個別の変更詳細を整形 */
   formatChangeDetail(change: any): string {
+    const isJapanese = this.languageService.getCurrentLanguage() === 'ja';
     let field = change.field || '';
     let oldValue = change.oldValue?.toString().trim();
     let newValue = change.newValue?.toString().trim();
@@ -432,8 +475,10 @@ export class LogsComponent implements OnInit, OnDestroy {
       開始日: 'logs.field.startDate',
       終了日: 'logs.field.endDate',
       テーマ色: 'logs.field.themeColor',
+      テーマカラー: 'logs.field.themeColor',
       資料: 'logs.field.attachments',
       責任者: 'logs.field.responsible',
+      メンバー: 'logs.field.members',
       ステータス: 'logs.field.status',
       優先度: 'logs.field.priority',
       担当者: 'logs.field.assignee',
@@ -441,6 +486,11 @@ export class LogsComponent implements OnInit, OnDestroy {
       タスク名: 'logs.field.taskName',
       概要: 'logs.field.description',
       タグ: 'logs.field.tags',
+      マイルストーン: 'logs.field.milestone',
+      カレンダー連携: 'logs.field.calendarSync',
+      通知対象設定: 'logs.field.notificationSettings',
+      タスクの順番管理: 'logs.field.taskOrderManagement',
+      作業予定時間入力: 'logs.field.estimatedWorkTime',
     };
     if (fieldTranslationMap[field]) {
       field = this.languageService.translate(fieldTranslationMap[field]);
@@ -498,17 +548,29 @@ export class LogsComponent implements OnInit, OnDestroy {
       return '';
     }
 
+    // 両方の値がある場合（変更）
     if (hasOld && hasNew) {
-      return `${field}: ${oldValue}→${newValue}`;
+      const arrow = isJapanese ? '→' : '→';
+      return `${field}：${oldValue}${arrow}${newValue}`;
     }
 
-    const addedText = this.languageService.translate('logs.added');
-    const deletedText = this.languageService.translate('logs.deleted');
+    // 追加の場合
     if (hasNew) {
-      return `${field}: ${newValue}${addedText}`;
+      const quoteOpen = isJapanese ? '「' : '"';
+      const quoteClose = isJapanese ? '」' : '"';
+      const addedText = isJapanese ? 'を追加' : ' added';
+      return `${field}：${quoteOpen}${newValue}${quoteClose}${addedText}`;
     }
 
-    return `${field}: ${oldValue}${deletedText}`;
+    // 削除の場合
+    if (hasOld) {
+      const quoteOpen = isJapanese ? '「' : '"';
+      const quoteClose = isJapanese ? '」' : '"';
+      const deletedText = isJapanese ? 'を削除' : ' deleted';
+      return `${field}：${quoteOpen}${oldValue}${quoteClose}${deletedText}`;
+    }
+
+    return '';
   }
 
   /** ステータスを翻訳 */

@@ -58,6 +58,8 @@ export class ProjectService {
       themeColor: 'logs.field.themeColor',
       attachments: 'logs.field.attachments',
       responsible: 'logs.field.responsible',
+      members: 'logs.field.members',
+      milestone: 'logs.field.milestone',
     };
     const translationKey = fieldKeyMap[fieldKey];
     return translationKey
@@ -617,6 +619,20 @@ export class ProjectService {
             newValue: projectData.responsible || '',
           });
         }
+
+        // メンバー
+        if (
+          projectData.members !== undefined &&
+          projectData.members !== oldProject['members']
+        ) {
+          const oldMembers = oldProject['members'] || '';
+          const newMembers = projectData.members || '';
+          changeDetails.push({
+            field: this.getProjectFieldName('members'),
+            oldValue: oldMembers,
+            newValue: newMembers,
+          });
+        }
       }
 
       // 編集ログを記録（changeDetailsは既に多言語対応済み）
@@ -1105,17 +1121,32 @@ export class ProjectService {
 
       console.log('✅ マイルストーンを追加しました');
 
-      // 編集ログを記録
+      // 編集ログを記録（プロジェクト更新として記録）
       console.log('📝 編集ログを記録します...');
+      const milestoneName = milestone.name || 'マイルストーン';
+      const milestoneDate = milestone.date || '';
+      const milestoneDisplayName =
+        milestoneDate && milestoneName
+          ? `${milestoneDate}　${milestoneName}`
+          : milestoneName;
+
+      const changeDetails: ChangeDetail[] = [
+        {
+          field: this.getProjectFieldName('milestone'),
+          newValue: milestoneDisplayName,
+        },
+      ];
+
       await this.editLogService.logEdit(
         projectId,
         projectName,
-        'create',
-        `マイルストーン「${milestone.name || 'マイルストーン'}」を追加しました`,
+        'update',
+        this.languageService.translate('logs.projectUpdated'),
         undefined,
         undefined,
         undefined,
-        milestone.name || 'マイルストーン'
+        undefined,
+        changeDetails
       );
 
       console.log('✅ マイルストーン追加とログ記録が完了しました');
@@ -1150,47 +1181,41 @@ export class ProjectService {
 
       console.log('✅ マイルストーンを更新しました');
 
-      // 変更内容を特定
-      const changes: string[] = [];
-      if (
-        updatedMilestone.name &&
-        oldMilestone?.name !== updatedMilestone.name
-      ) {
-        changes.push(
-          `名前: ${oldMilestone?.name || '不明'} → ${updatedMilestone.name}`
-        );
-      }
-      if (
-        updatedMilestone.date &&
-        oldMilestone?.date !== updatedMilestone.date
-      ) {
-        changes.push(
-          `日付: ${oldMilestone?.date || '不明'} → ${updatedMilestone.date}`
-        );
-      }
-      if (
-        updatedMilestone.description &&
-        oldMilestone?.description !== updatedMilestone.description
-      ) {
-        changes.push(`説明: 変更されました`);
-      }
+      // 編集ログを記録（プロジェクト更新として記録）
+      const oldMilestoneName = oldMilestone?.name || 'マイルストーン';
+      const oldMilestoneDate = oldMilestone?.date || '';
+      const oldMilestoneDisplayName =
+        oldMilestoneDate && oldMilestoneName
+          ? `${oldMilestoneDate}　${oldMilestoneName}`
+          : oldMilestoneName;
 
-      // 編集ログを記録
-      if (changes.length > 0) {
-        console.log('📝 編集ログを記録します...');
-        await this.editLogService.logEdit(
-          projectId,
-          projectName,
-          'update',
-          `マイルストーン「${
-            updatedMilestone.name || 'マイルストーン'
-          }」を更新しました (${changes.join(', ')})`,
-          undefined,
-          undefined,
-          oldMilestone ? JSON.stringify(oldMilestone) : undefined,
-          changes.join(', ')
-        );
-      }
+      const newMilestoneName = updatedMilestone.name || 'マイルストーン';
+      const newMilestoneDate = updatedMilestone.date || '';
+      const newMilestoneDisplayName =
+        newMilestoneDate && newMilestoneName
+          ? `${newMilestoneDate}　${newMilestoneName}`
+          : newMilestoneName;
+
+      const changeDetails: ChangeDetail[] = [
+        {
+          field: this.getProjectFieldName('milestone'),
+          oldValue: oldMilestoneDisplayName,
+          newValue: newMilestoneDisplayName,
+        },
+      ];
+
+      console.log('📝 編集ログを記録します...');
+      await this.editLogService.logEdit(
+        projectId,
+        projectName,
+        'update',
+        this.languageService.translate('logs.projectUpdated'),
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        changeDetails
+      );
 
       console.log('✅ マイルストーン更新とログ記録が完了しました');
       return result;
@@ -1223,17 +1248,32 @@ export class ProjectService {
 
       console.log('✅ マイルストーンを削除しました');
 
-      // 編集ログを記録
+      // 編集ログを記録（プロジェクト更新として記録）
       console.log('📝 編集ログを記録します...');
+      const milestoneName = milestone.name || 'マイルストーン';
+      const milestoneDate = milestone.date || '';
+      const milestoneDisplayName =
+        milestoneDate && milestoneName
+          ? `${milestoneDate}　${milestoneName}`
+          : milestoneName;
+
+      const changeDetails: ChangeDetail[] = [
+        {
+          field: this.getProjectFieldName('milestone'),
+          oldValue: milestoneDisplayName,
+        },
+      ];
+
       await this.editLogService.logEdit(
         projectId,
         projectName,
-        'delete',
-        `マイルストーン「${milestone.name || 'マイルストーン'}」を削除しました`,
+        'update',
+        this.languageService.translate('logs.projectUpdated'),
         undefined,
         undefined,
-        milestone.name || 'マイルストーン',
-        undefined
+        undefined,
+        undefined,
+        changeDetails
       );
 
       console.log('✅ マイルストーン削除とログ記録が完了しました');

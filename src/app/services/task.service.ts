@@ -42,10 +42,15 @@ export class TaskService {
       status: 'logs.field.status',
       priority: 'logs.field.priority',
       assignee: 'logs.field.assignee',
+      assignedMembers: 'logs.field.assignee',
       dueDate: 'logs.field.dueDate',
       taskName: 'logs.field.taskName',
       description: 'logs.field.description',
       tags: 'logs.field.tags',
+      calendarSyncEnabled: 'logs.field.calendarSync',
+      notificationSettings: 'logs.field.notificationSettings',
+      taskOrderManagement: 'logs.field.taskOrderManagement',
+      estimatedWorkTime: 'logs.field.estimatedWorkTime',
     };
     const translationKey = fieldKeyMap[fieldKey];
     return translationKey
@@ -499,8 +504,68 @@ export class TaskService {
       });
     }
 
-    // 担当者の変更
-    if (taskData.assignee && oldTaskData?.assignee !== taskData.assignee) {
+    // 担当者の変更（assignedMembersを優先）
+    const oldAssignedMembers = oldTaskData?.assignedMembers || [];
+    const newAssignedMembers = taskData.assignedMembers || [];
+    const oldAssignedMembersStr = JSON.stringify(
+      Array.isArray(oldAssignedMembers) ? oldAssignedMembers.sort() : []
+    );
+    const newAssignedMembersStr = JSON.stringify(
+      Array.isArray(newAssignedMembers) ? newAssignedMembers.sort() : []
+    );
+
+    if (oldAssignedMembersStr !== newAssignedMembersStr) {
+      // assignedMembersの変更を記録
+      // メンバー名を取得するために、メンバー管理サービスを使用
+      const allMembers = await firstValueFrom(
+        this.memberManagementService.getMembers()
+      );
+
+      const getMemberNames = (memberIds: string[]): string => {
+        if (!Array.isArray(memberIds) || memberIds.length === 0) {
+          return '';
+        }
+        const names = memberIds
+          .map((id) => {
+            const member = allMembers.find((m) => m.id === id);
+            return member ? member.name : id;
+          })
+          .filter((name) => name.length > 0);
+        return names.join('、');
+      };
+
+      const oldMemberNames = getMemberNames(
+        Array.isArray(oldAssignedMembers) ? oldAssignedMembers : []
+      );
+      const newMemberNames = getMemberNames(
+        Array.isArray(newAssignedMembers) ? newAssignedMembers : []
+      );
+
+      if (oldMemberNames && newMemberNames) {
+        // 担当者が変更された場合
+        changeDetails.push({
+          field: this.getTaskFieldName('assignedMembers'),
+          oldValue: oldMemberNames,
+          newValue: newMemberNames,
+        });
+      } else if (newMemberNames) {
+        // 担当者が追加された場合
+        changeDetails.push({
+          field: this.getTaskFieldName('assignedMembers'),
+          newValue: newMemberNames,
+        });
+      } else if (oldMemberNames) {
+        // 担当者が削除された場合
+        changeDetails.push({
+          field: this.getTaskFieldName('assignedMembers'),
+          oldValue: oldMemberNames,
+        });
+      }
+    } else if (
+      taskData.assignee &&
+      oldTaskData?.assignee !== taskData.assignee
+    ) {
+      // assignedMembersがない場合はassigneeを使用（後方互換性）
       const oldAssignee = oldTaskData?.assignee?.trim();
       const isNewAssignee =
         !oldAssignee || oldAssignee === '' || oldAssignee === unknownText;

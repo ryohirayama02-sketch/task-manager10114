@@ -2234,10 +2234,25 @@ export class LanguageService {
     'logs.field.status': { ja: 'ステータス', en: 'Status' },
     'logs.field.priority': { ja: '優先度', en: 'Priority' },
     'logs.field.assignee': { ja: '担当者', en: 'Assignee' },
-    'logs.field.dueDate': { ja: '期限', en: 'Due Date' },
+    'logs.field.dueDate': { ja: '終了日', en: 'Due Date' },
     'logs.field.taskName': { ja: 'タスク名', en: 'Task Name' },
     'logs.field.description': { ja: '概要', en: 'Description' },
     'logs.field.tags': { ja: 'タグ', en: 'Tags' },
+    'logs.field.members': { ja: 'メンバー', en: 'Members' },
+    'logs.field.milestone': { ja: 'マイルストーン', en: 'Milestone' },
+    'logs.field.calendarSync': { ja: 'カレンダー連携', en: 'Calendar Sync' },
+    'logs.field.notificationSettings': {
+      ja: '通知対象設定',
+      en: 'Notification Settings',
+    },
+    'logs.field.taskOrderManagement': {
+      ja: 'タスクの順番管理',
+      en: 'Task Order Management',
+    },
+    'logs.field.estimatedWorkTime': {
+      ja: '作業予定時間入力',
+      en: 'Estimated Work Time',
+    },
     'logs.status.unknown': { ja: '不明', en: 'Unknown' },
     'logs.status.notSet': { ja: '変更なし', en: 'Not Set' },
     'logs.message.taskUpdatedWithName': {
