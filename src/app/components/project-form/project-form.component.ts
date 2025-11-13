@@ -1022,7 +1022,7 @@ export class ProjectFormComponent implements OnInit {
     if (this.milestones.length >= 3) {
       this.snackBar.open(
         this.languageService.translate('projectForm.maxMilestonesReached'),
-        'Close',
+        this.languageService.translate('projectForm.close'),
         {
           duration: 3000,
         }

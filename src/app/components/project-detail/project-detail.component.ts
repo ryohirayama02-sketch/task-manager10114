@@ -1335,7 +1335,7 @@ export class ProjectDetailComponent implements OnInit {
     if (this.editableMilestones.length >= 3) {
       this.snackBar.open(
         this.languageService.translate('projectDetail.maxMilestonesReached'),
-        'Close',
+        this.languageService.translate('common.close'),
         {
           duration: 3000,
         }
