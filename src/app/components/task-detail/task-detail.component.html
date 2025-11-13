@@ -689,13 +689,12 @@
 
       <div class="child-filter-section">
         <mat-form-field appearance="outline">
-          <mat-label>{{ "taskDetail.status" | translate }}</mat-label>
           <mat-select
             [(ngModel)]="childFilterStatus"
             (selectionChange)="applyChildFilter()"
             [placeholder]="'taskDetail.status' | translate"
+            multiple
           >
-            <mat-option value="">{{ "taskDetail.all" | translate }}</mat-option>
             <mat-option *ngFor="let status of statusOptions" [value]="status">
               {{ getStatusDisplay(status) }}
             </mat-option>
@@ -703,13 +702,12 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>{{ "taskDetail.priority" | translate }}</mat-label>
           <mat-select
             [(ngModel)]="childFilterPriority"
             (selectionChange)="applyChildFilter()"
             [placeholder]="'taskDetail.priority' | translate"
+            multiple
           >
-            <mat-option value="">{{ "taskDetail.all" | translate }}</mat-option>
             <mat-option
               *ngFor="let priority of priorityOptions"
               [value]="priority"
@@ -720,13 +718,12 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>{{ "taskDetail.assignee" | translate }}</mat-label>
           <mat-select
             [(ngModel)]="childFilterAssignee"
             (selectionChange)="applyChildFilter()"
             [placeholder]="'taskDetail.assignee' | translate"
+            multiple
           >
-            <mat-option value="">{{ "taskDetail.all" | translate }}</mat-option>
             <mat-option
               *ngFor="let assignee of childAssigneeOptions"
               [value]="assignee"
@@ -744,7 +741,7 @@
             (dateChange)="onChildDueDateChange()"
             [max]="maxDate"
             [ngModelOptions]="{ standalone: true }"
-            [placeholder]="'taskDetail.selectDueDate' | translate"
+            [placeholder]="'taskDetail.dueDateFilter' | translate"
             (click)="childDueDatePicker.open()"
             (keydown)="$event.preventDefault()"
           />

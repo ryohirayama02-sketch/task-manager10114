@@ -131,10 +131,10 @@ export class ProjectDetailComponent implements OnInit {
   readonly fileAccept =
     '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.bmp,.heic,.webp,.svg,.txt,.csv,.zip';
 
-  // フィルター用のプロパティ
-  filterStatus: string = '';
-  filterPriority: string = '';
-  filterAssignee: string = '';
+  // フィルター用のプロパティ（複数選択対応）
+  filterStatus: string[] = [];
+  filterPriority: string[] = [];
+  filterAssignee: string[] = [];
   filterDueDate: string = '';
   filterDueDateObj: Date | null = null; // Material date picker用
   inlineStartDateObj: Date | null = null; // Material date picker用（編集モードの開始日）
@@ -1744,15 +1744,15 @@ export class ProjectDetailComponent implements OnInit {
   applyFilter() {
     const filtered = this.tasks.filter((task) => {
       const statusMatch =
-        !this.filterStatus || task.status === this.filterStatus;
+        this.filterStatus.length === 0 ||
+        this.filterStatus.includes(task.status);
       const priorityMatch =
-        !this.filterPriority || task.priority === this.filterPriority;
+        this.filterPriority.length === 0 ||
+        this.filterPriority.includes(task.priority);
 
       // ✅ 修正：カンマ区切りメンバー対応 + メンバーIDをメンバー名に変換（プロジェクトのメンバーのみ）
-      let assigneeMatch = false;
-      if (!this.filterAssignee) {
-        assigneeMatch = true;
-      } else {
+      let assigneeMatch = true;
+      if (this.filterAssignee.length > 0) {
         // プロジェクトのmembersフィールドはメンバー名のカンマ区切り文字列
         const projectMemberNames: string[] = [];
         if (this.project?.members && this.project.members.trim().length > 0) {
@@ -1788,10 +1788,11 @@ export class ProjectDetailComponent implements OnInit {
           assignees.push(...memberNames.map((name) => name.toLowerCase()));
         }
 
-        // フィルター値とマッチするか確認
-        assigneeMatch = assignees.some(
-          (a) => a === this.filterAssignee.toLowerCase()
+        // フィルター値とマッチするか確認（複数選択対応）
+        const filterAssigneeLower = this.filterAssignee.map((a) =>
+          a.toLowerCase()
         );
+        assigneeMatch = assignees.some((a) => filterAssigneeLower.includes(a));
       }
 
       const dueDateMatch =
@@ -1822,9 +1823,9 @@ export class ProjectDetailComponent implements OnInit {
 
   /** フィルターをリセット */
   resetFilter() {
-    this.filterStatus = '';
-    this.filterPriority = '';
-    this.filterAssignee = '';
+    this.filterStatus = [];
+    this.filterPriority = [];
+    this.filterAssignee = [];
     this.filterDueDate = '';
     this.filterDueDateObj = null;
     this.filteredTasks = [...this.sortTasks(this.tasks)];

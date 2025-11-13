@@ -105,9 +105,9 @@ export class TaskDetailComponent implements OnInit {
   notificationRecipientOptions: string[] = [];
   childTasks: Task[] = [];
   filteredChildTasks: Task[] = [];
-  childFilterStatus = '';
-  childFilterPriority = '';
-  childFilterAssignee = '';
+  childFilterStatus: string[] = [];
+  childFilterPriority: string[] = [];
+  childFilterAssignee: string[] = [];
   childFilterDueDateObj: Date | null = null; // Material date picker用（子タスクフィルター）
   childFilterDueDate = ''; // デフォルトは選択無し
   childAssigneeOptions: string[] = [];
@@ -1942,13 +1942,15 @@ export class TaskDetailComponent implements OnInit {
   applyChildFilter(): void {
     const filtered = this.childTasks.filter((task) => {
       const statusMatch =
-        !this.childFilterStatus || task.status === this.childFilterStatus;
+        this.childFilterStatus.length === 0 ||
+        this.childFilterStatus.includes(task.status);
       const priorityMatch =
-        !this.childFilterPriority || task.priority === this.childFilterPriority;
+        this.childFilterPriority.length === 0 ||
+        this.childFilterPriority.includes(task.priority);
 
       // 担当者フィルター（カンマ区切り対応 + メンバーIDをメンバー名に変換）
       let assigneeMatch = true;
-      if (this.childFilterAssignee) {
+      if (this.childFilterAssignee.length > 0) {
         // assignee をカンマで分割
         const assignees = (task.assignee || '')
           .split(',')
@@ -1964,12 +1966,15 @@ export class TaskDetailComponent implements OnInit {
           assignees.push(...memberNames.map((name) => name.toLowerCase()));
         }
 
-        // フィルター値とマッチするか確認
+        // フィルター値とマッチするか確認（複数選択対応）
         if (assignees.length === 0) {
           assigneeMatch = false;
         } else {
-          assigneeMatch = assignees.some(
-            (assignee) => assignee === this.childFilterAssignee.toLowerCase()
+          const filterAssigneeLower = this.childFilterAssignee.map((a) =>
+            a.toLowerCase()
+          );
+          assigneeMatch = assignees.some((assignee) =>
+            filterAssigneeLower.includes(assignee)
           );
         }
       }
@@ -1984,9 +1989,9 @@ export class TaskDetailComponent implements OnInit {
   }
 
   resetChildFilter(): void {
-    this.childFilterStatus = '';
-    this.childFilterPriority = '';
-    this.childFilterAssignee = '';
+    this.childFilterStatus = [];
+    this.childFilterPriority = [];
+    this.childFilterAssignee = [];
     this.childFilterDueDate = '';
     this.childFilterDueDateObj = null;
     this.filteredChildTasks = [...this.childTasks];

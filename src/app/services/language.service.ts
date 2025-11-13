@@ -859,8 +859,8 @@ export class LanguageService {
     'projectDetail.all': { ja: 'すべて', en: 'All' },
     'projectDetail.priority': { ja: '優先度', en: 'Priority' },
     'projectDetail.selectAssignee': {
-      ja: '担当者を選択',
-      en: 'Select Assignee',
+      ja: '担当者',
+      en: 'Assignee',
     },
     'projectDetail.dueDate': { ja: '期日', en: 'Due Date' },
     'projectDetail.selectDueDate': { ja: '期日を選択', en: 'Select Due Date' },
@@ -1166,6 +1166,7 @@ export class LanguageService {
     'taskDetail.childTasks': { ja: '子タスク一覧', en: 'Child Tasks' },
     'taskDetail.all': { ja: 'すべて', en: 'All' },
     'taskDetail.selectDueDate': { ja: '期日を選択', en: 'Select Due Date' },
+    'taskDetail.dueDateFilter': { ja: '期日', en: 'Due Date' },
     'taskDetail.noChildTasks': {
       ja: '条件に一致する子タスクがありません。',
       en: 'No child tasks matching the criteria.',
