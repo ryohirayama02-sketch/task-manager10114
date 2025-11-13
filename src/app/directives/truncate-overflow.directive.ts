@@ -13,16 +13,23 @@ import {
   selector: '[appTruncateOverflow]',
   standalone: true,
 })
-export class TruncateOverflowDirective
-  implements AfterViewInit, OnChanges
-{
+export class TruncateOverflowDirective implements AfterViewInit, OnChanges {
   @Input('appTruncateOverflow') text: string | null | undefined;
   @Input() truncateEllipsis = '...';
 
   private viewInitialized = false;
   private truncateScheduled = false;
 
-  constructor(private el: ElementRef<HTMLElement>, private renderer: Renderer2) {}
+  constructor(
+    private el: ElementRef<HTMLElement>,
+    private renderer: Renderer2
+  ) {
+    // 要素にテキスト省略のためのスタイルを設定
+    this.renderer.setStyle(this.el.nativeElement, 'white-space', 'nowrap');
+    this.renderer.setStyle(this.el.nativeElement, 'overflow', 'hidden');
+    this.renderer.setStyle(this.el.nativeElement, 'text-overflow', 'ellipsis');
+    this.renderer.setStyle(this.el.nativeElement, 'min-width', '0');
+  }
 
   ngAfterViewInit(): void {
     this.viewInitialized = true;

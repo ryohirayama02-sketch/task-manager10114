@@ -90,7 +90,6 @@ h2 {
   line-height: 1.4;
 }
 
-
 .project-selection-actions {
   display: flex;
   flex-direction: column;
@@ -109,9 +108,7 @@ h2 {
 .project-selection-actions button {
   border: 1px solid rgba(0, 0, 0, 0.12);
   background-color: #fff;
-  box-shadow:
-    0 3px 1px -2px rgba(0, 0, 0, 0.2),
-    0 2px 2px rgba(0, 0, 0, 0.14),
+  box-shadow: 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 2px 2px rgba(0, 0, 0, 0.14),
     0 1px 5px rgba(0, 0, 0, 0.12);
 }
 
@@ -154,9 +151,7 @@ h2 {
   align-self: flex-start;
   border: 1px solid rgba(0, 0, 0, 0.12);
   background-color: #fff;
-  box-shadow:
-    0 3px 1px -2px rgba(0, 0, 0, 0.2),
-    0 2px 2px rgba(0, 0, 0, 0.14),
+  box-shadow: 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 2px 2px rgba(0, 0, 0, 0.14),
     0 1px 5px rgba(0, 0, 0, 0.12);
   white-space: normal;
   word-wrap: break-word;
@@ -282,7 +277,6 @@ h2 {
   border-radius: 4px;
 }
 
-
 .gantt-chart {
   display: flex;
   width: 100%;
@@ -317,7 +311,7 @@ h2 {
 }
 
 .gantt-header-left::before {
-  content: '';
+  content: "";
   position: absolute;
   left: 0;
   top: 0;
@@ -846,21 +840,44 @@ h2 {
   flex-shrink: 0;
   height: 100%; /* 親の高さいっぱい */
   box-sizing: border-box;
+  white-space: nowrap; /* テキストの折り返しを防止 */
+  min-width: 0; /* flexアイテムの最小幅を0にして、テキストの省略を可能にする */
 }
 
 .info-cell.project-name {
   width: 150px;
   min-width: 150px;
   max-width: 150px;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  /* flexコンテナ内でテキストを省略表示するための設定 */
+  flex: 0 0 150px;
+  min-width: 0;
+  /* テキストノードが直接入る場合の設定 */
+  word-wrap: normal !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+  /* テキストの折り返しを完全に防止 */
+  line-height: 1.2;
 }
 
 .info-cell.task-name {
   width: 150px;
   min-width: 150px;
   max-width: 150px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  /* flexコンテナ内でテキストを省略表示するための設定 */
+  flex: 0 0 150px;
+  min-width: 0;
+  /* テキストノードが直接入る場合の設定 */
+  word-wrap: normal !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+  /* テキストの折り返しを完全に防止 */
+  line-height: 1.2;
 }
 
 .info-cell.priority {
@@ -883,9 +900,9 @@ h2 {
 .project-name {
   font-weight: 500;
   color: #495057;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
   cursor: pointer;
   transition: background-color 0.2s ease;
 }
@@ -898,9 +915,9 @@ h2 {
 .task-name {
   font-weight: 600;
   color: #212529;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
   cursor: pointer;
   transition: background-color 0.2s ease;
 }
