@@ -335,6 +335,29 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  max-height: 400px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+}
+
+/* スクロールバーのスタイル */
+.tooltip-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.tooltip-content::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 3px;
+}
+
+.tooltip-content::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.tooltip-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
 }
 
 .tooltip-item {
@@ -559,6 +582,18 @@
   .calendar-weekdays {
     overflow-x: hidden;
   }
+
+  /* タブレット画面でのマイルストーンツールチップの調整 */
+  .milestone-tooltip {
+    max-width: calc(100vw - 40px);
+    max-height: calc(100vh - 120px);
+  }
+
+  .tooltip-content {
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
 }
 
 @media (max-width: 480px) {
@@ -606,6 +641,43 @@
   .legend-items {
     flex-wrap: wrap;
     gap: 12px;
+  }
+
+  /* スマホ画面でのマイルストーンツールチップの調整 */
+  .milestone-tooltip {
+    max-width: calc(100vw - 32px);
+    max-height: calc(100vh - 100px);
+  }
+
+  .tooltip-content {
+    max-height: calc(100vh - 180px);
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .tooltip-header {
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+
+  .tooltip-icon {
+    font-size: 14px;
+  }
+
+  .tooltip-item {
+    gap: 1px;
+  }
+
+  .tooltip-project {
+    font-size: 11px;
+  }
+
+  .tooltip-name {
+    font-size: 12px;
+  }
+
+  .tooltip-date {
+    font-size: 10px;
   }
 }
 .calendar-title {
