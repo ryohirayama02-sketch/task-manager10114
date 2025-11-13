@@ -229,6 +229,9 @@ export class TaskDetailComponent implements OnInit {
       console.log('[ngOnInit] ルートパラメータ変更:', { taskId, projectId });
 
       if (taskId && projectId) {
+        // タスクが切り替わったときは編集モードをリセット
+        this.isEditing = false;
+        this.originalTaskSnapshot = null;
         this.isLoading = true;
         this.childTasks = [];
         this.filteredChildTasks = [];
@@ -265,6 +268,9 @@ export class TaskDetailComponent implements OnInit {
         });
         // 少し待機してから再読み込み（Firestoreの同期を待つ）
         setTimeout(() => {
+          // タスクが切り替わったときは編集モードをリセット
+          this.isEditing = false;
+          this.originalTaskSnapshot = null;
           this.isLoading = true;
           this.childTasks = [];
           this.filteredChildTasks = [];
@@ -277,6 +283,9 @@ export class TaskDetailComponent implements OnInit {
   /** タスク詳細を読み込み */
   loadTaskDetails(projectId: string, taskId: string) {
     console.log('タスク詳細を読み込み中...', { projectId, taskId });
+    // タスクが切り替わったときは編集モードをリセット
+    this.isEditing = false;
+    this.originalTaskSnapshot = null;
     this.parentTaskName = null;
 
     // プロジェクト情報とタスク情報を並行して取得
