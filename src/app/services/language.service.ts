@@ -1784,8 +1784,8 @@ export class LanguageService {
       en: 'Parent Task Name:',
     },
     'taskCreate.descriptionPlaceholder': {
-      ja: 'タスクの詳細説明を入力してください（200文字以内）',
-      en: 'Enter task details (max 200 characters)',
+      ja: 'タスクの詳細説明を入力してください',
+      en: 'Enter task details',
     },
     'taskCreate.required': { ja: '（入力必須）', en: '(Required)' },
     'taskCreate.selectRequired': {
