@@ -1,4 +1,11 @@
-import { Component, Input, OnInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
+import {
+  Component,
+  Input,
+  OnInit,
+  ViewChild,
+  ElementRef,
+  OnDestroy,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -87,9 +94,11 @@ export class ProjectChatComponent implements OnInit, OnDestroy {
     });
 
     // メンバー管理画面の名前を取得
-    this.authService.currentMemberName$.pipe(takeUntil(this.destroy$)).subscribe((name) => {
-      this.currentUserName = name || 'Anonymous';
-    });
+    this.authService.currentMemberName$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((name) => {
+        this.currentUserName = name || 'Anonymous';
+      });
 
     if (this.projectId) {
       // メンバーが外部から渡されていない場合のみ取得
@@ -153,11 +162,26 @@ export class ProjectChatComponent implements OnInit, OnDestroy {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       this.messages = snapshot.docs.map((doc) => {
         const data = doc.data();
+        // FirestoreのTimestampオブジェクトをDateオブジェクトに変換
+        let timestamp: Date | null = null;
+        const createdAt = data['createdAt'] || data['timestamp'];
+        if (createdAt) {
+          // FirestoreのTimestampオブジェクトの場合
+          if (createdAt.toDate && typeof createdAt.toDate === 'function') {
+            timestamp = createdAt.toDate();
+          } else if (createdAt instanceof Date) {
+            timestamp = createdAt;
+          } else if (
+            typeof createdAt === 'string' ||
+            typeof createdAt === 'number'
+          ) {
+            timestamp = new Date(createdAt);
+          }
+        }
         return {
           id: doc.id,
           ...data,
-          // createdAt をタイムスタンプフィールドとして統一
-          timestamp: data['createdAt'] || data['timestamp'] || new Date(),
+          timestamp: timestamp || new Date(),
         } as ChatMessage;
       });
       this.loading = false;
@@ -229,7 +253,10 @@ export class ProjectChatComponent implements OnInit, OnDestroy {
     this.mentionCursorPosition = input.selectionStart || 0;
 
     // @の入力を検出
-    const lastAtIndex = this.newMessage.lastIndexOf('@', this.mentionCursorPosition);
+    const lastAtIndex = this.newMessage.lastIndexOf(
+      '@',
+      this.mentionCursorPosition
+    );
     if (lastAtIndex > -1) {
       const afterAt = this.newMessage.substring(
         lastAtIndex + 1,
@@ -278,7 +305,10 @@ export class ProjectChatComponent implements OnInit, OnDestroy {
   }
 
   selectMentionCandidate(candidate: MentionCandidate) {
-    const lastAtIndex = this.newMessage.lastIndexOf('@', this.mentionCursorPosition);
+    const lastAtIndex = this.newMessage.lastIndexOf(
+      '@',
+      this.mentionCursorPosition
+    );
     if (lastAtIndex === -1) return;
 
     const beforeAt = this.newMessage.substring(0, lastAtIndex);
@@ -295,7 +325,10 @@ export class ProjectChatComponent implements OnInit, OnDestroy {
       if (this.messageInput) {
         this.messageInput.nativeElement.focus();
         const newPosition = beforeAt.length + candidate.displayName.length + 2; // @ + name + space
-        this.messageInput.nativeElement.setSelectionRange(newPosition, newPosition);
+        this.messageInput.nativeElement.setSelectionRange(
+          newPosition,
+          newPosition
+        );
       }
     }, 0);
   }
@@ -352,7 +385,10 @@ export class ProjectChatComponent implements OnInit, OnDestroy {
   }
 
   // メンション部分を青文字で表示するために使用
-  getDisplayMessage(message: ChatMessage): { text: string; mentions: string[] } {
+  getDisplayMessage(message: ChatMessage): {
+    text: string;
+    mentions: string[];
+  } {
     const mentions = message.mentions || [];
     return {
       text: message.content || '',
@@ -363,15 +399,37 @@ export class ProjectChatComponent implements OnInit, OnDestroy {
   getMemberNameById(uid: string): string {
     const member = this.projectMembers.find((m) => m.id === uid);
     return member
-      ? (member.displayName || member.name || member.email || uid)
+      ? member.displayName || member.name || member.email || uid
       : uid;
   }
 
   formatTime(timestamp: any): string {
     if (!timestamp) return '';
-    const date =
-      timestamp instanceof Date ? timestamp : new Date(timestamp);
-    return date.toLocaleTimeString('ja-JP', {
+
+    let date: Date | null = null;
+
+    // FirestoreのTimestampオブジェクトの場合
+    if (timestamp.toDate && typeof timestamp.toDate === 'function') {
+      date = timestamp.toDate();
+    } else if (timestamp instanceof Date) {
+      date = timestamp;
+    } else if (typeof timestamp === 'string' || typeof timestamp === 'number') {
+      date = new Date(timestamp);
+    } else {
+      // その他の場合は現在時刻を使用
+      date = new Date();
+    }
+
+    // 無効な日付の場合は空文字を返す
+    if (!date || isNaN(date.getTime())) {
+      return '';
+    }
+
+    // 日時と時刻を表示（例: 2025/01/19 14:30）
+    return date.toLocaleString('ja-JP', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
       hour: '2-digit',
       minute: '2-digit',
     });
@@ -380,7 +438,7 @@ export class ProjectChatComponent implements OnInit, OnDestroy {
   highlightMentions(text: string, mentions: string[]): SafeHtml {
     let highlightedText = text;
     const mentionRegex = /@([^\s@]+)/g;
-    
+
     highlightedText = highlightedText.replace(mentionRegex, (match, name) => {
       const member = this.projectMembers.find((m) => {
         const displayName = m.displayName || m.name || '';
