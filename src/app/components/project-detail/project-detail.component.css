@@ -1326,12 +1326,12 @@ body[data-language="ja"]
 
 .theme-color-option.no-color-option {
   background: repeating-linear-gradient(
-    135deg,
-    #f5f5f5,
-    #f5f5f5 6px,
-    #e0e0e0 6px,
-    #e0e0e0 12px
-  );
+      135deg,
+      #f5f5f5,
+      #f5f5f5 6px,
+      #e0e0e0 6px,
+      #e0e0e0 12px
+    );
   color: #424242;
   font-weight: 600;
   font-size: 12px;
