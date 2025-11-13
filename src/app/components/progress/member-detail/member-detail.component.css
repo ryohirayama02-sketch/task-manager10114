@@ -103,6 +103,11 @@
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
+  box-sizing: border-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
 }
 
 .table-clickable {
@@ -722,6 +727,25 @@
     padding: 15px;
   }
 
+  .project-chip {
+    padding: 4px 8px;
+    font-size: 11px;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Material Designチップのテキストラベルにパディングを追加 */
+  ::ng-deep .mdc-evolution-chip__text-label,
+  ::ng-deep .mat-mdc-chip-action-label {
+    padding: 0 4px !important;
+    box-sizing: border-box !important;
+    font-size: 10px !important;
+    line-height: 1.2 !important;
+    white-space: nowrap !important;
+  }
+
   .header {
     flex-direction: column;
     align-items: flex-start;
@@ -949,9 +973,36 @@
     text-align: center;
     display: inline-block;
   }
+
+  .status-chip ::ng-deep .mdc-evolution-chip__text-label,
+  .priority-chip ::ng-deep .mdc-evolution-chip__text-label,
+  .status-chip ::ng-deep .mat-mdc-chip-action-label,
+  .priority-chip ::ng-deep .mat-mdc-chip-action-label {
+    padding: 0 4px !important;
+    box-sizing: border-box !important;
+  }
 }
 
 @media (max-width: 480px) {
+  .project-chip {
+    padding: 4px 6px;
+    font-size: 10px;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Material Designチップのテキストラベルにパディングを追加 */
+  ::ng-deep .mdc-evolution-chip__text-label,
+  ::ng-deep .mat-mdc-chip-action-label {
+    padding: 0 4px !important;
+    box-sizing: border-box !important;
+    font-size: 9px !important;
+    line-height: 1.2 !important;
+    white-space: nowrap !important;
+  }
+
   .status-row {
     grid-template-columns: minmax(70px, auto) minmax(45px, auto) 1fr;
     gap: 6px 8px;
@@ -1027,6 +1078,17 @@
     box-sizing: border-box;
     text-align: center;
     display: inline-block;
+  }
+
+  .status-chip ::ng-deep .mdc-evolution-chip__text-label,
+  .priority-chip ::ng-deep .mdc-evolution-chip__text-label,
+  .status-chip ::ng-deep .mat-mdc-chip-action-label,
+  .priority-chip ::ng-deep .mat-mdc-chip-action-label {
+    padding: 0 4px !important;
+    box-sizing: border-box !important;
+    font-size: 9px !important;
+    line-height: 1.2 !important;
+    white-space: nowrap !important;
   }
 
   .mat-mdc-cell.mat-column-projectName,
