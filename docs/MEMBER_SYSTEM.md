@@ -2,7 +2,7 @@
 
 ## 概要
 
-本アプリケーションでは、すべてのメンバーに固有のID（UID）が割り当てられており、各画面での表示や選択肢は、このIDを基準にメンバー名を取得・表示しています。これにより、メンバー管理画面で名前を変更しても、IDに紐づいた最新の名前情報が自動的に反映されます。
+本アプリケーションでは、すべてのメンバーに固有の ID（UID）が割り当てられており、各画面での表示や選択肢は、この ID を基準にメンバー名を取得・表示しています。これにより、メンバー管理画面で名前を変更しても、ID に紐づいた最新の名前情報が自動的に反映されます。
 
 ## データ構造
 
@@ -10,21 +10,21 @@
 
 ```typescript
 interface Task {
-  assignedMembers?: string[];  // メンバーID（UID）の配列 ← 新形式（推奨）
-  assignee: string;             // メンバー名の文字列（後方互換性のため）
+  assignedMembers?: string[]; // メンバーID（UID）の配列 ← 新形式（推奨）
+  assignee: string; // メンバー名の文字列（後方互換性のため）
 }
 ```
 
-- **`assignedMembers`**: メンバーID（例: `["6aNzjexMNLN6bZrXiqXC", "abc123..."]`）の配列
+- **`assignedMembers`**: メンバー ID（例: `["6aNzjexMNLN6bZrXiqXC", "abc123..."]`）の配列
 - **`assignee`**: メンバー名の文字列（例: `"田中太郎"` または `"田中太郎, 佐藤花子"`）
 
 ### メンバー情報
 
 ```typescript
 interface Member {
-  id: string;      // メンバーの固有ID（UID）
-  name: string;    // メンバー名（カンマを含まない）
-  email: string;   // メールアドレス
+  id: string; // メンバーの固有ID（UID）
+  name: string; // メンバー名（カンマを含まない）
+  email: string; // メールアドレス
 }
 ```
 
@@ -37,12 +37,12 @@ interface Member {
 ```typescript
 this.memberService.getMembers().subscribe({
   next: (members) => {
-    this.members = members;  // 全メンバーを保存
-  }
+    this.members = members; // 全メンバーを保存
+  },
 });
 ```
 
-### 2. メンバーIDから名前への変換
+### 2. メンバー ID から名前への変換
 
 #### ユーティリティ関数（`member-utils.ts`）
 
@@ -62,9 +62,9 @@ getMemberNamesAsString(uids: string[], members: Member[], separator: string): st
 ```typescript
 // assignedMembers（ID配列）から名前の文字列を生成
 const display = getMemberNamesAsString(
-  task.assignedMembers,  // メンバーIDの配列
-  this.members,          // メンバー配列
-  ', ',                  // 区切り文字
+  task.assignedMembers, // メンバーIDの配列
+  this.members, // メンバー配列
+  ", ", // 区切り文字
   this.languageService
 );
 ```
@@ -85,7 +85,7 @@ getTaskAssigneeDisplay(task: Task): string {
     );
     return display === '未設定' ? '—' : display;
   }
-  
+
   // assignedMembers がない場合は assignee から取得（後方互換性）
   // ...
 }
@@ -98,21 +98,21 @@ getAssignedMembersDisplay(): string {
   if (!this.taskData.assignedMembers || this.taskData.assignedMembers.length === 0) {
     return '—';
   }
-  
+
   const display = getMemberNamesAsString(
     this.taskData.assignedMembers,
     this.projectMembers,
     ', ',
     this.languageService
   );
-  
+
   return display === '未設定' ? '—' : display;
 }
 ```
 
 ## 複数メンバーの判断方法
 
-### ✅ 正しい方法（IDベース）
+### ✅ 正しい方法（ID ベース）
 
 **`assignedMembers`配列の長さで判断**
 
@@ -135,16 +135,17 @@ task.assignedMembers.forEach((memberId) => {
 
 ```typescript
 // ❌ 削除済み: メンバー名をカンマ区切りで分割
-const names = member.name.split(',').map(n => n.trim());
+const names = member.name.split(",").map((n) => n.trim());
 
 // ❌ 削除済み: assigneeをカンマ区切りで分割して人数を判断
-const assigneeNames = task.assignee.split(',');
+const assigneeNames = task.assignee.split(",");
 const memberCount = assigneeNames.length;
 ```
 
 **理由：**
+
 - メンバー名にカンマを含めることはできない（バリデーションで禁止）
-- IDベースの判断が正確で、メンバー名変更の影響を受けない
+- ID ベースの判断が正確で、メンバー名変更の影響を受けない
 
 ## メンバー名変更時の自動更新
 
@@ -153,6 +154,7 @@ const memberCount = assigneeNames.length;
 `MemberManagementService.updateMember()`でメンバー名を変更すると、以下の処理が自動的に実行されます：
 
 1. **プロジェクトの`members`フィールドを更新**
+
    - プロジェクトの`members`フィールド（メンバー名のカンマ区切り文字列）に古いメンバー名が含まれている場合、新しいメンバー名に置き換え
 
 2. **タスクの`assignee`フィールドを更新**
@@ -165,10 +167,10 @@ const memberCount = assigneeNames.length;
 async updateMember(memberId: string, memberData: Partial<Member>): Promise<void> {
   // 1. 古いメンバー名を取得
   const oldMemberName = /* ... */;
-  
+
   // 2. メンバー情報を更新
   await updateDoc(memberRef, updateData);
-  
+
   // 3. メンバー名が変更された場合、関連するプロジェクトとタスクを更新
   if (oldMemberName && memberData.name && oldMemberName !== memberData.name) {
     await this.updateRelatedProjectsAndTasks(memberId, oldMemberName, memberData.name);
@@ -178,7 +180,7 @@ async updateMember(memberId: string, memberData: Partial<Member>): Promise<void>
 
 ## 各画面での実装状況
 
-### ✅ IDベースで実装済み
+### ✅ ID ベースで実装済み
 
 - **カンバン画面** (`kanban.component.ts`)
 - **ガントチャート画面** (`gantt.component.ts`)
@@ -198,7 +200,7 @@ async updateMember(memberId: string, memberData: Partial<Member>): Promise<void>
 if (!task.assignedMembers || task.assignedMembers.length === 0) {
   if (task.assignee) {
     // assignee からメンバー名を取得（後方互換性）
-    const assigneeNames = task.assignee.split(',').map(name => name.trim());
+    const assigneeNames = task.assignee.split(",").map((name) => name.trim());
     // ...
   }
 }
@@ -206,10 +208,9 @@ if (!task.assignedMembers || task.assignedMembers.length === 0) {
 
 ## まとめ
 
-- ✅ すべてのメンバーには固有のIDが割り当てられている
-- ✅ 各画面の表示は、IDを基準にメンバー名を取得・表示している
-- ✅ メンバー名変更時は、IDに紐づいた最新の名前情報が自動的に反映される
-- ✅ 複数メンバーの判断は、`assignedMembers`配列の長さで行う（IDベース）
+- ✅ すべてのメンバーには固有の ID が割り当てられている
+- ✅ 各画面の表示は、ID を基準にメンバー名を取得・表示している
+- ✅ メンバー名変更時は、ID に紐づいた最新の名前情報が自動的に反映される
+- ✅ 複数メンバーの判断は、`assignedMembers`配列の長さで行う（ID ベース）
 - ✅ カンマ区切りで複数人を判断する処理はすべて削除済み
 - ✅ メンバー名変更時に、関連するプロジェクトとタスクが自動更新される
-
