@@ -879,31 +879,23 @@ export class TaskCreatePageComponent implements OnInit {
         isSubtask: !!this.parentTaskId,
       });
 
-      // If this is a subtask creation, navigate to parent task detail
-      if (this.parentTaskId) {
-        console.log('[save] 親タスク画面に遷移:', {
-          projectId: this.projectId,
-          parentTaskId: this.parentTaskId,
-          createdTaskId: taskId,
-        });
-        // Firestoreの同期を待つため、少し待機してから遷移
-        // Promiseで待機することで、非同期処理の完了を確実に待つ
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        console.log('[save] 遷移実行:', {
-          projectId: this.projectId,
-          parentTaskId: this.parentTaskId,
-        });
-        // クエリパラメータを追加して、親タスク画面を強制的に再読み込み
-        this.router.navigate(
-          ['/project', this.projectId, 'task', this.parentTaskId],
-          {
-            replaceUrl: true,
-            queryParams: { refresh: Date.now() },
-          }
-        );
-      } else {
-        this.goBack();
-      }
+      // 作成したタスク詳細画面に遷移
+      console.log('[save] 作成したタスク詳細画面に遷移:', {
+        projectId: this.projectId,
+        parentTaskId: this.parentTaskId,
+        createdTaskId: taskId,
+        isSubtask: !!this.parentTaskId,
+      });
+      // Firestoreの同期を待つため、少し待機してから遷移
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      console.log('[save] 遷移実行:', {
+        projectId: this.projectId,
+        taskId,
+      });
+      // 作成したタスク詳細画面に遷移
+      this.router.navigate(['/project', this.projectId, 'task', taskId], {
+        replaceUrl: true,
+      });
     } catch (error: any) {
       console.error('[save] タスク作成失敗:', error);
       console.error('[save] エラー詳細:', {

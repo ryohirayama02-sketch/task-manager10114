@@ -1389,8 +1389,8 @@ export class ProjectDetailComponent implements OnInit {
         { duration: 3000 }
       );
 
-      const targetUrl = this.returnUrl || '/progress/projects';
-      this.router.navigateByUrl(targetUrl, { replaceUrl: true });
+      // 全プロジェクト進捗画面に遷移
+      this.router.navigate(['/progress/projects'], { replaceUrl: true });
     } catch (error) {
       console.error('プロジェクト削除エラー:', error);
       this.snackBar.open(

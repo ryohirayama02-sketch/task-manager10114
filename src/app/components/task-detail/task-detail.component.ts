@@ -1352,14 +1352,31 @@ export class TaskDetailComponent implements OnInit {
 
     if (confirm(confirmMessage)) {
       if (this.task && this.task.projectId && this.task.id) {
+        const projectId = this.task.projectId;
+        const isSubtask = !!this.task.parentTaskId;
+        const parentTaskId = this.task.parentTaskId;
+
         this.taskService
-          .deleteTask(this.task.id, this.taskData, this.task.projectId)
+          .deleteTask(this.task.id, this.taskData, projectId)
           .then(() => {
             console.log('タスクが削除されました');
             if (childTasksCount > 0) {
               console.log(`${childTasksCount}件の子タスクも削除されました`);
             }
-            this.goBack();
+
+            // 子タスクの場合は親タスク詳細へ、親タスクの場合はプロジェクト詳細へ
+            if (isSubtask && parentTaskId) {
+              // 子タスク: 親タスク詳細へ
+              this.router.navigate(
+                ['/project', projectId, 'task', parentTaskId],
+                { replaceUrl: true }
+              );
+            } else {
+              // 親タスク: プロジェクト詳細へ
+              this.router.navigate(['/project', projectId], {
+                replaceUrl: true,
+              });
+            }
           })
           .catch((error: Error) => {
             console.error('タスク削除エラー:', error);
