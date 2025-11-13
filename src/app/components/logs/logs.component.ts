@@ -491,16 +491,40 @@ export class LogsComponent implements OnInit, OnDestroy {
       通知対象設定: 'logs.field.notificationSettings',
       タスクの順番管理: 'logs.field.taskOrderManagement',
       作業予定時間入力: 'logs.field.estimatedWorkTime',
+      // 翻訳キーが直接保存されている場合も対応
+      'logs.field.status': 'logs.field.status',
+      'logs.field.priority': 'logs.field.priority',
+      'logs.field.assignee': 'logs.field.assignee',
+      'logs.field.dueDate': 'logs.field.dueDate',
+      'logs.field.taskName': 'logs.field.taskName',
+      'logs.field.description': 'logs.field.description',
+      'logs.field.tags': 'logs.field.tags',
+      'logs.field.projectName': 'logs.field.projectName',
+      'logs.field.overview': 'logs.field.overview',
+      'logs.field.startDate': 'logs.field.startDate',
+      'logs.field.endDate': 'logs.field.endDate',
+      'logs.field.themeColor': 'logs.field.themeColor',
+      'logs.field.attachments': 'logs.field.attachments',
+      'logs.field.responsible': 'logs.field.responsible',
+      'logs.field.members': 'logs.field.members',
+      'logs.field.milestone': 'logs.field.milestone',
+      'logs.field.calendarSync': 'logs.field.calendarSync',
+      'logs.field.notificationSettings': 'logs.field.notificationSettings',
+      'logs.field.taskOrderManagement': 'logs.field.taskOrderManagement',
+      'logs.field.estimatedWorkTime': 'logs.field.estimatedWorkTime',
     };
     if (fieldTranslationMap[field]) {
-      field = this.languageService.translate(fieldTranslationMap[field]);
+      const translationKey = fieldTranslationMap[field];
+      field = this.languageService.translate(translationKey);
     }
 
     // ステータスの値を翻訳
     const statusFieldKey = this.languageService.translate('logs.field.status');
+    // change.fieldが翻訳キー、日本語フィールド名、英語フィールド名、または翻訳後のフィールド名のいずれかである場合
     if (
       change.field === 'ステータス' ||
       change.field === 'status' ||
+      change.field === 'logs.field.status' ||
       field === statusFieldKey
     ) {
       if (oldValue) {
@@ -515,9 +539,11 @@ export class LogsComponent implements OnInit, OnDestroy {
     const priorityFieldKey = this.languageService.translate(
       'logs.field.priority'
     );
+    // change.fieldが翻訳キー、日本語フィールド名、英語フィールド名、または翻訳後のフィールド名のいずれかである場合
     if (
       change.field === '優先度' ||
       change.field === 'priority' ||
+      change.field === 'logs.field.priority' ||
       field === priorityFieldKey
     ) {
       if (oldValue) {

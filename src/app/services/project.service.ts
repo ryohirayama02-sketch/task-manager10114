@@ -636,30 +636,29 @@ export class ProjectService {
       }
 
       // 編集ログを記録（changeDetailsは既に多言語対応済み）
+      // 変更がない場合は編集ログを記録しない
+      if (changeDetails.length > 0) {
+        const projectUpdatedText = this.languageService.translate(
+          'logs.projectUpdated'
+        );
+        const changeDescriptionText = `${projectUpdatedText} (${changeDetails
+          .map((c) => `${c.field}: ${c.oldValue}→${c.newValue}`)
+          .join(', ')})`;
 
-      const projectUpdatedText = this.languageService.translate(
-        'logs.projectUpdated'
-      );
-      const changeDescriptionText =
-        changeDetails.length > 0
-          ? `${projectUpdatedText} (${changeDetails
-              .map((c) => `${c.field}: ${c.oldValue}→${c.newValue}`)
-              .join(', ')})`
-          : projectUpdatedText;
-
-      await this.editLogService.logEdit(
-        projectId,
-        projectData.projectName ||
-          (oldProject ? oldProject['projectName'] : null) ||
-          this.languageService.translate('logs.projectFallback'),
-        'update',
-        changeDescriptionText,
-        undefined, // taskId
-        undefined, // taskName
-        undefined, // oldValue
-        undefined, // newValue
-        changeDetails.length > 0 ? changeDetails : undefined // changes
-      );
+        await this.editLogService.logEdit(
+          projectId,
+          projectData.projectName ||
+            (oldProject ? oldProject['projectName'] : null) ||
+            this.languageService.translate('logs.projectFallback'),
+          'update',
+          changeDescriptionText,
+          undefined, // taskId
+          undefined, // taskName
+          undefined, // oldValue
+          undefined, // newValue
+          changeDetails // changes
+        );
+      }
 
       return result;
     } catch (error: any) {
