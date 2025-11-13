@@ -31,6 +31,27 @@
   .mat-mdc-select-value:has(.mat-mdc-select-value-text:empty)
   ~ .mat-mdc-select-placeholder {
   display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+  font-size: 16px !important;
+}
+
+/* mat-selectの場合、値が空の配列でもラベルを非表示にする（値が空の場合、フォーカスされていない場合、より確実に） */
+.project-card
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-select
+  .mat-mdc-select-value-text:empty {
+  display: none !important;
+}
+
+.project-card
+  ::ng-deep
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-select
+  .mat-mdc-select-value:has(.mat-mdc-select-value-text:empty) {
+  display: none !important;
 }
 
 /* mat-selectの場合、値が空の配列でもラベルを非表示にする */
@@ -72,20 +93,300 @@
 }
 
 /* 責任者・メンバー選択欄のラベルは非表示（プレースホルダーを表示するため） */
+.project-card ::ng-deep .member-selection .mat-mdc-form-field-label-wrapper,
+.project-card ::ng-deep .member-selection .mat-mdc-form-field-label,
+.project-card ::ng-deep .member-selection mat-label,
 .project-card ::ng-deep .full-width-field .mat-mdc-form-field-label-wrapper,
 .project-card ::ng-deep .full-width-field .mat-mdc-form-field-label,
-.project-card ::ng-deep .full-width-field mat-label {
+.project-card ::ng-deep .full-width-field mat-label,
+body[data-language="ja"]
+  .project-card
+  ::ng-deep
+  .member-selection
+  .mat-mdc-form-field-label-wrapper,
+body[data-language="ja"]
+  .project-card
+  ::ng-deep
+  .member-selection
+  .mat-mdc-form-field-label,
+body[data-language="ja"] .project-card ::ng-deep .member-selection mat-label,
+body[data-language="ja"]
+  .project-card
+  ::ng-deep
+  .full-width-field
+  .mat-mdc-form-field-label-wrapper,
+body[data-language="ja"]
+  .project-card
+  ::ng-deep
+  .full-width-field
+  .mat-mdc-form-field-label,
+body[data-language="ja"] .project-card ::ng-deep .full-width-field mat-label {
   display: none !important;
 }
 
-/* 責任者・メンバー選択欄のプレースホルダーを常に表示 */
+/* 責任者・メンバー選択欄のmat-form-fieldがhas-valueクラスを持っていても、値が空の配列の場合はプレースホルダーを表示 */
+.project-card
+  ::ng-deep
+  .member-selection
+  .mat-mdc-form-field.mat-mdc-form-field-has-value
+  .mat-mdc-select
+  .mat-mdc-select-value-text:empty
+  ~ .mat-mdc-select-placeholder,
+.project-card
+  ::ng-deep
+  .member-selection
+  .mat-mdc-form-field.mat-mdc-form-field-has-value
+  .mat-mdc-select
+  .mat-mdc-select-value:has(.mat-mdc-select-value-text:empty)
+  ~ .mat-mdc-select-placeholder,
+.project-card
+  ::ng-deep
+  .full-width-field.mat-mdc-form-field-has-value
+  .mat-mdc-select
+  .mat-mdc-select-value-text:empty
+  ~ .mat-mdc-select-placeholder,
+.project-card
+  ::ng-deep
+  .full-width-field.mat-mdc-form-field-has-value
+  .mat-mdc-select
+  .mat-mdc-select-value:has(.mat-mdc-select-value-text:empty)
+  ~ .mat-mdc-select-placeholder {
+  display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+  font-size: 16px !important;
+}
+
+/* 責任者・メンバー選択欄のプレースホルダーを常に表示（プロジェクト作成画面と同じルール） */
+.project-card ::ng-deep .member-selection .mat-mdc-select-placeholder,
 .project-card ::ng-deep .full-width-field .mat-mdc-select-placeholder {
   display: block !important;
   opacity: 1 !important;
   color: rgba(0, 0, 0, 0.6) !important;
   visibility: visible !important;
+  font-size: 16px !important;
 }
 
+.project-card
+  ::ng-deep
+  .member-selection
+  .mat-mdc-select
+  .mat-mdc-select-trigger
+  .mat-mdc-select-placeholder {
+  display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+  font-size: 16px !important;
+}
+
+/* 責任者・メンバー選択欄の値が空の場合、プレースホルダーを表示（プロジェクト作成画面と同じルール） */
+.project-card
+  ::ng-deep
+  .member-selection
+  .mat-mdc-select
+  .mat-mdc-select-value-text:empty
+  ~ .mat-mdc-select-placeholder {
+  display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+  font-size: 16px !important;
+}
+
+.project-card
+  ::ng-deep
+  .member-selection
+  .mat-mdc-select
+  .mat-mdc-select-value:has(.mat-mdc-select-value-text:empty)
+  ~ .mat-mdc-select-placeholder {
+  display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+  font-size: 16px !important;
+}
+
+.project-card
+  ::ng-deep
+  .member-selection
+  .mat-mdc-select
+  .mat-mdc-select-trigger:has(.mat-mdc-select-value-text:empty)
+  .mat-mdc-select-placeholder {
+  display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+  font-size: 16px !important;
+}
+
+/* mat-selectの値が空の場合、value-textを非表示にしてプレースホルダーを表示 */
+.project-card ::ng-deep .member-selection .mat-mdc-select-value-text:empty {
+  display: none !important;
+}
+
+.project-card
+  ::ng-deep
+  .member-selection
+  .mat-mdc-select-value:has(.mat-mdc-select-value-text:empty) {
+  display: none !important;
+}
+
+/* 責任者・メンバー選択欄の値が空の場合、value-textを非表示にしてプレースホルダーを表示（より確実に） */
+.project-card
+  ::ng-deep
+  .member-selection
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-select
+  .mat-mdc-select-value-text:empty {
+  display: none !important;
+}
+
+.project-card
+  ::ng-deep
+  .member-selection
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-select
+  .mat-mdc-select-value:has(.mat-mdc-select-value-text:empty) {
+  display: none !important;
+}
+
+/* 責任者選択フィールドで値が空の時にプレイスホルダーを表示（プロジェクト作成画面と同じルール） */
+.project-card
+  ::ng-deep
+  .responsible-selection
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-select-placeholder {
+  display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+  font-size: 16px !important;
+}
+
+.project-card
+  ::ng-deep
+  .responsible-selection
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-select:not(.mat-mdc-select-focused)
+  .mat-mdc-select-placeholder {
+  display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+  font-size: 16px !important;
+}
+
+/* メンバー選択フィールドで値が空の時にプレイスホルダーを表示（プロジェクト作成画面と同じルール） */
+.project-card
+  ::ng-deep
+  .member-selection:not(.responsible-selection)
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-select-placeholder {
+  display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+  font-size: 16px !important;
+}
+
+.project-card
+  ::ng-deep
+  .member-selection:not(.responsible-selection)
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-select:not(.mat-mdc-select-focused)
+  .mat-mdc-select-placeholder {
+  display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+  font-size: 16px !important;
+}
+
+/* mat-select-emptyクラスが付いている場合のプレースホルダー表示 */
+.project-card
+  ::ng-deep
+  .member-selection
+  .mat-mdc-select-empty
+  .mat-mdc-select-placeholder {
+  display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+  font-size: 16px !important;
+}
+
+.project-card
+  ::ng-deep
+  .member-selection
+  .mat-mdc-select-empty
+  .mat-mdc-select-trigger
+  .mat-mdc-select-placeholder {
+  display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+  font-size: 16px !important;
+}
+
+/* mat-selectの値が空の場合、value-textを非表示にしてプレースホルダーを表示（より確実に） */
+.project-card
+  ::ng-deep
+  .member-selection
+  .mat-mdc-select-value-text:empty
+  ~ .mat-mdc-select-placeholder {
+  display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+  font-size: 16px !important;
+}
+
+.project-card
+  ::ng-deep
+  .member-selection
+  .mat-mdc-select-value:has(.mat-mdc-select-value-text:empty)
+  ~ .mat-mdc-select-placeholder {
+  display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+  font-size: 16px !important;
+}
+
+/* mat-selectの値が空の場合、value-textを非表示にしてプレースホルダーを表示（trigger内） */
+.project-card
+  ::ng-deep
+  .member-selection
+  .mat-mdc-select-trigger:has(.mat-mdc-select-value-text:empty)
+  .mat-mdc-select-placeholder {
+  display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+  font-size: 16px !important;
+}
+
+/* mat-selectの値が空の場合、value-textを非表示にしてプレースホルダーを表示（value内） */
+.project-card
+  ::ng-deep
+  .member-selection
+  .mat-mdc-select-value:has(.mat-mdc-select-value-text:empty)
+  .mat-mdc-select-placeholder {
+  display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+  font-size: 16px !important;
+}
+
+.project-card
+  ::ng-deep
+  .member-selection
+  .mat-mdc-select
+  .mat-mdc-select-trigger
+  .mat-mdc-select-placeholder,
 .project-card
   ::ng-deep
   .full-width-field
@@ -96,9 +397,53 @@
   opacity: 1 !important;
   color: rgba(0, 0, 0, 0.6) !important;
   visibility: visible !important;
+  font-size: 16px !important;
+}
+
+/* 責任者・メンバー選択欄のプレースホルダーを常に表示（より確実に） */
+.project-card
+  ::ng-deep
+  .member-selection
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-select-placeholder,
+.project-card
+  ::ng-deep
+  .full-width-field
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-select-placeholder {
+  display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+  font-size: 16px !important;
+}
+
+.project-card
+  ::ng-deep
+  .member-selection
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-select:not(.mat-mdc-select-focused)
+  .mat-mdc-select-placeholder,
+.project-card
+  ::ng-deep
+  .full-width-field
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-select:not(.mat-mdc-select-focused)
+  .mat-mdc-select-placeholder {
+  display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+  font-size: 16px !important;
 }
 
 /* 責任者・メンバー選択欄の値が空の場合、プレースホルダーを表示 */
+.project-card
+  ::ng-deep
+  .member-selection
+  .mat-mdc-select
+  .mat-mdc-select-value-text:empty
+  ~ .mat-mdc-select-placeholder,
 .project-card
   ::ng-deep
   .full-width-field
@@ -109,8 +454,15 @@
   opacity: 1 !important;
   color: rgba(0, 0, 0, 0.6) !important;
   visibility: visible !important;
+  font-size: 16px !important;
 }
 
+.project-card
+  ::ng-deep
+  .member-selection
+  .mat-mdc-select
+  .mat-mdc-select-value:has(.mat-mdc-select-value-text:empty)
+  ~ .mat-mdc-select-placeholder,
 .project-card
   ::ng-deep
   .full-width-field
@@ -121,8 +473,15 @@
   opacity: 1 !important;
   color: rgba(0, 0, 0, 0.6) !important;
   visibility: visible !important;
+  font-size: 16px !important;
 }
 
+.project-card
+  ::ng-deep
+  .member-selection
+  .mat-mdc-select
+  .mat-mdc-select-trigger:has(.mat-mdc-select-value-text:empty)
+  .mat-mdc-select-placeholder,
 .project-card
   ::ng-deep
   .full-width-field
@@ -133,9 +492,16 @@
   opacity: 1 !important;
   color: rgba(0, 0, 0, 0.6) !important;
   visibility: visible !important;
+  font-size: 16px !important;
 }
 
 /* 責任者・メンバー選択欄の値が選択されている場合、プレースホルダーを非表示 */
+.project-card
+  ::ng-deep
+  .member-selection
+  .mat-mdc-select
+  .mat-mdc-select-trigger:not(:has(.mat-mdc-select-value-text:empty))
+  .mat-mdc-select-placeholder,
 .project-card
   ::ng-deep
   .full-width-field
@@ -143,6 +509,174 @@
   .mat-mdc-select-trigger:not(:has(.mat-mdc-select-value-text:empty))
   .mat-mdc-select-placeholder {
   display: none !important;
+}
+
+/* 責任者・メンバー選択欄のプレースホルダーを常に表示（値が空の配列の場合） */
+.project-card
+  ::ng-deep
+  .full-width-field
+  .mat-mdc-select-value-text:empty
+  ~ .mat-mdc-select-placeholder {
+  display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+  font-size: 16px !important;
+}
+
+.project-card
+  ::ng-deep
+  .full-width-field
+  .mat-mdc-select-value:has(.mat-mdc-select-value-text:empty)
+  ~ .mat-mdc-select-placeholder {
+  display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+  font-size: 16px !important;
+}
+
+/* 責任者・メンバー選択欄のmat-selectの値が空の場合、プレースホルダーを表示 */
+.project-card
+  ::ng-deep
+  .full-width-field
+  .mat-mdc-form-field:not(.mat-focused)
+  .mat-mdc-select-value-text:empty {
+  color: rgba(0, 0, 0, 0.6) !important;
+  opacity: 1 !important;
+}
+
+/* 責任者・メンバー選択欄のmat-selectの値が空の場合、プレースホルダーを表示（trigger内） */
+.project-card
+  ::ng-deep
+  .full-width-field
+  .mat-mdc-select
+  .mat-mdc-select-trigger
+  .mat-mdc-select-value-text:empty
+  ~ .mat-mdc-select-placeholder {
+  display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+  font-size: 16px !important;
+}
+
+/* 責任者・メンバー選択欄のプレースホルダーを常に表示（multiple select対応、値が空の配列の場合） */
+.project-card
+  ::ng-deep
+  .member-selection
+  mat-select[multiple]
+  .mat-mdc-select-value-text:empty
+  ~ .mat-mdc-select-placeholder,
+.project-card
+  ::ng-deep
+  .member-selection
+  mat-select[multiple]
+  .mat-mdc-select-value:has(.mat-mdc-select-value-text:empty)
+  ~ .mat-mdc-select-placeholder,
+.project-card
+  ::ng-deep
+  .member-selection
+  mat-select[multiple]
+  .mat-mdc-select-trigger
+  .mat-mdc-select-value-text:empty
+  ~ .mat-mdc-select-placeholder,
+.project-card
+  ::ng-deep
+  .full-width-field
+  mat-select[multiple]
+  .mat-mdc-select-value-text:empty
+  ~ .mat-mdc-select-placeholder {
+  display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+  font-size: 16px !important;
+}
+
+.project-card
+  ::ng-deep
+  .full-width-field
+  mat-select[multiple]
+  .mat-mdc-select-value:has(.mat-mdc-select-value-text:empty)
+  ~ .mat-mdc-select-placeholder {
+  display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+  font-size: 16px !important;
+}
+
+.project-card
+  ::ng-deep
+  .full-width-field
+  mat-select[multiple]
+  .mat-mdc-select-trigger
+  .mat-mdc-select-value-text:empty
+  ~ .mat-mdc-select-placeholder {
+  display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+  font-size: 16px !important;
+}
+
+/* 責任者・メンバー選択欄のプレースホルダーを常に表示（multiple select対応、値が空の配列の場合、より確実に） */
+.project-card
+  ::ng-deep
+  .member-selection
+  mat-select[multiple]
+  .mat-mdc-select-trigger:not(:has(.mat-mdc-select-value-text:not(:empty)))
+  .mat-mdc-select-placeholder,
+.project-card
+  ::ng-deep
+  .member-selection
+  mat-select[multiple]
+  .mat-mdc-select-trigger:not(:has(.mat-mdc-select-value-text))
+  .mat-mdc-select-placeholder,
+.project-card
+  ::ng-deep
+  .full-width-field
+  mat-select[multiple]
+  .mat-mdc-select-trigger:not(:has(.mat-mdc-select-value-text:not(:empty)))
+  .mat-mdc-select-placeholder,
+.project-card
+  ::ng-deep
+  .full-width-field
+  mat-select[multiple]
+  .mat-mdc-select-trigger:not(:has(.mat-mdc-select-value-text))
+  .mat-mdc-select-placeholder {
+  display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+  font-size: 16px !important;
+}
+
+/* 責任者・メンバー選択欄のプレースホルダーを常に表示（mat-select-trigger内、より強力に） */
+.project-card
+  ::ng-deep
+  .full-width-field
+  .mat-mdc-select-trigger
+  .mat-mdc-select-placeholder {
+  display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+  font-size: 16px !important;
+}
+
+/* 責任者・メンバー選択欄のプレースホルダーを常に表示（値が選択されていない場合のみ） */
+.project-card
+  ::ng-deep
+  .full-width-field
+  .mat-mdc-select-trigger:has(.mat-mdc-select-value-text:empty)
+  .mat-mdc-select-placeholder {
+  display: block !important;
+  opacity: 1 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  visibility: visible !important;
+  font-size: 16px !important;
 }
 
 /* 日付フィールドのカーソルをポインターに */

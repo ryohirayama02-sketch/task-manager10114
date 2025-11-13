@@ -161,75 +161,79 @@
             </mat-form-field>
           </div>
 
-          <mat-form-field appearance="outline" class="full-width-field">
-            <mat-select
-              multiple
-              [(ngModel)]="selectedResponsibleIds"
-              name="inlineResponsibleIds"
-              (ngModelChange)="onResponsibleSelectionChange($event)"
-              [placeholder]="
-                'projectDetail.selectResponsiblePlaceholderFull' | translate
-              "
-              [disabled]="membersLoading"
-              required
-            >
-              <mat-option *ngFor="let member of members" [value]="member.id">
-                {{ member.name }}
-              </mat-option>
-            </mat-select>
-          </mat-form-field>
-
-          <div
-            class="selected-members-chips"
-            *ngIf="selectedResponsibles.length > 0"
-          >
-            <mat-chip-set>
-              <mat-chip
-                *ngFor="let member of selectedResponsibles"
-                selected
-                removable
-                (removed)="removeResponsible(member)"
-                class="member-chip-inline responsible-chip"
+          <div class="member-selection responsible-selection">
+            <mat-form-field appearance="outline" class="full-width-field">
+              <mat-select
+                multiple
+                [(ngModel)]="selectedResponsibleIds"
+                name="inlineResponsibleIds"
+                (ngModelChange)="onResponsibleSelectionChange($event)"
+                [placeholder]="
+                  'projectDetail.selectResponsiblePlaceholderFull' | translate
+                "
+                [disabled]="membersLoading"
+                required
               >
-                {{ member.name }}
-                <mat-icon matChipRemove>close</mat-icon>
-              </mat-chip>
-            </mat-chip-set>
+                <mat-option *ngFor="let member of members" [value]="member.id">
+                  {{ member.name }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <div
+              class="selected-members-chips"
+              *ngIf="selectedResponsibles.length > 0"
+            >
+              <mat-chip-set>
+                <mat-chip
+                  *ngFor="let member of selectedResponsibles"
+                  selected
+                  removable
+                  (removed)="removeResponsible(member)"
+                  class="member-chip-inline responsible-chip"
+                >
+                  {{ member.name }}
+                  <mat-icon matChipRemove>close</mat-icon>
+                </mat-chip>
+              </mat-chip-set>
+            </div>
           </div>
 
-          <mat-form-field appearance="outline" class="full-width-field">
-            <mat-select
-              multiple
-              [(ngModel)]="selectedMemberIds"
-              name="inlineMemberIds"
-              (ngModelChange)="onMembersSelectionChange($event)"
-              [placeholder]="
-                'projectDetail.selectMemberPlaceholderFull' | translate
-              "
-              [disabled]="membersLoading"
-              required
-            >
-              <mat-option *ngFor="let member of members" [value]="member.id">
-                {{ member.name }}
-              </mat-option>
-            </mat-select>
-          </mat-form-field>
-
-          <div
-            class="selected-members-chips"
-            *ngIf="selectedMembers.length > 0"
-          >
-            <mat-chip-set>
-              <mat-chip
-                *ngFor="let member of selectedMembers"
-                selected
-                removable
-                (removed)="removeSelectedMember(member)"
+          <div class="member-selection">
+            <mat-form-field appearance="outline" class="full-width-field">
+              <mat-select
+                multiple
+                [(ngModel)]="selectedMemberIds"
+                name="inlineMemberIds"
+                (ngModelChange)="onMembersSelectionChange($event)"
+                [placeholder]="
+                  'projectDetail.selectMemberPlaceholderFull' | translate
+                "
+                [disabled]="membersLoading"
+                required
               >
-                {{ member.name }}
-                <mat-icon matChipRemove>close</mat-icon>
-              </mat-chip>
-            </mat-chip-set>
+                <mat-option *ngFor="let member of members" [value]="member.id">
+                  {{ member.name }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <div
+              class="selected-members-chips"
+              *ngIf="selectedMembers.length > 0"
+            >
+              <mat-chip-set>
+                <mat-chip
+                  *ngFor="let member of selectedMembers"
+                  selected
+                  removable
+                  (removed)="removeSelectedMember(member)"
+                >
+                  {{ member.name }}
+                  <mat-icon matChipRemove>close</mat-icon>
+                </mat-chip>
+              </mat-chip-set>
+            </div>
           </div>
 
           <div class="inline-attachments">
