@@ -19,7 +19,7 @@
 
 /* 最初の行の最後にスペーサーを追加して、1段目のみ等間隔にする */
 .navbar::after {
-  content: '';
+  content: "";
   flex-grow: 1;
   flex-basis: 100%;
   height: 0;
@@ -71,6 +71,7 @@
   max-width: 100%;
   overflow: hidden;
   padding: 8px 8px !important;
+  white-space: nowrap !important;
 }
 
 .user-button mat-icon {
@@ -86,13 +87,24 @@
 
 .user-button .mdc-button__label,
 .user-button span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  min-width: 0;
-  flex-shrink: 1;
-  max-width: 150px;
-  display: block;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  min-width: 0 !important;
+  flex-shrink: 1 !important;
+  max-width: 150px !important;
+  display: block !important;
+}
+
+/* Material Designボタンの内部要素にもスタイルを適用 */
+.user-button ::ng-deep .mat-mdc-button-wrapper,
+.user-button ::ng-deep .mdc-button__label {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  display: block !important;
 }
 
 /* レスポンシブ対応 */
@@ -110,7 +122,12 @@
 
   .user-button .mdc-button__label,
   .user-button span {
-    max-width: 120px;
+    max-width: 120px !important;
+  }
+
+  .user-button ::ng-deep .mat-mdc-button-wrapper,
+  .user-button ::ng-deep .mdc-button__label {
+    max-width: 120px !important;
   }
 }
 
@@ -126,9 +143,25 @@
     padding: 6px 8px;
   }
 
+  .user-button {
+    white-space: nowrap !important;
+    max-width: 100% !important;
+  }
+
   .user-button .mdc-button__label,
   .user-button span {
-    max-width: 100px;
+    max-width: 100px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .user-button ::ng-deep .mat-mdc-button-wrapper,
+  .user-button ::ng-deep .mdc-button__label {
+    max-width: 100px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
   }
 }
 
@@ -145,11 +178,24 @@
   .user-button {
     padding: 6px 6px !important;
     gap: 2px;
+    white-space: nowrap !important;
+    max-width: 100% !important;
   }
 
   .user-button .mdc-button__label,
   .user-button span {
-    max-width: 80px;
-    font-size: 12px;
+    max-width: 80px !important;
+    font-size: 12px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .user-button ::ng-deep .mat-mdc-button-wrapper,
+  .user-button ::ng-deep .mdc-button__label {
+    max-width: 80px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
   }
 }
