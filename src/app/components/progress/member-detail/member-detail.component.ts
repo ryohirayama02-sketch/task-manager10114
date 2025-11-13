@@ -1,4 +1,10 @@
-import { Component, OnInit, inject } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  inject,
+  HostListener,
+  ChangeDetectorRef,
+} from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -75,6 +81,7 @@ export class MemberDetailComponent implements OnInit {
   private dialog = inject(MatDialog);
   private languageService = inject(LanguageService);
   private memberManagementService = inject(MemberManagementService);
+  private cdr = inject(ChangeDetectorRef);
 
   memberDetail: MemberDetail | null = null;
   isLoading = true;
@@ -467,7 +474,29 @@ export class MemberDetailComponent implements OnInit {
     }
   }
 
+  @HostListener('window:resize', ['$event'])
+  onResize(): void {
+    // リサイズ時に変更検知をトリガー
+    this.cdr.detectChanges();
+  }
+
   translateStatus(status: string): string {
+    // スマホ画面（768px以下）の場合は短縮形を返す
+    const isMobile = window.innerWidth <= 768;
+
+    if (isMobile) {
+      switch (status) {
+        case '完了':
+          return '完';
+        case '作業中':
+          return '作';
+        case '未着手':
+          return '未';
+        default:
+          return status;
+      }
+    }
+
     switch (status) {
       case '完了':
         return this.languageService.translate('progress.status.completed');

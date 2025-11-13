@@ -116,32 +116,55 @@
   background-color: transparent;
   color: #1f2937;
   gap: 0;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden !important;
+  white-space: nowrap !important;
 }
 
 .project-cell {
   font-weight: 600;
+  min-width: 0;
 }
 
 .task-cell {
   font-weight: 600;
   color: #111827;
+  min-width: 0;
 }
 
 .truncate-text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  flex: 1 1 auto;
+  display: block;
+  word-wrap: normal !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
 }
 
 .mat-mdc-cell.mat-column-projectName,
 .mat-mdc-cell.mat-column-taskName {
   padding: 0 !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+  text-overflow: ellipsis !important;
+  min-width: 0 !important;
 }
 
 .mat-mdc-cell.mat-column-projectName .mat-mdc-cell-content,
 .mat-mdc-cell.mat-column-taskName .mat-mdc-cell-content {
   padding: 0;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+  text-overflow: ellipsis !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  display: block !important;
 }
 
 .clickable {
@@ -536,9 +559,11 @@
   text-align: left;
   border-bottom: 2px solid #e0e0e0;
   border-right: 1px solid #e0e0e0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .tasks-table th:last-child {
@@ -595,6 +620,15 @@
 /* Specific dueDate column styling */
 .mat-column-dueDate {
   width: 10% !important;
+  overflow: visible !important;
+  white-space: normal !important;
+  text-overflow: clip !important;
+}
+
+.mat-column-dueDate .mat-mdc-cell-content {
+  overflow: visible !important;
+  white-space: normal !important;
+  text-overflow: clip !important;
 }
 
 /* Specific status column styling */
@@ -793,6 +827,53 @@
     font-size: 12px;
   }
 
+  .mat-mdc-cell.mat-column-projectName,
+  .mat-mdc-cell.mat-column-taskName {
+    overflow: hidden !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+    min-width: 0 !important;
+  }
+
+  .mat-mdc-cell.mat-column-projectName .mat-mdc-cell-content,
+  .mat-mdc-cell.mat-column-taskName .mat-mdc-cell-content {
+    overflow: hidden !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    display: block !important;
+  }
+
+  .table-clickable {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden !important;
+    white-space: nowrap !important;
+  }
+
+  .project-cell,
+  .task-cell {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden !important;
+    white-space: nowrap !important;
+  }
+
+  .truncate-text {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    flex: 1 1 auto;
+    display: block;
+    word-wrap: normal !important;
+    word-break: normal !important;
+    overflow-wrap: normal !important;
+  }
+
   .status-chip,
   .priority-chip {
     font-size: 10px;
@@ -801,15 +882,72 @@
     max-width: 100%;
   }
 
+  .tasks-table th {
+    overflow: visible !important;
+    white-space: normal !important;
+    text-overflow: clip !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+  }
+
   .tasks-table th,
   .tasks-table td {
     padding: 8px 4px;
   }
 
+  .tasks-table td {
+    overflow: hidden;
+  }
+
+  .mat-column-dueDate {
+    overflow: visible !important;
+    white-space: normal !important;
+    text-overflow: clip !important;
+  }
+
+  .mat-column-dueDate .mat-mdc-cell-content {
+    overflow: visible !important;
+    white-space: normal !important;
+    text-overflow: clip !important;
+  }
+
   .mat-column-status,
   .mat-column-priority {
-    min-width: 60px !important;
-    max-width: 100px !important;
+    min-width: 40px !important;
+    max-width: 50px !important;
+    overflow: hidden !important;
+    padding: 4px 2px !important;
+  }
+
+  .mat-column-status .mat-mdc-cell-content,
+  .mat-column-priority .mat-mdc-cell-content {
+    overflow: hidden !important;
+    white-space: normal !important;
+    padding: 0 !important;
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .tasks-table td.mat-column-status,
+  .tasks-table td.mat-column-priority {
+    overflow: hidden !important;
+    padding: 4px 2px !important;
+  }
+
+  .status-chip,
+  .priority-chip {
+    font-size: 10px;
+    padding: 2px 4px;
+    min-width: auto;
+    max-width: 100%;
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    box-sizing: border-box;
+    text-align: center;
+    display: inline-block;
   }
 }
 
@@ -852,12 +990,99 @@
     text-align: center;
   }
 
+  .mat-column-status,
+  .mat-column-priority {
+    min-width: 35px !important;
+    max-width: 45px !important;
+    overflow: hidden !important;
+    padding: 4px 2px !important;
+  }
+
+  .mat-column-status .mat-mdc-cell-content,
+  .mat-column-priority .mat-mdc-cell-content {
+    overflow: hidden !important;
+    white-space: normal !important;
+    padding: 0 !important;
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .tasks-table td.mat-column-status,
+  .tasks-table td.mat-column-priority {
+    overflow: hidden !important;
+    padding: 4px 2px !important;
+  }
+
   .status-chip,
   .priority-chip {
     font-size: 9px;
-    padding: 2px 6px;
-    min-width: 40px;
+    padding: 2px 4px;
+    min-width: auto;
     max-width: 100%;
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    box-sizing: border-box;
+    text-align: center;
+    display: inline-block;
+  }
+
+  .mat-mdc-cell.mat-column-projectName,
+  .mat-mdc-cell.mat-column-taskName {
+    overflow: hidden !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+    min-width: 0 !important;
+  }
+
+  .mat-mdc-cell.mat-column-projectName .mat-mdc-cell-content,
+  .mat-mdc-cell.mat-column-taskName .mat-mdc-cell-content {
+    overflow: hidden !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    display: block !important;
+  }
+
+  .table-clickable {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden !important;
+    white-space: nowrap !important;
+    padding: 6px 8px;
+  }
+
+  .project-cell,
+  .task-cell {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden !important;
+    white-space: nowrap !important;
+  }
+
+  .truncate-text {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    flex: 1 1 auto;
+    display: block;
+    word-wrap: normal !important;
+    word-break: normal !important;
+    overflow-wrap: normal !important;
+  }
+
+  .tasks-table th {
+    overflow: visible !important;
+    white-space: normal !important;
+    text-overflow: clip !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
   }
 
   .tasks-table th,
@@ -868,6 +1093,22 @@
 
   .tasks-table th {
     font-size: 10px;
+  }
+
+  .tasks-table td {
+    overflow: hidden;
+  }
+
+  .mat-column-dueDate {
+    overflow: visible !important;
+    white-space: normal !important;
+    text-overflow: clip !important;
+  }
+
+  .mat-column-dueDate .mat-mdc-cell-content {
+    overflow: visible !important;
+    white-space: normal !important;
+    text-overflow: clip !important;
   }
 
   .period-field ::ng-deep input::placeholder {
