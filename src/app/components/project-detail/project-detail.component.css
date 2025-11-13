@@ -815,7 +815,7 @@ body[data-language="ja"]
   word-break: break-word;
   box-sizing: border-box;
   overflow-x: hidden;
-  overflow-y: visible;
+  overflow-y: hidden;
   min-width: 0;
 }
 
@@ -893,7 +893,7 @@ body[data-language="ja"]
   max-width: 100%;
   box-sizing: border-box;
   overflow-x: hidden;
-  overflow-y: visible;
+  overflow-y: hidden;
   min-width: 0;
 }
 
@@ -2203,7 +2203,7 @@ textarea {
     padding: 16px;
     margin: 16px auto;
     overflow-x: hidden;
-    overflow-y: visible;
+    overflow-y: hidden;
     width: calc(100% - 32px);
     max-width: calc(100% - 32px);
   }
@@ -2211,7 +2211,7 @@ textarea {
   .project-inline-edit-form {
     gap: 12px;
     overflow-x: hidden;
-    overflow-y: visible;
+    overflow-y: hidden;
     width: 100%;
     max-width: 100%;
   }
@@ -2386,7 +2386,7 @@ textarea {
     padding: 12px;
     margin: 12px auto;
     overflow-x: hidden;
-    overflow-y: visible;
+    overflow-y: hidden;
     width: calc(100% - 24px);
     max-width: calc(100% - 24px);
   }
@@ -2394,7 +2394,7 @@ textarea {
   .project-inline-edit-form {
     gap: 10px;
     overflow-x: hidden;
-    overflow-y: visible;
+    overflow-y: hidden;
     width: 100%;
     max-width: 100%;
   }
