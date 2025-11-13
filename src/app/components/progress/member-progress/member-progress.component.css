@@ -183,7 +183,7 @@
 
 .status-row {
   display: grid;
-  grid-template-columns: minmax(0, 72px) minmax(0, 52px) 1fr;
+  grid-template-columns: minmax(0, 120px) minmax(0, 52px) 1fr;
   align-items: center;
   gap: 0 16px;
   padding: 12px 0;
@@ -196,7 +196,7 @@
 }
 
 .members-list.single-column .status-row {
-  grid-template-columns: minmax(0, 72px) minmax(0, 52px) 1fr;
+  grid-template-columns: minmax(0, 120px) minmax(0, 52px) 1fr;
   gap: 0 16px;
   max-width: 100%;
   overflow: hidden;
@@ -212,9 +212,9 @@
   text-align: right;
   padding-right: 8px;
   min-width: 0;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  white-space: normal;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   line-height: 1.4;
 }
 
@@ -477,7 +477,7 @@
   }
 
   .status-row {
-    grid-template-columns: minmax(0, 50px) minmax(45px, auto) 1fr;
+    grid-template-columns: minmax(0, 100px) minmax(45px, auto) 1fr;
     gap: 6px;
     padding: 10px 0;
     max-width: 100%;
@@ -485,7 +485,7 @@
   }
 
   .members-list.single-column .status-row {
-    grid-template-columns: minmax(0, 50px) minmax(45px, auto) 1fr;
+    grid-template-columns: minmax(0, 100px) minmax(45px, auto) 1fr;
     gap: 6px;
     max-width: 100%;
   }
@@ -493,6 +493,9 @@
   .status-label {
     font-size: 14px;
     padding-right: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .status-total {
@@ -596,14 +599,14 @@
   }
 
   .status-row {
-    grid-template-columns: minmax(0, 45px) minmax(40px, auto) 1fr;
+    grid-template-columns: minmax(0, 90px) minmax(40px, auto) 1fr;
     gap: 4px;
     padding: 8px 0;
     overflow: hidden;
   }
 
   .members-list.single-column .status-row {
-    grid-template-columns: minmax(0, 45px) minmax(40px, auto) 1fr;
+    grid-template-columns: minmax(0, 90px) minmax(40px, auto) 1fr;
     gap: 4px;
     max-width: 100%;
   }
@@ -611,6 +614,9 @@
   .status-label {
     font-size: 12px;
     padding-right: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .status-total {
