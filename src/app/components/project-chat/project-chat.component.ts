@@ -62,6 +62,8 @@ export class ProjectChatComponent implements OnInit, OnDestroy {
   @Input() chatTitle: string = 'チャット';
   @Input() members: Member[] = []; // 外部からメンバーを受け取る
   @ViewChild('messageInput', { static: false }) messageInput?: ElementRef;
+  @ViewChild('messagesContainer', { static: false })
+  messagesContainer?: ElementRef;
 
   messages: ChatMessage[] = [];
   newMessage = '';
@@ -157,10 +159,11 @@ export class ProjectChatComponent implements OnInit, OnDestroy {
       this.firestore,
       `projects/${this.projectId}/messages`
     );
-    const q = query(messagesRef, orderBy('createdAt', 'asc'));
+    // 新しい順に取得（最新が先頭）
+    const q = query(messagesRef, orderBy('createdAt', 'desc'));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      this.messages = snapshot.docs.map((doc) => {
+      const loadedMessages = snapshot.docs.map((doc) => {
         const data = doc.data();
         // FirestoreのTimestampオブジェクトをDateオブジェクトに変換
         let timestamp: Date | null = null;
@@ -184,7 +187,11 @@ export class ProjectChatComponent implements OnInit, OnDestroy {
           timestamp: timestamp || new Date(),
         } as ChatMessage;
       });
+      // 表示時は古い順に並び替え（最新が下に来るように）
+      this.messages = loadedMessages.reverse();
       this.loading = false;
+      // 最新メッセージにスクロール
+      this.scrollToBottom();
     });
 
     this.destroy$.subscribe(() => unsubscribe());
@@ -221,6 +228,8 @@ export class ProjectChatComponent implements OnInit, OnDestroy {
 
       this.newMessage = '';
       this.showMentionCandidates = false;
+      // メッセージ送信後、最新メッセージにスクロール
+      setTimeout(() => this.scrollToBottom(), 100);
     } catch (error) {
       console.error('メッセージ送信エラー:', error);
     }
@@ -401,6 +410,17 @@ export class ProjectChatComponent implements OnInit, OnDestroy {
     return member
       ? member.displayName || member.name || member.email || uid
       : uid;
+  }
+
+  private scrollToBottom(): void {
+    if (this.messagesContainer) {
+      setTimeout(() => {
+        const container = this.messagesContainer?.nativeElement;
+        if (container) {
+          container.scrollTop = container.scrollHeight;
+        }
+      }, 0);
+    }
   }
 
   formatTime(timestamp: any): string {

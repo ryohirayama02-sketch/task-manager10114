@@ -4,11 +4,11 @@
   <!-- ローディング表示 -->
   <div *ngIf="loading" class="loading-container">
     <mat-spinner diameter="30"></mat-spinner>
-    <p>{{ 'projectChat.loading' | translate }}</p>
+    <p>{{ "projectChat.loading" | translate }}</p>
   </div>
 
   <!-- メッセージ一覧 -->
-  <div *ngIf="!loading" class="messages-container">
+  <div *ngIf="!loading" class="messages-container" #messagesContainer>
     <div
       *ngFor="let message of messages"
       class="message-item"
@@ -23,14 +23,16 @@
           {{ message.content }}
         </span>
         <ng-container *ngIf="message.mentions && message.mentions.length > 0">
-          <span [innerHTML]="highlightMentions(message.content, message.mentions)"></span>
+          <span
+            [innerHTML]="highlightMentions(message.content, message.mentions)"
+          ></span>
         </ng-container>
       </div>
     </div>
 
     <!-- メッセージが空の場合 -->
     <div *ngIf="messages.length === 0" class="no-messages">
-      <p>{{ 'projectChat.noMessages' | translate }}</p>
+      <p>{{ "projectChat.noMessages" | translate }}</p>
     </div>
   </div>
 
@@ -78,7 +80,7 @@
         class="send-button"
       >
         <mat-icon>send</mat-icon>
-        {{ 'projectChat.send' | translate }}
+        {{ "projectChat.send" | translate }}
       </button>
     </div>
   </div>
