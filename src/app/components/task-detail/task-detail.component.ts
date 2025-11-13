@@ -1950,13 +1950,10 @@ export class TaskDetailComponent implements OnInit {
     });
 
     // メンバー管理画面のメンバー一覧からも取得（最新の名前を確実に含める）
+    // IDベースで判断するため、メンバー名をカンマ区切りで分割する必要はない
     this.projectMembers.forEach((member) => {
       if (member.name) {
-        const names = member.name
-          .split(',')
-          .map((n) => n.trim())
-          .filter((n) => n.length > 0);
-        names.forEach((name) => assigneeSet.add(name));
+        assigneeSet.add(member.name);
       }
     });
 

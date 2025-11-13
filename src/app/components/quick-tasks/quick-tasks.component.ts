@@ -113,12 +113,18 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
 
     // メンバー一覧が読み込まれていることを確認
     if (this.members.length === 0) {
-      console.warn('⚠️ メンバー一覧がまだ読み込まれていません。タスク取得を待機します...');
+      console.warn(
+        '⚠️ メンバー一覧がまだ読み込まれていません。タスク取得を待機します...'
+      );
       // メンバー一覧の読み込みを待つ
       this.memberService.getMembers().subscribe({
         next: (members) => {
           this.members = members;
-          console.log('メンバー一覧を読み込みました（タスク取得前）:', members.length, '件');
+          console.log(
+            'メンバー一覧を読み込みました（タスク取得前）:',
+            members.length,
+            '件'
+          );
           // メンバー一覧が読み込まれたらタスクを取得
           this.loadTasksAfterMembersLoaded(userEmail, memberName);
         },
@@ -135,7 +141,10 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
   }
 
   /** メンバー一覧読み込み後のタスク取得 */
-  private loadTasksAfterMembersLoaded(userEmail: string, memberName: string | undefined) {
+  private loadTasksAfterMembersLoaded(
+    userEmail: string,
+    memberName: string | undefined
+  ) {
     this.taskService
       .getQuickTasks(this.daysFilter, userEmail, memberName)
       .pipe(takeUntil(this.destroy$))
@@ -154,16 +163,16 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
             // まず期日でソート
             if (a.dueDate < b.dueDate) return -1;
             if (a.dueDate > b.dueDate) return 1;
-            
+
             // 期日が同じ場合は優先度でソート（高、中、低の順）
             const priorityOrder: { [key: string]: number } = {
-              '高': 1,
-              '中': 2,
-              '低': 3,
+              高: 1,
+              中: 2,
+              低: 3,
             };
             const priorityA = priorityOrder[a.priority] || 999;
             const priorityB = priorityOrder[b.priority] || 999;
-            
+
             return priorityA - priorityB;
           });
           this.filteredTasks = [...this.tasks];
@@ -247,11 +256,11 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
   /** 🧮 期日までの日数 */
   getDaysUntilDue(dueDate: string): number {
     if (!dueDate) return 0;
-    
+
     // 今日の日付をローカルタイムゾーンで取得（時刻を00:00:00に設定）
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     // 期日をローカルタイムゾーンで取得
     let due: Date;
     if (typeof dueDate === 'string') {
@@ -264,7 +273,7 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
       due = new Date(dueDate);
       due.setHours(0, 0, 0, 0);
     }
-    
+
     // 日数の差分を計算（ミリ秒→日数）
     const diff = due.getTime() - today.getTime();
     return Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -333,35 +342,40 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
     // assignedMembers がある場合はそれを使用
     if (task.assignedMembers && task.assignedMembers.length > 0) {
       // デバッグ: assignedMembersとmembersの内容を確認
-      console.log('🔍 [QuickTasks getTaskAssigneeDisplay] タスク:', task.taskName);
+      console.log(
+        '🔍 [QuickTasks getTaskAssigneeDisplay] タスク:',
+        task.taskName
+      );
       console.log('   - assignedMembers:', task.assignedMembers);
       console.log('   - this.members.length:', this.members.length);
-      console.log('   - this.membersのID一覧:', this.members.map(m => ({ id: m.id, name: m.name })));
+      console.log(
+        '   - this.membersのID一覧:',
+        this.members.map((m) => ({ id: m.id, name: m.name }))
+      );
 
       // 各assignedMembersのIDがmembersに存在するか確認
       task.assignedMembers.forEach((memberId, index) => {
         const member = this.members.find((m) => m.id === memberId);
-        
+
         console.log(
           `   - assignedMembers[${index}]: ${memberId} → ${
             member ? `${member.name} (id: ${member.id})` : '(見つからない)'
           }`
         );
-        
+
         if (member && member.name) {
-          // メンバーが見つかった場合、名前を追加（カンマ区切りの場合も分割）
-          const names = member.name
-            .split(',')
-            .map((n) => n.trim())
-            .filter((n) => n.length > 0);
-          displayNames.push(...names);
+          // メンバーが見つかった場合、名前を追加（IDベースで1人として扱う）
+          displayNames.push(member.name);
           foundMemberIds.add(memberId);
           console.log(`   ✅ メンバー "${member.name}" を追加しました`);
         } else {
           // メンバーが見つからない場合、デバッグ情報を出力
           console.warn(`⚠️ メンバーID "${memberId}" が見つかりません`);
-          console.warn(`   - 検索対象のメンバーID一覧:`, this.members.map(m => m.id));
-          
+          console.warn(
+            `   - 検索対象のメンバーID一覧:`,
+            this.members.map((m) => m.id)
+          );
+
           // メンバーが見つからない場合でも、assigneeから補完を試みる
           // （ただし、assigneeが無効な値の場合はスキップ）
         }
@@ -371,22 +385,27 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
       const notFoundMemberIds = task.assignedMembers.filter(
         (id) => !foundMemberIds.has(id)
       );
-      
+
       if (notFoundMemberIds.length > 0) {
-        console.log('   - assignedMembersから取得できなかったID:', notFoundMemberIds);
+        console.log(
+          '   - assignedMembersから取得できなかったID:',
+          notFoundMemberIds
+        );
         console.log('   - assignee:', task.assignee);
-        
+
         // assigneeがある場合、それを補完として使用
         if (task.assignee) {
           const assigneeNames = task.assignee
             .split(',')
             .map((n) => n.trim())
             .filter((n) => n.length > 0 && n !== '33333333333333333333'); // 明らかに無効な値は除外
-          
+
           // assigneeの名前で、まだ表示されていないものを追加
           assigneeNames.forEach((name) => {
             // 既に表示されている名前と重複していない場合のみ追加
-            if (!displayNames.some((n) => n.toLowerCase() === name.toLowerCase())) {
+            if (
+              !displayNames.some((n) => n.toLowerCase() === name.toLowerCase())
+            ) {
               displayNames.push(name);
             }
           });

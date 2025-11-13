@@ -187,20 +187,15 @@ export class MemberDetailComponent implements OnInit {
         assignees.push(...assigneeNames);
       }
 
-      // assignedMembers からメンバー名を取得
+      // assignedMembers からメンバー名を取得（IDベースで判断）
       if (task.assignedMembers && task.assignedMembers.length > 0) {
         task.assignedMembers.forEach((memberId) => {
           // メンバーIDからメンバー名を取得
           const member = this.allMembers.find((m) => m.id === memberId);
-          const memberName = member ? member.name : memberId;
-
-          // メンバー名がカンマ区切りの場合も分割
-          const names = memberName
-            .split(',')
-            .map((n) => n.trim())
-            .filter((n) => n.length > 0);
-
-          assignees.push(...names);
+          if (member && member.name) {
+            // IDベースで1人として扱う（メンバー名にカンマは含まれない）
+            assignees.push(member.name);
+          }
         });
       }
 
