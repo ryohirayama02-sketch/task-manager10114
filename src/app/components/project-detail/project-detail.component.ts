@@ -1332,6 +1332,16 @@ export class ProjectDetailComponent implements OnInit {
   }
 
   addMilestone(): void {
+    if (this.editableMilestones.length >= 3) {
+      this.snackBar.open(
+        this.languageService.translate('projectDetail.maxMilestonesReached'),
+        'Close',
+        {
+          duration: 3000,
+        }
+      );
+      return;
+    }
     this.editableMilestones.push({
       id: this.generateId(),
       name: '',

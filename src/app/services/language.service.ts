@@ -848,6 +848,10 @@ export class LanguageService {
       ja: 'マイルストーンを追加',
       en: 'Add Milestone',
     },
+    'projectDetail.maxMilestonesReached': {
+      ja: 'マイルストーンは1プロジェクトあたり3つまで追加できます',
+      en: 'You can add up to 3 milestones per project',
+    },
     'projectDetail.themeColor': {
       ja: 'プロジェクトカラー',
       en: 'Project Color',
@@ -1537,6 +1541,10 @@ export class LanguageService {
     'projectForm.addMilestone': {
       ja: 'マイルストーンを追加',
       en: 'Add Milestone',
+    },
+    'projectForm.maxMilestonesReached': {
+      ja: 'マイルストーンは1プロジェクトあたり3つまで追加できます',
+      en: 'You can add up to 3 milestones per project',
     },
     'projectForm.attachments': { ja: '資料', en: 'Attachments' },
     'projectForm.attachmentHelper': {

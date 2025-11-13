@@ -1019,6 +1019,16 @@ export class ProjectFormComponent implements OnInit {
    * マイルストーンを追加
    */
   addMilestone(): void {
+    if (this.milestones.length >= 3) {
+      this.snackBar.open(
+        this.languageService.translate('projectForm.maxMilestonesReached'),
+        'Close',
+        {
+          duration: 3000,
+        }
+      );
+      return;
+    }
     this.milestones.push(
       this.fb.group({
         id: [this.generateId()],
