@@ -128,6 +128,8 @@ export class CalendarComponent implements OnInit, OnDestroy {
   tooltipPosition: { x: number; y: number } = { x: 0, y: 0 };
   tooltipMilestones: any[] = [];
   @ViewChild('tooltip', { static: false }) tooltipElement?: ElementRef;
+  private tooltipClickOutsideListener?: (event: Event) => void;
+  private isTouchDevice: boolean = false;
 
   constructor(
     private projectService: ProjectService,
@@ -141,6 +143,10 @@ export class CalendarComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    // タッチデバイスかどうかを判定
+    this.isTouchDevice =
+      'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
     // メンバー一覧を読み込み
     this.memberManagementService.getMembers().subscribe({
       next: (members) => {
@@ -672,6 +678,10 @@ export class CalendarComponent implements OnInit, OnDestroy {
     if (!milestones || milestones.length === 0) {
       return;
     }
+    // 既に表示されている場合は一旦閉じる（新しい位置で表示するため）
+    if (this.tooltipVisible) {
+      this.tooltipVisible = false;
+    }
     this.tooltipMilestones = milestones;
 
     // 初期位置を設定
@@ -776,6 +786,102 @@ export class CalendarComponent implements OnInit, OnDestroy {
   hideMilestoneTooltip() {
     this.tooltipVisible = false;
     this.tooltipMilestones = [];
+    this.removeTooltipClickOutsideListener();
+  }
+
+  /** マイルストーンツールチップの表示/非表示を切り替え（スマホ対応） */
+  toggleMilestoneTooltip(event: MouseEvent | TouchEvent, milestones: any[]) {
+    event.stopPropagation(); // 親要素のクリックイベントを防ぐ
+    event.preventDefault(); // デフォルトの動作を防ぐ
+
+    // 既に同じマイルストーンのツールチップが表示されている場合は閉じる
+    if (this.tooltipVisible && this.tooltipMilestones === milestones) {
+      this.hideMilestoneTooltip();
+      return;
+    }
+
+    // ツールチップを表示
+    const mouseEvent =
+      event instanceof MouseEvent ? event : this.touchToMouseEvent(event);
+    this.showMilestoneTooltip(mouseEvent, milestones);
+    // ツールチップ外をクリックしたときに閉じるリスナーを設定
+    this.setupTooltipClickOutsideListener();
+  }
+
+  /** TouchEventをMouseEventに変換 */
+  private touchToMouseEvent(event: TouchEvent): MouseEvent {
+    const touch = event.touches[0] || event.changedTouches[0];
+    return {
+      clientX: touch.clientX,
+      clientY: touch.clientY,
+    } as MouseEvent;
+  }
+
+  /** ツールチップ外をクリックしたときに閉じるリスナーを設定 */
+  private setupTooltipClickOutsideListener(): void {
+    // 既存のリスナーを削除
+    this.removeTooltipClickOutsideListener();
+
+    // 新しいリスナーを設定（次のイベントループで実行）
+    setTimeout(() => {
+      this.tooltipClickOutsideListener = (event: Event) => {
+        const target = event.target as HTMLElement;
+        // ツールチップ内またはマイルストーンフラッグをクリックした場合は何もしない
+        if (
+          this.tooltipElement?.nativeElement?.contains(target) ||
+          target.closest('.milestone-flag')
+        ) {
+          return;
+        }
+        // ツールチップ外をクリックした場合は閉じる
+        this.hideMilestoneTooltip();
+      };
+      document.addEventListener(
+        'click',
+        this.tooltipClickOutsideListener,
+        true
+      );
+      document.addEventListener(
+        'touchend',
+        this.tooltipClickOutsideListener,
+        true
+      );
+    }, 0);
+  }
+
+  /** ツールチップ外クリックリスナーを削除 */
+  private removeTooltipClickOutsideListener(): void {
+    if (this.tooltipClickOutsideListener) {
+      document.removeEventListener(
+        'click',
+        this.tooltipClickOutsideListener,
+        true
+      );
+      document.removeEventListener(
+        'touchend',
+        this.tooltipClickOutsideListener,
+        true
+      );
+      this.tooltipClickOutsideListener = undefined;
+    }
+  }
+
+  /** マウスエンター時の処理（タッチデバイスでは無視） */
+  onMilestoneMouseEnter(event: MouseEvent, milestones: any[]): void {
+    // タッチデバイスではマウスイベントを無視（クリックイベントで処理）
+    if (this.isTouchDevice) {
+      return;
+    }
+    this.showMilestoneTooltip(event, milestones);
+  }
+
+  /** マウスリーブ時の処理（タッチデバイスでは無視） */
+  onMilestoneMouseLeave(): void {
+    // タッチデバイスではマウスイベントを無視（クリックイベントで処理）
+    if (this.isTouchDevice) {
+      return;
+    }
+    this.hideMilestoneTooltip();
   }
 
   /** オフライン時のタスク追加ダイアログを開く */

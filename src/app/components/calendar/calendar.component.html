@@ -218,8 +218,9 @@
           <div
             *ngIf="milestones.length > 0"
             class="milestone-flag"
-            (mouseenter)="showMilestoneTooltip($event, milestones)"
-            (mouseleave)="hideMilestoneTooltip()"
+            (mouseenter)="onMilestoneMouseEnter($event, milestones)"
+            (mouseleave)="onMilestoneMouseLeave()"
+            (click)="toggleMilestoneTooltip($event, milestones)"
           >
             🚩
           </div>
