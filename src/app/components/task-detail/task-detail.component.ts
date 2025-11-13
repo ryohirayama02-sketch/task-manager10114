@@ -543,8 +543,14 @@ export class TaskDetailComponent implements OnInit {
   }
 
   getMemberNameById(memberId: string): string {
-    const member = this.projectMembers.find((m) => m.id === memberId);
-    return member ? member.name : memberId;
+    // まずprojectMembersから検索
+    let member = this.projectMembers.find((m) => m.id === memberId);
+    // 見つからない場合は全メンバーから検索
+    if (!member) {
+      member = this.members.find((m) => m.id === memberId);
+    }
+    // メンバーが見つかった場合は名前を返す、見つからない場合は「（不明）」を返す
+    return member ? member.name : '（不明）';
   }
 
   /**
