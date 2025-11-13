@@ -183,22 +183,24 @@
 
 .status-row {
   display: grid;
-  grid-template-columns: minmax(0, 120px) minmax(0, 52px) 1fr;
+  grid-template-columns: minmax(0, 120px) minmax(0, 52px) auto;
   align-items: center;
-  gap: 0 16px;
+  gap: 0 8px;
   padding: 12px 0;
   border-bottom: 1px solid #d0d0d0;
-  width: 100%;
+  width: fit-content;
   max-width: 100%;
-  margin: 0;
+  margin: 0 auto;
   box-sizing: border-box;
   overflow: hidden;
 }
 
 .members-list.single-column .status-row {
-  grid-template-columns: minmax(0, 120px) minmax(0, 52px) 1fr;
-  gap: 0 16px;
+  grid-template-columns: minmax(0, 120px) minmax(0, 52px) auto;
+  gap: 0 8px;
+  width: fit-content;
   max-width: 100%;
+  margin: 0 auto;
   overflow: hidden;
 }
 
@@ -210,7 +212,7 @@
   font-weight: 600;
   font-size: 18px;
   text-align: right;
-  padding-right: 8px;
+  padding-right: 4px;
   min-width: 0;
   white-space: nowrap;
   overflow: hidden;
@@ -267,7 +269,6 @@
 .priority-details {
   display: flex;
   gap: 20px;
-  flex: 1;
   justify-content: center;
   align-items: center;
   min-width: 0;
@@ -291,6 +292,7 @@
 .priority-row .priority-details {
   gap: 20px;
   justify-content: center;
+  padding-left: 0;
 }
 
 .priority-item {
