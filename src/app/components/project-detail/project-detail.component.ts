@@ -1967,15 +1967,31 @@ export class ProjectDetailComponent implements OnInit {
       this.languageService.translate('projectDetail.csv.header.startDate'),
       this.languageService.translate('projectDetail.csv.header.description'),
     ];
-    const rows = this.filteredTasks.map((task) => [
-      task.taskName,
-      task.status,
-      task.dueDate,
-      task.priority,
-      task.assignee,
-      task.startDate,
-      task.description || '',
-    ]);
+    const rows = this.filteredTasks.map((task) => {
+      // 担当者名を取得（assignedMembersから複数名を取得）
+      let assigneeDisplay = '';
+      if (task.assignedMembers && task.assignedMembers.length > 0) {
+        assigneeDisplay = getMemberNamesAsString(
+          task.assignedMembers,
+          this.members,
+          ', ',
+          this.languageService
+        );
+      } else if (task.assignee) {
+        // assignedMembersがない場合はassigneeを使用（後方互換性）
+        assigneeDisplay = task.assignee;
+      }
+
+      return [
+        task.taskName,
+        task.status,
+        task.dueDate,
+        task.priority,
+        assigneeDisplay,
+        task.startDate,
+        task.description || '',
+      ];
+    });
 
     const csvContent = [headers, ...rows]
       .map((row) => row.map((field) => `"${field}"`).join(','))
