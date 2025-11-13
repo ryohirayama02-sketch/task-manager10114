@@ -1577,8 +1577,8 @@ export class LanguageService {
     },
     'projectForm.themeColor': { ja: 'テーマ色', en: 'Theme Color' },
     'projectForm.themeColorHelper': {
-      ja: 'プロジェクトのカードやタスクに反映されます',
-      en: 'Applies to project cards and tasks',
+      ja: 'プロジェクトやタスクのカードに反映されます',
+      en: 'Applies to project and task cards',
     },
     'projectForm.noColor': { ja: 'なし', en: 'None' },
     'projectForm.required': { ja: '（入力必須）', en: '(Required)' },
