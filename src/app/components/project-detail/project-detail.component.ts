@@ -102,18 +102,18 @@ export class ProjectDetailComponent implements OnInit {
   editableThemeColor: string | null = DEFAULT_PROJECT_THEME_COLOR;
   readonly themeColors = PROJECT_THEME_COLORS;
 
-  // プロジェクトテーマカラーの16進表記から色名へのマッピング
+  // プロジェクトテーマカラーの16進表記から色名へのマッピング（翻訳キー）
   private readonly themeColorLabelMap: Record<string, string> = {
-    '#fde4ec': 'ピンク',
-    '#ffe6dc': 'ピーチ',
-    '#ffedd6': 'アプリコット',
-    '#fff8e4': 'イエロー',
-    '#eef6da': 'ライム',
-    '#e4f4e8': 'ミント',
-    '#dcf3f0': 'ブルーグリーン',
-    '#def3ff': 'スカイブルー',
-    '#e6e9f9': 'ラベンダーブルー',
-    '#ece6f8': 'パープル',
+    '#fde4ec': 'projectForm.themeColor.pink',
+    '#ffe6dc': 'projectForm.themeColor.peach',
+    '#ffedd6': 'projectForm.themeColor.apricot',
+    '#fff8e4': 'projectForm.themeColor.yellow',
+    '#eef6da': 'projectForm.themeColor.lime',
+    '#e4f4e8': 'projectForm.themeColor.mint',
+    '#dcf3f0': 'projectForm.themeColor.blueGreen',
+    '#def3ff': 'projectForm.themeColor.skyBlue',
+    '#e6e9f9': 'projectForm.themeColor.lavenderBlue',
+    '#ece6f8': 'projectForm.themeColor.purple',
   };
   editableMilestones: Milestone[] = [];
   editableAttachments: ProjectAttachment[] = [];
@@ -2078,7 +2078,11 @@ export class ProjectDetailComponent implements OnInit {
 
   /** プロジェクトテーマカラーの16進表記を色名に変換 */
   getThemeColorLabel(color: string): string {
-    return this.themeColorLabelMap[color] ?? color;
+    const translationKey = this.themeColorLabelMap[color];
+    if (translationKey) {
+      return this.languageService.translate(translationKey);
+    }
+    return color;
   }
 
   /** テーマ色を選択 */
