@@ -30,10 +30,33 @@
 
   .header-actions {
     width: 100%;
+    flex-direction: column;
+    gap: 12px;
   }
 
   .sort-filter {
     width: 100%;
+  }
+
+  .create-project-wrapper {
+    width: 100%;
+  }
+
+  .create-project-wrapper button {
+    width: 100%;
+    max-width: 100%;
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+
+  .create-project-wrapper button ::ng-deep .mat-button-wrapper,
+  .create-project-wrapper button ::ng-deep .mat-raised-button-wrapper {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .create-project-wrapper button ::ng-deep span:not(.mat-icon) {
+    max-width: calc(100% - 24px); /* アイコンの幅を考慮 */
   }
 }
 
@@ -48,6 +71,35 @@
   flex-direction: column;
   gap: 4px;
   align-items: flex-start;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.create-project-wrapper button {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.create-project-wrapper button ::ng-deep .mat-button-wrapper,
+.create-project-wrapper button ::ng-deep .mat-raised-button-wrapper {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.create-project-wrapper button ::ng-deep span:not(.mat-icon) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .member-required-message {

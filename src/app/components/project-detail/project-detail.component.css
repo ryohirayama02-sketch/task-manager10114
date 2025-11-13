@@ -813,6 +813,10 @@ body[data-language="ja"]
   overflow-wrap: break-word;
   word-wrap: break-word;
   word-break: break-word;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  overflow-y: visible;
+  min-width: 0;
 }
 
 .project-toolbar {
@@ -885,10 +889,52 @@ body[data-language="ja"]
 .project-inline-edit-form {
   display: grid;
   gap: 16px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  overflow-y: visible;
+  min-width: 0;
 }
 
 .project-inline-edit-form mat-form-field {
   display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.project-inline-edit-form mat-form-field ::ng-deep .mat-mdc-text-field-wrapper {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.project-inline-edit-form mat-form-field ::ng-deep .mat-mdc-form-field-flex {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.project-inline-edit-form mat-form-field ::ng-deep .mat-mdc-form-field-infix {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.project-inline-edit-form mat-form-field ::ng-deep input,
+.project-inline-edit-form mat-form-field ::ng-deep textarea {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.project-inline-edit-form mat-form-field ::ng-deep .mat-mdc-select {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .project-inline-edit-form .mat-mdc-form-field-flex {
@@ -926,11 +972,40 @@ body[data-language="ja"]
   display: grid;
   gap: 16px;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .full-width-field,
 .date-field {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.full-width-field ::ng-deep .mat-mdc-text-field-wrapper,
+.date-field ::ng-deep .mat-mdc-text-field-wrapper {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.full-width-field ::ng-deep .mat-mdc-form-field-flex,
+.date-field ::ng-deep .mat-mdc-form-field-flex {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.full-width-field ::ng-deep .mat-mdc-form-field-infix,
+.date-field ::ng-deep .mat-mdc-form-field-infix {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
 }
 
 .required-hint {
@@ -1066,6 +1141,9 @@ body[data-language="ja"]
   display: flex;
   flex-direction: column;
   gap: 12px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .attachment-actions {
@@ -1073,11 +1151,14 @@ body[data-language="ja"]
   flex-wrap: wrap;
   gap: 12px;
   align-items: flex-end;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .url-input-field {
   flex: 1 1 200px;
   min-width: 200px;
+  max-width: 100%;
 }
 
 .pending-files {
@@ -1201,6 +1282,8 @@ body[data-language="ja"]
   gap: 12px;
   flex-wrap: wrap;
   align-items: center;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .theme-color-option {
@@ -1270,6 +1353,10 @@ body[data-language="ja"]
   display: flex;
   flex-direction: column;
   gap: 12px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .inline-milestones h4 {
@@ -1281,10 +1368,57 @@ body[data-language="ja"]
   display: flex;
   flex-direction: column;
   gap: 12px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .inline-milestones .milestone-item {
+  display: flex;
   align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  flex-wrap: wrap;
+}
+
+.inline-milestones .milestone-date {
+  flex: 1 1 200px;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.inline-milestones .milestone-name {
+  flex: 1 1 200px;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.inline-milestones .milestone-date ::ng-deep .mat-mdc-text-field-wrapper,
+.inline-milestones .milestone-name ::ng-deep .mat-mdc-text-field-wrapper {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.inline-milestones .milestone-date ::ng-deep .mat-mdc-form-field-flex,
+.inline-milestones .milestone-name ::ng-deep .mat-mdc-form-field-flex {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.inline-milestones .milestone-date ::ng-deep .mat-mdc-form-field-infix,
+.inline-milestones .milestone-name ::ng-deep .mat-mdc-form-field-infix {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
 }
 
 .inline-milestones .milestone-date-field {
@@ -1411,12 +1545,18 @@ body[data-language="ja"]
   overflow-wrap: break-word;
   word-wrap: break-word;
   word-break: break-word;
+  width: 100%;
+  box-sizing: border-box;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
 .project-info {
   flex: 1;
   margin-right: 20px;
   min-width: 0; /* flexboxで改行を有効にする */
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .project-info-display {
@@ -1517,6 +1657,14 @@ body[data-language="ja"]
   align-items: center;
   justify-content: center;
   margin-top: 24px;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.progress-section ::ng-deep app-progress-circle,
+.progress-section ::ng-deep svg {
+  max-width: 100%;
+  height: auto;
 }
 
 .project-actions {
@@ -1976,4 +2124,305 @@ textarea {
 .no-tasks p {
   margin: 0 0 20px 0;
   font-size: 16px;
+}
+
+/* スマホ画面での編集モード対応 */
+@media (max-width: 768px) {
+  .project-card {
+    padding: 16px;
+    margin: 16px auto;
+    overflow-x: hidden;
+    overflow-y: visible;
+    width: calc(100% - 32px);
+    max-width: calc(100% - 32px);
+  }
+
+  .project-inline-edit-form {
+    gap: 12px;
+    overflow-x: hidden;
+    overflow-y: visible;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .project-inline-edit-form
+    mat-form-field
+    ::ng-deep
+    .mat-mdc-text-field-wrapper,
+  .project-inline-edit-form mat-form-field ::ng-deep .mat-mdc-form-field-flex,
+  .project-inline-edit-form mat-form-field ::ng-deep .mat-mdc-form-field-infix {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .project-inline-edit-form mat-form-field ::ng-deep input,
+  .project-inline-edit-form mat-form-field ::ng-deep textarea,
+  .project-inline-edit-form mat-form-field ::ng-deep .mat-mdc-select {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .inline-date-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .attachment-actions {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .url-input-field {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .theme-color-selector {
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .theme-color-option {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+  }
+
+  .selected-members-chips {
+    width: 100%;
+    min-width: 0;
+    overflow-x: visible;
+    overflow-y: visible;
+  }
+
+  .selected-members-chips mat-chip-set {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .selected-members-chips mat-chip {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .project-inline-edit-form mat-form-field {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .full-width-field,
+  .date-field {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .full-width-field ::ng-deep .mat-mdc-text-field-wrapper,
+  .date-field ::ng-deep .mat-mdc-text-field-wrapper,
+  .full-width-field ::ng-deep .mat-mdc-form-field-flex,
+  .date-field ::ng-deep .mat-mdc-form-field-flex,
+  .full-width-field ::ng-deep .mat-mdc-form-field-infix,
+  .date-field ::ng-deep .mat-mdc-form-field-infix {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .inline-attachments {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .member-selection {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .inline-milestones {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .inline-milestones .milestone-item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .inline-milestones .milestone-date,
+  .inline-milestones .milestone-name {
+    flex: 1 1 auto;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .inline-milestones .milestone-date ::ng-deep .mat-mdc-text-field-wrapper,
+  .inline-milestones .milestone-name ::ng-deep .mat-mdc-text-field-wrapper,
+  .inline-milestones .milestone-date ::ng-deep .mat-mdc-form-field-flex,
+  .inline-milestones .milestone-name ::ng-deep .mat-mdc-form-field-flex,
+  .inline-milestones .milestone-date ::ng-deep .mat-mdc-form-field-infix,
+  .inline-milestones .milestone-name ::ng-deep .mat-mdc-form-field-infix {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .project-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+
+  .project-info {
+    margin-right: 0;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .progress-section {
+    width: 100%;
+    max-width: 100%;
+    margin-top: 0;
+    justify-content: center;
+  }
+
+  .progress-section ::ng-deep app-progress-circle,
+  .progress-section ::ng-deep svg {
+    max-width: 200px;
+    max-height: 200px;
+  }
+}
+
+@media (max-width: 480px) {
+  .project-card {
+    padding: 12px;
+    margin: 12px auto;
+    overflow-x: hidden;
+    overflow-y: visible;
+    width: calc(100% - 24px);
+    max-width: calc(100% - 24px);
+  }
+
+  .project-inline-edit-form {
+    gap: 10px;
+    overflow-x: hidden;
+    overflow-y: visible;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .inline-date-row {
+    gap: 10px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .attachment-actions {
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .theme-color-selector {
+    gap: 6px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .theme-color-option {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+  }
+
+  .project-inline-edit-form mat-form-field {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .full-width-field,
+  .date-field {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .full-width-field ::ng-deep .mat-mdc-text-field-wrapper,
+  .date-field ::ng-deep .mat-mdc-text-field-wrapper,
+  .full-width-field ::ng-deep .mat-mdc-form-field-flex,
+  .date-field ::ng-deep .mat-mdc-form-field-flex,
+  .full-width-field ::ng-deep .mat-mdc-form-field-infix,
+  .date-field ::ng-deep .mat-mdc-form-field-infix {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .inline-milestones .milestone-item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .inline-milestones .milestone-date,
+  .inline-milestones .milestone-name {
+    flex: 1 1 auto;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .inline-milestones .milestone-date ::ng-deep .mat-mdc-text-field-wrapper,
+  .inline-milestones .milestone-name ::ng-deep .mat-mdc-text-field-wrapper,
+  .inline-milestones .milestone-date ::ng-deep .mat-mdc-form-field-flex,
+  .inline-milestones .milestone-name ::ng-deep .mat-mdc-form-field-flex,
+  .inline-milestones .milestone-date ::ng-deep .mat-mdc-form-field-infix,
+  .inline-milestones .milestone-name ::ng-deep .mat-mdc-form-field-infix {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .project-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .project-info {
+    margin-right: 0;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .progress-section {
+    width: 100%;
+    max-width: 100%;
+    margin-top: 0;
+    justify-content: center;
+  }
+
+  .progress-section ::ng-deep app-progress-circle,
+  .progress-section ::ng-deep svg {
+    max-width: 150px;
+    max-height: 150px;
+  }
 }
