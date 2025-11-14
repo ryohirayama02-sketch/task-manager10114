@@ -121,6 +121,7 @@ export class TaskDetailComponent implements OnInit {
   projectMembers: Member[] = [];
   selectedAssignedMemberIds: string[] = [];
   private isReopeningParentTask = false; // 親タスクを再オープン中かどうかのフラグ
+  private allProjectTasks: Task[] = []; // プロジェクトの全タスク（setupChildTasks再実行用）
 
   constructor() {
     // 日付選択範囲を設定（当月±3か月）
@@ -332,6 +333,8 @@ export class TaskDetailComponent implements OnInit {
           ...task,
           projectId: projectId,
         }));
+        // 全タスクを保持（projectMembers読み込み後にsetupChildTasksを再実行するため）
+        this.allProjectTasks = tasksWithProjectId;
         this.task =
           tasksWithProjectId.find((t): t is Task => t.id === taskId) || null;
         console.log('見つかったタスク:', this.task);
@@ -489,6 +492,14 @@ export class TaskDetailComponent implements OnInit {
               members.length,
               '件）'
             );
+
+            // プロジェクトメンバーが読み込まれた後に、子タスクの選択肢を再生成
+            if (this.task?.id && this.allProjectTasks.length > 0) {
+              console.log(
+                'プロジェクトメンバー読み込み完了: 子タスクの選択肢を再生成します'
+              );
+              this.setupChildTasks(this.allProjectTasks, this.task.id);
+            }
 
             // 編集モードがONの場合は、担当者を初期化
             if (this.isEditing) {
@@ -1975,29 +1986,32 @@ export class TaskDetailComponent implements OnInit {
     const assigneeSet = new Set<string>();
 
     // 各タスクの担当者を取得（assignedMembersから最新のメンバー名を取得）
-    children.forEach((task) => {
-      // assignedMembers から取得（メンバーIDからメンバー名に変換）
-      if (
-        Array.isArray(task.assignedMembers) &&
-        task.assignedMembers.length > 0
-      ) {
-        // projectMembersが空の場合は全メンバーから取得
-        const membersToUse =
-          this.projectMembers.length > 0 ? this.projectMembers : this.members;
-        const memberNames = getMemberNames(task.assignedMembers, membersToUse);
-        memberNames.forEach((name) => assigneeSet.add(name));
-      }
-    });
+    // projectMembersが空の場合は選択肢に追加しない（プロジェクトメンバーのみを選択肢にする）
+    if (this.projectMembers.length > 0) {
+      children.forEach((task) => {
+        // assignedMembers から取得（メンバーIDからメンバー名に変換）
+        if (
+          Array.isArray(task.assignedMembers) &&
+          task.assignedMembers.length > 0
+        ) {
+          const memberNames = getMemberNames(
+            task.assignedMembers,
+            this.projectMembers
+          );
+          memberNames.forEach((name) => assigneeSet.add(name));
+        }
+      });
+    }
 
     // プロジェクトのメンバー一覧からも取得（assignedMembersに含まれていないメンバーも選択肢に含める）
-    // projectMembersが空の場合は全メンバーから取得
-    const membersToUse =
-      this.projectMembers.length > 0 ? this.projectMembers : this.members;
-    membersToUse.forEach((member) => {
-      if (member.name) {
-        assigneeSet.add(member.name);
-      }
-    });
+    // projectMembersが空の場合は選択肢に追加しない（プロジェクトメンバーのみを選択肢にする）
+    if (this.projectMembers.length > 0) {
+      this.projectMembers.forEach((member) => {
+        if (member.name) {
+          assigneeSet.add(member.name);
+        }
+      });
+    }
 
     this.childAssigneeOptions = Array.from(assigneeSet).sort();
 
