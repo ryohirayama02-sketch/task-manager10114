@@ -24,7 +24,10 @@ import { MemberManagementService } from '../../services/member-management.servic
 import { Member } from '../../models/member.model';
 import { Observable, forkJoin, of, firstValueFrom } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
-import { getMemberNamesAsString, getMemberNames } from '../../utils/member-utils';
+import {
+  getMemberNamesAsString,
+  getMemberNames,
+} from '../../utils/member-utils';
 
 @Component({
   selector: 'app-kanban',
@@ -133,7 +136,10 @@ export class KanbanComponent implements OnInit {
 
     // 初回起動時（ストレージに保存がない場合）のみ、すべてのプロジェクトを選択
     // ユーザーが意図的にすべてのチェックを外した場合は、空配列のまま保持
-    if (nextSelection.length === 0 && !this.projectSelectionService.hasStoredSelection()) {
+    if (
+      nextSelection.length === 0 &&
+      !this.projectSelectionService.hasStoredSelection()
+    ) {
       // 初回起動時のみ、すべてのプロジェクトを選択
       const allIds = Array.from(availableIds);
       nextSelection = allIds;
@@ -204,6 +210,36 @@ export class KanbanComponent implements OnInit {
   applyFilters() {
     let filteredTasks = [...this.allTasks];
 
+    // 日付範囲フィルター（当月±3か月）
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    const currentMonth = today.getMonth();
+    const minDate = new Date(currentYear, currentMonth - 3, 1);
+    const maxDate = new Date(currentYear, currentMonth + 4, 0); // 3か月後の月末日
+
+    filteredTasks = filteredTasks.filter((task) => {
+      // 開始日または終了日が範囲内にあるタスクのみを表示
+      const startDate = task.startDate ? new Date(task.startDate) : null;
+      const dueDate = task.dueDate ? new Date(task.dueDate) : null;
+
+      // 開始日が範囲内にあるか
+      if (startDate && !isNaN(startDate.getTime())) {
+        if (startDate >= minDate && startDate <= maxDate) {
+          return true;
+        }
+      }
+
+      // 終了日が範囲内にあるか
+      if (dueDate && !isNaN(dueDate.getTime())) {
+        if (dueDate >= minDate && dueDate <= maxDate) {
+          return true;
+        }
+      }
+
+      // 開始日と終了日の両方が範囲外の場合は非表示
+      return false;
+    });
+
     // プロジェクトフィルター
     if (this.selectedProjectIds.length > 0) {
       filteredTasks = filteredTasks.filter((task) =>
@@ -236,8 +272,14 @@ export class KanbanComponent implements OnInit {
         }
 
         // assignedMembers も含める（メンバーIDをメンバー名に変換）
-        if (Array.isArray(task.assignedMembers) && task.assignedMembers.length > 0) {
-          const memberNames = getMemberNames(task.assignedMembers, this.members);
+        if (
+          Array.isArray(task.assignedMembers) &&
+          task.assignedMembers.length > 0
+        ) {
+          const memberNames = getMemberNames(
+            task.assignedMembers,
+            this.members
+          );
           assignees.push(...memberNames);
         }
 
@@ -375,7 +417,9 @@ export class KanbanComponent implements OnInit {
           this.languageService.translateWithParams(
             'kanban.alert.parentTaskStatusChange',
             {
-              taskName: parentTask.taskName || this.languageService.translate('common.nameNotSet'),
+              taskName:
+                parentTask.taskName ||
+                this.languageService.translate('common.nameNotSet'),
             }
           )
         );
@@ -407,7 +451,9 @@ export class KanbanComponent implements OnInit {
       );
 
       if (incompleteChild) {
-        const childName = incompleteChild.taskName || this.languageService.translate('common.nameNotSet');
+        const childName =
+          incompleteChild.taskName ||
+          this.languageService.translate('common.nameNotSet');
         alert(
           this.languageService.translateWithParams(
             'kanban.alert.incompleteSubtask',
@@ -453,7 +499,6 @@ export class KanbanComponent implements OnInit {
     });
   }
 
-
   /** タスク詳細画面を開く */
   openTaskDetail(task: Task) {
     if (task.projectId && task.id) {
@@ -465,9 +510,9 @@ export class KanbanComponent implements OnInit {
   getStatusDisplay(status: string): string {
     const currentLanguage = this.languageService.getCurrentLanguage();
     const statusMap: Record<string, Record<'ja' | 'en', string>> = {
-      '未着手': { ja: '未着手', en: 'Not Started' },
-      '作業中': { ja: '作業中', en: 'In Progress' },
-      '完了': { ja: '完了', en: 'Completed' },
+      未着手: { ja: '未着手', en: 'Not Started' },
+      作業中: { ja: '作業中', en: 'In Progress' },
+      完了: { ja: '完了', en: 'Completed' },
     };
     return statusMap[status]?.[currentLanguage] || status;
   }
@@ -476,9 +521,9 @@ export class KanbanComponent implements OnInit {
   getStatusShortDisplay(status: string): string {
     const currentLanguage = this.languageService.getCurrentLanguage();
     const statusShortMap: Record<string, Record<'ja' | 'en', string>> = {
-      '未着手': { ja: '未', en: 'NS' },
-      '作業中': { ja: '作', en: 'IP' },
-      '完了': { ja: '完', en: 'C' },
+      未着手: { ja: '未', en: 'NS' },
+      作業中: { ja: '作', en: 'IP' },
+      完了: { ja: '完', en: 'C' },
     };
     return statusShortMap[status]?.[currentLanguage] || status.charAt(0);
   }
@@ -487,9 +532,9 @@ export class KanbanComponent implements OnInit {
   getPriorityDisplay(priority: string): string {
     const currentLanguage = this.languageService.getCurrentLanguage();
     const priorityMap: Record<string, Record<'ja' | 'en', string>> = {
-      '高': { ja: '高', en: 'High' },
-      '中': { ja: '中', en: 'Medium' },
-      '低': { ja: '低', en: 'Low' },
+      高: { ja: '高', en: 'High' },
+      中: { ja: '中', en: 'Medium' },
+      低: { ja: '低', en: 'Low' },
     };
     return priorityMap[priority]?.[currentLanguage] || priority;
   }
@@ -529,16 +574,16 @@ export class KanbanComponent implements OnInit {
     if (!task.assignee) {
       return '—';
     }
-    
+
     // assignee がカンマ区切りの場合を考慮
-    const assigneeNames = task.assignee.split(',').map(name => name.trim());
+    const assigneeNames = task.assignee.split(',').map((name) => name.trim());
     const updatedNames = assigneeNames
-      .map(name => {
+      .map((name) => {
         const member = this.members.find((m) => m.name === name);
         return member ? member.name : null;
       })
       .filter((name): name is string => name !== null);
-    
+
     return updatedNames.length > 0 ? updatedNames.join(', ') : '—';
   }
 }

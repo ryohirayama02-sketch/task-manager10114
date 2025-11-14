@@ -32,7 +32,10 @@ import { MemberManagementService } from '../../services/member-management.servic
 import { Member } from '../../models/member.model';
 import { combineLatest, of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
-import { getMemberNamesAsString, getMemberNames } from '../../utils/member-utils';
+import {
+  getMemberNamesAsString,
+  getMemberNames,
+} from '../../utils/member-utils';
 import { LanguageService } from '../../services/language.service';
 
 @Component({
@@ -137,7 +140,8 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('rightPane') rightPane?: ElementRef<HTMLDivElement>;
   @ViewChild('leftHeader') leftHeader?: ElementRef<HTMLDivElement>;
   @ViewChild('rightHeader') rightHeader?: ElementRef<HTMLDivElement>;
-  @ViewChild('timelineContainer') timelineContainer?: ElementRef<HTMLDivElement>;
+  @ViewChild('timelineContainer')
+  timelineContainer?: ElementRef<HTMLDivElement>;
   private isSyncingVerticalScroll = false;
   private headerResizeObserver?: ResizeObserver;
   private pendingHorizontalScroll: number | null = null;
@@ -199,7 +203,7 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
       container.removeEventListener('scroll', this.timelineScrollListener);
     }
     this.timelineScrollListener = undefined;
-    
+
     if (this.windowResizeListener) {
       window.removeEventListener('resize', this.windowResizeListener);
     }
@@ -212,9 +216,17 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private setDefaultDateRange(): void {
+    // 日付選択範囲を設定（当月±3か月）
     const today = new Date();
-    this.startDate = new Date(today.getFullYear(), today.getMonth(), 1);
-    this.endDate = new Date(today.getFullYear(), today.getMonth() + 3, 0);
+    const currentYear = today.getFullYear();
+    const currentMonth = today.getMonth();
+
+    // 3か月前の1日
+    this.startDate = new Date(currentYear, currentMonth - 3, 1);
+
+    // 3か月後の月末日
+    this.endDate = new Date(currentYear, currentMonth + 4, 0); // 翌月の0日 = 今月の月末
+
     this.generateDateRange();
     this.scheduleScrollToDate(today, !this.hasUserHorizontalScrolled);
   }
@@ -288,17 +300,16 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
     const storedSelection =
       this.projectSelectionService.getSelectedProjectIdsSync();
     const availableIds = new Set(
-      projects
-        .map((project) => project.id)
-        .filter((id): id is string => !!id)
+      projects.map((project) => project.id).filter((id): id is string => !!id)
     );
-    let nextSelection = storedSelection.filter((id) =>
-      availableIds.has(id)
-    );
+    let nextSelection = storedSelection.filter((id) => availableIds.has(id));
 
     // 初回起動時（ストレージに保存がない場合）のみ、すべてのプロジェクトを選択
     // ユーザーが意図的にすべてのチェックを外した場合は、空配列のまま保持
-    if (nextSelection.length === 0 && !this.projectSelectionService.hasStoredSelection()) {
+    if (
+      nextSelection.length === 0 &&
+      !this.projectSelectionService.hasStoredSelection()
+    ) {
       // 初回起動時のみ、すべてのプロジェクトを選択
       const allIds = Array.from(availableIds);
       nextSelection = allIds;
@@ -329,8 +340,7 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
               ...task,
               projectId: task.projectId || project.id!,
               projectName: task.projectName || project.projectName,
-              projectThemeColor:
-                task.projectThemeColor || themeColor,
+              projectThemeColor: task.projectThemeColor || themeColor,
             }));
 
             this.allTasks = this.allTasks.filter(
@@ -384,8 +394,8 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // 優先度フィルター
     if (this.filterPriority.length > 0) {
-      filteredTasks = filteredTasks.filter(
-        (task) => this.filterPriority.includes(task.priority)
+      filteredTasks = filteredTasks.filter((task) =>
+        this.filterPriority.includes(task.priority)
       );
     }
 
@@ -404,8 +414,14 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
         }
 
         // assignedMembers も含める（メンバーIDをメンバー名に変換）
-        if (Array.isArray(task.assignedMembers) && task.assignedMembers.length > 0) {
-          const memberNames = getMemberNames(task.assignedMembers, this.members);
+        if (
+          Array.isArray(task.assignedMembers) &&
+          task.assignedMembers.length > 0
+        ) {
+          const memberNames = getMemberNames(
+            task.assignedMembers,
+            this.members
+          );
           assignees.push(...memberNames);
         }
 
@@ -423,8 +439,8 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // ステータスフィルター
     if (this.filterStatus.length > 0) {
-      filteredTasks = filteredTasks.filter(
-        (task) => this.filterStatus.includes(task.status)
+      filteredTasks = filteredTasks.filter((task) =>
+        this.filterStatus.includes(task.status)
       );
     }
 
@@ -700,88 +716,88 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
     this.tooltipMilestones = milestones;
-    
+
     // 初期位置を設定
     const tooltipWidth = 250; // max-width
     const padding = 10;
     const margin = 10;
-    
+
     let x = event.clientX + margin;
     let y = event.clientY - margin;
-    
+
     // ウィンドウの境界を取得
     const windowWidth = window.innerWidth;
     const windowHeight = window.innerHeight;
-    
+
     // 右側にはみ出る場合は左側に表示
     if (x + tooltipWidth > windowWidth - padding) {
       x = event.clientX - tooltipWidth - margin;
     }
-    
+
     // 左側にはみ出る場合は右側に表示（最小限のマージンを確保）
     if (x < padding) {
       x = padding;
     }
-    
+
     // 高さは後で調整するため、まずは上方向に配置
     // マイルストーンの数から高さを推定（1項目あたり約60px、ヘッダー約40px）
     const estimatedHeight = 40 + milestones.length * 60;
-    
+
     // 下側にはみ出る場合は上側に表示
     if (y + estimatedHeight > windowHeight - padding) {
       y = event.clientY - estimatedHeight - margin;
     }
-    
+
     // 上側にはみ出る場合は下側に表示
     if (y < padding) {
       y = event.clientY + margin;
     }
-    
+
     this.tooltipPosition = { x, y };
     this.tooltipVisible = true;
-    
+
     // DOMが更新された後に実際のサイズで再調整
     setTimeout(() => {
       this.adjustTooltipPosition(event);
     }, 0);
   }
-  
+
   /** ツールチップの位置を実際のサイズに基づいて調整 */
   adjustTooltipPosition(event: MouseEvent) {
     if (!this.tooltipElement?.nativeElement) {
       return;
     }
-    
+
     const tooltip = this.tooltipElement.nativeElement;
     const tooltipRect = tooltip.getBoundingClientRect();
     const windowWidth = window.innerWidth;
     const windowHeight = window.innerHeight;
     const padding = 10;
     const margin = 10;
-    
+
     let x = this.tooltipPosition.x;
     let y = this.tooltipPosition.y;
-    
+
     // 右側にはみ出る場合は左側に表示
     if (tooltipRect.right > windowWidth - padding) {
       x = event.clientX - tooltipRect.width - margin;
     }
-    
+
     // 左側にはみ出る場合は右側に表示
     if (tooltipRect.left < padding) {
       x = padding;
     }
-    
+
     // 下側にはみ出る場合は上側に表示
     if (tooltipRect.bottom > windowHeight - padding) {
       y = event.clientY - tooltipRect.height - margin;
     }
-    
+
     // 上側にはみ出る場合は下側に表示
     if (tooltipRect.top < padding) {
       y = event.clientY + margin;
     }
-    
+
     // 最終的な境界チェック（確実に画面内に収める）
     if (x + tooltipRect.width > windowWidth - padding) {
       x = windowWidth - tooltipRect.width - padding;
@@ -795,7 +811,7 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
     if (y < padding) {
       y = padding;
     }
-    
+
     this.tooltipPosition = { x, y };
   }
 
@@ -826,7 +842,7 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
     const memberNames = this.members
       .map((member) => member.name)
       .filter((name) => name && name.trim().length > 0);
-    
+
     // カンマ区切りのメンバー名を分割
     const assigneeSet = new Set<string>();
     memberNames.forEach((name) => {
@@ -836,7 +852,7 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
         .filter((n) => n.length > 0);
       names.forEach((n) => assigneeSet.add(n));
     });
-    
+
     return Array.from(assigneeSet).sort();
   }
 
@@ -868,63 +884,8 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private updateTimelineRange(tasks: Task[]): void {
-    if (!tasks || tasks.length === 0) {
-      this.setDefaultDateRange();
-      return;
-    }
-
-    let minDate: Date | null = null;
-    let maxDate: Date | null = null;
-
-    tasks.forEach((task) => {
-      const due = task.dueDate ? new Date(task.dueDate) : null;
-      const fallbackStart = task.startDate ? new Date(task.startDate) : null;
-      const candidate = due && !isNaN(due.getTime())
-        ? due
-        : fallbackStart && !isNaN(fallbackStart.getTime())
-        ? fallbackStart
-        : null;
-
-      if (!candidate) {
-        return;
-      }
-
-      if (!minDate || candidate < minDate) {
-        minDate = candidate;
-      }
-      if (!maxDate || candidate > maxDate) {
-        maxDate = candidate;
-      }
-    });
-
-    if (!minDate || !maxDate) {
-      this.setDefaultDateRange();
-      return;
-    }
-
-    const ensuredMinDate = minDate as Date;
-    const ensuredMaxDate = maxDate as Date;
-
-    const paddedStart = new Date(
-      ensuredMinDate.getFullYear(),
-      ensuredMinDate.getMonth() - 1,
-      1
-    );
-    const paddedEnd = new Date(
-      ensuredMaxDate.getFullYear(),
-      ensuredMaxDate.getMonth() + 2,
-      0
-    );
-
-    if (paddedEnd < paddedStart) {
-      this.setDefaultDateRange();
-      return;
-    }
-
-    this.startDate = paddedStart;
-    this.endDate = paddedEnd;
-    this.generateDateRange();
-    this.scheduleScrollToDate(new Date(), !this.hasUserHorizontalScrolled);
+    // タスクの日付範囲に関係なく、常に当月±3か月の範囲を使用
+    this.setDefaultDateRange();
   }
 
   private scheduleScrollToDate(targetDate: Date, force = false): void {
@@ -958,7 +919,10 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    const maxScroll = Math.max(container.scrollWidth - container.clientWidth, 0);
+    const maxScroll = Math.max(
+      container.scrollWidth - container.clientWidth,
+      0
+    );
     const targetScrollLeft = Math.min(this.pendingHorizontalScroll, maxScroll);
 
     this.isApplyingHorizontalScroll = true;
@@ -1018,11 +982,14 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
     if (task.projectId && task.id) {
       this.router.navigate(['/project', task.projectId, 'task', task.id]);
     } else {
-      console.error(this.languageService.translate('gantt.error.taskProjectIdMissing'), {
-        projectId: task.projectId,
-        id: task.id,
-        task: task,
-      });
+      console.error(
+        this.languageService.translate('gantt.error.taskProjectIdMissing'),
+        {
+          projectId: task.projectId,
+          id: task.id,
+          task: task,
+        }
+      );
     }
   }
 
@@ -1066,7 +1033,9 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
     if (projectId) {
       this.router.navigate(['/project', projectId]);
     } else {
-      console.error(this.languageService.translate('gantt.error.projectIdMissing'));
+      console.error(
+        this.languageService.translate('gantt.error.projectIdMissing')
+      );
     }
   }
 
@@ -1101,12 +1070,12 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
   getStatusDisplay(status: string): string {
     const currentLanguage = this.languageService.getCurrentLanguage();
     const statusMap: Record<string, Record<'ja' | 'en', string>> = {
-      '未着手': { ja: '未着手', en: 'Not Started' },
-      '作業中': { ja: '作業中', en: 'In Progress' },
-      '完了': { ja: '完了', en: 'Completed' },
-      'notStarted': { ja: '未着手', en: 'Not Started' },
-      'inProgress': { ja: '作業中', en: 'In Progress' },
-      'completed': { ja: '完了', en: 'Completed' },
+      未着手: { ja: '未着手', en: 'Not Started' },
+      作業中: { ja: '作業中', en: 'In Progress' },
+      完了: { ja: '完了', en: 'Completed' },
+      notStarted: { ja: '未着手', en: 'Not Started' },
+      inProgress: { ja: '作業中', en: 'In Progress' },
+      completed: { ja: '完了', en: 'Completed' },
     };
     return statusMap[status]?.[currentLanguage] || status;
   }
@@ -1115,12 +1084,12 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
   getPriorityDisplay(priority: string): string {
     const currentLanguage = this.languageService.getCurrentLanguage();
     const priorityMap: Record<string, Record<'ja' | 'en', string>> = {
-      '高': { ja: '高', en: 'High' },
-      '中': { ja: '中', en: 'Medium' },
-      '低': { ja: '低', en: 'Low' },
-      'high': { ja: '高', en: 'High' },
-      'medium': { ja: '中', en: 'Medium' },
-      'low': { ja: '低', en: 'Low' },
+      高: { ja: '高', en: 'High' },
+      中: { ja: '中', en: 'Medium' },
+      低: { ja: '低', en: 'Low' },
+      high: { ja: '高', en: 'High' },
+      medium: { ja: '中', en: 'Medium' },
+      low: { ja: '低', en: 'Low' },
     };
     return priorityMap[priority]?.[currentLanguage] || priority;
   }
@@ -1129,12 +1098,12 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
   getPriorityShortDisplay(priority: string): string {
     const currentLanguage = this.languageService.getCurrentLanguage();
     const priorityShortMap: Record<string, Record<'ja' | 'en', string>> = {
-      '高': { ja: '高', en: 'H' },
-      '中': { ja: '中', en: 'M' },
-      '低': { ja: '低', en: 'L' },
-      'high': { ja: '高', en: 'H' },
-      'medium': { ja: '中', en: 'M' },
-      'low': { ja: '低', en: 'L' },
+      高: { ja: '高', en: 'H' },
+      中: { ja: '中', en: 'M' },
+      低: { ja: '低', en: 'L' },
+      high: { ja: '高', en: 'H' },
+      medium: { ja: '中', en: 'M' },
+      low: { ja: '低', en: 'L' },
     };
     return priorityShortMap[priority]?.[currentLanguage] || priority;
   }
@@ -1173,16 +1142,16 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!task.assignee) {
       return '—';
     }
-    
+
     // assignee がカンマ区切りの場合を考慮
-    const assigneeNames = task.assignee.split(',').map(name => name.trim());
+    const assigneeNames = task.assignee.split(',').map((name) => name.trim());
     const updatedNames = assigneeNames
-      .map(name => {
+      .map((name) => {
         const member = this.members.find((m) => m.name === name);
         return member ? member.name : null;
       })
       .filter((name): name is string => name !== null);
-    
+
     return updatedNames.length > 0 ? updatedNames.join(', ') : '—';
   }
 

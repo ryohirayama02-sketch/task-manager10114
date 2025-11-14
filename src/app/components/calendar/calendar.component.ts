@@ -158,6 +158,9 @@ export class CalendarComponent implements OnInit, OnDestroy {
       },
     });
 
+    // 日付選択範囲を初期化（当月±3か月）
+    this.updateAvailableDateRange();
+
     this.generateCalendarDays();
     this.observeUserProjects();
 
@@ -984,66 +987,18 @@ export class CalendarComponent implements OnInit, OnDestroy {
     return updatedNames.length > 0 ? updatedNames.join(', ') : '—';
   }
 
-  /** タスクの日付範囲を計算して表示可能な月の範囲を更新 */
+  /** タスクの日付範囲を計算して表示可能な月の範囲を更新（当月±3か月に制限） */
   private updateAvailableDateRange(): void {
-    if (!this.tasks || this.tasks.length === 0) {
-      // タスクがない場合は制限なし
-      this.minAvailableDate = null;
-      this.maxAvailableDate = null;
-      return;
-    }
+    // 日付選択範囲を設定（当月±3か月）
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    const currentMonth = today.getMonth();
 
-    let minDate: Date | null = null;
-    let maxDate: Date | null = null;
+    // 3か月前の1日
+    this.minAvailableDate = new Date(currentYear, currentMonth - 3, 1);
 
-    this.tasks.forEach((task) => {
-      // 開始日と終了日の両方をチェック
-      const startDate = task.startDate ? new Date(task.startDate) : null;
-      const dueDate = task.dueDate ? new Date(task.dueDate) : null;
-
-      // 開始日がある場合
-      if (startDate && !isNaN(startDate.getTime())) {
-        if (!minDate || startDate < minDate) {
-          minDate = startDate;
-        }
-        if (!maxDate || startDate > maxDate) {
-          maxDate = startDate;
-        }
-      }
-
-      // 終了日がある場合
-      if (dueDate && !isNaN(dueDate.getTime())) {
-        if (!minDate || dueDate < minDate) {
-          minDate = dueDate;
-        }
-        if (!maxDate || dueDate > maxDate) {
-          maxDate = dueDate;
-        }
-      }
-    });
-
-    if (!minDate || !maxDate) {
-      // 有効な日付がない場合は制限なし
-      this.minAvailableDate = null;
-      this.maxAvailableDate = null;
-      return;
-    }
-
-    // 型を確実にするために変数に代入
-    const ensuredMinDate = minDate as Date;
-    const ensuredMaxDate = maxDate as Date;
-
-    // 最も古いタスクの-1か月と、最も新しいタスクの+1か月を設定
-    this.minAvailableDate = new Date(
-      ensuredMinDate.getFullYear(),
-      ensuredMinDate.getMonth() - 1,
-      1
-    );
-    this.maxAvailableDate = new Date(
-      ensuredMaxDate.getFullYear(),
-      ensuredMaxDate.getMonth() + 2,
-      0 // 前月の最終日
-    );
+    // 3か月後の月末日
+    this.maxAvailableDate = new Date(currentYear, currentMonth + 4, 0); // 翌月の0日 = 今月の月末
   }
 
   /** 指定された日付が表示可能な範囲内かチェック */
