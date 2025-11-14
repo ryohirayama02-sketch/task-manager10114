@@ -2057,11 +2057,17 @@ export class TaskDetailComponent implements OnInit {
       // 担当者フィルター（カンマ区切り対応 + メンバーIDをメンバー名に変換）
       let assigneeMatch = true;
       if (this.childFilterAssignee.length > 0) {
-        // assignee をカンマで分割
+        // assignee をカンマで分割（プロジェクトのメンバーのみを対象）
         const assignees = (task.assignee || '')
           .split(',')
           .map((name) => name.trim().toLowerCase())
-          .filter((name) => name.length > 0);
+          .filter((name) => name.length > 0)
+          .filter((name) => {
+            // プロジェクトのメンバーのみを対象
+            return this.projectMembers.some(
+              (m) => m.name.toLowerCase() === name
+            );
+          });
 
         // assignedMembers も含める（メンバーIDをメンバー名に変換）
         if (Array.isArray((task as any).assignedMembers)) {
