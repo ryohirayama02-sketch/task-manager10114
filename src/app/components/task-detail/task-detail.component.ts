@@ -115,6 +115,7 @@ export class TaskDetailComponent implements OnInit {
   taskStartDateObj: Date | null = null; // Material date picker用（編集モードの開始日）
   taskDueDateObj: Date | null = null; // Material date picker用（編集モードの終了日）
   maxDate = new Date(9999, 11, 31); // 9999-12-31
+  maxTaskDueDate: Date | null = null; // 開始日から30日後の日付
   parentTaskName: string | null = null;
   projectMembers: Member[] = [];
   selectedAssignedMemberIds: string[] = [];
@@ -632,6 +633,15 @@ export class TaskDetailComponent implements OnInit {
         ? new Date(this.taskData.dueDate)
         : null;
 
+      // 開始日から30日後の日付を計算
+      if (this.taskStartDateObj) {
+        const maxDueDate = new Date(this.taskStartDateObj);
+        maxDueDate.setDate(maxDueDate.getDate() + 30);
+        this.maxTaskDueDate = maxDueDate;
+      } else {
+        this.maxTaskDueDate = null;
+      }
+
       // 編集モードON時にタスクのスナップショットを保持（リアルタイム更新でthis.taskが変更される前に）
       if (this.task) {
         // 深いコピーを作成（tagsは特に重要）
@@ -799,8 +809,25 @@ export class TaskDetailComponent implements OnInit {
       );
       const day = String(this.taskStartDateObj.getDate()).padStart(2, '0');
       this.taskData.startDate = `${year}-${month}-${day}`;
+
+      // 開始日から30日後の日付を計算
+      const maxDueDate = new Date(this.taskStartDateObj);
+      maxDueDate.setDate(maxDueDate.getDate() + 30);
+      this.maxTaskDueDate = maxDueDate;
+
+      // 終了日が30日を超えている場合は調整
+      if (this.taskDueDateObj && this.taskDueDateObj > maxDueDate) {
+        this.taskDueDateObj = new Date(maxDueDate);
+        this.onTaskDueDateChange();
+        this.snackBar.open(
+          this.languageService.translate('taskDetail.error.dateRangeExceeded'),
+          this.languageService.translate('common.close'),
+          { duration: 3000 }
+        );
+      }
     } else {
       this.taskData.startDate = '';
+      this.maxTaskDueDate = null;
     }
   }
 
@@ -810,6 +837,27 @@ export class TaskDetailComponent implements OnInit {
       const month = String(this.taskDueDateObj.getMonth() + 1).padStart(2, '0');
       const day = String(this.taskDueDateObj.getDate()).padStart(2, '0');
       this.taskData.dueDate = `${year}-${month}-${day}`;
+
+      // 開始日から30日を超えている場合はエラー
+      if (this.taskStartDateObj && this.taskDueDateObj) {
+        const daysDiff = Math.floor(
+          (this.taskDueDateObj.getTime() - this.taskStartDateObj.getTime()) /
+            (1000 * 60 * 60 * 24)
+        );
+        if (daysDiff > 30) {
+          const maxDueDate = new Date(this.taskStartDateObj);
+          maxDueDate.setDate(maxDueDate.getDate() + 30);
+          this.taskDueDateObj = new Date(maxDueDate);
+          this.onTaskDueDateChange();
+          this.snackBar.open(
+            this.languageService.translate(
+              'taskDetail.error.dateRangeExceeded'
+            ),
+            this.languageService.translate('common.close'),
+            { duration: 3000 }
+          );
+        }
+      }
     } else {
       this.taskData.dueDate = '';
     }
@@ -960,6 +1008,19 @@ export class TaskDetailComponent implements OnInit {
           {
             duration: 3000,
           }
+        );
+        return;
+      }
+
+      // 開始日から終了日までの期間が30日を超えていないかチェック
+      const daysDiff = Math.floor(
+        (dueDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
+      );
+      if (daysDiff > 30) {
+        this.snackBar.open(
+          this.languageService.translate('taskDetail.error.dateRangeExceeded'),
+          this.languageService.translate('common.close'),
+          { duration: 3000 }
         );
         return;
       }

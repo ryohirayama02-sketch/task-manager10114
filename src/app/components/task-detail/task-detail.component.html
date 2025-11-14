@@ -262,7 +262,7 @@
                 [(ngModel)]="taskDueDateObj"
                 (dateChange)="onTaskDueDateChange()"
                 [min]="taskStartDateObj || undefined"
-                [max]="maxDate"
+                [max]="maxTaskDueDate || maxDate"
                 [ngModelOptions]="{ standalone: true }"
                 [placeholder]="'taskDetail.dueDatePlaceholderFull' | translate"
                 (click)="taskDueDatePicker.open()"

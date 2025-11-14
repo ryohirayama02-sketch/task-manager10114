@@ -93,6 +93,7 @@ export class TaskCreatePageComponent implements OnInit {
   startDateObj: Date | null = null; // Material date picker用
   dueDateObj: Date | null = null; // Material date picker用
   maxDate = new Date(9999, 11, 31); // 9999-12-31
+  maxDueDate: Date | null = null; // 開始日から30日後の日付
 
   private firestore = inject(Firestore);
 
@@ -567,8 +568,25 @@ export class TaskCreatePageComponent implements OnInit {
       const month = String(this.startDateObj.getMonth() + 1).padStart(2, '0');
       const day = String(this.startDateObj.getDate()).padStart(2, '0');
       this.taskForm.startDate = `${year}-${month}-${day}`;
+
+      // 開始日から30日後の日付を計算
+      const maxDueDate = new Date(this.startDateObj);
+      maxDueDate.setDate(maxDueDate.getDate() + 30);
+      this.maxDueDate = maxDueDate;
+
+      // 終了日が30日を超えている場合は調整
+      if (this.dueDateObj && this.dueDateObj > maxDueDate) {
+        this.dueDateObj = new Date(maxDueDate);
+        this.onDueDateChange();
+        this.snackBar.open(
+          this.languageService.translate('taskCreate.error.dateRangeExceeded'),
+          this.languageService.translate('common.close'),
+          { duration: 3000 }
+        );
+      }
     } else {
       this.taskForm.startDate = '';
+      this.maxDueDate = null;
     }
   }
 
@@ -578,6 +596,27 @@ export class TaskCreatePageComponent implements OnInit {
       const month = String(this.dueDateObj.getMonth() + 1).padStart(2, '0');
       const day = String(this.dueDateObj.getDate()).padStart(2, '0');
       this.taskForm.dueDate = `${year}-${month}-${day}`;
+
+      // 開始日から30日を超えている場合はエラー
+      if (this.startDateObj && this.dueDateObj) {
+        const daysDiff = Math.floor(
+          (this.dueDateObj.getTime() - this.startDateObj.getTime()) /
+            (1000 * 60 * 60 * 24)
+        );
+        if (daysDiff > 30) {
+          const maxDueDate = new Date(this.startDateObj);
+          maxDueDate.setDate(maxDueDate.getDate() + 30);
+          this.dueDateObj = new Date(maxDueDate);
+          this.onDueDateChange();
+          this.snackBar.open(
+            this.languageService.translate(
+              'taskCreate.error.dateRangeExceeded'
+            ),
+            this.languageService.translate('common.close'),
+            { duration: 3000 }
+          );
+        }
+      }
     } else {
       this.taskForm.dueDate = '';
     }
@@ -600,6 +639,22 @@ export class TaskCreatePageComponent implements OnInit {
         }
       );
       return;
+    }
+
+    // 開始日から終了日までの期間が30日を超えていないかチェック
+    if (this.startDateObj && this.dueDateObj) {
+      const daysDiff = Math.floor(
+        (this.dueDateObj.getTime() - this.startDateObj.getTime()) /
+          (1000 * 60 * 60 * 24)
+      );
+      if (daysDiff > 30) {
+        this.snackBar.open(
+          this.languageService.translate('taskCreate.error.dateRangeExceeded'),
+          this.languageService.translate('common.close'),
+          { duration: 3000 }
+        );
+        return;
+      }
     }
 
     if (!this.selectedMemberIds || this.selectedMemberIds.length === 0) {

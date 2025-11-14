@@ -122,7 +122,7 @@
               (click)="dueDatePicker.open()"
               (keydown)="$event.preventDefault()"
               [min]="startDateObj || undefined"
-              [max]="maxDate"
+              [max]="maxDueDate || maxDate"
               [ngModelOptions]="{ standalone: true }"
               [placeholder]="
                 ('taskCreate.dueDatePlaceholder' | translate) +

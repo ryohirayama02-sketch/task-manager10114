@@ -1248,6 +1248,10 @@ export class LanguageService {
       ja: '開始日は期限日より前の日付を設定してください',
       en: 'Start date must be before due date',
     },
+    'taskDetail.error.dateRangeExceeded': {
+      ja: 'タスクの開始日から終了日までの期間は最長30日までです',
+      en: 'The period from start date to end date must be at most 30 days',
+    },
     'taskDetail.error.assigneeRequired': {
       ja: '担当者は1人以上選択してください',
       en: 'Please select at least one assignee',
@@ -1819,6 +1823,10 @@ export class LanguageService {
     'taskCreate.error.datesRequired': {
       ja: '開始日と終了日は必須です',
       en: 'Start date and end date are required',
+    },
+    'taskCreate.error.dateRangeExceeded': {
+      ja: 'タスクの開始日から終了日までの期間は最長30日までです',
+      en: 'The period from start date to end date must be at most 30 days',
     },
     'taskCreate.error.assigneeRequired': {
       ja: '担当者は1人以上選択してください',
