@@ -107,6 +107,13 @@
   box-sizing: border-box;
 }
 
+/* 列数の切り替えをより大きな幅で行う */
+@media (max-width: 1400px) {
+  .members-list {
+    grid-template-columns: 1fr;
+  }
+}
+
 .members-list.single-column {
   grid-template-columns: 1fr;
 }
