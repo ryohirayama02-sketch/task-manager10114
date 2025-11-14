@@ -15,35 +15,64 @@ export interface MemberRemoveConfirmDialogData {
   memberId: string;
   affectedTasksCount?: number;
   tasksToDeleteCount?: number;
+  isFromManagement?: boolean; // メンバー管理から削除する場合true
 }
 
 @Component({
   selector: 'app-member-remove-confirm-dialog',
   standalone: true,
-  imports: [CommonModule, MatDialogModule, MatButtonModule, MatIconModule, TranslatePipe],
+  imports: [
+    CommonModule,
+    MatDialogModule,
+    MatButtonModule,
+    MatIconModule,
+    TranslatePipe,
+  ],
   template: `
     <div class="member-remove-confirm-dialog">
       <div class="dialog-header">
         <mat-icon class="warning-icon">warning</mat-icon>
-        <h2>{{ 'projectDetail.memberRemoveConfirm.title' | translate }}</h2>
+        <h2>
+          {{
+            (data.isFromManagement
+              ? 'memberManagement.deleteConfirm.title'
+              : 'projectDetail.memberRemoveConfirm.title'
+            ) | translate
+          }}
+        </h2>
       </div>
 
       <div class="dialog-content">
-        <p>{{ 'projectDetail.memberRemoveConfirm.message' | translate }}</p>
+        <p>
+          {{
+            (data.isFromManagement
+              ? 'memberManagement.deleteConfirm.message'
+              : 'projectDetail.memberRemoveConfirm.message'
+            ) | translate
+          }}
+        </p>
         <div class="member-info">
           <strong>{{ data.memberName }}</strong>
         </div>
-        <div class="warning-message" *ngIf="data.affectedTasksCount && data.affectedTasksCount > 0">
+        <div
+          class="warning-message"
+          *ngIf="data.affectedTasksCount && data.affectedTasksCount > 0"
+        >
           <mat-icon>info</mat-icon>
           <span>{{ getAffectedTasksWarning() }}</span>
         </div>
-        <div class="warning-message" *ngIf="data.tasksToDeleteCount && data.tasksToDeleteCount > 0">
+        <div
+          class="warning-message"
+          *ngIf="data.tasksToDeleteCount && data.tasksToDeleteCount > 0"
+        >
           <mat-icon>delete</mat-icon>
           <span>{{ getTasksToDeleteWarning() }}</span>
         </div>
         <div class="warning-message">
           <mat-icon>info</mat-icon>
-          <span>{{ 'projectDetail.memberRemoveConfirm.irreversibleWarning' | translate }}</span>
+          <span>{{
+            'projectDetail.memberRemoveConfirm.irreversibleWarning' | translate
+          }}</span>
         </div>
       </div>
 
@@ -57,8 +86,15 @@ export interface MemberRemoveConfirmDialogData {
           (click)="onConfirm()"
           class="confirm-button"
         >
-          <mat-icon>person_remove</mat-icon>
-          {{ 'projectDetail.memberRemoveConfirm.remove' | translate }}
+          <mat-icon>{{
+            data.isFromManagement ? 'delete' : 'person_remove'
+          }}</mat-icon>
+          {{
+            (data.isFromManagement
+              ? 'memberManagement.deleteConfirm.delete'
+              : 'projectDetail.memberRemoveConfirm.remove'
+            ) | translate
+          }}
         </button>
       </div>
     </div>
@@ -219,4 +255,3 @@ export class MemberRemoveConfirmDialogComponent {
     this.dialogRef.close(true);
   }
 }
-

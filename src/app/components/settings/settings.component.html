@@ -335,6 +335,12 @@
               </div>
 
               <div class="setting-row">
+                <p class="work-time-description">
+                  {{ getWorkTimeDescription() }}
+                </p>
+              </div>
+
+              <div class="setting-row">
                 <label>{{ "settings.common.notifyTime" | translate }}</label>
                 <div class="time-picker">
                   <mat-form-field appearance="outline" class="time-field">
@@ -679,7 +685,7 @@
             class="change-room-button"
           >
             <mat-icon>swap_horiz</mat-icon>
-            {{ 'settings.changeRoom' | translate }}
+            {{ "settings.changeRoom" | translate }}
           </button>
         </div>
       </mat-card-header>
@@ -711,7 +717,7 @@
           class="delete-room-button"
         >
           <mat-icon>delete</mat-icon>
-          {{ 'settings.deleteRoom' | translate }}
+          {{ "settings.deleteRoom" | translate }}
         </button>
       </mat-card-actions>
     </mat-card>

@@ -251,6 +251,10 @@ export class LanguageService {
     'settings.worktime.periodSuffix': { ja: '日間', en: 'days' },
     'settings.worktime.max': { ja: '最大作業時間', en: 'Maximum Work Hours' },
     'settings.worktime.maxSuffix': { ja: '時間', en: 'hours' },
+    'settings.worktime.description': {
+      ja: '{days}日以内の作業予定時間が{hours}時間を超えたら通知',
+      en: 'Notify when scheduled work time exceeds {hours} hours within {days} days',
+    },
     'settings.worktime.notifyManager': {
       ja: 'プロジェクト責任者に通知',
       en: 'Notify project owner',
@@ -1980,6 +1984,18 @@ export class LanguageService {
     'memberManagement.deleteConfirm': {
       ja: '「{name}」を削除してもよろしいですか？',
       en: 'Are you sure you want to delete "{name}"?',
+    },
+    'memberManagement.deleteConfirm.title': {
+      ja: 'メンバーを削除',
+      en: 'Delete Member',
+    },
+    'memberManagement.deleteConfirm.message': {
+      ja: '以下のメンバーを削除しますか？',
+      en: 'Do you want to delete the following member?',
+    },
+    'memberManagement.deleteConfirm.delete': {
+      ja: '削除する',
+      en: 'Delete',
     },
     'memberManagement.memberDeleted': {
       ja: 'メンバーを削除しました',

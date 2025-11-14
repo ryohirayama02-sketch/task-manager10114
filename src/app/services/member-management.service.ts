@@ -361,11 +361,319 @@ export class MemberManagementService {
 
   /**
    * メンバーを削除
+   * プロジェクトやタスクからもメンバーを削除し、削除メンバーだけのタスクは完全に削除する
    */
   async deleteMember(memberId: string): Promise<void> {
     console.log('🔍 MemberManagementService.deleteMember が呼び出されました');
     console.log('メンバーID:', memberId);
 
+    // 削除するメンバーの情報を取得
+    const memberDocRef = doc(
+      this.firestore,
+      `${this.MEMBERS_COLLECTION}/${memberId}`
+    );
+    const memberDoc = await firstValueFrom(
+      docData(memberDocRef, { idField: 'id' })
+    );
+
+    if (!memberDoc) {
+      console.warn('⚠️ メンバーが見つかりません:', memberId);
+      return;
+    }
+
+    const memberName = (memberDoc as any)['name'] || '';
+    const roomId = this.authService.getCurrentRoomId();
+
+    if (!roomId) {
+      console.warn('⚠️ ルームIDが設定されていません');
+      return;
+    }
+
+    // プロジェクトサービスとタスクサービスを取得
+    const projectService = this.getProjectService();
+    const taskService = this.getTaskService();
+
+    // すべてのプロジェクトを取得
+    const projectsRef = collection(this.firestore, 'projects');
+    const projectsQuery = query(projectsRef, where('roomId', '==', roomId));
+    const projectsSnapshot = await getDocs(projectsQuery);
+
+    console.log(`📁 対象プロジェクト数: ${projectsSnapshot.size}件`);
+
+    // すべてのメンバーを取得（更新後のメンバー名を取得するため）
+    const allMembers = await firstValueFrom(this.getMembers());
+
+    // 各プロジェクトを処理
+    for (const projectDoc of projectsSnapshot.docs) {
+      const projectId = projectDoc.id;
+      const projectData = projectDoc.data();
+
+      try {
+        // プロジェクトの更新データを準備
+        const updateData: any = {};
+
+        // 1. プロジェクトのmembersフィールドからメンバー名を削除
+        if (
+          projectData['members'] &&
+          typeof projectData['members'] === 'string'
+        ) {
+          const memberNames = projectData['members']
+            .split(',')
+            .map((name: string) => name.trim())
+            .filter((name: string) => name.length > 0);
+
+          if (memberNames.includes(memberName)) {
+            const updatedMemberNames = memberNames.filter(
+              (name: string) => name !== memberName
+            );
+            const updatedMembersString = updatedMemberNames.join(', ');
+            updateData['members'] = updatedMembersString;
+
+            console.log(
+              `📝 プロジェクト「${projectData['projectName']}」のmembersフィールドを更新: "${projectData['members']}" → "${updatedMembersString}"`
+            );
+          }
+        }
+
+        // 2. プロジェクトのresponsiblesフィールドからメンバーIDを削除
+        if (
+          projectData['responsibles'] &&
+          Array.isArray(projectData['responsibles'])
+        ) {
+          const responsibles = projectData['responsibles'] as Array<{
+            memberId?: string;
+            memberName?: string;
+            memberEmail?: string;
+          }>;
+          const updatedResponsibles = responsibles.filter(
+            (r) => r.memberId !== memberId
+          );
+
+          if (updatedResponsibles.length !== responsibles.length) {
+            updateData['responsibles'] = updatedResponsibles;
+            console.log(
+              `📝 プロジェクト「${projectData['projectName']}」のresponsiblesフィールドを更新: ${responsibles.length}人 → ${updatedResponsibles.length}人`
+            );
+          }
+        }
+
+        // 3. プロジェクトのresponsibleフィールド（古い形式）からメンバー名を削除
+        if (
+          projectData['responsible'] &&
+          typeof projectData['responsible'] === 'string'
+        ) {
+          const responsibleNames = projectData['responsible']
+            .split(',')
+            .map((name: string) => name.trim())
+            .filter((name: string) => name.length > 0);
+
+          if (responsibleNames.includes(memberName)) {
+            const updatedResponsibleNames = responsibleNames.filter(
+              (name: string) => name !== memberName
+            );
+            const updatedResponsibleString =
+              updatedResponsibleNames.length > 0
+                ? updatedResponsibleNames.join(', ')
+                : '';
+            updateData['responsible'] = updatedResponsibleString;
+
+            console.log(
+              `📝 プロジェクト「${projectData['projectName']}」のresponsibleフィールドを更新: "${projectData['responsible']}" → "${updatedResponsibleString}"`
+            );
+          }
+        }
+
+        // 4. プロジェクトのresponsibleIdフィールド（単一のID）を削除
+        if (projectData['responsibleId'] === memberId) {
+          updateData['responsibleId'] = null;
+          console.log(
+            `📝 プロジェクト「${projectData['projectName']}」のresponsibleIdフィールドを削除`
+          );
+        }
+
+        // 更新データがある場合のみプロジェクトを更新
+        if (Object.keys(updateData).length > 0) {
+          await projectService.updateProject(projectId, updateData, true); // skipLogging: true - メンバー削除時のプロジェクト更新はログに記録しない
+        }
+
+        // 5. プロジェクト内のすべてのタスクを取得
+        const tasksRef = collection(
+          this.firestore,
+          `projects/${projectId}/tasks`
+        );
+        const tasksSnapshot = await getDocs(tasksRef);
+
+        // 親タスクから順に処理（親タスクが削除されると子タスクも自動的に削除される）
+        const allTasks = tasksSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Array<{
+          id: string;
+          assignedMembers?: string[];
+          assignee?: string;
+          parentTaskId?: string;
+          taskName?: string;
+          projectName?: string;
+          [key: string]: any;
+        }>;
+
+        // 親タスク（parentTaskIdがないタスク）を取得
+        const parentTasks = allTasks.filter(
+          (task) => !task.parentTaskId || task.parentTaskId === ''
+        );
+
+        // 削除された親タスクIDを記録（子タスク処理で使用）
+        const deletedParentTaskIds = new Set<string>();
+
+        // 親タスクから順に処理
+        for (const task of parentTasks) {
+          const assignedMembers = Array.isArray(task.assignedMembers)
+            ? [...task.assignedMembers]
+            : [];
+          const hasMember = assignedMembers.includes(memberId);
+
+          if (hasMember) {
+            // メンバーを削除
+            const updatedMembers = assignedMembers.filter(
+              (id) => id !== memberId
+            );
+
+            if (updatedMembers.length === 0) {
+              // 担当者が空になった場合はタスクを削除（子タスクも自動的に削除される）
+              if (task.id) {
+                console.log(
+                  `🗑️ タスク「${
+                    task.taskName || 'タスク'
+                  }」を削除（担当者が空になったため）`
+                );
+                await taskService.deleteTask(task.id, task, projectId);
+                // 削除された親タスクIDを記録
+                deletedParentTaskIds.add(task.id);
+              }
+            } else {
+              // 担当者を更新
+              if (task.id) {
+                // 更新後のメンバー名を取得してassigneeフィールドにも設定
+                const updatedMemberNames = updatedMembers
+                  .map((id) => {
+                    const member = allMembers.find((m) => m.id === id);
+                    return member?.name || '';
+                  })
+                  .filter((name) => name.length > 0);
+
+                console.log(
+                  `📝 タスク「${task.taskName || 'タスク'}」の担当者を更新: ${
+                    task.assignedMembers?.length
+                  }人 → ${updatedMembers.length}人`
+                );
+
+                await projectService.updateTask(
+                  projectId,
+                  task.id,
+                  {
+                    assignedMembers: updatedMembers,
+                    assignee: updatedMemberNames.join(', '),
+                  },
+                  true
+                ); // skipLogging: true - メンバー削除時のタスク更新はログに記録しない
+              }
+            }
+          }
+        }
+
+        // 3. 子タスクも処理（親タスクが削除されなかった場合でも、子タスクからメンバーを削除する必要がある）
+        // 削除された親タスクの子タスクは既に削除されているため、スキップ
+        const childTasks = allTasks.filter(
+          (task) =>
+            task.parentTaskId &&
+            task.parentTaskId !== '' &&
+            !deletedParentTaskIds.has(task.parentTaskId) // 削除された親タスクの子タスクはスキップ
+        );
+
+        for (const task of childTasks) {
+          const assignedMembers = Array.isArray(task.assignedMembers)
+            ? [...task.assignedMembers]
+            : [];
+          const hasMember = assignedMembers.includes(memberId);
+
+          if (hasMember) {
+            // メンバーを削除
+            const updatedMembers = assignedMembers.filter(
+              (id) => id !== memberId
+            );
+
+            if (updatedMembers.length === 0) {
+              // 担当者が空になった場合はタスクを削除
+              if (task.id) {
+                try {
+                  console.log(
+                    `🗑️ 子タスク「${
+                      task.taskName || 'タスク'
+                    }」を削除（担当者が空になったため）`
+                  );
+                  await taskService.deleteTask(task.id, task, projectId);
+                } catch (error) {
+                  // 既に削除されている可能性があるため、エラーは無視
+                  console.warn(
+                    `⚠️ 子タスク「${
+                      task.taskName || 'タスク'
+                    }」の削除でエラー（既に削除されている可能性）:`,
+                    error
+                  );
+                }
+              }
+            } else {
+              // 担当者を更新
+              if (task.id) {
+                try {
+                  // 更新後のメンバー名を取得してassigneeフィールドにも設定
+                  const updatedMemberNames = updatedMembers
+                    .map((id) => {
+                      const member = allMembers.find((m) => m.id === id);
+                      return member?.name || '';
+                    })
+                    .filter((name) => name.length > 0);
+
+                  console.log(
+                    `📝 子タスク「${
+                      task.taskName || 'タスク'
+                    }」の担当者を更新: ${task.assignedMembers?.length}人 → ${
+                      updatedMembers.length
+                    }人`
+                  );
+
+                  await projectService.updateTask(
+                    projectId,
+                    task.id,
+                    {
+                      assignedMembers: updatedMembers,
+                      assignee: updatedMemberNames.join(', '),
+                    },
+                    true
+                  ); // skipLogging: true - メンバー削除時のタスク更新はログに記録しない
+                } catch (error) {
+                  // 既に削除されている可能性があるため、エラーは無視
+                  console.warn(
+                    `⚠️ 子タスク「${
+                      task.taskName || 'タスク'
+                    }」の更新でエラー（既に削除されている可能性）:`,
+                    error
+                  );
+                }
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.error(
+          `❌ プロジェクト「${projectData['projectName']}」の処理エラー:`,
+          error
+        );
+        // エラーが発生しても他のプロジェクトの処理は続行
+      }
+    }
+
+    // メンバー自体を削除
     const memberRef = doc(
       this.firestore,
       `${this.MEMBERS_COLLECTION}/${memberId}`

@@ -480,9 +480,12 @@ export class SettingsComponent implements OnInit {
       console.error('テスト通知エラー:', error);
       const errorMessage = error?.message || error?.code || '不明なエラー';
       this.snackBar.open(
-        this.languageService.translateWithParams('settings.testNotificationFailedWithError', {
-          error: errorMessage,
-        }),
+        this.languageService.translateWithParams(
+          'settings.testNotificationFailedWithError',
+          {
+            error: errorMessage,
+          }
+        ),
         this.getCloseLabel(),
         {
           duration: 3000,
@@ -519,10 +522,13 @@ export class SettingsComponent implements OnInit {
 
       if (result.success) {
         this.snackBar.open(
-          this.languageService.translateWithParams('settings.deadlineNotificationSent', {
-            taskCount: String(result.taskCount),
-            userCount: String(result.userCount),
-          }),
+          this.languageService.translateWithParams(
+            'settings.deadlineNotificationSent',
+            {
+              taskCount: String(result.taskCount),
+              userCount: String(result.userCount),
+            }
+          ),
           this.getCloseLabel(),
           { duration: 5000 }
         );
@@ -1020,10 +1026,13 @@ export class SettingsComponent implements OnInit {
 
       if (result.data?.success) {
         this.snackBar.open(
-          this.languageService.translateWithParams('settings.userNotificationSent', {
-            taskCount: String(result.data.taskCount),
-            userCount: String(result.data.userCount),
-          }),
+          this.languageService.translateWithParams(
+            'settings.userNotificationSent',
+            {
+              taskCount: String(result.data.taskCount),
+              userCount: String(result.data.userCount),
+            }
+          ),
           this.getCloseLabel(),
           { duration: 5000 }
         );
@@ -1112,6 +1121,22 @@ export class SettingsComponent implements OnInit {
 
   getHomeScreenLabel(value: HomeScreenType): string {
     return this.languageService.translate(`homeScreen.${value}`);
+  }
+
+  /** 作業予定時間オーバー通知の説明文を取得 */
+  getWorkTimeDescription(): string {
+    const days =
+      this.notificationSettings.workTimeOverflowNotifications.checkPeriodDays ||
+      1;
+    const hours =
+      this.notificationSettings.workTimeOverflowNotifications.maxWorkHours || 0;
+    return this.languageService.translateWithParams(
+      'settings.worktime.description',
+      {
+        days: days.toString(),
+        hours: hours.toString(),
+      }
+    );
   }
 
   /** ルーム情報を読み込み */

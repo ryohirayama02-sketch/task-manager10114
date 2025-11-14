@@ -17,6 +17,13 @@ import { MemberFormDialogComponent } from './member-form-dialog/member-form-dial
 import { Router } from '@angular/router';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { LanguageService } from '../../services/language.service';
+import { ProjectService } from '../../services/project.service';
+import {
+  MemberRemoveConfirmDialogComponent,
+  MemberRemoveConfirmDialogData,
+} from '../project-detail/member-remove-confirm-dialog.component';
+import { firstValueFrom } from 'rxjs';
+import { Task } from '../../models/task.model';
 
 @Component({
   selector: 'app-member-management',
@@ -52,7 +59,8 @@ export class MemberManagementComponent implements OnInit {
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
     private router: Router,
-    private languageService: LanguageService
+    private languageService: LanguageService,
+    private projectService: ProjectService
   ) {}
 
   ngOnInit(): void {
@@ -141,34 +149,87 @@ export class MemberManagementComponent implements OnInit {
       return;
     }
 
-    const confirmMessage = this.languageService.translateWithParams(
-      'memberManagement.deleteConfirm',
-      { name: member.name }
-    );
-    if (!confirm(confirmMessage)) {
-      return;
-    }
+    const memberId = member.id;
+
+    // すべてのプロジェクトとタスクを取得して影響をカウント
+    let affectedTasksCount = 0;
+    let tasksToDeleteCount = 0;
 
     try {
-      await this.memberService.deleteMember(member.id);
-      this.loadMembers();
-      this.snackBar.open(
-        this.languageService.translate('memberManagement.memberDeleted'),
-        this.languageService.translate('common.close'),
-        {
-          duration: 3000,
+      // すべてのプロジェクトを取得
+      const allProjects = await firstValueFrom(
+        this.projectService.getProjects()
+      ).catch(() => []);
+
+      // 各プロジェクトのタスクを確認
+      for (const project of allProjects) {
+        if (!project.id) continue;
+
+        const allTasks = await firstValueFrom(
+          this.projectService.getTasksByProjectId(project.id)
+        ).catch(() => [] as Task[]);
+
+        for (const task of allTasks) {
+          const assignedMembers = Array.isArray(task.assignedMembers)
+            ? task.assignedMembers
+            : [];
+          const hasMember = assignedMembers.includes(memberId);
+
+          if (hasMember) {
+            affectedTasksCount++;
+            // このメンバーしか担当者がいない場合は削除対象
+            if (assignedMembers.length === 1) {
+              tasksToDeleteCount++;
+            }
+          }
         }
-      );
+      }
     } catch (error) {
-      console.error('メンバー削除エラー:', error);
-      this.snackBar.open(
-        this.languageService.translate('memberManagement.deleteFailed'),
-        this.languageService.translate('common.close'),
-        {
-          duration: 3000,
-        }
-      );
+      console.error('タスク数のカウントエラー:', error);
+      // エラーが発生しても警告ダイアログは表示する
     }
+
+    // 警告ダイアログを表示
+    const dialogData: MemberRemoveConfirmDialogData = {
+      memberName: member.name || '',
+      memberId: memberId,
+      affectedTasksCount,
+      tasksToDeleteCount,
+      isFromManagement: true, // メンバー管理から削除する場合
+    };
+
+    const dialogRef = this.dialog.open(MemberRemoveConfirmDialogComponent, {
+      width: '90vw',
+      maxWidth: '500px',
+      data: dialogData,
+    });
+
+    dialogRef.afterClosed().subscribe(async (confirmed) => {
+      if (!confirmed) {
+        return;
+      }
+
+      try {
+        await this.memberService.deleteMember(memberId);
+        this.loadMembers();
+        this.snackBar.open(
+          this.languageService.translate('memberManagement.memberDeleted'),
+          this.languageService.translate('common.close'),
+          {
+            duration: 3000,
+          }
+        );
+      } catch (error) {
+        console.error('メンバー削除エラー:', error);
+        this.snackBar.open(
+          this.languageService.translate('memberManagement.deleteFailed'),
+          this.languageService.translate('common.close'),
+          {
+            duration: 3000,
+          }
+        );
+      }
+    });
   }
 
   /**
