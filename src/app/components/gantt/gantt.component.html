@@ -1,17 +1,22 @@
-<h2>{{ 'gantt.title' | translate }}</h2>
+<h2>{{ "gantt.title" | translate }}</h2>
 
 <!-- 画面幅警告 -->
 <div *ngIf="isScreenTooNarrow" class="screen-width-warning">
   <div class="warning-content">
     <mat-icon class="warning-icon">warning</mat-icon>
-    <span class="warning-text">{{ 'gantt.screenWidthWarning' | translate }}</span>
+    <span class="warning-text">{{
+      "gantt.screenWidthWarning" | translate
+    }}</span>
   </div>
 </div>
 
 <!-- プロジェクト選択とフィルター -->
-<div class="controls-section" style="justify-content: space-between; align-items: flex-start;">
+<div
+  class="controls-section"
+  style="justify-content: space-between; align-items: flex-start"
+>
   <div class="project-selector">
-    <h3>{{ 'gantt.projectSelector.title' | translate }}</h3>
+    <h3>{{ "gantt.projectSelector.title" | translate }}</h3>
     <div class="project-checkboxes">
       <mat-checkbox
         *ngFor="let project of projects"
@@ -24,12 +29,12 @@
     </div>
     <div class="project-selection-actions">
       <div class="project-action-row">
-      <button mat-stroked-button (click)="selectAllProjects()">
-        {{ 'gantt.projectSelector.selectAll' | translate }}
-      </button>
-      <button mat-stroked-button (click)="clearProjectSelection()">
-        {{ 'gantt.projectSelector.clearAll' | translate }}
-      </button>
+        <button mat-stroked-button (click)="selectAllProjects()">
+          {{ "gantt.projectSelector.selectAll" | translate }}
+        </button>
+        <button mat-stroked-button (click)="clearProjectSelection()">
+          {{ "gantt.projectSelector.clearAll" | translate }}
+        </button>
       </div>
       <div class="create-project-wrapper">
         <button
@@ -38,10 +43,10 @@
           [disabled]="!hasMembers"
           (click)="openProjectDialog()"
         >
-          {{ 'gantt.projectSelector.createProject' | translate }}
+          {{ "gantt.projectSelector.createProject" | translate }}
         </button>
         <span *ngIf="!hasMembers" class="member-required-message">
-          {{ 'common.memberRequiredForProject' | translate }}
+          {{ "common.memberRequiredForProject" | translate }}
         </span>
       </div>
     </div>
@@ -50,15 +55,21 @@
   <!-- フィルター -->
   <div class="filter-section">
     <mat-form-field appearance="outline">
-      <mat-select 
-        [(ngModel)]="filterStatus" 
-        (selectionChange)="applyFilters()" 
+      <mat-select
+        [(ngModel)]="filterStatus"
+        (selectionChange)="applyFilters()"
         multiple
         [placeholder]="'gantt.filter.status' | translate"
       >
-        <mat-option [value]="getStatusValue('notStarted')">{{ getStatusDisplay('notStarted') }}</mat-option>
-        <mat-option [value]="getStatusValue('inProgress')">{{ getStatusDisplay('inProgress') }}</mat-option>
-        <mat-option [value]="getStatusValue('completed')">{{ getStatusDisplay('completed') }}</mat-option>
+        <mat-option [value]="getStatusValue('notStarted')">{{
+          getStatusDisplay("notStarted")
+        }}</mat-option>
+        <mat-option [value]="getStatusValue('inProgress')">{{
+          getStatusDisplay("inProgress")
+        }}</mat-option>
+        <mat-option [value]="getStatusValue('completed')">{{
+          getStatusDisplay("completed")
+        }}</mat-option>
       </mat-select>
     </mat-form-field>
 
@@ -69,9 +80,15 @@
         multiple
         [placeholder]="'gantt.filter.priority' | translate"
       >
-        <mat-option [value]="getPriorityValue('high')">{{ getPriorityDisplay('high') }}</mat-option>
-        <mat-option [value]="getPriorityValue('medium')">{{ getPriorityDisplay('medium') }}</mat-option>
-        <mat-option [value]="getPriorityValue('low')">{{ getPriorityDisplay('low') }}</mat-option>
+        <mat-option [value]="getPriorityValue('high')">{{
+          getPriorityDisplay("high")
+        }}</mat-option>
+        <mat-option [value]="getPriorityValue('medium')">{{
+          getPriorityDisplay("medium")
+        }}</mat-option>
+        <mat-option [value]="getPriorityValue('low')">{{
+          getPriorityDisplay("low")
+        }}</mat-option>
       </mat-select>
     </mat-form-field>
 
@@ -91,7 +108,9 @@
       </mat-select>
     </mat-form-field>
 
-    <button mat-button (click)="resetFilters()">{{ 'gantt.filter.reset' | translate }}</button>
+    <button mat-button (click)="resetFilters()">
+      {{ "gantt.filter.reset" | translate }}
+    </button>
   </div>
 </div>
 
@@ -99,28 +118,28 @@
 <div class="gantt-container">
   <!-- 凡例 -->
   <div class="legend">
-    <h4>{{ 'gantt.legend.status' | translate }}</h4>
+    <h4>{{ "gantt.legend.status" | translate }}</h4>
     <div class="legend-items">
       <div class="legend-item status-not-started">
         <div
           class="legend-color"
           [style.background-color]="statusColors[getStatusValue('notStarted')]"
         ></div>
-        <span>{{ 'gantt.legend.notStarted' | translate }}</span>
+        <span>{{ "gantt.legend.notStarted" | translate }}</span>
       </div>
       <div class="legend-item status-in-progress">
         <div
           class="legend-color"
           [style.background-color]="statusColors[getStatusValue('inProgress')]"
         ></div>
-        <span>{{ 'gantt.legend.inProgress' | translate }}</span>
+        <span>{{ "gantt.legend.inProgress" | translate }}</span>
       </div>
       <div class="legend-item status-completed">
         <div
           class="legend-color"
           [style.background-color]="statusColors[getStatusValue('completed')]"
         ></div>
-        <span>{{ 'gantt.legend.completed' | translate }}</span>
+        <span>{{ "gantt.legend.completed" | translate }}</span>
       </div>
     </div>
   </div>
@@ -131,9 +150,11 @@
     <div class="gantt-left-pane">
       <!-- 左ヘッダー -->
       <div class="gantt-header-left" #leftHeader>
-        <div class="header-cell">{{ 'gantt.header.projectName' | translate }}</div>
-        <div class="header-cell">{{ 'gantt.header.taskName' | translate }}</div>
-        <div class="header-cell">{{ 'gantt.header.priority' | translate }}</div>
+        <div class="header-cell">
+          {{ "gantt.header.projectName" | translate }}
+        </div>
+        <div class="header-cell">{{ "gantt.header.taskName" | translate }}</div>
+        <div class="header-cell">{{ "gantt.header.priority" | translate }}</div>
         <div
           class="header-cell"
           [style.width.px]="assigneeColumnWidth"
@@ -141,7 +162,7 @@
           [style.max-width.px]="assigneeColumnWidth"
           style="white-space: nowrap"
         >
-          {{ 'gantt.header.assignee' | translate }}
+          {{ "gantt.header.assignee" | translate }}
         </div>
       </div>
       <!-- 左ボディ -->
@@ -205,8 +226,7 @@
               <div
                 *ngIf="milestones.length > 0"
                 class="milestone-flag"
-                (mouseenter)="showMilestoneTooltip($event, milestones)"
-                (mouseleave)="hideMilestoneTooltip()"
+                (click)="toggleMilestoneTooltip($event, milestones)"
               >
                 🚩
               </div>
@@ -235,10 +255,7 @@
             </div>
           </div>
           <!-- タスク行の区切り線 -->
-          <div
-            class="task-row-lines"
-            [style.height.px]="getGanttBarsHeight()"
-          >
+          <div class="task-row-lines" [style.height.px]="getGanttBarsHeight()">
             <div
               class="task-row-divider"
               [style.top.px]="getTaskHeaderDividerPosition()"
@@ -285,13 +302,12 @@
 >
   <div class="tooltip-header">
     <span class="tooltip-icon">🚩</span>
-    <span class="tooltip-title">{{ 'gantt.tooltip.milestone' | translate }}</span>
+    <span class="tooltip-title">{{
+      "gantt.tooltip.milestone" | translate
+    }}</span>
   </div>
   <div class="tooltip-content">
-    <div
-      *ngFor="let milestone of tooltipMilestones"
-      class="tooltip-item"
-    >
+    <div *ngFor="let milestone of tooltipMilestones" class="tooltip-item">
       <div class="tooltip-project">{{ milestone.projectName }}</div>
       <div class="tooltip-name">{{ milestone.name }}</div>
       <div class="tooltip-date">
