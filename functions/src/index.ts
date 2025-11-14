@@ -1274,22 +1274,47 @@ export const sendTaskDeadlineNotifications = onSchedule(
 
         const memberEmailMap = new Map<string, string>(); // name -> email
         const memberIdMap = new Map<string, string>(); // email -> memberId
+        const memberNameToIdMap = new Map<string, string>(); // name -> memberId
         membersSnapshot.forEach((doc) => {
           const memberData = doc.data();
           if (memberData.name && memberData.email) {
             memberEmailMap.set(memberData.name, memberData.email);
             memberIdMap.set(memberData.email, doc.id);
+            memberNameToIdMap.set(memberData.name, doc.id);
           }
         });
 
         // ユーザーのメンバーIDを取得（assignedMembersで使用）
         const userMemberId = memberIdMap.get(userEmail);
+        console.log(
+          `🆔 [sendTaskDeadlineNotifications] ユーザーメンバーID: ${
+            userMemberId || '見つかりません'
+          }`
+        );
+        console.log(`   - ユーザーメールアドレス: ${userEmail}`);
+        console.log(`   - メンバー数: ${membersSnapshot.size}`);
+
+        if (!userMemberId) {
+          console.warn(
+            `⚠️ [sendTaskDeadlineNotifications] メンバーIDが見つかりません: email=${userEmail}, userId=${userId}`
+          );
+          console.warn(
+            `   - メンバー一覧:`,
+            Array.from(memberIdMap.entries()).map(
+              ([email, id]) => `${email} -> ${id}`
+            )
+          );
+          continue;
+        }
 
         // ルーム内のタスクを取得
         const roomContext: RoomContext = { roomId, roomDocId };
         const daysBeforeList = settings.taskDeadlineNotifications
           ?.daysBeforeDeadline || [1, 3, 7];
         const allTasks = await getUpcomingTasks(roomContext, daysBeforeList);
+        console.log(
+          `📋 [sendTaskDeadlineNotifications] 取得したタスク数: ${allTasks.length}`
+        );
 
         // JST（Asia/Tokyo）で今日の日付を取得
         const now = new Date();
@@ -1331,6 +1356,9 @@ export const sendTaskDeadlineNotifications = onSchedule(
           // 詳細設定のタスク期限ボタンがONになっているかチェック
           const detailSettings = task.detailSettings;
           if (detailSettings?.notifications?.beforeDeadline === false) {
+            console.log(
+              `  ⏭️ タスク「${task.taskName || task.task}」: 詳細設定で通知OFF`
+            );
             return false;
           }
           // beforeDeadlineがundefinedの場合はデフォルトでONとみなす
@@ -1338,13 +1366,29 @@ export const sendTaskDeadlineNotifications = onSchedule(
           // 通知先（recipients）が設定されている場合、そのユーザーのみに通知
           const recipients = detailSettings?.notifications?.recipients;
           if (Array.isArray(recipients) && recipients.length > 0) {
-            // メンバーIDでrecipientsに含まれるかチェック
+            // recipientsに含まれるかチェック（メンバーIDまたはメンバー名で比較）
             const isInRecipients = recipients.some((recipient: string) => {
               const recipientTrimmed = recipient.trim();
-              return recipientTrimmed === userMemberId;
+              // メンバーIDで直接比較
+              if (recipientTrimmed === userMemberId) {
+                return true;
+              }
+              // メンバー名で比較（メンバー名からメンバーIDを取得）
+              const recipientMemberId = memberNameToIdMap.get(recipientTrimmed);
+              if (recipientMemberId === userMemberId) {
+                return true;
+              }
+              return false;
             });
 
             if (!isInRecipients) {
+              console.log(
+                `  ⏭️ タスク「${
+                  task.taskName || task.task
+                }」: 通知先に含まれていない (通知先: ${recipients.join(
+                  ', '
+                )}, userMemberId: ${userMemberId})`
+              );
               return false;
             }
           }
@@ -1355,18 +1399,49 @@ export const sendTaskDeadlineNotifications = onSchedule(
 
           // assignedMembersにuserMemberIdが含まれる
           if (userMemberId && Array.isArray(assignedMembers)) {
-            return assignedMembers.some(
+            const match = assignedMembers.some(
               (member: any) =>
                 (typeof member === 'string' && member === userMemberId) ||
                 (typeof member === 'object' && member?.id === userMemberId)
             );
+            if (match) {
+              console.log(
+                `  ✅ タスク「${
+                  task.taskName || task.task
+                }」: assignedMembers一致 (userMemberId: ${userMemberId}, assignedMembers: ${JSON.stringify(
+                  assignedMembers
+                )})`
+              );
+            } else {
+              console.log(
+                `  ❌ タスク「${
+                  task.taskName || task.task
+                }」: assignedMembers不一致 (userMemberId: ${userMemberId}, assignedMembers: ${JSON.stringify(
+                  assignedMembers
+                )})`
+              );
+            }
+            return match;
           }
 
+          console.log(
+            `  ❌ タスク「${
+              task.taskName || task.task
+            }」: メンバーID未設定またはassignedMembersが配列でない (userMemberId: ${userMemberId}, assignedMembers: ${JSON.stringify(
+              assignedMembers
+            )})`
+          );
           return false;
         });
 
+        console.log(
+          `📊 [sendTaskDeadlineNotifications] ユーザーが担当者のタスク数: ${userTasks.length}件`
+        );
+
         if (userTasks.length === 0) {
-          console.log(`📭 通知対象タスクなし: userId=${userId}`);
+          console.log(
+            `📭 [sendTaskDeadlineNotifications] 通知対象タスクなし: userId=${userId}, userMemberId=${userMemberId}`
+          );
           continue;
         }
 
@@ -1590,11 +1665,13 @@ export const sendTaskDeadlineNotificationsManual = onCall(
 
         const memberEmailMap = new Map<string, string>(); // name -> email
         const memberIdMap = new Map<string, string>(); // email -> memberId
+        const memberNameToIdMap = new Map<string, string>(); // name -> memberId
         membersSnapshot.forEach((doc) => {
           const memberData = doc.data();
           if (memberData.name && memberData.email) {
             memberEmailMap.set(memberData.name, memberData.email);
             memberIdMap.set(memberData.email, doc.id);
+            memberNameToIdMap.set(memberData.name, doc.id);
           }
         });
 
@@ -1714,17 +1791,28 @@ export const sendTaskDeadlineNotificationsManual = onCall(
           // 通知先（recipients）が設定されている場合、そのユーザーのみに通知
           const recipients = detailSettings?.notifications?.recipients;
           if (Array.isArray(recipients) && recipients.length > 0) {
-            // メンバーIDでrecipientsに含まれるかチェック
+            // recipientsに含まれるかチェック（メンバーIDまたはメンバー名で比較）
             const isInRecipients = recipients.some((recipient: string) => {
               const recipientTrimmed = recipient.trim();
-              return recipientTrimmed === userMemberId;
+              // メンバーIDで直接比較
+              if (recipientTrimmed === userMemberId) {
+                return true;
+              }
+              // メンバー名で比較（メンバー名からメンバーIDを取得）
+              const recipientMemberId = memberNameToIdMap.get(recipientTrimmed);
+              if (recipientMemberId === userMemberId) {
+                return true;
+              }
+              return false;
             });
 
             if (!isInRecipients) {
               console.log(
                 `  ❌ タスク「${
                   task.taskName || task.task
-                }」: 通知先に含まれていない (通知先: ${recipients.join(', ')})`
+                }」: 通知先に含まれていない (通知先: ${recipients.join(
+                  ', '
+                )}, userMemberId: ${userMemberId})`
               );
               return false;
             }
