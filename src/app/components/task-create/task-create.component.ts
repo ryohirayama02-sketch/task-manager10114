@@ -870,9 +870,14 @@ export class TaskCreatePageComponent implements OnInit {
               });
 
               if (validAttachments.length > 0) {
-                await this.projectService.updateTask(this.projectId, taskId, {
-                  attachments: validAttachments,
-                });
+                await this.projectService.updateTask(
+                  this.projectId,
+                  taskId,
+                  {
+                    attachments: validAttachments,
+                  },
+                  true
+                ); // skipLogging: true - 作成直後の添付ファイル更新はログに記録しない
                 console.log('[save] タスクの添付ファイル情報を更新しました');
               } else {
                 console.warn(

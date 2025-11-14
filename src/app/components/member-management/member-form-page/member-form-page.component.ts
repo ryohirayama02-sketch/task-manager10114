@@ -49,13 +49,19 @@ export class MemberFormPageComponent {
     private languageService: LanguageService
   ) {
     this.memberForm = this.fb.group({
-      name: ['', [
-        Validators.required, 
-        Validators.minLength(1), 
-        Validators.maxLength(20),
-        this.noCommaValidator
-      ]],
-      email: ['', [Validators.required, Validators.email, Validators.maxLength(254)]],
+      name: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(1),
+          Validators.maxLength(20),
+          this.noCommaValidator,
+        ],
+      ],
+      email: [
+        '',
+        [Validators.required, Validators.email, Validators.maxLength(254)],
+      ],
     });
   }
 
@@ -98,10 +104,13 @@ export class MemberFormPageComponent {
     // メンバー数の制限をチェック
     try {
       const currentCount = await this.memberService.getMemberCount();
-      const maxCount = 20;
+      const maxCount = 10;
       if (currentCount >= maxCount) {
         this.snackBar.open(
-          this.languageService.translateWithParams('memberManagement.maxMemberLimit', { count: maxCount.toString() }),
+          this.languageService.translateWithParams(
+            'memberManagement.maxMemberLimit',
+            { count: maxCount.toString() }
+          ),
           this.languageService.translate('memberManagement.close'),
           { duration: 5000 }
         );
@@ -112,13 +121,17 @@ export class MemberFormPageComponent {
       const existingMembers = await firstValueFrom(
         this.memberService.getMembers()
       ).catch(() => []);
-      
+
       const nameExists = existingMembers.some(
-        (member) => member.name?.toLowerCase().trim() === formData.name?.toLowerCase().trim()
+        (member) =>
+          member.name?.toLowerCase().trim() ===
+          formData.name?.toLowerCase().trim()
       );
-      
+
       const emailExists = existingMembers.some(
-        (member) => member.email?.toLowerCase().trim() === formData.email?.toLowerCase().trim()
+        (member) =>
+          member.email?.toLowerCase().trim() ===
+          formData.email?.toLowerCase().trim()
       );
 
       if (nameExists) {
@@ -154,12 +167,15 @@ export class MemberFormPageComponent {
 
     try {
       await this.memberService.addMember(formData);
-      
+
       // 追加されたメンバーが現在ログインしているユーザーの場合、ナビバーのユーザー名を更新
       if (formData.email && formData.name) {
-        this.authService.updateMemberNameIfCurrentUser(formData.email, formData.name);
+        this.authService.updateMemberNameIfCurrentUser(
+          formData.email,
+          formData.name
+        );
       }
-      
+
       this.router.navigate(['/members'], { state: { memberAdded: true } });
     } catch (error) {
       console.error('メンバー追加エラー:', error);
@@ -196,7 +212,9 @@ export class MemberFormPageComponent {
       if (fieldName === 'name') {
         return this.languageService.translate('memberManagement.nameMaxLength');
       } else if (fieldName === 'email') {
-        return this.languageService.translate('memberManagement.emailMaxLength');
+        return this.languageService.translate(
+          'memberManagement.emailMaxLength'
+        );
       }
     }
     if (field?.hasError('noComma')) {

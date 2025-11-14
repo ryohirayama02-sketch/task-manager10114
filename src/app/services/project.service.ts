@@ -441,7 +441,11 @@ export class ProjectService {
   }
 
   /** ✅ プロジェクトを更新 */
-  async updateProject(projectId: string, projectData: any) {
+  async updateProject(
+    projectId: string,
+    projectData: any,
+    skipLogging: boolean = false
+  ) {
     console.log('ProjectService.updateProject called with:', {
       projectId,
       projectData,
@@ -698,8 +702,8 @@ export class ProjectService {
       }
 
       // 編集ログを記録（changeDetailsは既に多言語対応済み）
-      // 変更がない場合は編集ログを記録しない
-      if (changeDetails.length > 0) {
+      // 変更がない場合、またはskipLoggingがtrueの場合は編集ログを記録しない
+      if (changeDetails.length > 0 && !skipLogging) {
         const projectUpdatedText = this.languageService.translate(
           'logs.projectUpdated'
         );
@@ -796,7 +800,12 @@ export class ProjectService {
   }
 
   /** ✅ タスクを更新 */
-  async updateTask(projectId: string, taskId: string, taskData: any) {
+  async updateTask(
+    projectId: string,
+    taskId: string,
+    taskData: any,
+    skipLogging: boolean = false
+  ) {
     console.log('ProjectService.updateTask called with:', {
       projectId,
       taskId,
@@ -973,7 +982,8 @@ export class ProjectService {
         }
       }
 
-      if (changeDetails.length > 0) {
+      // 変更がない場合、またはskipLoggingがtrueの場合は編集ログを記録しない
+      if (changeDetails.length > 0 && !skipLogging) {
         await this.editLogService.logEdit(
           projectId,
           taskData.projectName || 'プロジェクト',

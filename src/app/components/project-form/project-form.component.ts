@@ -934,10 +934,14 @@ export class ProjectFormComponent implements OnInit {
         const uploaded = await this.uploadPendingFiles(docRef.id);
         if (uploaded.length > 0) {
           const merged = [...linkAttachments, ...uploaded];
-          await this.projectService.updateProject(docRef.id, {
-            attachments: merged,
-            updatedAt: new Date(),
-          });
+          await this.projectService.updateProject(
+            docRef.id,
+            {
+              attachments: merged,
+              updatedAt: new Date(),
+            },
+            true
+          ); // skipLogging: true - 作成直後の添付ファイル更新はログに記録しない
         }
       }
 

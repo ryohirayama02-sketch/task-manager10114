@@ -444,7 +444,8 @@ export class TaskService {
     taskId: string,
     taskData: any,
     oldTaskData?: any,
-    projectId?: string
+    projectId?: string,
+    skipLogging: boolean = false
   ) {
     if (!projectId) throw new Error('プロジェクトIDが必要です');
     const taskRef = doc(
@@ -694,7 +695,8 @@ export class TaskService {
       });
     }
 
-    if (changeDetails.length > 0) {
+    // 変更がない場合、またはskipLoggingがtrueの場合は編集ログを記録しない
+    if (changeDetails.length > 0 && !skipLogging) {
       // タスク名を取得（taskDataに含まれていない場合はFirestoreから取得）
       let taskName = taskData.taskName;
       if (!taskName) {

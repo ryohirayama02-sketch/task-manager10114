@@ -45,7 +45,7 @@ export class MemberManagementComponent implements OnInit {
   loading = false;
   private memberAddedFeedback = false;
   memberCountLimitReached = false;
-  readonly maxMemberCount = 20;
+  readonly maxMemberCount = 10;
 
   constructor(
     private memberService: MemberManagementService,
@@ -201,7 +201,8 @@ export class MemberManagementComponent implements OnInit {
       return '-';
     }
 
-    const locale = this.languageService.getCurrentLanguage() === 'ja' ? 'ja-JP' : 'en-US';
+    const locale =
+      this.languageService.getCurrentLanguage() === 'ja' ? 'ja-JP' : 'en-US';
     return d.toLocaleDateString(locale, {
       year: 'numeric',
       month: '2-digit',
@@ -222,8 +223,11 @@ export class MemberManagementComponent implements OnInit {
    * メンバー数の上限メッセージを取得
    */
   getMaxMemberLimitMessage(): string {
-    return this.languageService.translateWithParams('memberManagement.maxMemberLimit', {
-      count: this.maxMemberCount.toString(),
-    });
+    return this.languageService.translateWithParams(
+      'memberManagement.maxMemberLimit',
+      {
+        count: this.maxMemberCount.toString(),
+      }
+    );
   }
 }

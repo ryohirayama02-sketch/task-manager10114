@@ -63,13 +63,19 @@ export class MemberFormDialogComponent implements OnInit {
     private languageService: LanguageService
   ) {
     this.memberForm = this.fb.group({
-      name: ['', [
-        Validators.required, 
-        Validators.minLength(1), 
-        Validators.maxLength(20),
-        this.noCommaValidator
-      ]],
-      email: ['', [Validators.required, Validators.email, Validators.maxLength(254)]],
+      name: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(1),
+          Validators.maxLength(20),
+          this.noCommaValidator,
+        ],
+      ],
+      email: [
+        '',
+        [Validators.required, Validators.email, Validators.maxLength(254)],
+      ],
     });
   }
 
@@ -125,10 +131,13 @@ export class MemberFormDialogComponent implements OnInit {
     if (this.data.mode === 'add') {
       try {
         const currentCount = await this.memberService.getMemberCount();
-        const maxCount = 20;
+        const maxCount = 10;
         if (currentCount >= maxCount) {
           this.snackBar.open(
-            this.languageService.translateWithParams('memberManagement.maxMemberLimit', { count: maxCount.toString() }),
+            this.languageService.translateWithParams(
+              'memberManagement.maxMemberLimit',
+              { count: maxCount.toString() }
+            ),
             this.languageService.translate('memberManagement.close'),
             { duration: 5000 }
           );
@@ -139,13 +148,17 @@ export class MemberFormDialogComponent implements OnInit {
         const existingMembers = await firstValueFrom(
           this.memberService.getMembers()
         ).catch(() => []);
-        
+
         const nameExists = existingMembers.some(
-          (member) => member.name?.toLowerCase().trim() === formData.name?.toLowerCase().trim()
+          (member) =>
+            member.name?.toLowerCase().trim() ===
+            formData.name?.toLowerCase().trim()
         );
-        
+
         const emailExists = existingMembers.some(
-          (member) => member.email?.toLowerCase().trim() === formData.email?.toLowerCase().trim()
+          (member) =>
+            member.email?.toLowerCase().trim() ===
+            formData.email?.toLowerCase().trim()
         );
 
         if (nameExists) {
@@ -184,18 +197,22 @@ export class MemberFormDialogComponent implements OnInit {
         const existingMembers = await firstValueFrom(
           this.memberService.getMembers()
         ).catch(() => []);
-        
+
         // 編集中のメンバー以外で重複チェック
         const otherMembers = existingMembers.filter(
           (member) => member.id !== this.data.member?.id
         );
-        
+
         const nameExists = otherMembers.some(
-          (member) => member.name?.toLowerCase().trim() === formData.name?.toLowerCase().trim()
+          (member) =>
+            member.name?.toLowerCase().trim() ===
+            formData.name?.toLowerCase().trim()
         );
-        
+
         const emailExists = otherMembers.some(
-          (member) => member.email?.toLowerCase().trim() === formData.email?.toLowerCase().trim()
+          (member) =>
+            member.email?.toLowerCase().trim() ===
+            formData.email?.toLowerCase().trim()
         );
 
         if (nameExists) {
@@ -227,18 +244,24 @@ export class MemberFormDialogComponent implements OnInit {
       if (this.data.mode === 'add') {
         await this.memberService.addMember(formData);
         console.log('✅ メンバーを追加しました');
-        
+
         // 追加されたメンバーが現在ログインしているユーザーの場合、ナビバーのユーザー名を更新
         if (formData.email && formData.name) {
-          this.authService.updateMemberNameIfCurrentUser(formData.email, formData.name);
+          this.authService.updateMemberNameIfCurrentUser(
+            formData.email,
+            formData.name
+          );
         }
       } else if (this.data.mode === 'edit' && this.data.member?.id) {
         await this.memberService.updateMember(this.data.member.id, formData);
         console.log('✅ メンバーを更新しました');
-        
+
         // 更新されたメンバーが現在ログインしているユーザーの場合、ナビバーのユーザー名を更新
         if (this.data.member.email && formData.name) {
-          this.authService.updateMemberNameIfCurrentUser(this.data.member.email, formData.name);
+          this.authService.updateMemberNameIfCurrentUser(
+            this.data.member.email,
+            formData.name
+          );
         }
       }
 
@@ -284,7 +307,9 @@ export class MemberFormDialogComponent implements OnInit {
       if (fieldName === 'name') {
         return this.languageService.translate('memberManagement.nameMaxLength');
       } else if (fieldName === 'email') {
-        return this.languageService.translate('memberManagement.emailMaxLength');
+        return this.languageService.translate(
+          'memberManagement.emailMaxLength'
+        );
       }
     }
     if (field?.hasError('noComma')) {
