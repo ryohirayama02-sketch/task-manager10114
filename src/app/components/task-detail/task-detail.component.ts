@@ -292,13 +292,7 @@ export class TaskDetailComponent implements OnInit {
     this.projectService.getProjectById(projectId).subscribe((project) => {
       console.log('プロジェクト情報:', project);
       if (!project) {
-        this.snackBar.open(
-          this.languageService.translate('taskDetail.error.projectNotFound'),
-          this.languageService.translate('common.close'),
-          {
-            duration: 3000,
-          }
-        );
+        // プロジェクトが見つからない場合はメッセージを表示しない
         this.router.navigate(['/projects']);
         return;
       }
@@ -383,13 +377,7 @@ export class TaskDetailComponent implements OnInit {
           this.filteredChildTasks = [];
           this.parentTaskName = null;
           this.editableAttachments = [];
-          this.snackBar.open(
-            this.languageService.translate('taskDetail.error.taskNotFound'),
-            this.languageService.translate('common.close'),
-            {
-              duration: 3000,
-            }
-          );
+          // タスクが見つからない場合はメッセージを表示しない
           this.router.navigate(['/projects']);
         }
         this.isLoading = false;

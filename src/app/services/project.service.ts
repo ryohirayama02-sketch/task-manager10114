@@ -939,35 +939,38 @@ export class ProjectService {
       }
 
       // タグの変更（追加・削除）
-      const oldTags = oldTaskData['tags'] || [];
-      const newTags = taskData.tags || [];
-      const oldTagsStr = JSON.stringify(oldTags.sort());
-      const newTagsStr = JSON.stringify(newTags.sort());
+      // taskData.tagsがundefinedの場合は、タグの変更を検出しない（他のフィールドのみ更新する場合）
+      if (taskData.tags !== undefined) {
+        const oldTags = oldTaskData['tags'] || [];
+        const newTags = taskData.tags || [];
+        const oldTagsStr = JSON.stringify(oldTags.sort());
+        const newTagsStr = JSON.stringify(newTags.sort());
 
-      if (oldTagsStr !== newTagsStr) {
-        // 追加されたタグ
-        const addedTags = newTags.filter(
-          (tag: string) => !oldTags.includes(tag)
-        );
-        addedTags.forEach((tag: string) => {
-          changeDetails.push({
-            field: 'タグ',
-            newValue: tag,
+        if (oldTagsStr !== newTagsStr) {
+          // 追加されたタグ
+          const addedTags = newTags.filter(
+            (tag: string) => !oldTags.includes(tag)
+          );
+          addedTags.forEach((tag: string) => {
+            changeDetails.push({
+              field: 'タグ',
+              newValue: tag,
+            });
+            changeStrings.push(`タグ: ${tag}が追加されました`);
           });
-          changeStrings.push(`タグ: ${tag}が追加されました`);
-        });
 
-        // 削除されたタグ
-        const removedTags = oldTags.filter(
-          (tag: string) => !newTags.includes(tag)
-        );
-        removedTags.forEach((tag: string) => {
-          changeDetails.push({
-            field: 'タグ',
-            oldValue: tag,
+          // 削除されたタグ
+          const removedTags = oldTags.filter(
+            (tag: string) => !newTags.includes(tag)
+          );
+          removedTags.forEach((tag: string) => {
+            changeDetails.push({
+              field: 'タグ',
+              oldValue: tag,
+            });
+            changeStrings.push(`タグ: ${tag}が削除されました`);
           });
-          changeStrings.push(`タグ: ${tag}が削除されました`);
-        });
+        }
       }
 
       if (changeDetails.length > 0) {

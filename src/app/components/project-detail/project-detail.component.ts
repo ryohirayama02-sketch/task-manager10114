@@ -231,15 +231,7 @@ export class ProjectDetailComponent implements OnInit {
         .getProjectById(this.projectId)
         .subscribe(async (data) => {
           if (!data) {
-            this.snackBar.open(
-              this.languageService.translate(
-                'projectDetail.error.projectNotFound'
-              ),
-              this.languageService.translate('common.close'),
-              {
-                duration: 3000,
-              }
-            );
+            // プロジェクトが見つからない場合はメッセージを表示しない
             this.router.navigate(['/projects']);
             return;
           }

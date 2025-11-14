@@ -200,20 +200,20 @@ export class TaskCreatePageComponent implements OnInit {
       if (params['parentTaskId']) {
         this.parentTaskId = params['parentTaskId'];
         this.isSubtaskCreation = true;
-        
+
         // Fetch parent task information
         if (this.projectId && this.parentTaskId) {
           this.projectService
             .getTask(this.projectId, this.parentTaskId)
             .subscribe({
-            next: (task) => {
-              this.parentTaskName = task.taskName || '';
-              // projectName already set from navState, but can be overridden from task if needed
-              if (!this.projectName && task.projectName) {
-                this.projectName = task.projectName;
-              }
-            },
-            error: (error) => {
+              next: (task) => {
+                this.parentTaskName = task.taskName || '';
+                // projectName already set from navState, but can be overridden from task if needed
+                if (!this.projectName && task.projectName) {
+                  this.projectName = task.projectName;
+                }
+              },
+              error: (error) => {
                 console.error(
                   this.languageService.translate(
                     'taskCreate.error.parentTaskFetchFailed'
@@ -234,7 +234,7 @@ export class TaskCreatePageComponent implements OnInit {
                 // projectName already set from navState, but can be overridden from task if needed
                 if (!this.projectName && task.projectName) {
                   this.projectName = task.projectName;
-            }
+                }
               },
               error: (error) => {
                 console.error(
@@ -244,7 +244,7 @@ export class TaskCreatePageComponent implements OnInit {
                   error
                 );
               },
-          });
+            });
         }
       }
     });
@@ -850,9 +850,9 @@ export class TaskCreatePageComponent implements OnInit {
             uploadedCount: uploadedAttachments.length,
             uploadedAttachments,
           });
-        
+
           // Step 4: アップロードされたファイル情報でタスクを更新
-        if (uploadedAttachments.length > 0) {
+          if (uploadedAttachments.length > 0) {
             console.log('[save] Step 4開始: タスクの添付ファイル情報を更新', {
               taskId,
               projectId: this.projectId,
@@ -870,7 +870,7 @@ export class TaskCreatePageComponent implements OnInit {
               });
 
               if (validAttachments.length > 0) {
-          await this.projectService.updateTask(this.projectId, taskId, {
+                await this.projectService.updateTask(this.projectId, taskId, {
                   attachments: validAttachments,
                 });
                 console.log('[save] タスクの添付ファイル情報を更新しました');
@@ -886,8 +886,8 @@ export class TaskCreatePageComponent implements OnInit {
                 errorCode: updateError?.code,
                 taskId,
                 projectId: this.projectId,
-            attachments: uploadedAttachments,
-          });
+                attachments: uploadedAttachments,
+              });
               // タスク更新エラーは警告として記録するが、タスク作成は成功とみなす
               this.snackBar.open(
                 this.languageService.translate(
@@ -897,7 +897,7 @@ export class TaskCreatePageComponent implements OnInit {
                 this.languageService.translate('taskCreate.close'),
                 { duration: 5000 }
               );
-        }
+            }
           } else {
             // ファイルが選択されていたが、アップロードに失敗した場合
             console.warn(
@@ -918,7 +918,7 @@ export class TaskCreatePageComponent implements OnInit {
           // ファイルアップロードエラーは警告として記録するが、タスク作成は成功とみなす
           // エラーメッセージはuploadPendingFiles内で既に表示されている
         } finally {
-        this.isUploading = false;
+          this.isUploading = false;
         }
       }
 
@@ -964,8 +964,7 @@ export class TaskCreatePageComponent implements OnInit {
           dueDate: this.taskForm.dueDate,
         },
       });
-      // タスク作成自体が失敗した場合のみエラーメッセージを表示
-      alert(this.languageService.translate('taskCreate.error.saveFailed'));
+      // タスク作成失敗時はコンソールにエラーを記録（メッセージは表示しない）
     } finally {
       this.isSaving = false;
       this.isUploading = false;
@@ -1004,7 +1003,7 @@ export class TaskCreatePageComponent implements OnInit {
           attachment,
         });
         if (attachment) {
-        uploaded.push(attachment);
+          uploaded.push(attachment);
         } else {
           console.warn(
             '[uploadPendingFiles] アップロード結果がnull/undefined:',

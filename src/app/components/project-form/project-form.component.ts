@@ -941,14 +941,6 @@ export class ProjectFormComponent implements OnInit {
         }
       }
 
-      this.snackBar.open(
-        this.languageService.translate('projectForm.success.created'),
-        this.languageService.translate('projectForm.close'),
-        {
-          duration: 3000,
-        }
-      );
-
       // 作成したプロジェクトの詳細画面へ遷移
       if (docRef?.id) {
         if (this.returnUrl) {
@@ -964,13 +956,6 @@ export class ProjectFormComponent implements OnInit {
       }
     } catch (error) {
       console.error('プロジェクト作成エラー:', error);
-      this.snackBar.open(
-        this.languageService.translate('projectForm.error.createFailed'),
-        this.languageService.translate('projectForm.close'),
-        {
-          duration: 3000,
-        }
-      );
     } finally {
       this.isSubmitting = false;
     }
