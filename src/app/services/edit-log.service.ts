@@ -271,7 +271,8 @@ export class EditLogService {
   /** 編集ログをCSV形式で出力 */
   exportToCSV(
     logs: EditLog[],
-    getUserNameDisplay?: (log: EditLog) => string
+    getUserNameDisplay?: (log: EditLog) => string,
+    formatChangeDescription?: (log: EditLog) => string
   ): void {
     try {
       const headers = [
@@ -289,7 +290,9 @@ export class EditLogService {
         log.projectName,
         log.taskName || '',
         this.getActionLabel(log.action),
-        log.changeDescription,
+        formatChangeDescription
+          ? formatChangeDescription(log)
+          : log.changeDescription,
       ]);
 
       const csvContent = [headers, ...csvData]

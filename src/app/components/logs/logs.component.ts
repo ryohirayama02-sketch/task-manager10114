@@ -210,8 +210,10 @@ export class LogsComponent implements OnInit, OnDestroy {
 
   /** CSV出力 */
   exportToCSV(): void {
-    this.editLogService.exportToCSV(this.editLogs, (log) =>
-      this.getUserNameDisplay(log)
+    this.editLogService.exportToCSV(
+      this.editLogs,
+      (log) => this.getUserNameDisplay(log),
+      (log) => this.formatChangeDescription(log)
     );
   }
 
