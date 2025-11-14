@@ -1744,19 +1744,6 @@ export class ProjectDetailComponent implements OnInit {
             );
             memberNames.forEach((name) => assigneeSet.add(name));
           }
-
-          // assignee から取得（プロジェクトのメンバーのみ）
-          if (task.assignee) {
-            const assignees = task.assignee
-              .split(',')
-              .map((name) => name.trim())
-              .filter((name) => name.length > 0)
-              .filter((name) => {
-                // プロジェクトのメンバーのみを追加
-                return projectMembers.some((m) => m.name === name);
-              });
-            assignees.forEach((assignee) => assigneeSet.add(assignee));
-          }
         });
 
         // プロジェクトのメンバー一覧からも取得（最新の名前を確実に含める）
@@ -1806,17 +1793,8 @@ export class ProjectDetailComponent implements OnInit {
           projectMemberNames.includes(member.name || '')
         );
 
-        // assignee をカンマで分割
-        const assignees = (task.assignee || '')
-          .split(',')
-          .map((name) => name.trim().toLowerCase())
-          .filter((name) => name.length > 0)
-          .filter((name) => {
-            // プロジェクトのメンバーのみを対象
-            return projectMembers.some((m) => m.name.toLowerCase() === name);
-          });
-
-        // assignedMembers も含める（メンバーIDをメンバー名に変換、プロジェクトのメンバーのみ）
+        // assignedMembers から取得（メンバーIDをメンバー名に変換、プロジェクトのメンバーのみ）
+        const assignees: string[] = [];
         if (Array.isArray((task as any).assignedMembers)) {
           const memberNames = getMemberNames(
             (task as any).assignedMembers,

@@ -20,7 +20,10 @@ import {
   DEFAULT_PROJECT_THEME_COLOR,
   resolveProjectThemeColor,
 } from '../../constants/project-theme-colors';
-import { getMemberNamesAsString } from '../../utils/member-utils';
+import {
+  getMemberNamesAsString,
+  getMemberNames,
+} from '../../utils/member-utils';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { LanguageService } from '../../services/language.service';
 
@@ -118,10 +121,19 @@ export class TaskSearchComponent implements OnInit {
             .getTasksByProjectId(project.id)
             .subscribe((tasks) => {
               // タスクデータにprojectIdを追加
-              console.log(`プロジェクト「${project.projectName}」のタスク取得:`, tasks.length, '件');
+              console.log(
+                `プロジェクト「${project.projectName}」のタスク取得:`,
+                tasks.length,
+                '件'
+              );
               if (tasks.length > 0) {
                 console.log('最初のタスクのデータ構造:', tasks[0]);
-                console.log('最初のタスクのtags:', tasks[0].tags, '型:', typeof tasks[0].tags);
+                console.log(
+                  '最初のタスクのtags:',
+                  tasks[0].tags,
+                  '型:',
+                  typeof tasks[0].tags
+                );
               }
               const tasksWithProjectId = tasks.map((task) => ({
                 ...task,
@@ -162,37 +174,18 @@ export class TaskSearchComponent implements OnInit {
 
     // 担当者一覧を生成（カンマ区切り対応、メンバー管理画面に存在する名前のみ）
     const assigneeSet = new Set<string>();
-    
+
     // assignedMembers から取得（メンバーIDからメンバー名に変換）
     allTasks.forEach((task) => {
       if (Array.isArray((task as any).assignedMembers)) {
-        (task as any).assignedMembers.forEach((memberId: string) => {
-          const member = this.allMembers.find((m) => m.id === memberId);
-          if (member && member.name) {
-            // メンバー名がカンマ区切りの場合も分割
-            const names = member.name
-              .split(',')
-              .map((n) => n.trim())
-              .filter((n) => n.length > 0);
-            names.forEach((name) => assigneeSet.add(name));
-          }
-        });
-      }
-      
-      // タスクのassigneeから取得（メンバー管理画面に存在する名前のみ）
-      if (task.assignee) {
-        const assignees = task.assignee
-          .split(',')
-          .map((name) => name.trim())
-          .filter((name) => name.length > 0)
-          .filter((name) => {
-            // メンバー管理画面に存在する名前のみを追加
-            return this.allMembers.some((m) => m.name === name);
-          });
-        assignees.forEach((assignee) => assigneeSet.add(assignee));
+        const memberNames = getMemberNames(
+          (task as any).assignedMembers,
+          this.allMembers
+        );
+        memberNames.forEach((name) => assigneeSet.add(name));
       }
     });
-    
+
     // メンバー管理画面のメンバー一覧からも取得
     this.allMembers.forEach((member) => {
       if (member.name) {
@@ -203,23 +196,26 @@ export class TaskSearchComponent implements OnInit {
         names.forEach((name) => assigneeSet.add(name));
       }
     });
-    
+
     this.assignees = Array.from(assigneeSet).sort();
 
     // タグ一覧を生成（ルーム内のタスクから抽出、空文字列やnullを除外）
-    console.log('タグ抽出前のタスク:', allTasks.map(t => ({ 
-      id: t.id, 
-      taskName: t.taskName, 
-      tags: t.tags,
-      tagsType: typeof t.tags,
-      tagsIsArray: Array.isArray(t.tags),
-      allKeys: Object.keys(t)
-    })));
-    
+    console.log(
+      'タグ抽出前のタスク:',
+      allTasks.map((t) => ({
+        id: t.id,
+        taskName: t.taskName,
+        tags: t.tags,
+        tagsType: typeof t.tags,
+        tagsIsArray: Array.isArray(t.tags),
+        allKeys: Object.keys(t),
+      }))
+    );
+
     const allTags: string[] = [];
     allTasks.forEach((task) => {
       let tags: string[] = [];
-      
+
       // tagsフィールドの型を確認
       if (task.tags) {
         if (Array.isArray(task.tags)) {
@@ -233,12 +229,23 @@ export class TaskSearchComponent implements OnInit {
             tags = [task.tags];
           }
         } else {
-          console.warn(`タスク「${task.taskName}」のtagsが予期しない型です:`, typeof task.tags, task.tags);
+          console.warn(
+            `タスク「${task.taskName}」のtagsが予期しない型です:`,
+            typeof task.tags,
+            task.tags
+          );
         }
       }
-      
-      console.log(`タスク「${task.taskName}」のタグ:`, tags, '型:', typeof tags, '配列か:', Array.isArray(tags));
-      
+
+      console.log(
+        `タスク「${task.taskName}」のタグ:`,
+        tags,
+        '型:',
+        typeof tags,
+        '配列か:',
+        Array.isArray(tags)
+      );
+
       // タグを追加
       tags.forEach((tag) => {
         if (tag && typeof tag === 'string' && tag.trim().length > 0) {
@@ -246,7 +253,7 @@ export class TaskSearchComponent implements OnInit {
         }
       });
     });
-    
+
     this.allTags = [...new Set(allTags)].sort();
     console.log('抽出されたタグ（重複前）:', allTags);
     console.log('重複除去・ソート後のタグ:', this.allTags);
@@ -282,7 +289,11 @@ export class TaskSearchComponent implements OnInit {
             .getTasksByProjectId(project.id)
             .subscribe((tasks) => {
               // タスクデータにprojectIdを追加
-              console.log(`[検索] プロジェクト「${project.projectName}」のタスク取得:`, tasks.length, '件');
+              console.log(
+                `[検索] プロジェクト「${project.projectName}」のタスク取得:`,
+                tasks.length,
+                '件'
+              );
               if (tasks.length > 0) {
                 console.log('[検索] 最初のタスクのtags:', tasks[0].tags);
               }
@@ -330,14 +341,17 @@ export class TaskSearchComponent implements OnInit {
         parentTaskId: (task as any).parentTaskId,
       }))
     );
-    
+
     // 子タスクの数を確認
     const subtasks = allTasks.filter((task) => (task as any).parentTaskId);
-    console.log(`子タスクの数: ${subtasks.length}件`, subtasks.map((task) => ({
-      id: task.id,
-      taskName: task.taskName,
-      parentTaskId: (task as any).parentTaskId,
-    })));
+    console.log(
+      `子タスクの数: ${subtasks.length}件`,
+      subtasks.map((task) => ({
+        id: task.id,
+        taskName: task.taskName,
+        parentTaskId: (task as any).parentTaskId,
+      }))
+    );
 
     let filteredTasks = [...allTasks];
 
@@ -345,7 +359,7 @@ export class TaskSearchComponent implements OnInit {
     if (this.filters.assignee.length > 0) {
       filteredTasks = filteredTasks.filter((task) => {
         const assignees: string[] = [];
-        
+
         // assignedMembers から取得（メンバーIDからメンバー名に変換）
         if (Array.isArray((task as any).assignedMembers)) {
           (task as any).assignedMembers.forEach((memberId: string) => {
@@ -360,7 +374,7 @@ export class TaskSearchComponent implements OnInit {
             }
           });
         }
-        
+
         // assignee から取得（メンバー管理画面に存在する名前のみ）
         if (task.assignee) {
           const names = task.assignee
@@ -373,7 +387,7 @@ export class TaskSearchComponent implements OnInit {
             });
           assignees.push(...names);
         }
-        
+
         // フィルター値とマッチするか確認（複数選択対応）
         return assignees.some((assignee) =>
           this.filters.assignee.some(
@@ -416,9 +430,7 @@ export class TaskSearchComponent implements OnInit {
       );
     }
 
-    this.searchResults = filteredTasks.map((task) =>
-      this.withTaskTheme(task)
-    );
+    this.searchResults = filteredTasks.map((task) => this.withTaskTheme(task));
     console.log('検索結果:', this.searchResults);
     console.log(
       '検索結果のタスク詳細:',
@@ -521,9 +533,9 @@ export class TaskSearchComponent implements OnInit {
     }
 
     // assignee がカンマ区切りの場合を考慮
-    const assigneeNames = task.assignee.split(',').map(name => name.trim());
+    const assigneeNames = task.assignee.split(',').map((name) => name.trim());
     const updatedNames = assigneeNames
-      .map(name => {
+      .map((name) => {
         const member = this.allMembers.find((m) => m.name === name);
         return member ? member.name : null;
       })
@@ -537,9 +549,9 @@ export class TaskSearchComponent implements OnInit {
    */
   getPriorityDisplay(priority: string): string {
     const priorityMap: Record<string, string> = {
-      '高': 'progress.priority.high',
-      '中': 'progress.priority.medium',
-      '低': 'progress.priority.low',
+      高: 'progress.priority.high',
+      中: 'progress.priority.medium',
+      低: 'progress.priority.low',
     };
     return this.languageService.translate(priorityMap[priority] || priority);
   }
@@ -549,11 +561,10 @@ export class TaskSearchComponent implements OnInit {
    */
   getStatusDisplay(status: string): string {
     const statusMap: Record<string, string> = {
-      '完了': 'progress.status.completed',
-      '作業中': 'progress.status.inProgress',
-      '未着手': 'progress.status.notStarted',
+      完了: 'progress.status.completed',
+      作業中: 'progress.status.inProgress',
+      未着手: 'progress.status.notStarted',
     };
     return this.languageService.translate(statusMap[status] || status);
   }
 }
-

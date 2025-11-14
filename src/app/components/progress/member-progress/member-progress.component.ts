@@ -129,21 +129,8 @@ export class MemberProgressComponent implements OnInit {
     const memberTaskMap = new Map<string, Task[]>();
 
     tasks.forEach((task) => {
-      // assignee と assignedMembers を統合して、重複を削除
+      // assignedMembers からメンバー名を取得（削除済みメンバーは除外）
       let assignees: string[] = [];
-
-      // assignee から名前を取得（メンバー管理画面に存在する名前のみ）
-      if (task.assignee) {
-        const assigneeNames = task.assignee
-          .split(',')
-          .map((name) => name.trim())
-          .filter((name) => name.length > 0)
-          .filter((name) => {
-            // メンバー管理画面に存在する名前のみを追加
-            return this.allMembers.some((m) => m.name === name);
-          });
-        assignees.push(...assigneeNames);
-      }
 
       // assignedMembers からメンバー名を取得（削除済みメンバーは除外）
       if (task.assignedMembers && task.assignedMembers.length > 0) {
