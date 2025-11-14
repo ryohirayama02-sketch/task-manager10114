@@ -64,7 +64,7 @@
           [(ngModel)]="taskData.taskName"
           name="taskName"
           [placeholder]="
-          task.parentTaskId
+            task.parentTaskId
               ? ('taskDetail.childTaskNamePlaceholderFull' | translate)
               : ('taskDetail.taskNamePlaceholderFull' | translate)
           "
@@ -117,7 +117,7 @@
               !taskData.assignedMembers || taskData.assignedMembers.length === 0
             "
           >
-          {{ getCurrentMemberNameByName(taskData.assignee) || "—" }}
+            {{ getCurrentMemberNameByName(taskData.assignee) || "—" }}
           </span>
         </p>
 
@@ -203,7 +203,6 @@
       <ng-template #taskEditForm>
         <form class="task-inline-edit-form" novalidate>
           <mat-form-field appearance="outline" class="full-width-field">
-            <mat-label>{{ "taskDetail.projectName" | translate }}</mat-label>
             <input
               matInput
               [value]="taskData.projectName || project?.projectName || ''"
@@ -216,7 +215,6 @@
             appearance="outline"
             class="full-width-field"
           >
-            <mat-label>{{ "taskDetail.parentTaskName" | translate }}</mat-label>
             <input matInput [value]="parentTaskName" disabled />
           </mat-form-field>
 
