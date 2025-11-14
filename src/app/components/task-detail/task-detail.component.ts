@@ -114,12 +114,28 @@ export class TaskDetailComponent implements OnInit {
   projectThemeColor = DEFAULT_PROJECT_THEME_COLOR;
   taskStartDateObj: Date | null = null; // Material date picker用（編集モードの開始日）
   taskDueDateObj: Date | null = null; // Material date picker用（編集モードの終了日）
-  maxDate = new Date(9999, 11, 31); // 9999-12-31
+  minDate: Date; // 当月から3か月前の1日
+  maxDate: Date; // 当月から3か月後の月末日
   maxTaskDueDate: Date | null = null; // 開始日から30日後の日付
   parentTaskName: string | null = null;
   projectMembers: Member[] = [];
   selectedAssignedMemberIds: string[] = [];
   private isReopeningParentTask = false; // 親タスクを再オープン中かどうかのフラグ
+
+  constructor() {
+    // 日付選択範囲を設定（当月±3か月）
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    const currentMonth = today.getMonth();
+
+    // 3か月前の1日
+    const minDate = new Date(currentYear, currentMonth - 3, 1);
+    this.minDate = minDate;
+
+    // 3か月後の月末日
+    const maxDate = new Date(currentYear, currentMonth + 4, 0); // 翌月の0日 = 今月の月末
+    this.maxDate = maxDate;
+  }
 
   // 添付ファイル関連
   editableAttachments: TaskAttachment[] = [];
@@ -813,11 +829,13 @@ export class TaskDetailComponent implements OnInit {
       // 開始日から30日後の日付を計算
       const maxDueDate = new Date(this.taskStartDateObj);
       maxDueDate.setDate(maxDueDate.getDate() + 30);
-      this.maxTaskDueDate = maxDueDate;
+      // maxDate（当月+3か月の月末）を超えないようにする
+      this.maxTaskDueDate =
+        maxDueDate > this.maxDate ? this.maxDate : maxDueDate;
 
       // 終了日が30日を超えている場合は調整
-      if (this.taskDueDateObj && this.taskDueDateObj > maxDueDate) {
-        this.taskDueDateObj = new Date(maxDueDate);
+      if (this.taskDueDateObj && this.taskDueDateObj > this.maxTaskDueDate) {
+        this.taskDueDateObj = new Date(this.maxTaskDueDate);
         this.onTaskDueDateChange();
         this.snackBar.open(
           this.languageService.translate('taskDetail.error.dateRangeExceeded'),
@@ -847,7 +865,10 @@ export class TaskDetailComponent implements OnInit {
         if (daysDiff > 30) {
           const maxDueDate = new Date(this.taskStartDateObj);
           maxDueDate.setDate(maxDueDate.getDate() + 30);
-          this.taskDueDateObj = new Date(maxDueDate);
+          // maxDate（当月+3か月の月末）を超えないようにする
+          const limitedMaxDueDate =
+            maxDueDate > this.maxDate ? this.maxDate : maxDueDate;
+          this.taskDueDateObj = new Date(limitedMaxDueDate);
           this.onTaskDueDateChange();
           this.snackBar.open(
             this.languageService.translate(
