@@ -404,12 +404,12 @@ export const sendEmailNotification = onCall(
  */
 /**
  * 🔹 今日のタスクを取得（ユーザーが担当者で、期日が今日のタスク）
+ * メンバーIDベースでユーザーを識別
  */
 async function getTodayTasksForUser(
   roomId: string,
   roomDocId: string,
-  userEmail: string,
-  userName?: string
+  userMemberId: string
 ): Promise<any[]> {
   const db = admin.firestore();
   const now = new Date();
@@ -427,59 +427,12 @@ async function getTodayTasksForUser(
   console.log(`   - 今日の日付: ${todayStr}`);
   console.log(`   - roomId: ${roomId}`);
   console.log(`   - roomDocId: ${roomDocId}`);
-  console.log(`   - userEmail: ${userEmail}`);
-  console.log(`   - userName: ${userName || '未設定'}`);
+  console.log(`   - userMemberId: ${userMemberId}`);
 
-  // メンバー情報を取得
-  const membersSnapshot = await db
-    .collection('members')
-    .where('roomId', '==', roomId)
-    .get();
-
-  console.log(`   - メンバー数: ${membersSnapshot.size}`);
-
-  if (membersSnapshot.size === 0) {
-    console.log(`   ⚠️ メンバーが見つかりませんでした`);
-  } else {
-    console.log(`   - メンバー一覧:`);
-    membersSnapshot.forEach((doc) => {
-      const memberData = doc.data();
-      console.log(
-        `     - ${doc.id}: ${memberData.name || '名前なし'} (${
-          memberData.email || 'メールなし'
-        })`
-      );
-    });
+  if (!userMemberId) {
+    console.log(`   ⚠️ メンバーIDが未設定のため、タスクを取得できません`);
+    return [];
   }
-
-  const memberEmailMap = new Map<string, string>(); // memberId -> email
-  const memberNameMap = new Map<string, string>(); // name -> email
-  const memberIdMap = new Map<string, string>(); // email -> memberId
-  const memberIdToNameMap = new Map<string, string>(); // memberId -> name
-  membersSnapshot.forEach((doc) => {
-    const memberData = doc.data();
-    if (memberData.email) {
-      if (doc.id) {
-        memberEmailMap.set(doc.id, memberData.email);
-        memberIdMap.set(memberData.email, doc.id);
-        if (memberData.name) {
-          memberIdToNameMap.set(doc.id, memberData.name);
-        }
-      }
-      if (memberData.name) {
-        memberNameMap.set(memberData.name, memberData.email);
-      }
-    }
-  });
-
-  // ユーザーのメンバーIDを取得
-  const userMemberId = memberIdMap.get(userEmail);
-  const normalizedUserName = userName?.trim().toLowerCase();
-
-  // ユーザー名の配列を作成（フロントエンド側と同じロジック）
-  const members = normalizedUserName ? [normalizedUserName] : [];
-  console.log(`   - ユーザー名配列: ${JSON.stringify(members)}`);
-  console.log(`   - ユーザーメンバーID: ${userMemberId || '未設定'}`);
 
   // プロジェクトを取得（getUpcomingTasksと同じ方法：roomIdで検索）
   console.log(`\n   🔍 [プロジェクト取得] 開始`);
@@ -598,84 +551,21 @@ async function getTodayTasksForUser(
         console.log(
           `🔍 タスク確認: ${taskData.taskName || taskData.task}, dueDate=${
             taskData.dueDate
-          }, status=${taskData.status}, assignee=${
-            taskData.assignee
-          }, assignedMembers=${JSON.stringify(taskData.assignedMembers)}`
+          }, status=${taskData.status}, assignedMembers=${JSON.stringify(
+            taskData.assignedMembers
+          )}`
         );
 
-        // 担当者をチェック
-        let assignees: string[] = [];
+        // 担当者をチェック（メンバーIDベースのみ）
+        let match = false;
 
-        // ① assignee（カンマ区切り）
-        if (taskData.assignee) {
-          assignees.push(
-            ...taskData.assignee
-              .split(',')
-              .map((n: string) => n.trim().toLowerCase())
-              .filter((n: string) => n.length > 0)
-          );
-        }
-
-        // ② assignedMembers（メンバーIDからメールアドレスや名前を取得）
+        // assignedMembersにuserMemberIdが含まれているかチェック
         if (Array.isArray(taskData.assignedMembers)) {
-          taskData.assignedMembers.forEach((member: any) => {
-            if (typeof member === 'string') {
-              // メンバーIDの場合、メンバー情報からメールアドレスや名前を取得
-              const memberEmail = memberEmailMap.get(member);
-              const memberName = memberIdToNameMap.get(member);
-              if (memberEmail) {
-                assignees.push(memberEmail.trim().toLowerCase());
-              }
-              if (memberName) {
-                // メンバー名がカンマ区切りの場合も分割
-                const names = memberName
-                  .split(',')
-                  .map((n: string) => n.trim().toLowerCase())
-                  .filter((n: string) => n.length > 0);
-                assignees.push(...names);
-              }
-              // メンバーIDそのものも追加（フォールバック）
-              assignees.push(member.trim().toLowerCase());
-            } else if (typeof member === 'object' && member) {
-              if (member.memberName)
-                assignees.push(member.memberName.trim().toLowerCase());
-              if (member.name) assignees.push(member.name.trim().toLowerCase());
-              if (member.memberEmail)
-                assignees.push(member.memberEmail.trim().toLowerCase());
-              if (member.email)
-                assignees.push(member.email.trim().toLowerCase());
-            }
-          });
-        }
-
-        // ③ assigneeEmail
-        if (taskData.assigneeEmail) {
-          assignees.push(taskData.assigneeEmail.trim().toLowerCase());
-        }
-
-        assignees = [...new Set(assignees)];
-
-        const normalizedUserEmail = userEmail.trim().toLowerCase();
-
-        // フロントエンド側と同じロジック
-        // 1. メールアドレスで一致
-        let match = assignees.includes(normalizedUserEmail);
-
-        // 2. ユーザー名で一致（members配列がある場合）
-        if (!match && members.length > 0) {
-          match = assignees.some((a) => members.includes(a));
-        }
-
-        // 3. メンバーIDで一致（assignedMembersにuserMemberIdが含まれている場合）
-        if (!match && userMemberId) {
-          // assignedMembersにuserMemberIdが含まれているかチェック
-          if (Array.isArray(taskData.assignedMembers)) {
-            match = taskData.assignedMembers.some(
-              (member: any) =>
-                (typeof member === 'string' && member === userMemberId) ||
-                (typeof member === 'object' && member?.id === userMemberId)
-            );
-          }
+          match = taskData.assignedMembers.some(
+            (member: any) =>
+              (typeof member === 'string' && member === userMemberId) ||
+              (typeof member === 'object' && member?.id === userMemberId)
+          );
         }
 
         if (match) {
@@ -706,9 +596,9 @@ async function getTodayTasksForUser(
           console.log(
             `❌ マッチしなかったタスク: ${
               taskData.taskName || taskData.task
-            }, assignees=${JSON.stringify(
-              assignees
-            )}, userEmail=${userEmail}, userName=${userName}, userMemberId=${userMemberId}`
+            }, assignedMembers=${JSON.stringify(
+              taskData.assignedMembers
+            )}, userMemberId=${userMemberId}`
           );
         }
       });
@@ -752,73 +642,21 @@ async function getTodayTasksForUser(
             console.log(
               `🔍 タスク確認: ${taskData.taskName || taskData.task}, dueDate=${
                 taskData.dueDate
-              }, status=${taskData.status}, assignee=${
-                taskData.assignee
-              }, assignedMembers=${JSON.stringify(taskData.assignedMembers)}`
+              }, status=${taskData.status}, assignedMembers=${JSON.stringify(
+                taskData.assignedMembers
+              )}`
             );
 
-            // 担当者をチェック（以下、同じロジック）
-            let assignees: string[] = [];
+            // 担当者をチェック（メンバーIDベースのみ）
+            let match = false;
 
-            if (taskData.assignee) {
-              assignees.push(
-                ...taskData.assignee
-                  .split(',')
-                  .map((n: string) => n.trim().toLowerCase())
-                  .filter((n: string) => n.length > 0)
-              );
-            }
-
+            // assignedMembersにuserMemberIdが含まれているかチェック
             if (Array.isArray(taskData.assignedMembers)) {
-              taskData.assignedMembers.forEach((member: any) => {
-                if (typeof member === 'string') {
-                  const memberEmail = memberEmailMap.get(member);
-                  const memberName = memberIdToNameMap.get(member);
-                  if (memberEmail) {
-                    assignees.push(memberEmail.trim().toLowerCase());
-                  }
-                  if (memberName) {
-                    const names = memberName
-                      .split(',')
-                      .map((n: string) => n.trim().toLowerCase())
-                      .filter((n: string) => n.length > 0);
-                    assignees.push(...names);
-                  }
-                  assignees.push(member.trim().toLowerCase());
-                } else if (typeof member === 'object' && member) {
-                  if (member.memberName)
-                    assignees.push(member.memberName.trim().toLowerCase());
-                  if (member.name)
-                    assignees.push(member.name.trim().toLowerCase());
-                  if (member.memberEmail)
-                    assignees.push(member.memberEmail.trim().toLowerCase());
-                  if (member.email)
-                    assignees.push(member.email.trim().toLowerCase());
-                }
-              });
-            }
-
-            if (taskData.assigneeEmail) {
-              assignees.push(taskData.assigneeEmail.trim().toLowerCase());
-            }
-
-            assignees = [...new Set(assignees)];
-
-            const normalizedUserEmail = userEmail.trim().toLowerCase();
-            let match = assignees.includes(normalizedUserEmail);
-
-            if (!match && members.length > 0) {
-              match = assignees.some((a) => members.includes(a));
-            }
-
-            if (!match && userMemberId) {
-              if (Array.isArray(taskData.assignedMembers)) {
-                match = taskData.assignedMembers.some(
-                  (member: any) =>
-                    (typeof member === 'string' && member === userMemberId) ||
-                    (typeof member === 'object' && member?.id === userMemberId)
-                );
-              }
+              match = taskData.assignedMembers.some(
+                (member: any) =>
+                  (typeof member === 'string' && member === userMemberId) ||
+                  (typeof member === 'object' && member?.id === userMemberId)
+              );
             }
 
             if (match) {
@@ -838,9 +676,9 @@ async function getTodayTasksForUser(
               console.log(
                 `❌ マッチしなかったタスク: ${
                   taskData.taskName || taskData.task
-                }, assignees=${JSON.stringify(
-                  assignees
-                )}, userEmail=${userEmail}, userName=${userName}, userMemberId=${userMemberId}`
+                }, assignedMembers=${JSON.stringify(
+                  taskData.assignedMembers
+                )}, userMemberId=${userMemberId}`
               );
             }
           });
@@ -879,71 +717,21 @@ async function getTodayTasksForUser(
       console.log(
         `🔍 スタンドアロンタスク確認: ${
           taskData.taskName || taskData.task
-        }, dueDate=${taskData.dueDate}, status=${taskData.status}, assignee=${
-          taskData.assignee
+        }, dueDate=${taskData.dueDate}, status=${
+          taskData.status
         }, assignedMembers=${JSON.stringify(taskData.assignedMembers)}`
       );
 
-      // 担当者をチェック（以下、同じロジック）
-      let assignees: string[] = [];
+      // 担当者をチェック（メンバーIDベースのみ）
+      let match = false;
 
-      if (taskData.assignee) {
-        assignees.push(
-          ...taskData.assignee
-            .split(',')
-            .map((n: string) => n.trim().toLowerCase())
-            .filter((n: string) => n.length > 0)
-        );
-      }
-
+      // assignedMembersにuserMemberIdが含まれているかチェック
       if (Array.isArray(taskData.assignedMembers)) {
-        taskData.assignedMembers.forEach((member: any) => {
-          if (typeof member === 'string') {
-            const memberEmail = memberEmailMap.get(member);
-            const memberName = memberIdToNameMap.get(member);
-            if (memberEmail) {
-              assignees.push(memberEmail.trim().toLowerCase());
-            }
-            if (memberName) {
-              const names = memberName
-                .split(',')
-                .map((n: string) => n.trim().toLowerCase())
-                .filter((n: string) => n.length > 0);
-              assignees.push(...names);
-            }
-            assignees.push(member.trim().toLowerCase());
-          } else if (typeof member === 'object' && member) {
-            if (member.memberName)
-              assignees.push(member.memberName.trim().toLowerCase());
-            if (member.name) assignees.push(member.name.trim().toLowerCase());
-            if (member.memberEmail)
-              assignees.push(member.memberEmail.trim().toLowerCase());
-            if (member.email) assignees.push(member.email.trim().toLowerCase());
-          }
-        });
-      }
-
-      if (taskData.assigneeEmail) {
-        assignees.push(taskData.assigneeEmail.trim().toLowerCase());
-      }
-
-      assignees = [...new Set(assignees)];
-
-      const normalizedUserEmail = userEmail.trim().toLowerCase();
-      let match = assignees.includes(normalizedUserEmail);
-
-      if (!match && members.length > 0) {
-        match = assignees.some((a) => members.includes(a));
-      }
-
-      if (!match && userMemberId) {
-        if (Array.isArray(taskData.assignedMembers)) {
-          match = taskData.assignedMembers.some(
-            (member: any) =>
-              (typeof member === 'string' && member === userMemberId) ||
-              (typeof member === 'object' && member?.id === userMemberId)
-          );
-        }
+        match = taskData.assignedMembers.some(
+          (member: any) =>
+            (typeof member === 'string' && member === userMemberId) ||
+            (typeof member === 'object' && member?.id === userMemberId)
+        );
       }
 
       if (match) {
@@ -965,9 +753,9 @@ async function getTodayTasksForUser(
         console.log(
           `❌ マッチしなかったスタンドアロンタスク: ${
             taskData.taskName || taskData.task
-          }, assignees=${JSON.stringify(
-            assignees
-          )}, userEmail=${userEmail}, userName=${userName}, userMemberId=${userMemberId}`
+          }, assignedMembers=${JSON.stringify(
+            taskData.assignedMembers
+          )}, userMemberId=${userMemberId}`
         );
       }
     });
@@ -1280,29 +1068,36 @@ export const sendDailyTaskReminders = onSchedule(
           continue;
         }
 
-        // ユーザーのメールアドレスを取得
-        const userEmail = emailAddress;
-
-        // メンバー情報を取得（ユーザー名を取得するため）
+        // メンバー情報を取得（メンバーIDを取得するため）
         const membersSnapshot = await db
           .collection('members')
           .where('roomId', '==', roomId)
           .get();
 
-        let userName: string | undefined;
+        // メールアドレスからメンバーIDを取得
+        const memberIdMap = new Map<string, string>(); // email -> memberId
         membersSnapshot.forEach((doc) => {
           const memberData = doc.data();
-          if (memberData.email === userEmail && memberData.name) {
-            userName = memberData.name;
+          if (memberData.email) {
+            memberIdMap.set(memberData.email, doc.id);
           }
         });
+
+        const userMemberId = memberIdMap.get(emailAddress);
+        if (!userMemberId) {
+          console.warn(
+            `⚠️ メンバーIDが見つかりません: email=${emailAddress}, userId=${settingUserId}`
+          );
+          continue;
+        }
+
+        console.log(`   - ユーザーメンバーID: ${userMemberId}`);
 
         // 今日のタスクを取得（期日が今日で、ステータスが「作業中」「未着手」のタスク）
         const todayTasks = await getTodayTasksForUser(
           roomId,
           roomDocId,
-          userEmail,
-          userName
+          userMemberId
         );
 
         if (todayTasks.length === 0) {
@@ -1543,19 +1338,10 @@ export const sendTaskDeadlineNotifications = onSchedule(
           // 通知先（recipients）が設定されている場合、そのユーザーのみに通知
           const recipients = detailSettings?.notifications?.recipients;
           if (Array.isArray(recipients) && recipients.length > 0) {
-            // ユーザー名またはメールアドレスでrecipientsに含まれるかチェック
-            const userMember = membersSnapshot.docs.find(
-              (doc) => doc.data().email === userEmail
-            );
-            const userName = userMember?.data()?.name;
-
+            // メンバーIDでrecipientsに含まれるかチェック
             const isInRecipients = recipients.some((recipient: string) => {
               const recipientTrimmed = recipient.trim();
-              return (
-                recipientTrimmed === userEmail ||
-                recipientTrimmed === userName ||
-                recipientTrimmed === userMember?.id
-              );
+              return recipientTrimmed === userMemberId;
             });
 
             if (!isInRecipients) {
@@ -1564,32 +1350,16 @@ export const sendTaskDeadlineNotifications = onSchedule(
           }
           // recipientsが空または未設定の場合は、全担当者に通知（既存の動作）
 
-          // ユーザーが担当者に含まれるかチェック
-          const assigneeEmail = task.assigneeEmail;
-          const assignee = task.assignee;
+          // ユーザーが担当者に含まれるかチェック（メンバーIDベースのみ）
           const assignedMembers = task.assignedMembers || [];
 
-          // メールアドレスで一致
-          if (assigneeEmail === userEmail) {
-            return true;
-          }
-
           // assignedMembersにuserMemberIdが含まれる
-          if (userMemberId && assignedMembers.includes(userMemberId)) {
-            return true;
-          }
-
-          // assigneeが名前の場合、メールアドレスで確認
-          if (assignee) {
-            const assigneeNames = assignee
-              .split(',')
-              .map((n: string) => n.trim());
-            for (const name of assigneeNames) {
-              const memberEmail = memberEmailMap.get(name);
-              if (memberEmail === userEmail) {
-                return true;
-              }
-            }
+          if (userMemberId && Array.isArray(assignedMembers)) {
+            return assignedMembers.some(
+              (member: any) =>
+                (typeof member === 'string' && member === userMemberId) ||
+                (typeof member === 'object' && member?.id === userMemberId)
+            );
           }
 
           return false;
@@ -1944,19 +1714,10 @@ export const sendTaskDeadlineNotificationsManual = onCall(
           // 通知先（recipients）が設定されている場合、そのユーザーのみに通知
           const recipients = detailSettings?.notifications?.recipients;
           if (Array.isArray(recipients) && recipients.length > 0) {
-            // ユーザー名またはメールアドレスでrecipientsに含まれるかチェック
-            const userMember = membersSnapshot.docs.find(
-              (doc) => doc.data().email === userEmail
-            );
-            const userName = userMember?.data()?.name;
-
+            // メンバーIDでrecipientsに含まれるかチェック
             const isInRecipients = recipients.some((recipient: string) => {
               const recipientTrimmed = recipient.trim();
-              return (
-                recipientTrimmed === userEmail ||
-                recipientTrimmed === userName ||
-                recipientTrimmed === userMember?.id
-              );
+              return recipientTrimmed === userMemberId;
             });
 
             if (!isInRecipients) {
@@ -1976,54 +1737,30 @@ export const sendTaskDeadlineNotificationsManual = onCall(
           }
           // recipientsが空または未設定の場合は、全担当者に通知（既存の動作）
 
-          // ユーザーが担当者に含まれるかチェック
-          const assigneeEmail = task.assigneeEmail;
-          const assignee = task.assignee;
+          // ユーザーが担当者に含まれるかチェック（メンバーIDベースのみ）
           const assignedMembers = task.assignedMembers || [];
 
-          // メールアドレスで一致
-          if (assigneeEmail === userEmail) {
-            console.log(
-              `  ✅ タスク「${task.taskName || task.task}」: assigneeEmail一致`
-            );
-            return true;
-          }
-
           // assignedMembersにuserMemberIdが含まれる
-          if (userMemberId && assignedMembers.includes(userMemberId)) {
-            console.log(
-              `  ✅ タスク「${
-                task.taskName || task.task
-              }」: assignedMembers一致`
+          if (userMemberId && Array.isArray(assignedMembers)) {
+            const match = assignedMembers.some(
+              (member: any) =>
+                (typeof member === 'string' && member === userMemberId) ||
+                (typeof member === 'object' && member?.id === userMemberId)
             );
-            return true;
-          }
-
-          // assigneeが名前の場合、メールアドレスで確認
-          if (assignee) {
-            const assigneeNames = assignee
-              .split(',')
-              .map((n: string) => n.trim());
-            for (const name of assigneeNames) {
-              const memberEmail = memberEmailMap.get(name);
-              if (memberEmail === userEmail) {
-                console.log(
-                  `  ✅ タスク「${
-                    task.taskName || task.task
-                  }」: assignee名一致 (${name})`
-                );
-                return true;
-              }
+            if (match) {
+              console.log(
+                `  ✅ タスク「${
+                  task.taskName || task.task
+                }」: assignedMembers一致`
+              );
+              return true;
             }
           }
 
           console.log(
             `  ❌ タスク「${task.taskName || task.task}」: 担当者不一致`,
             {
-              assigneeEmail,
-              assignee,
               assignedMembers,
-              userEmail,
               userMemberId,
             }
           );
@@ -2295,46 +2032,31 @@ async function getUserWorkTimeSummary(
         return; // 期間が重なっていない場合はスキップ
       }
 
-      // 担当者を特定
-      const assigneeEmail = taskData.assigneeEmail;
-      const assignee = taskData.assignee;
+      // 担当者を特定（メンバーIDベースのみ）
       const assignedMembers = taskData.assignedMembers || [];
 
-      const userEmails = new Set<string>();
+      const userMemberIds = new Set<string>();
 
-      // メールアドレスで一致
-      if (assigneeEmail) {
-        userEmails.add(assigneeEmail);
-      }
-
-      // assignedMembersに含まれるユーザー
-      assignedMembers.forEach((memberId: string) => {
-        const email = memberEmailMap.get(memberId);
-        if (email) {
-          userEmails.add(email);
-        }
-      });
-
-      // assigneeが名前の場合
-      if (assignee) {
-        const assigneeNames = assignee
-          .split(',')
-          .map((n: string) => n.trim())
-          .filter((n: string) => !!n);
-        assigneeNames.forEach((name: string) => {
-          const email = memberNameMap.get(name);
-          if (email) {
-            userEmails.add(email);
+      // assignedMembersに含まれるメンバーID
+      if (Array.isArray(assignedMembers)) {
+        assignedMembers.forEach((member: any) => {
+          if (typeof member === 'string') {
+            userMemberIds.add(member);
+          } else if (typeof member === 'object' && member?.id) {
+            userMemberIds.add(member.id);
           }
         });
       }
 
-      // ユーザーごとに予定時間を集計
-      userEmails.forEach((email) => {
-        if (!userWorkTimeMap[email]) {
-          userWorkTimeMap[email] = 0;
+      // メンバーIDからメールアドレスに変換して集計
+      userMemberIds.forEach((memberId) => {
+        const email = memberEmailMap.get(memberId);
+        if (email) {
+          if (!userWorkTimeMap[email]) {
+            userWorkTimeMap[email] = 0;
+          }
+          userWorkTimeMap[email] += totalHours;
         }
-        userWorkTimeMap[email] += totalHours;
       });
     });
   }
@@ -3310,37 +3032,47 @@ export const sendDailyTaskRemindersManual = onCall(
           continue;
         }
 
-        // ユーザーのメールアドレスを取得
-        const userEmail = emailAddress;
-
-        // メンバー情報を取得（ユーザー名を取得するため）
+        // メンバー情報を取得（メンバーIDを取得するため）
         const membersSnapshot = await db
           .collection('members')
           .where('roomId', '==', settingRoomId)
           .get();
 
-        let userName: string | undefined;
+        // メールアドレスからメンバーIDを取得
+        const memberIdMap = new Map<string, string>(); // email -> memberId
         membersSnapshot.forEach((doc) => {
           const memberData = doc.data();
-          if (memberData.email === userEmail && memberData.name) {
-            userName = memberData.name;
+          if (memberData.email) {
+            memberIdMap.set(memberData.email, doc.id);
           }
         });
+
+        const userMemberId = memberIdMap.get(emailAddress);
+        if (!userMemberId) {
+          console.warn(
+            `⚠️ メンバーIDが見つかりません: email=${emailAddress}, userId=${settingUserId}`
+          );
+          results.push({
+            userId: settingUserId,
+            error: 'メンバーIDが見つかりません',
+          });
+          continue;
+        }
+
+        console.log(`   - ユーザーメンバーID: ${userMemberId}`);
 
         // 今日のタスクを取得（期日が今日で、ステータスが「作業中」「未着手」のタスク）
         try {
           console.log(`\n🔍 [段階1] 今日のタスクを取得開始`);
           console.log(`   - userId: ${settingUserId}`);
-          console.log(`   - userEmail: ${userEmail}`);
-          console.log(`   - userName: ${userName}`);
+          console.log(`   - userMemberId: ${userMemberId}`);
           console.log(`   - roomId: ${settingRoomId}`);
           console.log(`   - roomDocId: ${settingRoomDocId}`);
 
           const todayTasks = await getTodayTasksForUser(
             settingRoomId,
             settingRoomDocId,
-            userEmail,
-            userName
+            userMemberId
           );
 
           console.log(`\n✅ [段階1完了] タスク取得完了`);
@@ -3457,7 +3189,7 @@ export const sendDailyTaskRemindersManual = onCall(
             `\n❌ [エラー発生] 今日のタスク通知処理でエラーが発生しました`
           );
           console.error(`   - userId: ${settingUserId}`);
-          console.error(`   - userEmail: ${userEmail}`);
+          console.error(`   - userMemberId: ${userMemberId}`);
           console.error(`   - emailAddress: ${emailAddress}`);
           console.error(`   - エラータイプ: ${error.name || 'Unknown'}`);
           console.error(

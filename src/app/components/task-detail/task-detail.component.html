@@ -64,7 +64,7 @@
           [(ngModel)]="taskData.taskName"
           name="taskName"
           [placeholder]="
-            task.parentTaskId
+          task.parentTaskId
               ? ('taskDetail.childTaskNamePlaceholderFull' | translate)
               : ('taskDetail.taskNamePlaceholderFull' | translate)
           "
@@ -117,7 +117,7 @@
               !taskData.assignedMembers || taskData.assignedMembers.length === 0
             "
           >
-            {{ getCurrentMemberNameByName(taskData.assignee) || "—" }}
+          {{ getCurrentMemberNameByName(taskData.assignee) || "—" }}
           </span>
         </p>
 
