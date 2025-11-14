@@ -145,19 +145,24 @@ export class MemberProgressComponent implements OnInit {
         assignees.push(...assigneeNames);
       }
 
-      // assignedMembers からメンバー名を取得
+      // assignedMembers からメンバー名を取得（削除済みメンバーは除外）
       if (task.assignedMembers && task.assignedMembers.length > 0) {
         task.assignedMembers.forEach((memberId) => {
-          // メンバーIDからメンバー名を取得
+          // メンバーIDからメンバー名を取得（メンバー管理画面に存在するメンバーのみ）
           const member = this.allMembers.find((m) => m.id === memberId);
-          const memberName = member ? member.name : memberId;
-          
+          if (!member) {
+            // 削除済みメンバーはスキップ
+            return;
+          }
+
+          const memberName = member.name;
+
           // メンバー名がカンマ区切りの場合も分割
           const names = memberName
             .split(',')
             .map((name) => name.trim())
             .filter((name) => name.length > 0);
-          
+
           assignees.push(...names);
         });
       }
@@ -180,8 +185,13 @@ export class MemberProgressComponent implements OnInit {
 
     console.log('メンバー別タスク:', memberTaskMap);
 
-    const members = Array.from(memberTaskMap.entries()).map(
-      ([memberName, tasks]) => {
+    // メンバー管理画面に存在するメンバーのみを含める
+    const members = Array.from(memberTaskMap.entries())
+      .filter(([memberName]) => {
+        // メンバー管理画面に存在するメンバーのみをフィルタリング
+        return this.allMembers.some((m) => m.name === memberName);
+      })
+      .map(([memberName, tasks]) => {
         const totalTasks = tasks.length;
         const completedTasks = tasks.filter((t) => t.status === '完了');
         const inProgressTasks = tasks.filter((t) => t.status === '作業中');
@@ -210,8 +220,7 @@ export class MemberProgressComponent implements OnInit {
           inProgressByPriority,
           notStartedByPriority,
         };
-      }
-    );
+      });
 
     members.sort((a, b) => b.completionRate - a.completionRate);
     console.log('メンバー進捗:', members);
@@ -276,9 +285,7 @@ export class MemberProgressComponent implements OnInit {
           )
         : null;
 
-      const afterStart = startDateOnly
-        ? taskDateOnly >= startDateOnly
-        : true;
+      const afterStart = startDateOnly ? taskDateOnly >= startDateOnly : true;
       const beforeEnd = endDateOnly ? taskDateOnly <= endDateOnly : true;
 
       const matches = afterStart && beforeEnd;
