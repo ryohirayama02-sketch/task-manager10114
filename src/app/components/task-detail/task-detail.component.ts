@@ -1663,15 +1663,7 @@ export class TaskDetailComponent implements OnInit {
             ...this.task,
             detailSettings: { ...this.detailSettings },
           } as Task;
-          this.snackBar.open(
-            this.languageService.translate(
-              'taskDetail.success.detailSettingsSaved'
-            ),
-            this.languageService.translate('common.close'),
-            {
-              duration: 3000,
-            }
-          );
+          // 詳細設定保存時のメッセージは表示しない
           this.closeDetailSettings();
         })
         .catch((error) => {
