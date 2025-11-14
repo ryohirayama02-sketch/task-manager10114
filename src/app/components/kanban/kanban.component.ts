@@ -257,21 +257,12 @@ export class KanbanComponent implements OnInit {
       );
     }
 
-    // 担当者フィルター（カンマ区切り対応 + assignedMembers対応）
+    // 担当者フィルター（assignedMembers（メンバーID配列）から取得）
     if (this.filterAssignee.length > 0) {
       filteredTasks = filteredTasks.filter((task) => {
         const assignees: string[] = [];
 
-        // assignee をカンマで分割（メンバー名のカンマ区切り文字列）
-        if (task.assignee) {
-          const assigneeNames = task.assignee
-            .split(',')
-            .map((name) => name.trim())
-            .filter((name) => name.length > 0);
-          assignees.push(...assigneeNames);
-        }
-
-        // assignedMembers も含める（メンバーIDをメンバー名に変換）
+        // assignedMembers から取得（メンバーIDをメンバー名に変換）
         if (
           Array.isArray(task.assignedMembers) &&
           task.assignedMembers.length > 0
@@ -307,21 +298,31 @@ export class KanbanComponent implements OnInit {
     this.applyFilters();
   }
 
-  /** ユニークな担当者一覧を取得（メンバー管理画面のメンバー一覧から取得） */
+  /** ユニークな担当者一覧を取得（assignedMembers（メンバーID配列）から取得） */
   getUniqueAssignees(): string[] {
-    // メンバー管理画面のメンバー一覧から名前を取得
-    const memberNames = this.members
-      .map((member) => member.name)
-      .filter((name) => name && name.trim().length > 0);
-
-    // カンマ区切りのメンバー名を分割
     const assigneeSet = new Set<string>();
-    memberNames.forEach((name) => {
-      const names = name
-        .split(',')
-        .map((n) => n.trim())
-        .filter((n) => n.length > 0);
-      names.forEach((n) => assigneeSet.add(n));
+
+    // 全タスクのassignedMembersからメンバー名を取得
+    this.allTasks.forEach((task) => {
+      if (
+        Array.isArray(task.assignedMembers) &&
+        task.assignedMembers.length > 0
+      ) {
+        const memberNames = getMemberNames(task.assignedMembers, this.members);
+        memberNames.forEach((name) => assigneeSet.add(name));
+      }
+    });
+
+    // メンバー管理画面のメンバー一覧からも取得（assignedMembersに含まれていないメンバーも選択肢に含める）
+    this.members.forEach((member) => {
+      if (member.name) {
+        // メンバー名がカンマ区切りの場合も分割
+        const names = member.name
+          .split(',')
+          .map((n) => n.trim())
+          .filter((n) => n.length > 0);
+        names.forEach((name) => assigneeSet.add(name));
+      }
     });
 
     return Array.from(assigneeSet).sort();
