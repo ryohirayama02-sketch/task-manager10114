@@ -461,10 +461,11 @@ export class ProjectService {
       }
 
       // undefinedの値を削除（Firestoreはundefinedを許可しない）
+      // 配列やオブジェクトの中のundefinedも再帰的に削除
       const cleanedProjectData: any = {};
       for (const [key, value] of Object.entries(projectData)) {
         if (value !== undefined) {
-          cleanedProjectData[key] = value;
+          cleanedProjectData[key] = this.cleanUndefinedValues(value);
         }
       }
 

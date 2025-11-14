@@ -111,6 +111,12 @@ export class MemberManagementService {
 
     const result = await addDoc(membersRef, memberData);
     console.log('✅ メンバーを追加しました:', result.id);
+
+    // 追加したメンバーが現在のユーザーの場合、ナビゲーションバーを更新
+    if (member.email) {
+      this.authService.updateMemberNameIfCurrentUser(member.email, member.name);
+    }
+
     return result.id;
   }
 
@@ -126,6 +132,7 @@ export class MemberManagementService {
 
     // メンバー名が変更される場合、古いメンバー情報を取得
     let oldMemberName: string | undefined;
+    let memberEmail: string | undefined;
     if (memberData.name) {
       try {
         // メンバー一覧から取得（最も確実な方法）
@@ -133,6 +140,7 @@ export class MemberManagementService {
         const oldMember = allMembers.find((m) => m.id === memberId);
         if (oldMember) {
           oldMemberName = oldMember.name;
+          memberEmail = oldMember.email;
         }
       } catch (error) {
         console.warn('古いメンバー情報の取得に失敗しました:', error);
@@ -146,9 +154,34 @@ export class MemberManagementService {
           if (memberDocData) {
             const oldMember = { id: memberId, ...memberDocData } as Member;
             oldMemberName = oldMember.name;
+            memberEmail = oldMember.email;
           }
         } catch (err) {
           console.warn('ドキュメントからの取得にも失敗しました:', err);
+        }
+      }
+    } else {
+      // メンバー名が変更されない場合でも、emailを取得する必要がある
+      try {
+        const allMembers = await firstValueFrom(this.getMembers());
+        const member = allMembers.find((m) => m.id === memberId);
+        if (member) {
+          memberEmail = member.email;
+        }
+      } catch (error) {
+        // フォールバック: 直接ドキュメントを取得
+        try {
+          const memberRef = doc(
+            this.firestore,
+            `${this.MEMBERS_COLLECTION}/${memberId}`
+          );
+          const memberDocData = await firstValueFrom(docData(memberRef));
+          if (memberDocData) {
+            const member = { id: memberId, ...memberDocData } as Member;
+            memberEmail = member.email;
+          }
+        } catch (err) {
+          console.warn('メールアドレスの取得に失敗しました:', err);
         }
       }
     }
@@ -176,6 +209,14 @@ export class MemberManagementService {
         oldMemberName,
         memberData.name
       );
+
+      // 現在のユーザーのメンバー名を更新
+      if (memberEmail) {
+        this.authService.updateMemberNameIfCurrentUser(
+          memberEmail,
+          memberData.name
+        );
+      }
     }
   }
 
