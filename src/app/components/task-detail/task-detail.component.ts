@@ -1971,37 +1971,29 @@ export class TaskDetailComponent implements OnInit {
       childrenNames: children.map((c) => c.taskName),
     });
     this.childTasks = children;
-    // ✅ 修正：メンバー管理画面のメンバー一覧から選択肢を生成（最新の名前を表示）
+    // ✅ 修正：assignedMembers（メンバーID配列）からだけ選択肢を生成
     const assigneeSet = new Set<string>();
 
     // 各タスクの担当者を取得（assignedMembersから最新のメンバー名を取得）
     children.forEach((task) => {
       // assignedMembers から取得（メンバーIDからメンバー名に変換）
-      if (Array.isArray(task.assignedMembers)) {
-        const memberNames = getMemberNames(
-          task.assignedMembers,
-          this.projectMembers
-        );
+      if (
+        Array.isArray(task.assignedMembers) &&
+        task.assignedMembers.length > 0
+      ) {
+        // projectMembersが空の場合は全メンバーから取得
+        const membersToUse =
+          this.projectMembers.length > 0 ? this.projectMembers : this.members;
+        const memberNames = getMemberNames(task.assignedMembers, membersToUse);
         memberNames.forEach((name) => assigneeSet.add(name));
-      }
-
-      // assignee から取得（メンバー管理画面に存在する名前のみ）
-      if (task.assignee) {
-        const assignees = task.assignee
-          .split(',')
-          .map((name) => name.trim())
-          .filter((name) => name.length > 0)
-          .filter((name) => {
-            // メンバー管理画面に存在する名前のみを追加
-            return this.projectMembers.some((m) => m.name === name);
-          });
-        assignees.forEach((assignee) => assigneeSet.add(assignee));
       }
     });
 
-    // メンバー管理画面のメンバー一覧からも取得（最新の名前を確実に含める）
-    // IDベースで判断するため、メンバー名をカンマ区切りで分割する必要はない
-    this.projectMembers.forEach((member) => {
+    // プロジェクトのメンバー一覧からも取得（assignedMembersに含まれていないメンバーも選択肢に含める）
+    // projectMembersが空の場合は全メンバーから取得
+    const membersToUse =
+      this.projectMembers.length > 0 ? this.projectMembers : this.members;
+    membersToUse.forEach((member) => {
       if (member.name) {
         assigneeSet.add(member.name);
       }
