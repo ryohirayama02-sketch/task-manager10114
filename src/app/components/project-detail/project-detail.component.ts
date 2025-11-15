@@ -48,7 +48,9 @@ import {
   getMemberNames,
 } from '../../utils/member-utils';
 import { LanguageService } from '../../services/language.service';
+import { AuthService } from '../../services/auth.service';
 import { firstValueFrom } from 'rxjs';
+import { filter, take, switchMap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-project-detail',
@@ -220,6 +222,7 @@ export class ProjectDetailComponent implements OnInit {
 
   private dialog = inject(MatDialog);
   private navigationHistory = inject(NavigationHistoryService);
+  private authService = inject(AuthService);
 
   ngOnInit() {
     this.loadMembers();
@@ -227,12 +230,26 @@ export class ProjectDetailComponent implements OnInit {
     console.log('選択されたプロジェクトID:', this.projectId);
 
     if (this.projectId) {
-      this.projectService
-        .getProjectById(this.projectId)
+      // ✅ 修正: roomIdが設定されるまで待ってから処理を進める（PCとスマホのタイミング差を解消）
+      this.authService.currentRoomId$
+        .pipe(
+          // ✅ 追加: roomIdが設定されている場合のみ処理を進める
+          filter((roomId) => !!roomId),
+          take(1), // 最初の有効なroomIdのみを使用
+          switchMap((roomId) => {
+            console.log('🔑 roomIdが設定されました（プロジェクト詳細）:', roomId);
+            
+            return this.projectService.getProjectById(this.projectId!);
+          })
+        )
         .subscribe(async (data) => {
           if (!data) {
             // プロジェクトが見つからない場合はメッセージを表示しない
-            this.router.navigate(['/projects']);
+            // ✅ 修正: roomIdが設定されていることを確認してから遷移
+            const currentRoomId = this.authService.getCurrentRoomId();
+            if (currentRoomId) {
+              this.router.navigate(['/projects']);
+            }
             return;
           }
           this.project = data;
@@ -1703,8 +1720,18 @@ export class ProjectDetailComponent implements OnInit {
   loadTasks() {
     if (!this.projectId) return;
 
-    this.projectService
-      .getTasksByProjectId(this.projectId)
+    // ✅ 修正: roomIdが設定されるまで待ってから処理を進める（PCとスマホのタイミング差を解消）
+    this.authService.currentRoomId$
+      .pipe(
+        // ✅ 追加: roomIdが設定されている場合のみ処理を進める
+        filter((roomId) => !!roomId),
+        take(1), // 最初の有効なroomIdのみを使用
+        switchMap((roomId) => {
+          console.log('🔑 roomIdが設定されました（タスク一覧）:', roomId);
+          
+          return this.projectService.getTasksByProjectId(this.projectId!);
+        })
+      )
       .subscribe((tasks) => {
         const nameMap: Record<string, string> = {};
         tasks.forEach((task) => {

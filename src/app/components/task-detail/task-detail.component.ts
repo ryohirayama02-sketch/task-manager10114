@@ -44,6 +44,9 @@ import {
   getMemberNames,
 } from '../../utils/member-utils';
 import { LanguageService } from '../../services/language.service';
+import { AuthService } from '../../services/auth.service';
+import { filter, take, switchMap } from 'rxjs/operators';
+import { combineLatest } from 'rxjs';
 
 @Component({
   selector: 'app-task-detail',
@@ -86,6 +89,7 @@ export class TaskDetailComponent implements OnInit {
   private navigationHistory = inject(NavigationHistoryService);
   private firestore = inject(Firestore);
   private languageService = inject(LanguageService);
+  private authService = inject(AuthService);
 
   @Output() taskUpdated = new EventEmitter<any>();
 
@@ -306,109 +310,131 @@ export class TaskDetailComponent implements OnInit {
     this.originalTaskSnapshot = null;
     this.parentTaskName = null;
 
-    // プロジェクト情報とタスク情報を並行して取得
-    this.projectService.getProjectById(projectId).subscribe((project) => {
-      console.log('プロジェクト情報:', project);
-      if (!project) {
-        // プロジェクトが見つからない場合はメッセージを表示しない
-        this.router.navigate(['/projects']);
-        return;
-      }
-      this.project = project;
-      this.projectThemeColor = resolveProjectThemeColor(project);
-      // プロジェクト名を最新の情報で更新
-      if (this.taskData) {
-        this.taskData.projectName = project.projectName;
-      }
-      // プロジェクトメンバーを読み込み
-      this.loadProjectMembers(projectId);
-    });
-
-    // タスク情報を取得
-    this.projectService.getTasksByProjectId(projectId).subscribe({
-      next: (tasks) => {
-        console.log('取得したタスク一覧:', tasks);
-        // タスクデータにprojectIdを追加
-        const tasksWithProjectId = tasks.map((task) => ({
-          ...task,
-          projectId: projectId,
-        }));
-        // 全タスクを保持（projectMembers読み込み後にsetupChildTasksを再実行するため）
-        this.allProjectTasks = tasksWithProjectId;
-        this.task =
-          tasksWithProjectId.find((t): t is Task => t.id === taskId) || null;
-        console.log('見つかったタスク:', this.task);
-
-        if (this.task) {
-          // プロジェクト名はプロジェクトオブジェクトから取得（最新の情報を優先）
-          const currentProjectName =
-            this.project?.projectName || this.task.projectName || '';
-          this.taskData = {
-            projectId: this.task.projectId || projectId,
-            projectName: currentProjectName,
-            taskName: this.task.taskName || '',
-            description: this.task.description || '',
-            startDate: this.task.startDate || '',
-            dueDate: this.task.dueDate || '',
-            assignee: this.task.assignee || '',
-            status: this.task.status || '未着手',
-            priority: this.task.priority || '中',
-            calendarSyncEnabled: this.task.calendarSyncEnabled ?? false,
-            tags: this.task.tags || [],
-            relatedFiles: this.task.relatedFiles || [],
-            assignedMembers: Array.isArray(this.task.assignedMembers)
-              ? [...this.task.assignedMembers]
-              : this.task.assignedMembers
-              ? [this.task.assignedMembers]
-              : [],
-            urls: this.task.urls || [],
-          };
-
-          console.log('タスクデータ設定:', {
-            taskId: this.task.id,
-            assignee: this.task.assignee,
-            assignedMembers: this.task.assignedMembers,
-            taskDataAssignedMembers: this.taskData.assignedMembers,
-          });
-
-          // 添付ファイルを初期化
-          this.editableAttachments = (this.task.attachments || []).map(
-            (attachment) => ({ ...attachment })
-          );
-          this.initializeDetailSettings((this.task as any).detailSettings);
-          this.setupChildTasks(tasksWithProjectId, taskId);
-          if (this.task.parentTaskId) {
-            const parent = tasksWithProjectId.find(
-              (candidate) => candidate.id === this.task?.parentTaskId
-            );
-            this.parentTaskName = parent?.taskName || null;
-          } else {
-            this.parentTaskName = null;
+    // ✅ 修正: roomIdが設定されるまで待ってから処理を進める（PCとスマホのタイミング差を解消）
+    this.authService.currentRoomId$
+      .pipe(
+        // ✅ 追加: roomIdが設定されている場合のみ処理を進める
+        filter((roomId) => !!roomId),
+        take(1), // 最初の有効なroomIdのみを使用
+        switchMap((roomId) => {
+          console.log('🔑 roomIdが設定されました（タスク詳細）:', roomId);
+          
+          // プロジェクト情報とタスク情報を並行して取得
+          return combineLatest([
+            this.projectService.getProjectById(projectId),
+            this.projectService.getTasksByProjectId(projectId)
+          ]);
+        })
+      )
+      .subscribe({
+        next: ([project, tasks]) => {
+          console.log('プロジェクト情報:', project);
+          console.log('取得したタスク一覧:', tasks);
+          
+          // プロジェクトが見つからない場合の処理
+          if (!project) {
+            console.warn('プロジェクトが見つかりませんでした:', projectId);
+            // ✅ 修正: roomIdが設定されていることを確認してから遷移
+            const currentRoomId = this.authService.getCurrentRoomId();
+            if (currentRoomId) {
+              this.router.navigate(['/projects']);
+            }
+            return;
           }
-          console.log('設定されたタスクデータ:', this.taskData);
-        } else {
-          console.error('タスクが見つかりませんでした');
-          console.log(
-            '利用可能なタスクID:',
-            tasks.map((t) => t.id)
-          );
-          console.log('検索対象のタスクID:', taskId);
+          
+          this.project = project;
+          this.projectThemeColor = resolveProjectThemeColor(project);
+          // プロジェクト名を最新の情報で更新
+          if (this.taskData) {
+            this.taskData.projectName = project.projectName;
+          }
+          // プロジェクトメンバーを読み込み
+          this.loadProjectMembers(projectId);
+
+          // タスクデータにprojectIdを追加
+          const tasksWithProjectId = tasks.map((task) => ({
+            ...task,
+            projectId: projectId,
+          }));
+          // 全タスクを保持（projectMembers読み込み後にsetupChildTasksを再実行するため）
+          this.allProjectTasks = tasksWithProjectId;
+          this.task =
+            tasksWithProjectId.find((t): t is Task => t.id === taskId) || null;
+          console.log('見つかったタスク:', this.task);
+
+          if (this.task) {
+            // プロジェクト名はプロジェクトオブジェクトから取得（最新の情報を優先）
+            const currentProjectName =
+              this.project?.projectName || this.task.projectName || '';
+            this.taskData = {
+              projectId: this.task.projectId || projectId,
+              projectName: currentProjectName,
+              taskName: this.task.taskName || '',
+              description: this.task.description || '',
+              startDate: this.task.startDate || '',
+              dueDate: this.task.dueDate || '',
+              assignee: this.task.assignee || '',
+              status: this.task.status || '未着手',
+              priority: this.task.priority || '中',
+              calendarSyncEnabled: this.task.calendarSyncEnabled ?? false,
+              tags: this.task.tags || [],
+              relatedFiles: this.task.relatedFiles || [],
+              assignedMembers: Array.isArray(this.task.assignedMembers)
+                ? [...this.task.assignedMembers]
+                : this.task.assignedMembers
+                ? [this.task.assignedMembers]
+                : [],
+              urls: this.task.urls || [],
+            };
+
+            console.log('タスクデータ設定:', {
+              taskId: this.task.id,
+              assignee: this.task.assignee,
+              assignedMembers: this.task.assignedMembers,
+              taskDataAssignedMembers: this.taskData.assignedMembers,
+            });
+
+            // 添付ファイルを初期化
+            this.editableAttachments = (this.task.attachments || []).map(
+              (attachment) => ({ ...attachment })
+            );
+            this.initializeDetailSettings((this.task as any).detailSettings);
+            this.setupChildTasks(tasksWithProjectId, taskId);
+            if (this.task.parentTaskId) {
+              const parent = tasksWithProjectId.find(
+                (candidate) => candidate.id === this.task?.parentTaskId
+              );
+              this.parentTaskName = parent?.taskName || null;
+            } else {
+              this.parentTaskName = null;
+            }
+            console.log('設定されたタスクデータ:', this.taskData);
+          } else {
+            console.error('タスクが見つかりませんでした');
+            console.log(
+              '利用可能なタスクID:',
+              tasks.map((t) => t.id)
+            );
+            console.log('検索対象のタスクID:', taskId);
+            this.childTasks = [];
+            this.filteredChildTasks = [];
+            this.parentTaskName = null;
+            this.editableAttachments = [];
+            // ✅ 修正: roomIdが設定されていることを確認してから遷移
+            const currentRoomId = this.authService.getCurrentRoomId();
+            if (currentRoomId) {
+              this.router.navigate(['/projects']);
+            }
+          }
+          this.isLoading = false;
+        },
+        error: (error) => {
+          console.error('タスク取得エラー:', error);
           this.childTasks = [];
           this.filteredChildTasks = [];
-          this.parentTaskName = null;
-          this.editableAttachments = [];
-          // タスクが見つからない場合はメッセージを表示しない
-          this.router.navigate(['/projects']);
-        }
-        this.isLoading = false;
-      },
-      error: (error) => {
-        console.error('タスク取得エラー:', error);
-        this.childTasks = [];
-        this.filteredChildTasks = [];
-        this.isLoading = false;
-      },
-    });
+          this.isLoading = false;
+        },
+      });
   }
 
   /** メンバー一覧を読み込み */
