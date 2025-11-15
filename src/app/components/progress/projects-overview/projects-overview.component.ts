@@ -23,7 +23,7 @@ import { AuthService } from '../../../services/auth.service';
 import { MemberManagementService } from '../../../services/member-management.service';
 import { Member } from '../../../models/member.model';
 import { combineLatest, of, Subject } from 'rxjs';
-import { switchMap, takeUntil } from 'rxjs/operators';
+import { switchMap, takeUntil, filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-projects-overview',
@@ -44,9 +44,13 @@ import { switchMap, takeUntil } from 'rxjs/operators';
 })
 export class ProjectsOverviewComponent implements OnInit, OnDestroy {
   private readonly sortStorageKey = 'projectsOverview.sortOption';
-  sortOptions: Array<{ value: 'endDateAsc' | 'endDateDesc' | 'progressDesc' | 'progressAsc'; label: string }> = [];
+  sortOptions: Array<{
+    value: 'endDateAsc' | 'endDateDesc' | 'progressDesc' | 'progressAsc';
+    label: string;
+  }> = [];
   private readonly projectNameMaxLength = 39;
-  sortOption: 'endDateAsc' | 'endDateDesc' | 'progressDesc' | 'progressAsc' = 'endDateAsc';
+  sortOption: 'endDateAsc' | 'endDateDesc' | 'progressDesc' | 'progressAsc' =
+    'endDateAsc';
   projects: IProject[] = [];
   projectProgress: { [key: string]: ProjectProgress } = {};
   readonly defaultThemeColor = DEFAULT_PROJECT_THEME_COLOR;
@@ -73,10 +77,34 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
 
   private initializeSortOptions() {
     this.sortOptions = [
-      { value: 'endDateAsc', label: this.languageService.translate('progress.projects.sortBy.dueDate') + ' - ' + this.languageService.translate('progress.projects.sortBy.soon') },
-      { value: 'endDateDesc', label: this.languageService.translate('progress.projects.sortBy.dueDate') + ' - ' + this.languageService.translate('progress.projects.sortBy.later') },
-      { value: 'progressDesc', label: this.languageService.translate('progress.projects.sortBy.progress') + ' - ' + this.languageService.translate('progress.projects.sortBy.high') },
-      { value: 'progressAsc', label: this.languageService.translate('progress.projects.sortBy.progress') + ' - ' + this.languageService.translate('progress.projects.sortBy.low') },
+      {
+        value: 'endDateAsc',
+        label:
+          this.languageService.translate('progress.projects.sortBy.dueDate') +
+          ' - ' +
+          this.languageService.translate('progress.projects.sortBy.soon'),
+      },
+      {
+        value: 'endDateDesc',
+        label:
+          this.languageService.translate('progress.projects.sortBy.dueDate') +
+          ' - ' +
+          this.languageService.translate('progress.projects.sortBy.later'),
+      },
+      {
+        value: 'progressDesc',
+        label:
+          this.languageService.translate('progress.projects.sortBy.progress') +
+          ' - ' +
+          this.languageService.translate('progress.projects.sortBy.high'),
+      },
+      {
+        value: 'progressAsc',
+        label:
+          this.languageService.translate('progress.projects.sortBy.progress') +
+          ' - ' +
+          this.languageService.translate('progress.projects.sortBy.low'),
+      },
     ];
   }
 
@@ -126,7 +154,9 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
 
   getMemberDisplay(project: IProject): string {
     const members: any = (project as any).members;
-    const notSetText = this.languageService.translate('progress.projects.membersNotSet');
+    const notSetText = this.languageService.translate(
+      'progress.projects.membersNotSet'
+    );
     if (!members) {
       return notSetText;
     }
@@ -159,13 +189,18 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
    * プロジェクトの責任者を表示（メンバー管理画面に存在しない名前は除外）
    */
   getResponsiblesDisplay(project: IProject): string {
-    const notSetText = this.languageService.translate('progress.projects.responsibleNotSet');
+    const notSetText = this.languageService.translate(
+      'progress.projects.responsibleNotSet'
+    );
     if (!project) {
       return notSetText;
     }
-    
+
     // responsibles が配列で、memberId が含まれている場合は、それを使って最新のメンバー名を取得
-    if (Array.isArray(project.responsibles) && project.responsibles.length > 0) {
+    if (
+      Array.isArray(project.responsibles) &&
+      project.responsibles.length > 0
+    ) {
       const names: string[] = [];
       project.responsibles.forEach((entry) => {
         // memberId がある場合は、それを使って最新のメンバー名を取得
@@ -175,7 +210,9 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
             names.push(member.name);
           } else if (entry.memberName) {
             // memberId で見つからない場合は、メンバー管理画面に存在するかチェック
-            const memberByName = this.members.find((m) => m.name === entry.memberName);
+            const memberByName = this.members.find(
+              (m) => m.name === entry.memberName
+            );
             if (memberByName && memberByName.name) {
               names.push(memberByName.name);
             }
@@ -191,7 +228,7 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
       });
       return names.length > 0 ? names.join(', ') : notSetText;
     }
-    
+
     // responsibles がない場合は、responsible フィールドから取得
     if (project.responsible) {
       const names = project.responsible
@@ -204,7 +241,7 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
         });
       return names.length > 0 ? names.join(', ') : notSetText;
     }
-    
+
     return notSetText;
   }
 
@@ -238,7 +275,9 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
     });
   }
 
-  getSortLabel(optionValue: (typeof this.sortOptions)[number]['value']): string {
+  getSortLabel(
+    optionValue: (typeof this.sortOptions)[number]['value']
+  ): string {
     return (
       this.sortOptions.find((option) => option.value === optionValue)?.label ||
       ''
@@ -249,11 +288,20 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
     // ✅ 修正: currentUserEmail$ と currentRoomId$ の両方を監視
     combineLatest([
       this.authService.currentUserEmail$,
-      this.authService.currentRoomId$
+      this.authService.currentRoomId$,
     ])
       .pipe(
+        // ✅ 追加: roomIdが設定されている場合のみ処理を進める（PCとスマホのタイミング差を解消）
+        filter(([userEmail, roomId]) => {
+          // userEmailがnullの場合は通過（ログアウト処理のため）
+          // userEmailが存在する場合は、roomIdも設定されている必要がある
+          return !userEmail || !!roomId;
+        }),
         switchMap(([userEmail, roomId]) => {
-          console.log('🔑 現在のユーザー情報(進捗一覧):', { userEmail, roomId });
+          console.log('🔑 現在のユーザー情報(進捗一覧):', {
+            userEmail,
+            roomId,
+          });
 
           this.currentUserEmail = userEmail;
 
@@ -285,7 +333,9 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
       });
   }
 
-  private async updateProjectsWithProgress(projects: IProject[]): Promise<void> {
+  private async updateProjectsWithProgress(
+    projects: IProject[]
+  ): Promise<void> {
     this.projects = projects;
     this.projectProgress = {};
 
@@ -408,11 +458,7 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
     return this.getProgressPercentage(project) === 100;
   }
 
-  private compareEndDate(
-    a: IProject,
-    b: IProject,
-    ascending: boolean
-  ): number {
+  private compareEndDate(a: IProject, b: IProject, ascending: boolean): number {
     const aTime = this.parseDate(a.endDate);
     const bTime = this.parseDate(b.endDate);
 
