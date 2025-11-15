@@ -246,14 +246,19 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
   }
 
   private observeUserProjects(): void {
-    this.authService.currentUserEmail$
+    // ✅ 修正: currentUserEmail$ と currentRoomId$ の両方を監視
+    combineLatest([
+      this.authService.currentUserEmail$,
+      this.authService.currentRoomId$
+    ])
       .pipe(
-        switchMap((userEmail) => {
-          console.log('🔑 現在のユーザー情報(進捗一覧):', { userEmail });
+        switchMap(([userEmail, roomId]) => {
+          console.log('🔑 現在のユーザー情報(進捗一覧):', { userEmail, roomId });
 
           this.currentUserEmail = userEmail;
 
-          if (!userEmail) {
+          // ✅ roomIdが設定されていることを確認
+          if (!userEmail || !roomId) {
             this.resetProjectState();
             return of([]);
           }

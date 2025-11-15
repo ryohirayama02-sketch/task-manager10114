@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { RouterOutlet, Router } from '@angular/router';
 import { takeUntil } from 'rxjs/operators';
-import { Subject } from 'rxjs';
+import { Subject, combineLatest } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { NavbarComponent } from './components/navbar/navbar.component';
 import { OfflineIndicatorComponent } from './components/offline-indicator/offline-indicator.component';
@@ -59,16 +59,20 @@ export class AppComponent implements OnInit, OnDestroy {
 
     // 認証状態の復元を待つフラグ
     let authStateRestored = false;
+    let homeScreenRedirected = false; // ✅ 追加: ホーム画面リダイレクト済みフラグ
     const initialUrl = this.router.url;
     const isInitialLoad = initialUrl !== '/login' && initialUrl !== '/room-login';
 
-    // 認証状態の変更を監視して通知スケジューラーを制御
-    this.authService.user$
+    // ✅ 修正: currentUserEmail$ と currentRoomId$ の両方を監視
+    combineLatest([
+      this.authService.user$,
+      this.authService.currentRoomId$
+    ])
       .pipe(takeUntil(this.destroy$))
-      .subscribe((user) => {
+      .subscribe(([user, roomId]) => {
         if (user) {
           console.log('👤 ログインユーザー:', user.email);
-          console.log('📦 現在のroomId:', this.authService.getCurrentRoomId());
+          console.log('📦 現在のroomId:', roomId);
           console.log(
             '📦 現在のroomDocId:',
             this.authService.getCurrentRoomDocId()
@@ -83,22 +87,27 @@ export class AppComponent implements OnInit, OnDestroy {
             // 初回の認証状態復元時
             // ログイン画面から来た場合のみホーム画面へリダイレクト
             // ページ再読み込み時（既に他の画面にいる場合）はリダイレクトしない
-            if (!isInitialLoad) {
+            // ✅ roomIdが設定されている場合のみリダイレクト
+            if (!isInitialLoad && roomId && !homeScreenRedirected) {
               // ログイン画面から来た場合
+              homeScreenRedirected = true; // ✅ フラグを立てる
               this.redirectToHomeScreen(true);
             }
             // ページ再読み込み時は何もしない（現在の画面にとどまる）
           } else {
             // 認証状態が復元された後のログイン（通常のログイン操作）の場合のみリダイレクト
             // ページ再読み込み時はリダイレクトしない
-            if (initialUrl !== this.router.url) {
+            // ✅ roomIdが設定されている場合のみリダイレクト
+            if (initialUrl !== this.router.url && roomId && !homeScreenRedirected) {
               // URLが変更されている場合は、通常のログイン操作と判断
+              homeScreenRedirected = true; // ✅ フラグを立てる
               this.redirectToHomeScreen(true);
             }
           }
         } else {
           // ログアウト時は通知スケジューラーを停止
           this.notificationScheduler.stopScheduler();
+          homeScreenRedirected = false; // ✅ ログアウト時にフラグをリセット
           
           // 認証状態が復元された後で、かつログイン画面にいない場合のみログイン画面へナビゲート
           // これにより、ページ再読み込み時の一時的なnull状態ではリダイレクトしない
@@ -120,6 +129,13 @@ export class AppComponent implements OnInit, OnDestroy {
     // ログイン画面にいる場合はスキップ
     if (this.router.url.includes('/login') || this.router.url.includes('/room-login')) {
       console.log('🚪 ログイン画面でのホーム画面設定リダイレクトはスキップ');
+      return;
+    }
+
+    // ✅ 追加: roomIdが設定されていることを確認
+    const roomId = this.authService.getCurrentRoomId();
+    if (!roomId) {
+      console.log('🏠 roomIdが設定されていないため、リダイレクトをスキップ');
       return;
     }
 
