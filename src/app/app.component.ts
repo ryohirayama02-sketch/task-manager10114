@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { RouterOutlet, Router } from '@angular/router';
-import { takeUntil } from 'rxjs/operators';
+import { takeUntil, filter } from 'rxjs/operators';
 import { Subject, combineLatest } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { NavbarComponent } from './components/navbar/navbar.component';
@@ -68,7 +68,15 @@ export class AppComponent implements OnInit, OnDestroy {
       this.authService.user$,
       this.authService.currentRoomId$
     ])
-      .pipe(takeUntil(this.destroy$))
+      .pipe(
+        // ✅ 追加: roomIdが設定されている場合のみ処理を進める（PCとスマホのタイミング差を解消）
+        filter(([user, roomId]) => {
+          // userがnullの場合は通過（ログアウト処理のため）
+          // userが存在する場合は、roomIdも設定されている必要がある
+          return !user || !!roomId;
+        }),
+        takeUntil(this.destroy$)
+      )
       .subscribe(([user, roomId]) => {
         if (user) {
           console.log('👤 ログインユーザー:', user.email);
