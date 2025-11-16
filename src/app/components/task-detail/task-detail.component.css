@@ -401,10 +401,12 @@ body[data-language="ja"]
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 12px;
+  padding: 6px 14px;
   border-radius: 999px;
   background-color: rgba(255, 255, 255, 0.9);
   border: 1px solid rgba(0, 0, 0, 0.1);
+  min-width: fit-content;
+  white-space: nowrap;
 }
 
 .header-calendar-toggle .calendar-switch-label {
@@ -412,6 +414,8 @@ body[data-language="ja"]
   font-weight: 600;
   color: #546e7a;
   letter-spacing: 0.4px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .task-main-content {
@@ -1369,6 +1373,42 @@ mat-chip mat-icon {
   }
   .task-card {
     padding: 16px;
+  }
+
+  /* ✅ スマホ画面でのカレンダー連携ボタンのレイアウト修正 */
+  .header-calendar-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    padding: 6px 12px;
+    min-width: fit-content;
+  }
+
+  .header-calendar-toggle .calendar-switch {
+    flex-shrink: 0;
+    width: 48px;
+    height: 28px;
+  }
+
+  .header-calendar-toggle .calendar-switch-handle {
+    width: 20px;
+    height: 20px;
+    top: 4px;
+    left: 4px;
+  }
+
+  .header-calendar-toggle .calendar-switch.on .calendar-switch-handle {
+    transform: translateX(20px);
+  }
+
+  .header-calendar-toggle .calendar-switch-label {
+    font-size: 11px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    line-height: 1.2;
+    min-width: fit-content;
   }
 
   .info-row {
