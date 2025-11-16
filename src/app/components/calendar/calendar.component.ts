@@ -18,7 +18,7 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Subject, combineLatest, of, takeUntil, switchMap } from 'rxjs';
+import { Subject, combineLatest, of, takeUntil, switchMap, filter, take } from 'rxjs';
 import { ProjectService } from '../../services/project.service';
 import { ProjectSelectionService } from '../../services/project-selection.service';
 import { OfflineService } from '../../services/offline.service';
@@ -228,11 +228,19 @@ export class CalendarComponent implements OnInit, OnDestroy {
   }
 
   private observeUserProjects(): void {
-    this.authService.currentUserEmail$
+    // ✅ 修正: roomIdが設定されるまで待ってから処理を進める（PCとスマホのタイミング差を解消）
+    combineLatest([
+      this.authService.currentUserEmail$,
+      this.authService.currentRoomId$,
+    ])
       .pipe(
-        switchMap((userEmail) => {
-          console.log('🔑 Current user info (Calendar):', { userEmail });
-          if (!userEmail) {
+        filter(([userEmail, roomId]) => {
+          return !userEmail || !!roomId; // roomIdがnullの場合は処理をスキップ
+        }),
+        take(1), // 最初の有効な値のみを使用
+        switchMap(([userEmail, roomId]) => {
+          console.log('🔑 Current user info (Calendar):', { userEmail, roomId });
+          if (!userEmail || !roomId) {
             this.resetProjectState(true);
             return of([]);
           }

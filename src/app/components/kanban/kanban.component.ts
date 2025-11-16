@@ -22,8 +22,8 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
 import { LanguageService } from '../../services/language.service';
 import { MemberManagementService } from '../../services/member-management.service';
 import { Member } from '../../models/member.model';
-import { Observable, forkJoin, of, firstValueFrom } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { Observable, forkJoin, of, firstValueFrom, combineLatest } from 'rxjs';
+import { map, switchMap, filter, take } from 'rxjs/operators';
 import {
   getMemberNamesAsString,
   getMemberNames,
@@ -92,11 +92,19 @@ export class KanbanComponent implements OnInit {
       },
     });
 
-    this.authService.currentUserEmail$
+    // ✅ 修正: roomIdが設定されるまで待ってから処理を進める（PCとスマホのタイミング差を解消）
+    combineLatest([
+      this.authService.currentUserEmail$,
+      this.authService.currentRoomId$,
+    ])
       .pipe(
-        switchMap((userEmail) => {
-          console.log('🔑 現在のユーザー情報:', { userEmail });
-          if (!userEmail) {
+        filter(([userEmail, roomId]) => {
+          return !userEmail || !!roomId; // roomIdがnullの場合は処理をスキップ
+        }),
+        take(1), // 最初の有効な値のみを使用
+        switchMap(([userEmail, roomId]) => {
+          console.log('🔑 現在のユーザー情報:', { userEmail, roomId });
+          if (!userEmail || !roomId) {
             this.resetProjectState(true);
             return of([]);
           }

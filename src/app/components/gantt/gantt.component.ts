@@ -31,7 +31,7 @@ import { AuthService } from '../../services/auth.service';
 import { MemberManagementService } from '../../services/member-management.service';
 import { Member } from '../../models/member.model';
 import { combineLatest, of } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { switchMap, filter, take } from 'rxjs/operators';
 import {
   getMemberNamesAsString,
   getMemberNames,
@@ -274,11 +274,19 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private observeUserProjects(): void {
-    this.authService.currentUserEmail$
+    // ✅ 修正: roomIdが設定されるまで待ってから処理を進める（PCとスマホのタイミング差を解消）
+    combineLatest([
+      this.authService.currentUserEmail$,
+      this.authService.currentRoomId$,
+    ])
       .pipe(
-        switchMap((userEmail) => {
-          console.log('🔑 現在のユーザー情報(ガント):', { userEmail });
-          if (!userEmail) {
+        filter(([userEmail, roomId]) => {
+          return !userEmail || !!roomId; // roomIdがnullの場合は処理をスキップ
+        }),
+        take(1), // 最初の有効な値のみを使用
+        switchMap(([userEmail, roomId]) => {
+          console.log('🔑 現在のユーザー情報(ガント):', { userEmail, roomId });
+          if (!userEmail || !roomId) {
             this.resetProjectState(true);
             return of([]);
           }

@@ -21,6 +21,8 @@ import { TaskAttachmentService } from '../../services/task-attachment.service';
 import { CalendarService } from '../../services/calendar.service';
 import { TaskService } from '../../services/task.service';
 import { Member } from '../../models/member.model';
+import { AuthService } from '../../services/auth.service';
+import { filter, take, switchMap } from 'rxjs/operators';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { LanguageService } from '../../services/language.service';
 import {
@@ -108,7 +110,8 @@ export class TaskCreatePageComponent implements OnInit {
     private calendarService: CalendarService,
     private taskService: TaskService,
     private snackBar: MatSnackBar,
-    private languageService: LanguageService
+    private languageService: LanguageService,
+    private authService: AuthService
   ) {}
 
   ngOnInit() {
@@ -199,10 +202,17 @@ export class TaskCreatePageComponent implements OnInit {
       }
     }
 
-    // プロジェクトのテーマ色を取得
+    // ✅ 修正: プロジェクトのテーマ色を取得（roomIdが設定されるまで待つ）
     if (this.projectId) {
-      this.projectService
-        .getProjectById(this.projectId)
+      this.authService.currentRoomId$
+        .pipe(
+          filter((roomId) => !!roomId),
+          take(1),
+          switchMap((roomId) => {
+            console.log('🔑 roomIdが設定されました（タスク作成・テーマ色）:', roomId);
+            return this.projectService.getProjectById(this.projectId);
+          })
+        )
         .subscribe((project) => {
           if (project) {
             this.projectThemeColor = resolveProjectThemeColor(project);
@@ -297,10 +307,19 @@ export class TaskCreatePageComponent implements OnInit {
           members.map((m) => ({ id: m.id, name: m.name }))
         );
 
-        // プロジェクト情報を取得して、プロジェクトのメンバーのみをフィルタリング
+        // ✅ 修正: プロジェクト情報を取得して、プロジェクトのメンバーのみをフィルタリング（roomIdが設定されるまで待つ）
         if (this.projectId) {
           console.log('🔍 [TaskCreate] プロジェクトID:', this.projectId);
-          this.projectService.getProjectById(this.projectId).subscribe({
+          this.authService.currentRoomId$
+            .pipe(
+              filter((roomId) => !!roomId),
+              take(1),
+              switchMap((roomId) => {
+                console.log('🔑 roomIdが設定されました（タスク作成・メンバー）:', roomId);
+                return this.projectService.getProjectById(this.projectId);
+              })
+            )
+            .subscribe({
             next: (project) => {
               console.log('🔍 [TaskCreate] プロジェクト情報:', project);
               console.log(

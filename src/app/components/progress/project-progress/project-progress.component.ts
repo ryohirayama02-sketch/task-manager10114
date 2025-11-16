@@ -14,6 +14,8 @@ import { TranslatePipe } from '../../../pipes/translate.pipe';
 import { LanguageService } from '../../../services/language.service';
 import { MemberManagementService } from '../../../services/member-management.service';
 import { Member } from '../../../models/member.model';
+import { AuthService } from '../../../services/auth.service';
+import { filter, take, switchMap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-project-progress',
@@ -36,7 +38,8 @@ export class ProjectProgressComponent implements OnInit {
     private projectService: ProjectService,
     private location: Location,
     private languageService: LanguageService,
-    private memberManagementService: MemberManagementService
+    private memberManagementService: MemberManagementService,
+    private authService: AuthService
   ) {}
 
   ngOnInit() {
@@ -54,21 +57,40 @@ export class ProjectProgressComponent implements OnInit {
     console.log('プロジェクトID:', this.projectId); // ← 確認ポイント
 
     if (this.projectId) {
-      // プロジェクト本体の情報を取得
-      this.projectService.getProjectById(this.projectId).subscribe((data) => {
-        console.log('選択されたプロジェクト:', data);
-        if (!data) {
-          this.router.navigate(['/projects']);
-          return;
-        }
-        this.project = data;
-        this.projectThemeColor = resolveProjectThemeColor(data);
-        this.tasks = this.tasks.map((task) => this.withTaskTheme(task));
-      });
+      // ✅ 修正: roomIdが設定されるまで待ってから処理を進める（PCとスマホのタイミング差を解消）
+      this.authService.currentRoomId$
+        .pipe(
+          filter((roomId) => !!roomId),
+          take(1),
+          switchMap((roomId) => {
+            console.log('🔑 roomIdが設定されました（プロジェクト進捗）:', roomId);
+            return this.projectService.getProjectById(this.projectId!);
+          })
+        )
+        .subscribe((data) => {
+          console.log('選択されたプロジェクト:', data);
+          if (!data) {
+            const currentRoomId = this.authService.getCurrentRoomId();
+            if (currentRoomId) {
+              this.router.navigate(['/projects']);
+            }
+            return;
+          }
+          this.project = data;
+          this.projectThemeColor = resolveProjectThemeColor(data);
+          this.tasks = this.tasks.map((task) => this.withTaskTheme(task));
+        });
 
-      // 🔹 サブコレクション tasks を取得
-      this.projectService
-        .getTasksByProjectId(this.projectId)
+      // ✅ 修正: roomIdが設定されるまで待ってから処理を進める
+      this.authService.currentRoomId$
+        .pipe(
+          filter((roomId) => !!roomId),
+          take(1),
+          switchMap((roomId) => {
+            console.log('🔑 roomIdが設定されました（タスク一覧）:', roomId);
+            return this.projectService.getTasksByProjectId(this.projectId!);
+          })
+        )
         .subscribe((taskList) => {
           this.tasks = taskList.map((task) => this.withTaskTheme(task));
         });

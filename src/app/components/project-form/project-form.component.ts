@@ -32,6 +32,9 @@ import {
 } from '../../constants/project-theme-colors';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { LanguageService } from '../../services/language.service';
+import { AuthService } from '../../services/auth.service';
+import { filter, take, switchMap } from 'rxjs/operators';
+import { of } from 'rxjs';
 
 @Component({
   selector: 'app-project-form',
@@ -104,7 +107,8 @@ export class ProjectFormComponent implements OnInit {
     private router: Router,
     private attachmentService: ProjectAttachmentService,
     private location: Location,
-    private languageService: LanguageService
+    private languageService: LanguageService,
+    private authService: AuthService
   ) {
     this.projectForm = this.fb.group({
       projectName: [
@@ -148,9 +152,28 @@ export class ProjectFormComponent implements OnInit {
 
   /**
    * プロジェクト数の制限をチェック
+   * ✅ 修正: roomIdが設定されるまで待ってから処理を進める
    */
   async checkProjectCountLimit(): Promise<void> {
     try {
+      // roomIdが設定されるまで待つ
+      const roomId = await new Promise<string | null>((resolve) => {
+        this.authService.currentRoomId$
+          .pipe(
+            filter((id) => !!id),
+            take(1)
+          )
+          .subscribe((id) => {
+            console.log('🔑 roomIdが設定されました（プロジェクト作成）:', id);
+            resolve(id);
+          });
+      });
+
+      if (!roomId) {
+        console.warn('roomIdが設定されていません');
+        return;
+      }
+
       const currentCount = await this.projectService.getProjectCount();
       const maxCount = 10;
       if (currentCount >= maxCount) {
