@@ -315,21 +315,33 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
         }),
         takeUntil(this.destroy$)
       )
-      .subscribe((projects) => {
-        console.log('🎯 進捗表示対象ルーム内全プロジェクト:', projects);
+      .subscribe({
+        next: (projects) => {
+          console.log('🎯 進捗表示対象ルーム内全プロジェクト:', projects);
 
-        if (!this.currentUserEmail) {
-          return;
-        }
+          if (!this.currentUserEmail) {
+            return;
+          }
 
-        if (!projects || projects.length === 0) {
-          this.resetProjectState();
-          return;
-        }
+          if (!projects || projects.length === 0) {
+            this.resetProjectState();
+            return;
+          }
 
-        this.updateProjectsWithProgress(projects).catch((error) =>
-          console.error('全プロジェクト進捗の取得に失敗しました:', error)
-        );
+          this.updateProjectsWithProgress(projects).catch((error) =>
+            console.error('全プロジェクト進捗の取得に失敗しました:', error)
+          );
+        },
+        error: (error) => {
+          console.error('❌ プロジェクト取得エラー（オフライン等）:', error);
+          // ✅ 修正: オフライン時などエラーが発生した場合でも、既存のプロジェクトデータを保持
+          // エラーが発生しても、既に表示されているプロジェクトはそのまま表示し続ける
+          // 新規にリセットしないことで、オフライン時に「プロジェクトがありません」と表示されるのを防ぐ
+          if (this.projects.length === 0) {
+            // 既存のプロジェクトがない場合のみリセット
+            this.resetProjectState();
+          }
+        },
       });
   }
 

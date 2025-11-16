@@ -248,15 +248,25 @@ export class CalendarComponent implements OnInit, OnDestroy {
         }),
         takeUntil(this.destroy$)
       )
-      .subscribe((projects) => {
-        console.log('🎯 All projects for calendar:', projects);
-        if (projects.length === 0) {
-          this.resetProjectState();
-          this.projectSelectionService.clearSelection();
-          return;
-        }
+      .subscribe({
+        next: (projects) => {
+          console.log('🎯 All projects for calendar:', projects);
+          if (projects.length === 0) {
+            this.resetProjectState();
+            this.projectSelectionService.clearSelection();
+            return;
+          }
 
-        this.applyProjectList(projects);
+          this.applyProjectList(projects);
+        },
+        error: (error) => {
+          console.error('❌ プロジェクト取得エラー（オフライン等）:', error);
+          // ✅ 修正: オフライン時などエラーが発生した場合でも、既存のプロジェクトデータを保持
+          if (this.projects.length === 0) {
+            this.resetProjectState();
+            this.projectSelectionService.clearSelection();
+          }
+        },
       });
   }
 

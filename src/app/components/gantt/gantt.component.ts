@@ -293,15 +293,25 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
           return this.projectService.getProjects();
         })
       )
-      .subscribe((projects) => {
-        console.log('🎯 ガント用ルーム内全プロジェクト一覧:', projects);
-        if (projects.length === 0) {
-          this.resetProjectState();
-          this.projectSelectionService.clearSelection();
-          return;
-        }
+      .subscribe({
+        next: (projects) => {
+          console.log('🎯 ガント用ルーム内全プロジェクト一覧:', projects);
+          if (projects.length === 0) {
+            this.resetProjectState();
+            this.projectSelectionService.clearSelection();
+            return;
+          }
 
-        this.applyProjectList(projects);
+          this.applyProjectList(projects);
+        },
+        error: (error) => {
+          console.error('❌ プロジェクト取得エラー（オフライン等）:', error);
+          // ✅ 修正: オフライン時などエラーが発生した場合でも、既存のプロジェクトデータを保持
+          if (this.projects.length === 0) {
+            this.resetProjectState();
+            this.projectSelectionService.clearSelection();
+          }
+        },
       });
   }
 
