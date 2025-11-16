@@ -323,7 +323,10 @@ export class TaskDetailComponent implements OnInit {
           return combineLatest([
             this.projectService.getProjectById(projectId),
             this.projectService.getTasksByProjectId(projectId)
-          ]);
+          ]).pipe(
+            // ✅ 追加: 最初の値のみを受け取り、Firestoreの更新による再実行を防ぐ
+            take(1)
+          );
         })
       )
       .subscribe({
