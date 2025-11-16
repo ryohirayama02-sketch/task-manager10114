@@ -1989,7 +1989,19 @@ async function getUserWorkTimeSummary(
   roomId: string,
   roomDocId: string,
   checkPeriodDays: number
-): Promise<{ [userEmail: string]: number }> {
+): Promise<{
+  workTimeMap: { [userEmail: string]: number };
+  userTasksMap: {
+    [userEmail: string]: Array<{
+      taskId: string;
+      taskName: string;
+      projectId: string;
+      projectName: string;
+      workHours: number;
+      assignedMembers: any[];
+    }>;
+  };
+}> {
   const db = admin.firestore();
   const now = new Date();
   const jstNow = new Date(
@@ -2045,10 +2057,22 @@ async function getUserWorkTimeSummary(
   });
 
   const userWorkTimeMap: { [userEmail: string]: number } = {};
+  const userTasksMap: {
+    [userEmail: string]: Array<{
+      taskId: string;
+      taskName: string;
+      projectId: string;
+      projectName: string;
+      workHours: number;
+      assignedMembers: any[];
+    }>;
+  } = {};
 
   // 各プロジェクトのタスクを取得
   for (const projectDoc of projectsSnapshot.docs) {
     const projectId = projectDoc.id;
+    const projectData = projectDoc.data();
+    const projectName = projectData.projectName || projectId;
     const tasksRef = db.collection(`projects/${projectId}/tasks`);
 
     // 「未着手」「作業中」のタスクを取得
@@ -2144,13 +2168,26 @@ async function getUserWorkTimeSummary(
             userWorkTimeMap[email] = 0;
           }
           userWorkTimeMap[email] += totalHours;
+
+          // タスク情報も保存
+          if (!userTasksMap[email]) {
+            userTasksMap[email] = [];
+          }
+          userTasksMap[email].push({
+            taskId: taskDoc.id,
+            taskName: taskData.taskName || taskData.task || 'タスク名なし',
+            projectId: projectId,
+            projectName: projectName,
+            workHours: totalHours,
+            assignedMembers: assignedMembers,
+          });
         }
       });
     });
   }
 
   console.log(`📊 ユーザーごとの予定時間集計結果:`, userWorkTimeMap);
-  return userWorkTimeMap;
+  return { workTimeMap: userWorkTimeMap, userTasksMap: userTasksMap };
 }
 
 /**
@@ -2285,6 +2322,93 @@ async function getProjectManagersForUser(
 }
 
 /**
+ * 🔹 タスクのプロジェクト責任者を取得
+ */
+async function getProjectManagersForTask(
+  roomId: string,
+  roomDocId: string,
+  projectId: string
+): Promise<string[]> {
+  const db = admin.firestore();
+
+  // メンバー情報を取得
+  const membersSnapshot = await db
+    .collection('members')
+    .where('roomId', '==', roomId)
+    .get();
+
+  const memberEmailMap = new Map<string, string>(); // memberId -> email
+  const memberNameMap = new Map<string, string>(); // name -> email
+  membersSnapshot.forEach((doc) => {
+    const memberData = doc.data();
+    if (memberData.email) {
+      if (doc.id) {
+        memberEmailMap.set(doc.id, memberData.email);
+      }
+      if (memberData.name) {
+        memberNameMap.set(memberData.name, memberData.email);
+      }
+    }
+  });
+
+  // プロジェクトを取得
+  const projectDoc = await db.collection('projects').doc(projectId).get();
+  if (!projectDoc.exists) {
+    return [];
+  }
+
+  const projectData = projectDoc.data();
+  if (!projectData) {
+    return [];
+  }
+
+  const managerEmails = new Set<string>();
+
+  // 責任者を取得
+  const responsibleEmail = projectData.responsibleEmail;
+  if (responsibleEmail) {
+    managerEmails.add(responsibleEmail);
+  }
+
+  const responsibleId = projectData.responsibleId;
+  if (responsibleId) {
+    const email = memberEmailMap.get(responsibleId);
+    if (email) {
+      managerEmails.add(email);
+    }
+  }
+
+  const responsibles = projectData.responsibles;
+  if (Array.isArray(responsibles)) {
+    responsibles.forEach((responsible: any) => {
+      if (responsible?.memberEmail) {
+        managerEmails.add(responsible.memberEmail);
+      } else if (responsible?.memberId) {
+        const email = memberEmailMap.get(responsible.memberId);
+        if (email) {
+          managerEmails.add(email);
+        }
+      }
+    });
+  }
+
+  const responsible = projectData.responsible;
+  if (typeof responsible === 'string') {
+    const responsibleNames = responsible
+      .split(',')
+      .map((n: string) => n.trim());
+    responsibleNames.forEach((name: string) => {
+      const email = memberNameMap.get(name);
+      if (email) {
+        managerEmails.add(email);
+      }
+    });
+  }
+
+  return Array.from(managerEmails);
+}
+
+/**
  * 🔹 作業時間オーバー通知をスケジュール実行（毎分チェック）
  */
 export const sendWorkTimeOverflowNotifications = onSchedule(
@@ -2406,8 +2530,26 @@ export const sendWorkTimeOverflowNotifications = onSchedule(
           }
         });
 
+        // ✅ 修正: notifyManagerとnotifyAssigneeの設定を取得
+        const notifyManager =
+          settings.workTimeOverflowNotifications?.notifyManager ?? false;
+        const notifyAssignee =
+          settings.workTimeOverflowNotifications?.notifyAssignee ?? false;
+
+        console.log(
+          `📋 通知設定: notifyManager=${notifyManager}, notifyAssignee=${notifyAssignee}`
+        );
+
+        // 通知設定がどちらもOFFの場合はスキップ
+        if (!notifyManager && !notifyAssignee) {
+          console.log(
+            `⏭️ 通知設定がOFFのためスキップ: notifyManager=${notifyManager}, notifyAssignee=${notifyAssignee}`
+          );
+          continue;
+        }
+
         // ユーザーごとの予定時間を集計
-        const userWorkTimeMap = await getUserWorkTimeSummary(
+        const { workTimeMap, userTasksMap } = await getUserWorkTimeSummary(
           roomId,
           roomDocId,
           checkPeriodDays
@@ -2418,16 +2560,30 @@ export const sendWorkTimeOverflowNotifications = onSchedule(
           email: string;
           name: string;
           workHours: number;
+          tasks: Array<{
+            taskId: string;
+            taskName: string;
+            projectId: string;
+            projectName: string;
+            workHours: number;
+            assignedMembers: any[];
+          }>;
         }> = [];
 
-        for (const [userEmail, workHours] of Object.entries(userWorkTimeMap)) {
+        for (const [userEmail, workHours] of Object.entries(workTimeMap)) {
           if (workHours > maxWorkHours) {
             const userName = emailToNameMap.get(userEmail) || userEmail;
-            overflowUsers.push({ email: userEmail, name: userName, workHours });
+            const userTasks = userTasksMap[userEmail] || [];
+            overflowUsers.push({
+              email: userEmail,
+              name: userName,
+              workHours,
+              tasks: userTasks,
+            });
             console.log(
               `⚠️ 予定時間オーバー: ${userName} (${userEmail}) (${workHours.toFixed(
                 2
-              )}時間 / ${maxWorkHours}時間)`
+              )}時間 / ${maxWorkHours}時間) タスク数: ${userTasks.length}`
             );
           }
         }
@@ -2466,76 +2622,180 @@ export const sendWorkTimeOverflowNotifications = onSchedule(
           }
         }
 
-        if (!adminEmail) {
-          console.error(
-            `❌ 管理者のメールアドレスが見つかりません: userId=${settingUserId}`
-          );
-          continue;
-        }
+        // ✅ 修正: プロジェクト責任者への通知（notifyManagerがtrueの場合）
+        if (notifyManager) {
+          // 各オーバーユーザーのタスクについて、プロジェクト責任者を取得
+          const managerNotifications = new Map<
+            string,
+            Array<{
+              user: { email: string; name: string; workHours: number };
+              task: {
+                taskId: string;
+                taskName: string;
+                projectId: string;
+                projectName: string;
+                workHours: number;
+              };
+            }>
+          >(); // managerEmail -> notifications
 
-        console.log(`📧 通知先管理者: ${adminEmail}`);
+          for (const overflowUser of overflowUsers) {
+            for (const task of overflowUser.tasks) {
+              const managerEmails = await getProjectManagersForTask(
+                roomId,
+                roomDocId,
+                task.projectId
+              );
 
-        // オーバーユーザー一覧をメール本文に含める
-        const overflowUsersList = overflowUsers
-          .map(
-            (user, index) => `
+              for (const managerEmail of managerEmails) {
+                if (!managerNotifications.has(managerEmail)) {
+                  managerNotifications.set(managerEmail, []);
+                }
+                managerNotifications.get(managerEmail)!.push({
+                  user: {
+                    email: overflowUser.email,
+                    name: overflowUser.name,
+                    workHours: overflowUser.workHours,
+                  },
+                  task: {
+                    taskId: task.taskId,
+                    taskName: task.taskName,
+                    projectId: task.projectId,
+                    projectName: task.projectName,
+                    workHours: task.workHours,
+                  },
+                });
+              }
+            }
+          }
+
+          // 各プロジェクト責任者にメール送信
+          for (const [managerEmail, notifications] of managerNotifications) {
+            const taskList = notifications
+              .map(
+                (notif, index) => `
               <div style="background-color:#fff3cd;padding:15px;margin:10px 0;border-radius:8px;border-left:4px solid #ff9800;">
-                <h3 style="margin:0 0 10px;">${index + 1}. ユーザー: ${
-              user.name
-            }</h3>
-                <p><strong>メールアドレス:</strong> ${user.email}</p>
-                <p><strong>予定時間合計:</strong> ${user.workHours.toFixed(
+                <h3 style="margin:0 0 10px;">${index + 1}. タスク: ${
+                  notif.task.taskName
+                }</h3>
+                <p><strong>プロジェクト:</strong> ${notif.task.projectName}</p>
+                <p><strong>担当者:</strong> ${notif.user.name} (${
+                  notif.user.email
+                })</p>
+                <p><strong>担当者の予定時間合計:</strong> ${notif.user.workHours.toFixed(
                   2
                 )}時間</p>
                 <p><strong>設定上限:</strong> ${maxWorkHours}時間</p>
                 <p><strong>超過時間:</strong> ${(
-                  user.workHours - maxWorkHours
+                  notif.user.workHours - maxWorkHours
                 ).toFixed(2)}時間</p>
+                <p><strong>このタスクの予定時間:</strong> ${notif.task.workHours.toFixed(
+                  2
+                )}時間</p>
               </div>
             `
-          )
-          .join('');
+              )
+              .join('');
 
-        // 管理者にメール送信
-        try {
-          console.log(`📧 メール送信開始: to=${adminEmail}, from=${fromEmail}`);
-          const msg = {
-            to: adminEmail,
-            from: fromEmail,
-            subject: `【予定時間オーバー通知】${overflowUsers.length}名のユーザーの予定時間が上限を超えています`,
-            html: `
-              <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
-                <h2 style="color:#d32f2f;">⏰ 予定時間オーバー通知</h2>
-                <p>以下の${overflowUsers.length}名のユーザーの予定時間が設定された上限を超えています。</p>
-                ${overflowUsersList}
-                <div style="background-color:#f5f5f5;padding:15px;margin:10px 0;border-radius:8px;">
-                  <p><strong>集計期間:</strong> 未来${checkPeriodDays}日間</p>
-                  <p><strong>対象タスク:</strong> ステータス「未着手」「作業中」で、期間が重なるタスク</p>
-                </div>
-                <p style="color:#999;font-size:12px;">
-                  このメールはタスク管理アプリから自動送信されました。
-                </p>
+            try {
+              console.log(
+                `📧 プロジェクト責任者へのメール送信開始: to=${managerEmail}, from=${fromEmail}`
+              );
+              const msg = {
+                to: managerEmail,
+                from: fromEmail,
+                subject: `【予定時間オーバー通知】担当者の作業予定時間が上限を超えています`,
+                html: `
+                  <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+                    <h2 style="color:#d32f2f;">⏰ 予定時間オーバー通知</h2>
+                    <p>あなたが責任者を務めるプロジェクトのタスクにおいて、担当者の作業予定時間が設定された上限を超えています。</p>
+                    ${taskList}
+                    <div style="background-color:#f5f5f5;padding:15px;margin:10px 0;border-radius:8px;">
+                      <p><strong>集計期間:</strong> 未来${checkPeriodDays}日間</p>
+                      <p><strong>対象タスク:</strong> ステータス「未着手」「作業中」で、期間が重なるタスク</p>
+                    </div>
+                    <p style="color:#999;font-size:12px;">
+                      このメールはタスク管理アプリから自動送信されました。
+                    </p>
+                  </div>
+                `,
+              };
+              await sgMail.send(msg);
+              console.log(
+                `✅ プロジェクト責任者への通知メール送信成功: ${managerEmail} (通知数: ${notifications.length})`
+              );
+            } catch (error: any) {
+              console.error(
+                `❌ SendGrid送信エラー(${managerEmail}):`,
+                error.response?.body || error
+              );
+            }
+          }
+        }
+
+        // ✅ 修正: 担当者への通知（notifyAssigneeがtrueの場合）
+        if (notifyAssignee) {
+          for (const overflowUser of overflowUsers) {
+            const taskList = overflowUser.tasks
+              .map(
+                (task, index) => `
+              <div style="background-color:#fff3cd;padding:15px;margin:10px 0;border-radius:8px;border-left:4px solid #ff9800;">
+                <h3 style="margin:0 0 10px;">${index + 1}. タスク: ${
+                  task.taskName
+                }</h3>
+                <p><strong>プロジェクト:</strong> ${task.projectName}</p>
+                <p><strong>このタスクの予定時間:</strong> ${task.workHours.toFixed(
+                  2
+                )}時間</p>
               </div>
-            `,
-          };
-          console.log(
-            `📧 SendGrid API呼び出し前: to=${msg.to}, subject=${msg.subject}`
-          );
-          await sgMail.send(msg);
-          console.log(
-            `✅ 作業時間オーバー通知メール送信成功: ${adminEmail} (オーバーユーザー数: ${overflowUsers.length})`
-          );
-        } catch (error: any) {
-          console.error(
-            `❌ SendGrid送信エラー(${adminEmail}):`,
-            error.response?.body || error
-          );
-          console.error(`   エラータイプ: ${error.name || 'Unknown'}`);
-          console.error(
-            `   エラーメッセージ: ${error.message || 'No message'}`
-          );
-          console.error(`   エラーコード: ${error.code || 'No code'}`);
-          console.error(`   エラー詳細:`, error);
+            `
+              )
+              .join('');
+
+            try {
+              console.log(
+                `📧 担当者へのメール送信開始: to=${overflowUser.email}, from=${fromEmail}`
+              );
+              const msg = {
+                to: overflowUser.email,
+                from: fromEmail,
+                subject: `【予定時間オーバー通知】あなたの作業予定時間が上限を超えています`,
+                html: `
+                  <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+                    <h2 style="color:#d32f2f;">⏰ 予定時間オーバー通知</h2>
+                    <p>${overflowUser.name}様の作業予定時間が設定された上限を超えています。</p>
+                    <div style="background-color:#fff3cd;padding:15px;margin:10px 0;border-radius:8px;border-left:4px solid #ff9800;">
+                      <p><strong>予定時間合計:</strong> ${overflowUser.workHours.toFixed(
+                        2
+                      )}時間</p>
+                      <p><strong>設定上限:</strong> ${maxWorkHours}時間</p>
+                      <p><strong>超過時間:</strong> ${(
+                        overflowUser.workHours - maxWorkHours
+                      ).toFixed(2)}時間</p>
+                    </div>
+                    <h3 style="margin-top:20px;">対象タスク:</h3>
+                    ${taskList}
+                    <div style="background-color:#f5f5f5;padding:15px;margin:10px 0;border-radius:8px;">
+                      <p><strong>集計期間:</strong> 未来${checkPeriodDays}日間</p>
+                      <p><strong>対象タスク:</strong> ステータス「未着手」「作業中」で、期間が重なるタスク</p>
+                    </div>
+                    <p style="color:#999;font-size:12px;">
+                      このメールはタスク管理アプリから自動送信されました。
+                    </p>
+                  </div>
+                `,
+              };
+              await sgMail.send(msg);
+              console.log(
+                `✅ 担当者への通知メール送信成功: ${overflowUser.email} (タスク数: ${overflowUser.tasks.length})`
+              );
+            } catch (error: any) {
+              console.error(
+                `❌ SendGrid送信エラー(${overflowUser.email}):`,
+                error.response?.body || error
+              );
+            }
+          }
         }
       }
     } catch (error: any) {
@@ -2750,8 +3010,31 @@ export const sendWorkTimeOverflowNotificationsManual = onCall(
           }
         });
 
+        // ✅ 修正: notifyManagerとnotifyAssigneeの設定を取得
+        const notifyManager =
+          settings.workTimeOverflowNotifications?.notifyManager ?? false;
+        const notifyAssignee =
+          settings.workTimeOverflowNotifications?.notifyAssignee ?? false;
+
+        console.log(
+          `📋 通知設定: notifyManager=${notifyManager}, notifyAssignee=${notifyAssignee}`
+        );
+
+        // 通知設定がどちらもOFFの場合はスキップ
+        if (!notifyManager && !notifyAssignee) {
+          console.log(
+            `⏭️ 通知設定がOFFのためスキップ: notifyManager=${notifyManager}, notifyAssignee=${notifyAssignee}`
+          );
+          results.push({
+            userId: settingUserId,
+            skipped: true,
+            reason: '通知設定がOFF',
+          });
+          continue;
+        }
+
         // ユーザーごとの予定時間を集計
-        const userWorkTimeMap = await getUserWorkTimeSummary(
+        const { workTimeMap, userTasksMap } = await getUserWorkTimeSummary(
           settingRoomId,
           settingRoomDocId,
           checkPeriodDays
@@ -2762,16 +3045,30 @@ export const sendWorkTimeOverflowNotificationsManual = onCall(
           email: string;
           name: string;
           workHours: number;
+          tasks: Array<{
+            taskId: string;
+            taskName: string;
+            projectId: string;
+            projectName: string;
+            workHours: number;
+            assignedMembers: any[];
+          }>;
         }> = [];
 
-        for (const [userEmail, workHours] of Object.entries(userWorkTimeMap)) {
+        for (const [userEmail, workHours] of Object.entries(workTimeMap)) {
           if (workHours > maxWorkHours) {
             const userName = emailToNameMap.get(userEmail) || userEmail;
-            overflowUsers.push({ email: userEmail, name: userName, workHours });
+            const userTasks = userTasksMap[userEmail] || [];
+            overflowUsers.push({
+              email: userEmail,
+              name: userName,
+              workHours,
+              tasks: userTasks,
+            });
             console.log(
               `⚠️ 予定時間オーバー: ${userName} (${userEmail}) (${workHours.toFixed(
                 2
-              )}時間 / ${maxWorkHours}時間)`
+              )}時間 / ${maxWorkHours}時間) タスク数: ${userTasks.length}`
             );
           }
         }
@@ -2835,72 +3132,183 @@ export const sendWorkTimeOverflowNotificationsManual = onCall(
           continue;
         }
 
-        console.log(`📧 通知先管理者: ${adminEmail}`);
+        // ✅ 修正: プロジェクト責任者への通知（notifyManagerがtrueの場合）
+        let notificationCount = 0;
+        if (notifyManager) {
+          // 各オーバーユーザーのタスクについて、プロジェクト責任者を取得
+          const managerNotifications = new Map<
+            string,
+            Array<{
+              user: { email: string; name: string; workHours: number };
+              task: {
+                taskId: string;
+                taskName: string;
+                projectId: string;
+                projectName: string;
+                workHours: number;
+              };
+            }>
+          >(); // managerEmail -> notifications
 
-        // オーバーユーザー一覧をメール本文に含める
-        const overflowUsersList = overflowUsers
-          .map(
-            (user, index) => `
+          for (const overflowUser of overflowUsers) {
+            for (const task of overflowUser.tasks) {
+              const managerEmails = await getProjectManagersForTask(
+                settingRoomId,
+                settingRoomDocId,
+                task.projectId
+              );
+
+              for (const managerEmail of managerEmails) {
+                if (!managerNotifications.has(managerEmail)) {
+                  managerNotifications.set(managerEmail, []);
+                }
+                managerNotifications.get(managerEmail)!.push({
+                  user: {
+                    email: overflowUser.email,
+                    name: overflowUser.name,
+                    workHours: overflowUser.workHours,
+                  },
+                  task: {
+                    taskId: task.taskId,
+                    taskName: task.taskName,
+                    projectId: task.projectId,
+                    projectName: task.projectName,
+                    workHours: task.workHours,
+                  },
+                });
+              }
+            }
+          }
+
+          // 各プロジェクト責任者にメール送信
+          for (const [managerEmail, notifications] of managerNotifications) {
+            const taskList = notifications
+              .map(
+                (notif, index) => `
               <div style="background-color:#fff3cd;padding:15px;margin:10px 0;border-radius:8px;border-left:4px solid #ff9800;">
-                <h3 style="margin:0 0 10px;">${index + 1}. ユーザー: ${
-              user.name
-            }</h3>
-                <p><strong>メールアドレス:</strong> ${user.email}</p>
-                <p><strong>予定時間合計:</strong> ${user.workHours.toFixed(
+                <h3 style="margin:0 0 10px;">${index + 1}. タスク: ${
+                  notif.task.taskName
+                }</h3>
+                <p><strong>プロジェクト:</strong> ${notif.task.projectName}</p>
+                <p><strong>担当者:</strong> ${notif.user.name} (${
+                  notif.user.email
+                })</p>
+                <p><strong>担当者の予定時間合計:</strong> ${notif.user.workHours.toFixed(
                   2
                 )}時間</p>
                 <p><strong>設定上限:</strong> ${maxWorkHours}時間</p>
                 <p><strong>超過時間:</strong> ${(
-                  user.workHours - maxWorkHours
+                  notif.user.workHours - maxWorkHours
                 ).toFixed(2)}時間</p>
+                <p><strong>このタスクの予定時間:</strong> ${notif.task.workHours.toFixed(
+                  2
+                )}時間</p>
               </div>
             `
-          )
-          .join('');
+              )
+              .join('');
 
-        // 管理者にメール送信
-        let notificationCount = 0;
-        try {
-          console.log(`📧 メール送信開始: to=${adminEmail}, from=${fromEmail}`);
-          const msg = {
-            to: adminEmail,
-            from: fromEmail,
-            subject: `【予定時間オーバー通知】${overflowUsers.length}名のユーザーの予定時間が上限を超えています`,
-            html: `
-              <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
-                <h2 style="color:#d32f2f;">⏰ 予定時間オーバー通知</h2>
-                <p>以下の${overflowUsers.length}名のユーザーの予定時間が設定された上限を超えています。</p>
-                ${overflowUsersList}
-                <div style="background-color:#f5f5f5;padding:15px;margin:10px 0;border-radius:8px;">
-                  <p><strong>集計期間:</strong> 未来${checkPeriodDays}日間</p>
-                  <p><strong>対象タスク:</strong> ステータス「未着手」「作業中」で、期間が重なるタスク</p>
-                </div>
-                <p style="color:#999;font-size:12px;">
-                  このメールはタスク管理アプリから自動送信されました。
-                </p>
+            try {
+              console.log(
+                `📧 プロジェクト責任者へのメール送信開始: to=${managerEmail}, from=${fromEmail}`
+              );
+              const msg = {
+                to: managerEmail,
+                from: fromEmail,
+                subject: `【予定時間オーバー通知】担当者の作業予定時間が上限を超えています`,
+                html: `
+                  <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+                    <h2 style="color:#d32f2f;">⏰ 予定時間オーバー通知</h2>
+                    <p>あなたが責任者を務めるプロジェクトのタスクにおいて、担当者の作業予定時間が設定された上限を超えています。</p>
+                    ${taskList}
+                    <div style="background-color:#f5f5f5;padding:15px;margin:10px 0;border-radius:8px;">
+                      <p><strong>集計期間:</strong> 未来${checkPeriodDays}日間</p>
+                      <p><strong>対象タスク:</strong> ステータス「未着手」「作業中」で、期間が重なるタスク</p>
+                    </div>
+                    <p style="color:#999;font-size:12px;">
+                      このメールはタスク管理アプリから自動送信されました。
+                    </p>
+                  </div>
+                `,
+              };
+              await sgMail.send(msg);
+              console.log(
+                `✅ プロジェクト責任者への通知メール送信成功: ${managerEmail} (通知数: ${notifications.length})`
+              );
+              notificationCount++;
+            } catch (error: any) {
+              console.error(
+                `❌ SendGrid送信エラー(${managerEmail}):`,
+                error.response?.body || error
+              );
+            }
+          }
+        }
+
+        // ✅ 修正: 担当者への通知（notifyAssigneeがtrueの場合）
+        if (notifyAssignee) {
+          for (const overflowUser of overflowUsers) {
+            const taskList = overflowUser.tasks
+              .map(
+                (task, index) => `
+              <div style="background-color:#fff3cd;padding:15px;margin:10px 0;border-radius:8px;border-left:4px solid #ff9800;">
+                <h3 style="margin:0 0 10px;">${index + 1}. タスク: ${
+                  task.taskName
+                }</h3>
+                <p><strong>プロジェクト:</strong> ${task.projectName}</p>
+                <p><strong>このタスクの予定時間:</strong> ${task.workHours.toFixed(
+                  2
+                )}時間</p>
               </div>
-            `,
-          };
-          console.log(
-            `📧 SendGrid API呼び出し前: to=${msg.to}, subject=${msg.subject}`
-          );
-          await sgMail.send(msg);
-          console.log(
-            `✅ 作業時間オーバー通知メール送信成功: ${adminEmail} (オーバーユーザー数: ${overflowUsers.length})`
-          );
-          notificationCount = 1; // 1通のメールに複数のオーバーユーザーを含める
-        } catch (error: any) {
-          console.error(
-            `❌ SendGrid送信エラー(${adminEmail}):`,
-            error.response?.body || error
-          );
-          console.error(`   エラータイプ: ${error.name || 'Unknown'}`);
-          console.error(
-            `   エラーメッセージ: ${error.message || 'No message'}`
-          );
-          console.error(`   エラーコード: ${error.code || 'No code'}`);
-          console.error(`   エラー詳細:`, error);
-          // エラーが発生してもnotificationCountは0のまま（エラーを記録）
+            `
+              )
+              .join('');
+
+            try {
+              console.log(
+                `📧 担当者へのメール送信開始: to=${overflowUser.email}, from=${fromEmail}`
+              );
+              const msg = {
+                to: overflowUser.email,
+                from: fromEmail,
+                subject: `【予定時間オーバー通知】あなたの作業予定時間が上限を超えています`,
+                html: `
+                  <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+                    <h2 style="color:#d32f2f;">⏰ 予定時間オーバー通知</h2>
+                    <p>${overflowUser.name}様の作業予定時間が設定された上限を超えています。</p>
+                    <div style="background-color:#fff3cd;padding:15px;margin:10px 0;border-radius:8px;border-left:4px solid #ff9800;">
+                      <p><strong>予定時間合計:</strong> ${overflowUser.workHours.toFixed(
+                        2
+                      )}時間</p>
+                      <p><strong>設定上限:</strong> ${maxWorkHours}時間</p>
+                      <p><strong>超過時間:</strong> ${(
+                        overflowUser.workHours - maxWorkHours
+                      ).toFixed(2)}時間</p>
+                    </div>
+                    <h3 style="margin-top:20px;">対象タスク:</h3>
+                    ${taskList}
+                    <div style="background-color:#f5f5f5;padding:15px;margin:10px 0;border-radius:8px;">
+                      <p><strong>集計期間:</strong> 未来${checkPeriodDays}日間</p>
+                      <p><strong>対象タスク:</strong> ステータス「未着手」「作業中」で、期間が重なるタスク</p>
+                    </div>
+                    <p style="color:#999;font-size:12px;">
+                      このメールはタスク管理アプリから自動送信されました。
+                    </p>
+                  </div>
+                `,
+              };
+              await sgMail.send(msg);
+              console.log(
+                `✅ 担当者への通知メール送信成功: ${overflowUser.email} (タスク数: ${overflowUser.tasks.length})`
+              );
+              notificationCount++;
+            } catch (error: any) {
+              console.error(
+                `❌ SendGrid送信エラー(${overflowUser.email}):`,
+                error.response?.body || error
+              );
+            }
+          }
         }
 
         results.push({
