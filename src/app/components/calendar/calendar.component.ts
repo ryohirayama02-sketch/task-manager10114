@@ -18,10 +18,17 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Subject, combineLatest, of, takeUntil, switchMap, filter, take } from 'rxjs';
+import {
+  Subject,
+  combineLatest,
+  of,
+  takeUntil,
+  switchMap,
+  filter,
+  take,
+} from 'rxjs';
 import { ProjectService } from '../../services/project.service';
 import { ProjectSelectionService } from '../../services/project-selection.service';
-import { OfflineService } from '../../services/offline.service';
 import { Task } from '../../models/task.model';
 import { IProject } from '../../models/project.model';
 import { TranslatePipe } from '../../pipes/translate.pipe';
@@ -60,7 +67,6 @@ export class CalendarComponent implements OnInit, OnDestroy {
   projects: IProject[] = [];
   selectedProjectIds: string[] = [];
   allTasks: Task[] = [];
-  isOnline = true;
   private destroy$ = new Subject<void>();
 
   // カレンダー表示用
@@ -135,7 +141,6 @@ export class CalendarComponent implements OnInit, OnDestroy {
     private projectService: ProjectService,
     private projectSelectionService: ProjectSelectionService,
     private router: Router,
-    private offlineService: OfflineService,
     private snackBar: MatSnackBar,
     private authService: AuthService,
     private memberManagementService: MemberManagementService,
@@ -170,13 +175,6 @@ export class CalendarComponent implements OnInit, OnDestroy {
       .subscribe((projectIds: string[]) => {
         this.selectedProjectIds = projectIds;
         this.filterTasksBySelectedProjects();
-      });
-
-    // オフライン状態を監視
-    this.offlineService.isOnline$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((isOnline) => {
-        this.isOnline = isOnline;
       });
   }
 
@@ -239,7 +237,10 @@ export class CalendarComponent implements OnInit, OnDestroy {
         }),
         take(1), // 最初の有効な値のみを使用
         switchMap(([userEmail, roomId]) => {
-          console.log('🔑 Current user info (Calendar):', { userEmail, roomId });
+          console.log('🔑 Current user info (Calendar):', {
+            userEmail,
+            roomId,
+          });
           if (!userEmail || !roomId) {
             this.resetProjectState(true);
             return of([]);
@@ -904,59 +905,6 @@ export class CalendarComponent implements OnInit, OnDestroy {
       return;
     }
     this.hideMilestoneTooltip();
-  }
-
-  /** オフライン時のタスク追加ダイアログを開く */
-  openOfflineTaskDialog() {
-    this.snackBar.open(
-      this.languageService.translate('calendar.offline.simpleTaskOnly'),
-      this.languageService.translate('calendar.close'),
-      {
-        duration: 5000,
-        panelClass: ['info-snackbar'],
-      }
-    );
-
-    // 簡易的なタスク追加フォームを表示
-    const taskName = prompt(
-      this.languageService.translate('calendar.offline.enterTaskName')
-    );
-    if (taskName) {
-      const dueDate = prompt(
-        this.languageService.translate('calendar.offline.enterDueDate')
-      );
-      if (dueDate) {
-        // ローカルストレージに保存（オフライン時の一時保存）
-        this.saveOfflineTask(taskName, dueDate);
-      }
-    }
-  }
-
-  /** オフライン時のタスクをローカルストレージに保存 */
-  private saveOfflineTask(taskName: string, dueDate: string) {
-    const offlineTasks = JSON.parse(
-      localStorage.getItem('offlineTasks') || '[]'
-    );
-    const newTask = {
-      id: 'offline_' + Date.now(),
-      taskName: taskName,
-      dueDate: dueDate,
-      status: '未着手',
-      priority: '中',
-      assignee: this.languageService.translate('common.notSet'),
-      projectName: this.languageService.translate('calendar.offline.taskName'),
-      createdAt: new Date().toISOString(),
-      isOffline: true,
-    };
-
-    offlineTasks.push(newTask);
-    localStorage.setItem('offlineTasks', JSON.stringify(offlineTasks));
-
-    this.snackBar.open(
-      this.languageService.translate('calendar.offline.taskSaved'),
-      this.languageService.translate('calendar.close'),
-      { duration: 3000 }
-    );
   }
 
   /** タスクの担当者を表示（カンマ区切り対応） */

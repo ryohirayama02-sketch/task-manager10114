@@ -1,14 +1,5 @@
 <h2 class="calendar-title">{{ "calendar.title" | translate }}</h2>
 
-<!-- オフライン時のタスク追加ボタン -->
-<div *ngIf="!isOnline" class="offline-task-add">
-  <button mat-raised-button color="primary" (click)="openOfflineTaskDialog()">
-    <mat-icon>add</mat-icon>
-    {{ "calendar.offlineTaskAdd" | translate }}
-  </button>
-  <p class="offline-note">{{ "calendar.offlineNote" | translate }}</p>
-</div>
-
 <!-- プロジェクト選択とフィルター -->
 <div
   class="controls-section"
