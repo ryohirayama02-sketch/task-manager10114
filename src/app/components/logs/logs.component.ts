@@ -1065,9 +1065,17 @@ export class LogsComponent implements OnInit, OnDestroy {
       }
     }
 
-    // それでもマッチしない場合、メンバー管理画面に存在しない名前なので表示しない
-    // （userNameやuserIdをそのまま表示しない）
+    // ✅ 修正: メンバー管理画面に登録されていない場合、メールアドレスを表示
+    if (displayNames.length > 0) {
+      return displayNames.join(', ');
+    }
 
-    return displayNames.length > 0 ? displayNames.join(', ') : '—';
+    // メンバー管理に登録されていない場合、メールアドレスを表示
+    if (log.userEmail) {
+      return log.userEmail;
+    }
+
+    // メールアドレスも存在しない場合はフォールバック
+    return '—';
   }
 }
