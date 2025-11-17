@@ -1150,6 +1150,37 @@ export class TaskDetailComponent implements OnInit {
       }
     }
 
+    // ✅ 修正: 親タスクのステータスを「完了」に変更しようとした場合、子タスクが未完了の場合は警告を出して強制的に「作業中」に変更
+    if (
+      !this.task.parentTaskId && // 親タスクの場合
+      this.taskData.status === '完了' && // ステータスを「完了」に変更しようとしている
+      this.detailSettings?.taskOrder?.requireSubtaskCompletion === true && // タスク順番管理が有効
+      this.childTasks.length > 0 // 子タスクが存在する
+    ) {
+      const incompleteChildren = this.childTasks.filter(
+        (child) => child.status !== '完了'
+      );
+
+      if (incompleteChildren.length > 0) {
+        // 未完了の子タスクがある場合、警告を出してステータスを「作業中」に強制的に変更
+        const incompleteChildNames = incompleteChildren
+          .map((child) => child.taskName)
+          .join('、');
+        
+        this.snackBar.open(
+          this.languageService.translateWithParams(
+            'taskEditDialog.error.incompleteChildTask',
+            { taskName: incompleteChildNames }
+          ),
+          this.languageService.translate('common.close'),
+          { duration: 5000 }
+        );
+
+        // ステータスを「作業中」に強制的に変更
+        this.taskData.status = '作業中';
+      }
+    }
+
     this.isSaving = true;
     try {
       // 保留中のファイルをアップロード
