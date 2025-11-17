@@ -64,6 +64,7 @@ export class TaskCreatePageComponent implements OnInit {
   projectMembers: Member[] = []; // プロジェクトのメンバーのみ
   isLoading = false;
   isSaving = false;
+  isGoogleUser = false; // Googleでログインしているかどうか
 
   taskForm = {
     taskName: '',
@@ -115,6 +116,9 @@ export class TaskCreatePageComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    // Googleユーザーかどうかを確認
+    this.isGoogleUser = this.authService.isGoogleUser();
+
     // 日付選択範囲を設定（当月±3か月）
     const today = new Date();
     const currentYear = today.getFullYear();

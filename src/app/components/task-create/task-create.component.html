@@ -342,7 +342,7 @@
         </div>
 
         <!-- カレンダー連携 -->
-        <div class="calendar-sync-section">
+        <div class="calendar-sync-section" *ngIf="isGoogleUser">
           <label>
             <input
               type="checkbox"

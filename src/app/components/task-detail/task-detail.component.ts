@@ -46,7 +46,7 @@ import {
 import { LanguageService } from '../../services/language.service';
 import { AuthService } from '../../services/auth.service';
 import { filter, take, switchMap } from 'rxjs/operators';
-import { combineLatest } from 'rxjs';
+import { combineLatest, firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-task-detail',
@@ -100,6 +100,7 @@ export class TaskDetailComponent implements OnInit {
   isLoading = true;
   isSaving = false;
   isCalendarSyncSaving = false;
+  isGoogleUser = false; // Googleでログインしているかどうか
   private originalTaskSnapshot: Task | null = null; // 編集モードON時のタスクのスナップショット
 
   // メンバー関連
@@ -242,6 +243,9 @@ export class TaskDetailComponent implements OnInit {
   }
 
   ngOnInit() {
+    // Googleユーザーかどうかを確認
+    this.isGoogleUser = this.authService.isGoogleUser();
+
     // パラメータとクエリパラメータの両方を監視して、再読み込みを確実にする
     // パラメータとクエリパラメータの両方を監視
     this.route.paramMap.subscribe((params) => {
@@ -1321,6 +1325,15 @@ export class TaskDetailComponent implements OnInit {
 
       console.log('タスクが更新されました');
 
+      // ✅ 修正: 子タスクのステータスを「完了」から「完了以外」に変更した場合、親タスクを強制的に「作業中」に戻す
+      if (
+        this.task.parentTaskId && // 子タスクの場合
+        oldTaskData?.status === '完了' && // 以前のステータスが「完了」
+        this.taskData.status !== '完了' // 新しいステータスが「完了」以外
+      ) {
+        await this.reopenParentTaskFromChild(this.task.parentTaskId);
+      }
+
       this.isEditing = false;
       this.isSaving = false;
     } catch (error: Error | unknown) {
@@ -2023,6 +2036,83 @@ export class TaskDetailComponent implements OnInit {
     } finally {
       // 処理完了後にフラグをリセット
       this.isReopeningParentTask = false;
+    }
+  }
+
+  /** ✅ 修正: 子タスクの詳細画面から親タスクを再オープンする処理 */
+  private async reopenParentTaskFromChild(parentTaskId: string): Promise<void> {
+    if (!this.task || !this.task.projectId) {
+      return;
+    }
+
+    try {
+      // 親タスクを取得
+      const allTasks = await firstValueFrom(
+        this.projectService.getTasksByProjectId(this.task.projectId).pipe(
+          take(1)
+        )
+      );
+      const parentTask = allTasks.find((t) => t.id === parentTaskId);
+
+      if (!parentTask) {
+        console.log('親タスクが見つかりませんでした:', parentTaskId);
+        return;
+      }
+
+      // 親タスクのステータスが「完了」でない場合はスキップ
+      if (parentTask.status !== '完了') {
+        return;
+      }
+
+      // タスク順番管理が有効でない場合はスキップ
+      const requireCompletion =
+        parentTask.detailSettings?.taskOrder?.requireSubtaskCompletion === true;
+      if (!requireCompletion) {
+        return;
+      }
+
+      // 子タスク一覧を取得して、未完了の子タスクがあるか確認
+      const childTasks = allTasks.filter(
+        (t) => t.parentTaskId === parentTaskId
+      );
+      const incompleteChild = childTasks.find(
+        (child) => child.status !== '完了'
+      );
+
+      if (!incompleteChild) {
+        // 全ての子タスクが完了している場合はスキップ
+        return;
+      }
+
+      // 未完了の子タスクがある場合、親タスクを「作業中」に戻す
+      const incompleteChildNames = childTasks
+        .filter((child) => child.status !== '完了')
+        .map((child) => child.taskName)
+        .join('、');
+
+      // 警告メッセージを表示
+      this.snackBar.open(
+        this.languageService.translateWithParams(
+          'taskEditDialog.error.incompleteChildTask',
+          { taskName: incompleteChildNames }
+        ),
+        this.languageService.translate('common.close'),
+        { duration: 5000 }
+      );
+
+      // 親タスクのステータスを「作業中」に更新
+      await this.taskService.updateTaskStatus(
+        parentTaskId,
+        '作業中',
+        '完了',
+        this.task.projectId,
+        parentTask.projectName
+      );
+
+      console.log('親タスクを作業中に戻しました:', parentTaskId);
+    } catch (error) {
+      console.error('親タスクの再オープン処理に失敗しました', error);
+      // エラーが発生しても子タスクの保存処理は続行するため、エラーはログに記録するのみ
     }
   }
 

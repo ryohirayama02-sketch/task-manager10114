@@ -629,7 +629,7 @@
               <mat-icon>settings</mat-icon>
               {{ "taskDetail.detailSettings" | translate }}
             </button>
-            <div class="header-calendar-toggle">
+            <div class="header-calendar-toggle" *ngIf="isGoogleUser">
               <button
                 type="button"
                 class="calendar-switch"

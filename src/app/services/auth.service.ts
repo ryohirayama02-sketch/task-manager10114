@@ -158,6 +158,17 @@ export class AuthService {
     return this.auth.currentUser;
   }
 
+  /** 現在のユーザーがGoogleでログインしているかどうかを確認 */
+  isGoogleUser(): boolean {
+    const user = this.auth.currentUser;
+    if (!user) return false;
+
+    // providerDataにgoogle.comが含まれているか確認
+    return user.providerData.some(
+      (provider) => provider.providerId === 'google.com'
+    );
+  }
+
   async signOut(): Promise<void> {
     await fbSignOut(this.auth);
     this.userSubject.next(null);
