@@ -289,10 +289,21 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
   /** 日付範囲を生成 */
   generateDateRange() {
     this.dateRange = [];
+    // ✅ 修正: startDateとendDateが無効な場合のチェックを追加
+    if (!this.startDate || !this.endDate || 
+        isNaN(this.startDate.getTime()) || isNaN(this.endDate.getTime())) {
+      console.error('日付範囲が無効です:', { startDate: this.startDate, endDate: this.endDate });
+      return;
+    }
     const current = new Date(this.startDate);
-    while (current <= this.endDate) {
+    const end = new Date(this.endDate);
+    // ✅ 修正: 無限ループを防ぐため、最大日数を制限（例: 10年）
+    const maxDays = 3650;
+    let dayCount = 0;
+    while (current <= end && dayCount < maxDays) {
       this.dateRange.push(new Date(current));
       current.setDate(current.getDate() + 1);
+      dayCount++;
     }
   }
 
@@ -348,15 +359,26 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private applyProjectList(projects: IProject[]): void {
-    this.projects = projects;
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
+    // ✅ 修正: projectsが配列でない場合の処理を追加
+    if (!Array.isArray(projects)) {
+      console.error('projectsが配列ではありません:', projects);
+      return;
+    }
+    this.projects = projects.filter((project) => project != null); // ✅ 修正: null/undefinedのプロジェクトをフィルタリング
     this.updateThemeColorMap();
 
     const storedSelection =
       this.projectSelectionService.getSelectedProjectIdsSync();
     const availableIds = new Set(
-      projects.map((project) => project.id).filter((id): id is string => !!id)
+      this.projects.map((project) => project.id).filter((id): id is string => !!id)
     );
-    let nextSelection = storedSelection.filter((id) => availableIds.has(id));
+    // ✅ 修正: storedSelectionが配列でない場合の処理を追加
+    const validStoredSelection = Array.isArray(storedSelection) ? storedSelection : [];
+    let nextSelection = validStoredSelection.filter((id) => availableIds.has(id));
 
     // 初回起動時（ストレージに保存がない場合）のみ、すべてのプロジェクトを選択
     // ユーザーが意図的にすべてのチェックを外した場合は、空配列のまま保持
@@ -378,7 +400,7 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.loadAllTasks();
     this.loadAllMilestones();
-    this.filterTasksBySelectedProjects();
+    // ✅ 修正: loadAllTasks()は非同期処理なので、filterTasksBySelectedProjects()は各タスク読み込み後に呼ばれるため、ここでは呼ばない
   }
 
   /** 全プロジェクトのタスクを読み込み */
@@ -387,70 +409,96 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.destroy$.closed) {
       return;
     }
+    // ✅ 修正: projectsが配列でない場合の処理を追加
+    if (!Array.isArray(this.projects)) {
+      console.error('projectsが配列ではありません:', this.projects);
+      return;
+    }
     this.allTasks = [];
     this.projects.forEach((project) => {
-      if (project.id) {
-        this.projectService
-          .getTasksByProjectId(project.id)
-          .pipe(takeUntil(this.destroy$)) // ✅ 追加: メモリリーク防止
-          .subscribe({
-            next: (tasks) => {
-              // ✅ 修正: コンポーネントが破棄されていないかチェック
-              if (this.destroy$.closed) {
-                return;
-              }
-              // ✅ 修正: tasksが配列でない場合の処理を追加
-              if (!Array.isArray(tasks)) {
-                console.error(
-                  `プロジェクト ${project.id} のタスクが配列ではありません:`,
-                  tasks
-                );
-                return;
-              }
-              const themeColor = this.getProjectThemeColor(project.id!);
-              const tasksWithProject = tasks
-                .filter((task) => task != null) // ✅ 修正: null/undefinedのタスクをフィルタリング
-                .map((task) => ({
-                  ...task,
-                  projectId: task.projectId || project.id!,
-                  projectName: task.projectName || project.projectName,
-                  projectThemeColor: task.projectThemeColor || themeColor,
-                }));
-
-              this.allTasks = this.allTasks.filter(
-                (t) => t && t.projectId !== project.id
-              );
-              const normalizedTasks = tasksWithProject.map((task) =>
-                this.withTaskTheme(task)
-              );
-              this.allTasks = [...this.allTasks, ...normalizedTasks];
-              this.filterTasksBySelectedProjects();
-            },
-            error: (error) => {
-              // ✅ 修正: コンポーネントが破棄されていないかチェック
-              if (this.destroy$.closed) {
-                return;
-              }
-              console.error(
-                `プロジェクト ${project.id} のタスク読み込みエラー:`,
-                error
-              );
-            },
-          });
+      if (!project || !project.id) {
+        return; // ✅ 修正: null/undefinedのプロジェクトをスキップ
       }
+      this.projectService
+        .getTasksByProjectId(project.id)
+        .pipe(takeUntil(this.destroy$)) // ✅ 追加: メモリリーク防止
+        .subscribe({
+          next: (tasks) => {
+            // ✅ 修正: コンポーネントが破棄されていないかチェック
+            if (this.destroy$.closed) {
+              return;
+            }
+            // ✅ 修正: tasksが配列でない場合の処理を追加
+            if (!Array.isArray(tasks)) {
+              console.error(
+                `プロジェクト ${project.id} のタスクが配列ではありません:`,
+                tasks
+              );
+              return;
+            }
+            const themeColor = this.getProjectThemeColor(project.id);
+            const tasksWithProject = tasks
+              .filter((task) => task != null) // ✅ 修正: null/undefinedのタスクをフィルタリング
+              .map((task) => ({
+                ...task,
+                projectId: task.projectId || project.id,
+                projectName: task.projectName || project.projectName || '',
+                projectThemeColor: task.projectThemeColor || themeColor,
+              }));
+
+            // ✅ 修正: 競合状態を防ぐため、現在のallTasksのコピーを作成してから操作
+            const currentAllTasks = [...this.allTasks];
+            const filteredTasks = currentAllTasks.filter(
+              (t) => t && t.projectId !== project.id
+            );
+            const normalizedTasks = tasksWithProject.map((task) =>
+              this.withTaskTheme(task)
+            );
+            // ✅ 修正: 一度に更新することで競合状態を防ぐ
+            this.allTasks = [...filteredTasks, ...normalizedTasks];
+            this.filterTasksBySelectedProjects();
+          },
+          error: (error) => {
+            // ✅ 修正: コンポーネントが破棄されていないかチェック
+            if (this.destroy$.closed) {
+              return;
+            }
+            console.error(
+              `プロジェクト ${project.id} のタスク読み込みエラー:`,
+              error
+            );
+          },
+        });
     });
   }
 
   /** 全プロジェクトのマイルストーンを読み込み */
   loadAllMilestones() {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
+    // ✅ 修正: projectsが配列でない場合の処理を追加
+    if (!Array.isArray(this.projects)) {
+      console.error('projectsが配列ではありません:', this.projects);
+      this.allMilestones = [];
+      return;
+    }
     this.allMilestones = [];
     this.projects.forEach((project) => {
-      if (project.milestones && project.milestones.length > 0) {
+      if (!project) {
+        return; // ✅ 修正: null/undefinedのプロジェクトをスキップ
+      }
+      // ✅ 修正: milestonesが配列でない場合の処理を追加
+      if (Array.isArray(project.milestones) && project.milestones.length > 0) {
         project.milestones.forEach((milestone) => {
+          if (!milestone) {
+            return; // ✅ 修正: null/undefinedのマイルストーンをスキップ
+          }
           this.allMilestones.push({
             ...milestone,
-            projectId: project.id,
-            projectName: project.projectName,
+            projectId: project.id || '',
+            projectName: project.projectName || '',
           });
         });
       }
@@ -698,8 +746,12 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!start || !end) {
       return 0;
     }
+    // ✅ 修正: 日付が逆転している場合（開始日 > 終了日）の処理
+    // 日付が逆転している場合は、開始日と終了日を入れ替えて計算
+    const taskStart = start <= end ? start : end;
+    const taskEnd = start <= end ? end : start;
     return (
-      Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1
+      Math.ceil((taskEnd.getTime() - taskStart.getTime()) / (1000 * 60 * 60 * 24)) + 1
     );
   }
 
@@ -710,6 +762,10 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!start) {
       return 0;
     }
+    // ✅ 修正: this.startDateが無効な場合のチェックを追加
+    if (!this.startDate || isNaN(this.startDate.getTime())) {
+      return 0;
+    }
     const daysDiff = Math.floor(
       (start.getTime() - this.startDate.getTime()) / (1000 * 60 * 60 * 24)
     );
@@ -718,11 +774,19 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** 日付をフォーマット */
   formatDate(date: Date): string {
+    // ✅ 修正: 無効な日付のチェックを追加
+    if (!date || isNaN(date.getTime())) {
+      return '';
+    }
     return date.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' });
   }
 
   /** 年月をフォーマット */
   formatYearMonth(date: Date): string {
+    // ✅ 修正: 無効な日付のチェックを追加
+    if (!date || isNaN(date.getTime())) {
+      return '';
+    }
     return date.toLocaleDateString('ja-JP', {
       year: 'numeric',
       month: 'numeric',
@@ -731,6 +795,10 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** 日付のみをフォーマット */
   formatDay(date: Date): string {
+    // ✅ 修正: 無効な日付のチェックを追加
+    if (!date || isNaN(date.getTime())) {
+      return '';
+    }
     return date.getDate().toString();
   }
 
@@ -849,14 +917,26 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
   /** マイルストーンの位置を計算 */
   getMilestonePosition(milestone: any): number {
     const milestoneDate = new Date(milestone.date);
+    // ✅ 修正: 無効な日付のチェックを追加
+    if (isNaN(milestoneDate.getTime())) {
+      return 0;
+    }
+    // ✅ 修正: this.startDateが無効な場合のチェックを追加
+    if (!this.startDate || isNaN(this.startDate.getTime())) {
+      return 0;
+    }
     const startDate = new Date(this.startDate);
     const diffTime = milestoneDate.getTime() - startDate.getTime();
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays * 30; // 1日 = 30px
+    return Math.max(0, diffDays * 30); // 1日 = 30px、負の値の場合は0
   }
 
   /** 指定された日付にマイルストーンがあるかチェック */
   getMilestonesForDate(date: Date): any[] {
+    // ✅ 修正: 無効な日付のチェックを追加
+    if (!date || isNaN(date.getTime())) {
+      return [];
+    }
     // ローカルタイムゾーンで日付文字列を生成（YYYY-MM-DD形式）
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -1148,18 +1228,31 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!taskStart || !taskEnd) {
       return false;
     }
+    // ✅ 修正: 日付が逆転している場合（開始日 > 終了日）の処理
+    if (taskStart > taskEnd) {
+      // 日付が逆転している場合は、開始日と終了日を入れ替えてチェック
+      return date >= taskEnd && date <= taskStart;
+    }
     return date >= taskStart && date <= taskEnd;
   }
 
   /** タスクバーの開始位置を計算（ピクセル単位） */
   getTaskBarStartPosition(task: Task): number {
     const taskStart = this.getTaskStartDate(task);
+    const taskEnd = this.getTaskEndDate(task);
     // ✅ 修正: 日付が無効な場合は0を返す
-    if (!taskStart) {
+    if (!taskStart || !taskEnd) {
       return 0;
     }
+    // ✅ 修正: this.startDateが無効な場合のチェックを追加
+    if (!this.startDate || isNaN(this.startDate.getTime())) {
+      return 0;
+    }
+    // ✅ 修正: 日付が逆転している場合（開始日 > 終了日）の処理
+    // 日付が逆転している場合は、終了日を基準に開始位置を計算
+    const startDate = taskStart <= taskEnd ? taskStart : taskEnd;
     const daysDiff = Math.floor(
-      (taskStart.getTime() - this.startDate.getTime()) / (1000 * 60 * 60 * 24)
+      (startDate.getTime() - this.startDate.getTime()) / (1000 * 60 * 60 * 24)
     );
     return Math.max(0, daysDiff * 30); // 1日 = 30px
   }
@@ -1172,9 +1265,13 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!taskStart || !taskEnd) {
       return 0;
     }
+    // ✅ 修正: 日付が逆転している場合（開始日 > 終了日）の処理
+    // 日付が逆転している場合は、開始日と終了日を入れ替えて計算
+    const start = taskStart <= taskEnd ? taskStart : taskEnd;
+    const end = taskStart <= taskEnd ? taskEnd : taskStart;
     const totalDays =
       Math.ceil(
-        (taskEnd.getTime() - taskStart.getTime()) / (1000 * 60 * 60 * 24)
+        (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
       ) + 1;
     return Math.max(0, totalDays * 30); // 1日 = 30px、負の値の場合は0
   }
@@ -1189,7 +1286,11 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    if (!targetDate || !this.startDate || !this.endDate) {
+    // ✅ 修正: 無効な日付のチェックを追加
+    if (!targetDate || !this.startDate || !this.endDate ||
+        isNaN(targetDate.getTime()) || 
+        isNaN(this.startDate.getTime()) || 
+        isNaN(this.endDate.getTime())) {
       return;
     }
 
