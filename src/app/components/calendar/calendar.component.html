@@ -183,7 +183,7 @@
     *ngIf="viewMode !== 'month'"
   >
     <div *ngFor="let date of calendarDays" class="week-day">
-      {{ getWeekDays()[date.getDay()] }}
+      {{ getWeekDay(date) }}
     </div>
   </div>
   <div class="calendar-grid" [ngClass]="'view-' + viewMode">
@@ -203,7 +203,7 @@
       (click)="onDateSelected(date)"
     >
       <div class="day-number">
-        {{ date.getDate() }}
+        {{ getDayNumber(date) }}
         <!-- マイルストーン表示 -->
         <ng-container *ngIf="getMilestonesForDate(date) as milestones">
           <div
@@ -219,11 +219,11 @@
         <div
           *ngFor="let task of getDisplayTasksForDate(date)"
           class="task-item"
-          [style.background-color]="statusColors[task.status] || '#e0e0e0'"
+          [style.background-color]="statusColors[getStatusValue(task.status)] || '#e0e0e0'"
           [style.border-left]="
-            '4px solid ' + (statusColors[task.status] || '#fdd6d5')
+            '4px solid ' + (statusColors[getStatusValue(task.status)] || '#fdd6d5')
           "
-          [style.color]="statusTextColors[task.status] || '#212121'"
+          [style.color]="statusTextColors[getStatusValue(task.status)] || '#212121'"
           [title]="getTaskTooltip(task)"
           (click)="openTaskDetail(task)"
         >

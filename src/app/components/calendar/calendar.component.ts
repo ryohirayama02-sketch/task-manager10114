@@ -107,13 +107,21 @@ export class CalendarComponent implements OnInit, OnDestroy {
   };
 
   /** ステータスの値を取得（日本語キーを返す） */
-  getStatusValue(key: 'notStarted' | 'inProgress' | 'completed'): string {
+  getStatusValue(key: string | null | undefined): string {
+    // ✅ 修正: keyがnull/undefinedの場合のチェックを追加
+    if (!key) {
+      return '未着手'; // デフォルト値
+    }
     const statusMap: Record<string, string> = {
       notStarted: '未着手',
       inProgress: '作業中',
       completed: '完了',
+      // 日本語キーもサポート（後方互換性のため）
+      未着手: '未着手',
+      作業中: '作業中',
+      完了: '完了',
     };
-    return statusMap[key] || key;
+    return statusMap[key] || '未着手'; // デフォルト値を返す
   }
 
   /** 優先度の値を取得（日本語キーを返す） */
@@ -187,6 +195,13 @@ export class CalendarComponent implements OnInit, OnDestroy {
   generateCalendarDays() {
     this.calendarDays = [];
 
+    // ✅ 修正: currentDateが無効な日付の場合のチェックを追加
+    if (!this.currentDate || isNaN(this.currentDate.getTime())) {
+      console.error('currentDateが無効です:', this.currentDate);
+      // 無効な場合は今日の日付を使用
+      this.currentDate = new Date();
+    }
+
     if (this.viewMode === 'day') {
       // 日表示：当日のみ
       this.calendarDays = [new Date(this.currentDate)];
@@ -217,10 +232,14 @@ export class CalendarComponent implements OnInit, OnDestroy {
       const endDate = new Date(startDate);
       endDate.setDate(endDate.getDate() + 41); // 6週間分
 
+      // ✅ 修正: 無限ループを防ぐため、最大日数を制限
+      const maxDays = 50; // 6週間分 + 余裕を持たせて50日
+      let dayCount = 0;
       const current = new Date(startDate);
-      while (current <= endDate) {
+      while (current <= endDate && dayCount < maxDays) {
         this.calendarDays.push(new Date(current));
         current.setDate(current.getDate() + 1);
+        dayCount++;
       }
     }
   }
@@ -272,15 +291,31 @@ export class CalendarComponent implements OnInit, OnDestroy {
   }
 
   private applyProjectList(projects: IProject[]): void {
-    this.projects = projects;
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
+    // ✅ 修正: projectsが配列でない場合の処理を追加
+    if (!Array.isArray(projects)) {
+      console.error('projectsが配列ではありません:', projects);
+      return;
+    }
+    this.projects = projects.filter((project) => project != null); // ✅ 修正: null/undefinedのプロジェクトをフィルタリング
 
     const storedSelection =
       this.projectSelectionService.getSelectedProjectIdsSync();
     const availableIds = new Set(
-      projects.map((project) => project.id).filter((id): id is string => !!id)
+      this.projects
+        .map((project) => project.id)
+        .filter((id): id is string => !!id)
     );
-
-    let nextSelection = storedSelection.filter((id) => availableIds.has(id));
+    // ✅ 修正: storedSelectionが配列でない場合の処理を追加
+    const validStoredSelection = Array.isArray(storedSelection)
+      ? storedSelection
+      : [];
+    let nextSelection = validStoredSelection.filter((id) =>
+      availableIds.has(id)
+    );
 
     // 初回起動時（ストレージに保存がない場合）のみ、すべてのプロジェクトを選択
     // ユーザーが意図的にすべてのチェックを外した場合は、空配列のまま保持
@@ -302,45 +337,119 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
     this.loadAllTasks();
     this.loadAllMilestones();
-    this.filterTasksBySelectedProjects();
+    // ✅ 修正: loadAllTasks()は非同期処理なので、filterTasksBySelectedProjects()は各タスク読み込み後に呼ばれるため、ここでは呼ばない
     this.updateAvailableDateRange();
   }
 
   /** 全プロジェクトのタスクを読み込み */
   loadAllTasks() {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
+    // ✅ 修正: projectsが配列でない場合の処理を追加
+    if (!Array.isArray(this.projects)) {
+      console.error('projectsが配列ではありません:', this.projects);
+      this.allTasks = [];
+      return;
+    }
     this.allTasks = [];
     this.projects.forEach((project) => {
-      if (project.id) {
-        this.projectService
-          .getTasksByProjectId(project.id)
-          .subscribe((tasks: Task[]) => {
-            const tasksWithProject = tasks.map((task) => ({
-              ...task,
-              projectId: task.projectId || project.id!,
-              projectName: task.projectName || project.projectName,
-            }));
+      // ✅ 修正: projectがnull/undefinedの場合のチェックを追加
+      if (!project || !project.id) {
+        return;
+      }
+      this.projectService
+        .getTasksByProjectId(project.id)
+        .pipe(takeUntil(this.destroy$)) // ✅ 修正: メモリリーク防止
+        .subscribe({
+          next: (tasks: Task[]) => {
+            // ✅ 修正: コンポーネントが破棄されていないかチェック
+            if (this.destroy$.closed) {
+              return;
+            }
+            // ✅ 修正: tasksが配列でない場合の処理を追加
+            if (!Array.isArray(tasks)) {
+              console.error(
+                `プロジェクト ${project.id} のタスクが配列ではありません:`,
+                tasks
+              );
+              return;
+            }
+            const tasksWithProject = tasks
+              .filter((task) => task != null) // ✅ 修正: null/undefinedのタスクをフィルタリング
+              .map((task) => ({
+                ...task,
+                projectId: task.projectId || project.id!,
+                projectName: task.projectName || project.projectName || '',
+              }));
 
-            this.allTasks = this.allTasks.filter(
-              (t) => t.projectId !== project.id
+            // ✅ 修正: 競合状態を防ぐため、現在のallTasksのコピーを作成してから操作
+            const currentAllTasks = [...this.allTasks];
+            const filteredTasks = currentAllTasks.filter(
+              (t) => t && t.projectId !== project.id
             );
-            this.allTasks = [...this.allTasks, ...tasksWithProject];
+            // ✅ 修正: 一度に更新することで競合状態を防ぐ
+            this.allTasks = [...filteredTasks, ...tasksWithProject];
             this.filterTasksBySelectedProjects();
             this.updateAvailableDateRange();
-          });
-      }
+          },
+          error: (error) => {
+            // ✅ 修正: コンポーネントが破棄されていないかチェック
+            if (this.destroy$.closed) {
+              return;
+            }
+            console.error(
+              `プロジェクト ${project.id} のタスク読み込みエラー:`,
+              error
+            );
+          },
+        });
     });
   }
 
   /** 全プロジェクトのマイルストーンを読み込み */
   loadAllMilestones() {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
+    // ✅ 修正: projectsが配列でない場合の処理を追加
+    if (!Array.isArray(this.projects)) {
+      console.error('projectsが配列ではありません:', this.projects);
+      this.allMilestones = [];
+      return;
+    }
     this.allMilestones = [];
     this.projects.forEach((project) => {
-      if (project.milestones && project.milestones.length > 0) {
+      // ✅ 修正: projectがnull/undefinedの場合のチェックを追加
+      if (!project) {
+        return;
+      }
+      // ✅ 修正: milestonesが配列でない場合の処理を追加
+      if (Array.isArray(project.milestones) && project.milestones.length > 0) {
         project.milestones.forEach((milestone) => {
+          // ✅ 修正: milestoneがnull/undefinedの場合のチェックを追加
+          if (!milestone) {
+            return;
+          }
+          // ✅ 修正: milestone.dateが有効な日付文字列かどうかをチェック
+          // milestone.dateは文字列形式（YYYY-MM-DD）で保存されている
+          if (milestone.date) {
+            // 日付文字列をDateオブジェクトに変換して検証
+            const dateObj = new Date(milestone.date);
+            if (isNaN(dateObj.getTime())) {
+              // 無効な日付の場合はスキップ
+              console.warn(
+                `無効なマイルストーン日付をスキップしました: ${milestone.date} (プロジェクト: ${project.projectName})`
+              );
+              return;
+            }
+          }
           this.allMilestones.push({
             ...milestone,
-            projectId: project.id,
-            projectName: project.projectName,
+            projectId: project.id || '',
+            projectName: project.projectName || '',
           });
         });
       }
@@ -354,20 +463,36 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
   /** フィルターを適用 */
   applyFilters() {
+    // ✅ 修正: allTasksが配列でない場合の処理を追加
+    if (!Array.isArray(this.allTasks)) {
+      console.error('allTasksが配列ではありません:', this.allTasks);
+      this.tasks = [];
+      this.updateAvailableDateRange();
+      return;
+    }
+
     let filteredTasks = this.selectedProjectIds.length
-      ? this.allTasks.filter((task) =>
-          this.selectedProjectIds.includes(task.projectId)
+      ? this.allTasks.filter(
+          (task) =>
+            task &&
+            task.projectId &&
+            this.selectedProjectIds.includes(task.projectId)
         )
       : [];
 
     if (this.filterPriority.length > 0) {
-      filteredTasks = filteredTasks.filter((task) =>
-        this.filterPriority.includes(task.priority)
+      filteredTasks = filteredTasks.filter(
+        (task) =>
+          task && task.priority && this.filterPriority.includes(task.priority)
       );
     }
     // 担当者フィルター（assignedMembers（メンバーID配列）から取得）
     if (this.filterAssignee.length > 0) {
       filteredTasks = filteredTasks.filter((task) => {
+        // ✅ 修正: taskがnull/undefinedの場合のチェックを追加
+        if (!task) {
+          return false;
+        }
         const assignees: string[] = [];
 
         // assignedMembers から取得（メンバーIDをメンバー名に変換）
@@ -379,7 +504,10 @@ export class CalendarComponent implements OnInit, OnDestroy {
             task.assignedMembers,
             this.members
           );
-          assignees.push(...memberNames);
+          // ✅ 修正: memberNamesが配列であることを確認
+          if (Array.isArray(memberNames)) {
+            assignees.push(...memberNames.filter((name) => name != null));
+          }
         }
 
         // 担当者がいない場合はフィルターにマッチしない
@@ -388,15 +516,23 @@ export class CalendarComponent implements OnInit, OnDestroy {
         }
 
         // フィルター値とマッチするか確認（いずれかの担当者がフィルターに含まれていればOK）
-        return assignees.some((assignee) =>
-          this.filterAssignee.includes(assignee)
+        return assignees.some(
+          (assignee) => assignee && this.filterAssignee.includes(assignee)
         );
       });
     }
     if (this.filterStatus.length > 0) {
-      filteredTasks = filteredTasks.filter((task) =>
-        this.filterStatus.includes(task.status)
+      filteredTasks = filteredTasks.filter(
+        (task) => task && task.status && this.filterStatus.includes(task.status)
       );
+    }
+
+    // ✅ 修正: filteredTasksが配列でない場合の処理を追加
+    if (!Array.isArray(filteredTasks)) {
+      console.error('filteredTasksが配列ではありません:', filteredTasks);
+      this.tasks = [];
+      this.updateAvailableDateRange();
+      return;
     }
 
     this.tasks = filteredTasks;
@@ -405,12 +541,23 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
   /** プロジェクト選択をトグル */
   toggleProjectSelection(projectId: string) {
+    // ✅ 修正: projectIdがundefinedやnullの場合の処理を追加
+    if (!projectId) {
+      console.error('プロジェクトIDが指定されていません');
+      return;
+    }
     this.projectSelectionService.toggleProjectSelection(projectId);
   }
 
   /** プロジェクトをすべて選択 */
   selectAllProjects() {
+    // ✅ 修正: projectsが配列でない場合の処理を追加
+    if (!Array.isArray(this.projects)) {
+      console.error('projectsが配列ではありません:', this.projects);
+      return;
+    }
     const allIds = this.projects
+      .filter((project) => project != null) // ✅ 修正: null/undefinedのプロジェクトをフィルタリング
       .map((project) => project.id)
       .filter((id): id is string => !!id);
     this.selectedProjectIds = allIds;
@@ -425,13 +572,25 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
   /** プロジェクトが選択されているかチェック */
   isProjectSelected(projectId: string): boolean {
+    // ✅ 修正: projectIdがnull/undefinedの場合の処理を追加
+    if (!projectId) {
+      return false;
+    }
     return this.selectedProjectIds.includes(projectId);
   }
 
   /** プロジェクトIDからプロジェクト名を取得 */
   getProjectName(projectId: string): string {
-    const project = this.projects.find((p) => p.id === projectId);
-    return project ? project.projectName : '';
+    // ✅ 修正: projectIdがnull/undefinedの場合の処理を追加
+    if (!projectId) {
+      return '';
+    }
+    // ✅ 修正: projectsが配列でない場合の処理を追加
+    if (!Array.isArray(this.projects)) {
+      return '';
+    }
+    const project = this.projects.find((p) => p && p.id === projectId);
+    return project ? project.projectName || '' : '';
   }
 
   /** 表示モードに応じた最大タスク表示数を取得 */
@@ -526,7 +685,12 @@ export class CalendarComponent implements OnInit, OnDestroy {
   /** 日付が現在の月かチェック */
   isCurrentMonth(date: Date): boolean {
     // ✅ 修正: 無効な日付のチェックを追加
-    if (!date || isNaN(date.getTime()) || !this.currentDate || isNaN(this.currentDate.getTime())) {
+    if (
+      !date ||
+      isNaN(date.getTime()) ||
+      !this.currentDate ||
+      isNaN(this.currentDate.getTime())
+    ) {
       return false;
     }
     return date.getMonth() === this.currentDate.getMonth();
@@ -534,6 +698,11 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
   /** 日付を変更 */
   changeDate(direction: number) {
+    // ✅ 修正: currentDateが無効な日付の場合のチェックを追加
+    if (!this.currentDate || isNaN(this.currentDate.getTime())) {
+      console.error('currentDateが無効です:', this.currentDate);
+      this.currentDate = new Date();
+    }
     const newDate = new Date(this.currentDate);
 
     if (this.viewMode === 'day') {
@@ -542,6 +711,12 @@ export class CalendarComponent implements OnInit, OnDestroy {
       newDate.setDate(newDate.getDate() + direction * 7);
     } else {
       newDate.setMonth(newDate.getMonth() + direction);
+    }
+
+    // ✅ 修正: 新しい日付が無効な場合のチェックを追加
+    if (isNaN(newDate.getTime())) {
+      console.error('新しい日付が無効です:', newDate);
+      return;
     }
 
     // 表示可能な範囲内かチェック
@@ -557,6 +732,11 @@ export class CalendarComponent implements OnInit, OnDestroy {
   /** 現在の日付に戻る */
   goToCurrentDate() {
     const today = new Date();
+    // ✅ 修正: todayが無効な日付の場合のチェックを追加
+    if (isNaN(today.getTime())) {
+      console.error('今日の日付が無効です');
+      return;
+    }
     // 表示可能な範囲内かチェック
     if (this.isDateInAvailableRange(today)) {
       this.currentDate = today;
@@ -566,12 +746,25 @@ export class CalendarComponent implements OnInit, OnDestroy {
       this.generateCalendarDays();
     } else {
       // 範囲外の場合は、範囲内の最も近い日付に移動
-      if (this.minAvailableDate && today < this.minAvailableDate) {
+      if (
+        this.minAvailableDate &&
+        !isNaN(this.minAvailableDate.getTime()) &&
+        today < this.minAvailableDate
+      ) {
         this.currentDate = new Date(this.minAvailableDate);
-      } else if (this.maxAvailableDate && today > this.maxAvailableDate) {
+      } else if (
+        this.maxAvailableDate &&
+        !isNaN(this.maxAvailableDate.getTime()) &&
+        today > this.maxAvailableDate
+      ) {
         this.currentDate = new Date(this.maxAvailableDate);
       } else {
         this.currentDate = today;
+      }
+      // ✅ 修正: 新しいcurrentDateが無効な日付の場合のチェックを追加
+      if (isNaN(this.currentDate.getTime())) {
+        console.error('新しいcurrentDateが無効です');
+        this.currentDate = new Date(); // フォールバックとして今日の日付を使用
       }
       if (this.selectedDate) {
         this.selectedDate = new Date(this.currentDate);
@@ -583,8 +776,12 @@ export class CalendarComponent implements OnInit, OnDestroy {
   /** 表示モードを変更 */
   changeViewMode(mode: 'day' | 'week' | 'month') {
     this.viewMode = mode;
-    if (this.selectedDate) {
+    // ✅ 修正: selectedDateが無効な日付の場合のチェックを追加
+    if (this.selectedDate && !isNaN(this.selectedDate.getTime())) {
       this.currentDate = new Date(this.selectedDate);
+    } else if (!this.currentDate || isNaN(this.currentDate.getTime())) {
+      // currentDateも無効な場合は今日の日付を使用
+      this.currentDate = new Date();
     }
     this.generateCalendarDays();
   }
@@ -681,26 +878,57 @@ export class CalendarComponent implements OnInit, OnDestroy {
   getUniqueAssignees(): string[] {
     const assigneeSet = new Set<string>();
 
+    // ✅ 修正: allTasksが配列でない場合の処理を追加
+    if (!Array.isArray(this.allTasks)) {
+      console.error('allTasksが配列ではありません:', this.allTasks);
+      return [];
+    }
+
     // 全タスクのassignedMembersからメンバー名を取得
     this.allTasks.forEach((task) => {
+      // ✅ 修正: taskがnull/undefinedの場合のチェックを追加
+      if (!task) {
+        return;
+      }
       if (
         Array.isArray(task.assignedMembers) &&
         task.assignedMembers.length > 0
       ) {
         const memberNames = getMemberNames(task.assignedMembers, this.members);
-        memberNames.forEach((name) => assigneeSet.add(name));
+        // ✅ 修正: memberNamesが配列であることを確認
+        if (Array.isArray(memberNames)) {
+          memberNames.forEach((name) => {
+            if (name) {
+              assigneeSet.add(name);
+            }
+          });
+        }
       }
     });
 
+    // ✅ 修正: membersが配列でない場合の処理を追加
+    if (!Array.isArray(this.members)) {
+      console.error('membersが配列ではありません:', this.members);
+      return Array.from(assigneeSet).sort();
+    }
+
     // メンバー管理画面のメンバー一覧からも取得（assignedMembersに含まれていないメンバーも選択肢に含める）
     this.members.forEach((member) => {
+      // ✅ 修正: memberがnull/undefinedの場合のチェックを追加
+      if (!member) {
+        return;
+      }
       if (member.name) {
         // メンバー名がカンマ区切りの場合も分割
         const names = member.name
           .split(',')
           .map((n) => n.trim())
           .filter((n) => n.length > 0);
-        names.forEach((name) => assigneeSet.add(name));
+        names.forEach((name) => {
+          if (name) {
+            assigneeSet.add(name);
+          }
+        });
       }
     });
 
@@ -1035,7 +1263,10 @@ export class CalendarComponent implements OnInit, OnDestroy {
     }
 
     // ✅ 修正: minAvailableDateとmaxAvailableDateが無効な日付の場合のチェックを追加
-    if (isNaN(this.minAvailableDate.getTime()) || isNaN(this.maxAvailableDate.getTime())) {
+    if (
+      isNaN(this.minAvailableDate.getTime()) ||
+      isNaN(this.maxAvailableDate.getTime())
+    ) {
       return true; // 無効な範囲の場合は制限なしとして扱う
     }
 
@@ -1056,21 +1287,37 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
   /** 前の月に移動できるかチェック */
   canMoveToPreviousMonth(): boolean {
+    // ✅ 修正: currentDateが無効な日付の場合のチェックを追加
+    if (!this.currentDate || isNaN(this.currentDate.getTime())) {
+      return false;
+    }
     if (!this.minAvailableDate) {
       return true;
     }
     const prevDate = new Date(this.currentDate);
     prevDate.setMonth(prevDate.getMonth() - 1);
+    // ✅ 修正: 新しい日付が無効な場合のチェックを追加
+    if (isNaN(prevDate.getTime())) {
+      return false;
+    }
     return this.isDateInAvailableRange(prevDate);
   }
 
   /** 次の月に移動できるかチェック */
   canMoveToNextMonth(): boolean {
+    // ✅ 修正: currentDateが無効な日付の場合のチェックを追加
+    if (!this.currentDate || isNaN(this.currentDate.getTime())) {
+      return false;
+    }
     if (!this.maxAvailableDate) {
       return true;
     }
     const nextDate = new Date(this.currentDate);
     nextDate.setMonth(nextDate.getMonth() + 1);
+    // ✅ 修正: 新しい日付が無効な場合のチェックを追加
+    if (isNaN(nextDate.getTime())) {
+      return false;
+    }
     return this.isDateInAvailableRange(nextDate);
   }
 
@@ -1111,6 +1358,30 @@ export class CalendarComponent implements OnInit, OnDestroy {
     return ['日', '月', '火', '水', '木', '金', '土'];
   }
 
+  /** 日付から曜日を安全に取得 */
+  getWeekDay(date: Date): string {
+    // ✅ 修正: 無効な日付のチェックを追加
+    if (!date || isNaN(date.getTime())) {
+      return '';
+    }
+    const dayIndex = date.getDay();
+    // ✅ 修正: 範囲チェックを追加（0-6の範囲外の場合は空文字列を返す）
+    if (dayIndex < 0 || dayIndex > 6) {
+      return '';
+    }
+    const weekDays = this.getWeekDays();
+    return weekDays[dayIndex] || '';
+  }
+
+  /** 日付から日を安全に取得 */
+  getDayNumber(date: Date): number {
+    // ✅ 修正: 無効な日付のチェックを追加
+    if (!date || isNaN(date.getTime())) {
+      return 0;
+    }
+    return date.getDate();
+  }
+
   /** 表示モードのラベルを取得（言語設定に応じて） */
   getViewModeLabel(mode: 'day' | 'week' | 'month'): string {
     const currentLanguage = this.languageService.getCurrentLanguage();
@@ -1133,11 +1404,17 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
   /** タスクのツールチップテキストを取得 */
   getTaskTooltip(task: Task): string {
-    const statusDisplay = this.getStatusDisplay(task.status);
+    // ✅ 修正: taskがnull/undefinedの場合のチェックを追加
+    if (!task) {
+      return '';
+    }
+    const statusDisplay = this.getStatusDisplay(task.status || '');
     const dueDateLabel = this.languageService.translate(
       'calendar.taskTooltip.dueDate'
     );
     const dueDate = task.dueDate || '';
-    return `${task.taskName} (${statusDisplay}) - ${dueDateLabel}${dueDate}`;
+    return `${
+      task.taskName || ''
+    } (${statusDisplay}) - ${dueDateLabel}${dueDate}`;
   }
 }
