@@ -78,6 +78,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   selectedHomeScreen: HomeScreenType = 'kanban';
   homeScreenOptions = HOME_SCREEN_OPTIONS;
   private previousUserId: string | null = null; // 前のユーザーIDを保持
+  private previousRoomId: string | null = null; // 前のルームIDを保持
 
   // 言語設定
   languageOptions: Array<{ value: SupportedLanguage; labelKey: string }> = [
@@ -163,25 +164,35 @@ export class SettingsComponent implements OnInit, OnDestroy {
     await this.loadHomeScreenSettings();
     await this.loadRoomInfo();
 
-    // ✅ 修正: ユーザー変更時のホーム画面設定の再読み込み
-    this.authService.user$
+    // ✅ 修正: 初期化時のルームIDを設定
+    this.previousRoomId = roomId;
+
+    // ✅ 修正: ユーザー変更時とルーム変更時のホーム画面設定とルーム情報の再読み込み
+    combineLatest([
+      this.authService.user$,
+      this.authService.currentRoomId$,
+    ])
       .pipe(
-        distinctUntilChanged((prev, curr) => prev?.uid === curr?.uid),
+        distinctUntilChanged((prev, curr) => {
+          // ユーザーIDとルームIDが変更された場合のみ処理を実行
+          return prev[0]?.uid === curr[0]?.uid && prev[1] === curr[1];
+        }),
         takeUntil(this.destroy$)
       )
       .subscribe({
-        next: (user) => {
+        next: ([user, roomId]) => {
           // ✅ 修正: コンポーネントが破棄されていないかチェック
           if (this.destroy$.closed) {
             return;
           }
-          // ✅ 修正: ユーザーがログアウトした場合、またはユーザーが変更された場合、ホーム画面設定を再読み込み
-          if (!user) {
-            // ユーザーがログアウトした場合、設定をクリア
+          // ✅ 修正: ユーザーがログアウトした場合、またはルームIDがnullの場合、設定をクリア
+          if (!user || !roomId) {
+            // ユーザーがログアウトした場合、またはルームIDがnullの場合、設定をクリア
             this.homeScreenSettings = null;
             this.selectedHomeScreen =
               this.homeScreenSettingsService.getDefaultHomeScreen();
             this.previousUserId = null;
+            this.previousRoomId = null;
             // ✅ 修正: 保存処理中の場合は、isSavingをリセット
             if (this.isSaving) {
               this.isSaving = false;
@@ -192,8 +203,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
             }
             // ✅ 修正: roomInfoをクリア
             this.roomInfo = null;
-          } else if (this.previousUserId !== null && this.previousUserId !== user.uid) {
-            // ユーザーが変更された場合、設定を再読み込み
+            return;
+          }
+          // ✅ 修正: ユーザーが変更された場合、設定を再読み込み
+          if (this.previousUserId !== null && this.previousUserId !== user.uid) {
             console.log('ユーザーが変更されました。ホーム画面設定を再読み込みします。');
             // ✅ 修正: 保存処理中の場合は、isSavingをリセット
             if (this.isSaving) {
@@ -207,14 +220,21 @@ export class SettingsComponent implements OnInit, OnDestroy {
             // ✅ 修正: roomInfoを再読み込み
             this.loadRoomInfo();
           }
+          // ✅ 修正: ルームIDが変更された場合、roomInfoを再読み込み
+          if (this.previousRoomId !== null && this.previousRoomId !== roomId) {
+            console.log('ルームが変更されました。ルーム情報を再読み込みします。');
+            this.roomInfo = null;
+            this.loadRoomInfo();
+          }
           this.previousUserId = user?.uid || null;
+          this.previousRoomId = roomId;
         },
         error: (error) => {
           // ✅ 修正: コンポーネントが破棄されていないかチェック
           if (this.destroy$.closed) {
             return;
           }
-          console.error('ユーザー監視エラー:', error);
+          console.error('ユーザー/ルーム監視エラー:', error);
         },
       });
   }
@@ -1500,6 +1520,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
           this.projectSelectionService.clearSelection();
           // ✅ 修正: roomInfoをクリア
           this.roomInfo = null;
+          // ✅ 修正: previousRoomIdをクリア
+          this.previousRoomId = null;
 
           this.snackBar.open(
             this.languageService.translate('settings.roomDeleted'),
