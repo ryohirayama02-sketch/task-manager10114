@@ -141,6 +141,13 @@ export class KanbanComponent implements OnInit, OnDestroy {
             return;
           }
           console.log('🎯 カンバン用ルーム内全プロジェクト一覧:', projects);
+          // ✅ 修正: projectsが配列でない場合の処理を追加
+          if (!Array.isArray(projects)) {
+            console.error('プロジェクト一覧が配列ではありません:', projects);
+            this.resetProjectState();
+            this.projectSelectionService.clearSelection();
+            return;
+          }
           if (projects.length === 0) {
             this.resetProjectState();
             this.projectSelectionService.clearSelection();
@@ -172,6 +179,12 @@ export class KanbanComponent implements OnInit, OnDestroy {
         // ✅ 修正: コンポーネントが破棄されていないかチェック
         if (this.destroy$.closed) {
           console.log('[ngOnInit] コンポーネントが破棄されたため、プロジェクト選択処理をスキップします');
+          return;
+        }
+        // ✅ 修正: projectIdsが配列でない場合の処理を追加
+        if (!Array.isArray(projectIds)) {
+          console.error('プロジェクトID一覧が配列ではありません:', projectIds);
+          this.selectedProjectIds = [];
           return;
         }
         this.selectedProjectIds = projectIds;
@@ -423,12 +436,22 @@ export class KanbanComponent implements OnInit, OnDestroy {
         }
 
         // フィルター値とマッチするか確認（いずれかの担当者がフィルターに含まれていればOK）
-        return assignees.some((assignee) =>
-          this.filterAssignee.includes(assignee)
-        );
+        return assignees.some((assignee) => {
+          // ✅ 修正: assigneeがnullやundefinedの場合をスキップ
+          if (!assignee) {
+            return false;
+          }
+          return this.filterAssignee.includes(assignee);
+        });
       });
     }
 
+    // ✅ 修正: filteredTasksが配列でない場合の処理を追加
+    if (!Array.isArray(filteredTasks)) {
+      console.error('filteredTasksが配列ではありません:', filteredTasks);
+      this.tasks = [];
+      return;
+    }
     // フィルター後の結果を表示
     this.tasks = filteredTasks;
     console.log('フィルタリング後のタスク:', this.tasks);
@@ -455,26 +478,53 @@ export class KanbanComponent implements OnInit, OnDestroy {
       return [];
     }
 
+    // ✅ 修正: allTasksが配列でない場合の処理を追加
+    if (!Array.isArray(this.allTasks)) {
+      console.error('allTasksが配列ではありません:', this.allTasks);
+      return [];
+    }
+
     // 全タスクのassignedMembersからメンバー名を取得
     this.allTasks.forEach((task) => {
+      // ✅ 修正: taskがnullやundefinedの場合をスキップ
+      if (!task) {
+        return;
+      }
       if (
         Array.isArray(task.assignedMembers) &&
         task.assignedMembers.length > 0
       ) {
         const memberNames = getMemberNames(task.assignedMembers, this.members);
-        memberNames.forEach((name) => assigneeSet.add(name));
+        // ✅ 修正: memberNamesが配列でない場合の処理を追加
+        if (Array.isArray(memberNames)) {
+          memberNames.forEach((name) => {
+            // ✅ 修正: nameがnullやundefinedの場合をスキップ
+            if (name) {
+              assigneeSet.add(name);
+            }
+          });
+        }
       }
     });
 
     // メンバー管理画面のメンバー一覧からも取得（assignedMembersに含まれていないメンバーも選択肢に含める）
     this.members.forEach((member) => {
+      // ✅ 修正: memberがnullやundefinedの場合をスキップ
+      if (!member) {
+        return;
+      }
       if (member.name) {
         // メンバー名がカンマ区切りの場合も分割
         const names = member.name
           .split(',')
           .map((n) => n.trim())
           .filter((n) => n.length > 0);
-        names.forEach((name) => assigneeSet.add(name));
+        names.forEach((name) => {
+          // ✅ 修正: nameがnullやundefinedの場合をスキップ
+          if (name) {
+            assigneeSet.add(name);
+          }
+        });
       }
     });
 
@@ -497,7 +547,13 @@ export class KanbanComponent implements OnInit, OnDestroy {
       console.log('[selectAllProjects] コンポーネントが破棄されたため、処理をスキップします');
       return;
     }
+    // ✅ 修正: projectsが配列でない場合の処理を追加
+    if (!Array.isArray(this.projects)) {
+      console.error('projectsが配列ではありません:', this.projects);
+      return;
+    }
     const allIds = this.projects
+      .filter((project) => project != null) // ✅ 修正: projectがnullやundefinedの場合をフィルタリング
       .map((project) => project.id)
       .filter((id): id is string => !!id);
     this.selectedProjectIds = allIds;
@@ -629,8 +685,13 @@ export class KanbanComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // ✅ 修正: allTasksが配列でない場合の処理を追加
+    if (!Array.isArray(this.allTasks)) {
+      console.error('allTasksが配列ではありません:', this.allTasks);
+      return;
+    }
     // タスクのプロジェクトIDを取得
-    const task = this.allTasks.find((t) => t.id === taskId);
+    const task = this.allTasks.find((t) => t && t.id === taskId);
     if (!task) {
       console.error('タスクが見つかりません:', taskId);
       return;
@@ -650,7 +711,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
         console.log('[changeTaskStatus] コンポーネントが破棄されたため、親タスク処理をスキップします');
         return;
       }
-      const parentTask = this.allTasks.find((t) => t.id === task.parentTaskId);
+      const parentTask = this.allTasks.find((t) => t && t.id === task.parentTaskId);
       if (
         parentTask &&
         parentTask.status &&
@@ -799,13 +860,22 @@ export class KanbanComponent implements OnInit, OnDestroy {
       console.log('✅ カンバンでタスクのステータスを更新しました');
 
       // ローカルのタスクも更新
-      const taskIndex = this.allTasks.findIndex((t) => t.id === taskId);
+      const taskIndex = this.allTasks.findIndex((t) => t && t.id === taskId);
       if (taskIndex > -1) {
-        this.allTasks[taskIndex].status = newStatus as
-          | '未着手'
-          | '作業中'
-          | '完了';
-        this.filterTasksBySelectedProjects();
+        // ✅ 修正: allTasks[taskIndex]がnullやundefinedの場合のチェックを追加
+        if (this.allTasks[taskIndex]) {
+          this.allTasks[taskIndex].status = newStatus as
+            | '未着手'
+            | '作業中'
+            | '完了';
+          this.filterTasksBySelectedProjects();
+        } else {
+          console.warn('タスクが見つかりませんでした（インデックスは有効ですが、タスクがnullです）:', taskId);
+          // タスクが見つからない場合は、該当プロジェクトのタスクを再読み込み
+          if (task.projectId) {
+            this.refreshProjectTasks(task.projectId);
+          }
+        }
       } else {
         // ✅ 修正: タスクが見つからない場合のログを追加
         console.warn('ローカルのタスクが見つかりませんでした。タスク一覧を再読み込みします:', taskId);
@@ -922,7 +992,11 @@ export class KanbanComponent implements OnInit, OnDestroy {
 
       // 各assignedMembersのUIDがmembersに存在するか確認
       task.assignedMembers.forEach((memberId, index) => {
-        const member = this.members.find((m) => m.id === memberId);
+        // ✅ 修正: memberIdがnullやundefinedの場合をスキップ
+        if (!memberId) {
+          return;
+        }
+        const member = this.members.find((m) => m && m.id === memberId);
         console.log(
           `   - assignedMembers[${index}]: ${memberId} → ${
             member ? member.name : '(見つからない)'
@@ -930,15 +1004,21 @@ export class KanbanComponent implements OnInit, OnDestroy {
         );
       });
 
-      const display = getMemberNamesAsString(
-        task.assignedMembers,
-        this.members,
-        ', ',
-        this.languageService
-      );
-      console.log('   - 表示結果:', display);
-      const notSetText = this.languageService.translate('common.notSet');
-      return display === notSetText ? '—' : display;
+      try {
+        const display = getMemberNamesAsString(
+          task.assignedMembers,
+          this.members,
+          ', ',
+          this.languageService
+        );
+        console.log('   - 表示結果:', display);
+        const notSetText = this.languageService.translate('common.notSet');
+        return display === notSetText ? '—' : display;
+      } catch (error) {
+        // ✅ 修正: getMemberNamesAsStringがエラーを返す場合の処理を追加
+        console.error('担当者名の取得に失敗しました:', error);
+        return task.assignee || '—';
+      }
     }
 
     // assignedMembers がない場合は assignee から最新のメンバー名を取得
@@ -949,8 +1029,9 @@ export class KanbanComponent implements OnInit, OnDestroy {
     // assignee がカンマ区切りの場合を考慮
     const assigneeNames = task.assignee.split(',').map((name) => name.trim());
     const updatedNames = assigneeNames
+      .filter((name) => name && name.length > 0) // ✅ 修正: nameがnullやundefined、空文字列の場合をフィルタリング
       .map((name) => {
-        const member = this.members.find((m) => m.name === name);
+        const member = this.members.find((m) => m && m.name === name);
         return member ? member.name : null;
       })
       .filter((name): name is string => name !== null);
