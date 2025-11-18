@@ -110,14 +110,30 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     // メンバー一覧を読み込み
-    this.memberManagementService.getMembers().subscribe({
-      next: (members) => {
-        this.members = members;
-      },
-      error: (error) => {
-        console.error('メンバー一覧の読み込みエラー:', error);
-      },
-    });
+    this.memberManagementService.getMembers()
+      .pipe(takeUntil(this.destroy$)) // ✅ 修正: メモリリーク防止
+      .subscribe({
+        next: (members) => {
+          // ✅ 修正: コンポーネントが破棄されていないかチェック
+          if (this.destroy$.closed) {
+            return;
+          }
+          // ✅ 修正: membersが配列でない場合の処理を追加
+          if (!Array.isArray(members)) {
+            console.error('membersが配列ではありません:', members);
+            this.members = [];
+            return;
+          }
+          this.members = members;
+        },
+        error: (error) => {
+          // ✅ 修正: コンポーネントが破棄されていないかチェック
+          if (this.destroy$.closed) {
+            return;
+          }
+          console.error('メンバー一覧の読み込みエラー:', error);
+        },
+      });
 
     const storedOption = localStorage.getItem(this.sortStorageKey);
     if (this.isValidSortOption(storedOption)) {
@@ -133,7 +149,12 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
   }
 
   /** カードクリック時に個別進捗画面へ遷移 */
-  goToProgress(projectId: string) {
+  goToProgress(projectId: string | null | undefined) {
+    // ✅ 修正: projectIdがnull/undefinedの場合のチェックを追加
+    if (!projectId) {
+      console.error('プロジェクトIDが指定されていません');
+      return;
+    }
     this.router.navigate(['/project', projectId]);
   }
 
@@ -253,7 +274,7 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
     }
 
     // responsibles がない場合は、responsible フィールドから取得
-    if (project.responsible) {
+    if (project.responsible && typeof project.responsible === 'string') {
       const names = project.responsible
         .split(',')
         .map((name) => name.trim())
@@ -346,20 +367,35 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: (projects) => {
+          // ✅ 修正: コンポーネントが破棄されていないかチェック
+          if (this.destroy$.closed) {
+            return;
+          }
           console.log('🎯 進捗表示対象ルーム内全プロジェクト:', projects);
 
           if (!this.currentUserEmail) {
             return;
           }
 
-          if (!projects || projects.length === 0) {
+          // ✅ 修正: projectsが配列でない場合の処理を追加
+          if (!Array.isArray(projects)) {
+            console.error('projectsが配列ではありません:', projects);
             this.resetProjectState();
             return;
           }
 
-          this.updateProjectsWithProgress(projects).catch((error) =>
-            console.error('全プロジェクト進捗の取得に失敗しました:', error)
-          );
+          if (projects.length === 0) {
+            this.resetProjectState();
+            return;
+          }
+
+          this.updateProjectsWithProgress(projects).catch((error) => {
+            // ✅ 修正: コンポーネントが破棄されていないかチェック
+            if (this.destroy$.closed) {
+              return;
+            }
+            console.error('全プロジェクト進捗の取得に失敗しました:', error);
+          });
         },
         error: (error) => {
           console.error('❌ プロジェクト取得エラー（オフライン等）:', error);
@@ -377,6 +413,10 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
   private async updateProjectsWithProgress(
     projects: IProject[]
   ): Promise<void> {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
     // ✅ 修正: projectsが配列でない場合の処理を追加
     if (!Array.isArray(projects)) {
       console.error('projectsが配列ではありません:', projects);
@@ -385,7 +425,8 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
       this.applySort();
       return;
     }
-    this.projects = projects;
+    // ✅ 修正: null/undefinedのプロジェクトをフィルタリング
+    this.projects = projects.filter((project) => project != null);
     this.projectProgress = {};
 
     const requestId = ++this.progressRequestId;
@@ -411,6 +452,11 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
           projectIds
         );
 
+        // ✅ 修正: コンポーネントが破棄されていないかチェック
+        if (this.destroy$.closed) {
+          return;
+        }
+
         if (requestId !== this.progressRequestId) {
           return;
         }
@@ -431,13 +477,25 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
           if (!progress || !progress.projectId) {
             return;
           }
-          console.log('プロジェクト進捗データ:', progress);
-          progressMap[progress.projectId] = progress;
+          // ✅ 修正: 進捗データの値が無効な場合の処理を追加
+          const safeProgress: ProjectProgress = {
+            projectId: progress.projectId,
+            projectName: progress.projectName || 'プロジェクト',
+            totalTasks: typeof progress.totalTasks === 'number' && !isNaN(progress.totalTasks) && progress.totalTasks >= 0 ? progress.totalTasks : 0,
+            completedTasks: typeof progress.completedTasks === 'number' && !isNaN(progress.completedTasks) && progress.completedTasks >= 0 ? progress.completedTasks : 0,
+            progressPercentage: typeof progress.progressPercentage === 'number' && !isNaN(progress.progressPercentage) ? Math.max(0, Math.min(100, progress.progressPercentage)) : 0,
+          };
+          console.log('プロジェクト進捗データ:', safeProgress);
+          progressMap[safeProgress.projectId] = safeProgress;
         });
 
         this.projectProgress = progressMap;
         console.log('全プロジェクト進捗マップ:', this.projectProgress);
       } catch (error) {
+        // ✅ 修正: コンポーネントが破棄されていないかチェック
+        if (this.destroy$.closed) {
+          return;
+        }
         if (requestId !== this.progressRequestId) {
           return;
         }

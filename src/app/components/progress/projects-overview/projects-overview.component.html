@@ -40,7 +40,7 @@
       [class.completed]="
         project.id &&
         projectProgress[project.id] &&
-        projectProgress[project.id].progressPercentage === 100
+        projectProgress[project.id]?.progressPercentage === 100
       "
     >
       <!-- 完了バッジ -->
@@ -48,7 +48,7 @@
         *ngIf="
           project.id &&
           projectProgress[project.id] &&
-          projectProgress[project.id].progressPercentage === 100
+          projectProgress[project.id]?.progressPercentage === 100
         "
         class="completed-badge"
       >
@@ -86,13 +86,13 @@
         class="progress-section"
         *ngIf="project.id && projectProgress[project.id]"
         [style.opacity]="
-          projectProgress[project.id].progressPercentage === 100 ? '0.6' : '1'
+          projectProgress[project.id]?.progressPercentage === 100 ? '0.6' : '1'
         "
       >
         <app-progress-circle
-          [percentage]="projectProgress[project.id].progressPercentage"
-          [completedTasks]="projectProgress[project.id].completedTasks"
-          [totalTasks]="projectProgress[project.id].totalTasks"
+          [percentage]="projectProgress[project.id]?.progressPercentage ?? 0"
+          [completedTasks]="projectProgress[project.id]?.completedTasks ?? 0"
+          [totalTasks]="projectProgress[project.id]?.totalTasks ?? 0"
           [size]="80"
           [strokeWidth]="6"
         >
