@@ -388,6 +388,62 @@ export class LanguageService {
       ja: '「子タスク：{taskName}」が完了していません',
       en: 'The subtask "{taskName}" is not completed',
     },
+    'kanban.error.taskIdNotSpecified': {
+      ja: 'タスクIDが指定されていません',
+      en: 'Task ID is not specified',
+    },
+    'kanban.error.statusNotSpecified': {
+      ja: 'ステータスが指定されていません',
+      en: 'Status is not specified',
+    },
+    'kanban.error.invalidStatus': {
+      ja: '無効なステータスです',
+      en: 'Invalid status',
+    },
+    'kanban.error.tasksNotLoaded': {
+      ja: 'タスクが読み込まれていません',
+      en: 'Tasks are not loaded',
+    },
+    'kanban.error.taskNotFound': {
+      ja: 'タスクが見つかりません',
+      en: 'Task not found',
+    },
+    'kanban.error.taskStatusNotSet': {
+      ja: 'タスクのステータスが設定されていません',
+      en: 'Task status is not set',
+    },
+    'kanban.error.parentTaskIdNotSet': {
+      ja: '親タスクのIDが設定されていません',
+      en: 'Parent task ID is not set',
+    },
+    'kanban.error.parentTaskProjectIdNotSet': {
+      ja: '親タスクのプロジェクトIDが設定されていません',
+      en: 'Parent task project ID is not set',
+    },
+    'kanban.error.parentTaskStatusUpdateFailed': {
+      ja: '親タスクのステータス更新に失敗しました',
+      en: 'Failed to update parent task status',
+    },
+    'kanban.error.taskProjectIdNotSet': {
+      ja: 'タスクのプロジェクトIDが設定されていません',
+      en: 'Task project ID is not set',
+    },
+    'kanban.error.taskIdNotSet': {
+      ja: 'タスクのIDが設定されていません',
+      en: 'Task ID is not set',
+    },
+    'kanban.error.subtaskCheckFailed': {
+      ja: '子タスクのチェックに失敗しました',
+      en: 'Failed to check subtasks',
+    },
+    'kanban.error.statusUpdateFailed': {
+      ja: 'ステータスの更新に失敗しました',
+      en: 'Failed to update status',
+    },
+    'kanban.error.taskLoadFailed': {
+      ja: 'プロジェクト「{projectName}」のタスク読み込みに失敗しました',
+      en: 'Failed to load tasks for project "{projectName}"',
+    },
     'kanban.dueDate': { ja: '期限', en: 'Due Date' },
     'kanban.assignee': { ja: '担当', en: 'Assigned To' },
     'kanban.filter.priority': { ja: '優先度', en: 'Priority' },

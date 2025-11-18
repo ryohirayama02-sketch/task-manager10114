@@ -66,6 +66,9 @@ export class KanbanComponent implements OnInit, OnDestroy {
   filterAssignee: string[] = [];
   members: Member[] = []; // メンバー一覧
 
+  // ✅ 追加: ステータス変更中のフラグ（重複実行防止）
+  private isChangingStatus = false;
+
   // メンバー数チェック
   get hasMembers(): boolean {
     return this.members.length > 0;
@@ -283,6 +286,15 @@ export class KanbanComponent implements OnInit, OnDestroy {
               console.log('[loadAllTasks] コンポーネントが破棄されたため、エラー処理をスキップします');
               return;
             }
+            // ✅ 修正: ユーザーにエラーメッセージを表示
+            const projectName = project.projectName || project.id || 'プロジェクト';
+            this.snackBar.open(
+              this.languageService.translateWithParams('kanban.error.taskLoadFailed', {
+                projectName: projectName,
+              }),
+              'Close',
+              { duration: 5000 }
+            );
           },
         });
     });
@@ -371,6 +383,11 @@ export class KanbanComponent implements OnInit, OnDestroy {
       // 開始日または終了日が範囲内にあるタスクのみを表示
       const startDate = task.startDate ? new Date(task.startDate) : null;
       const dueDate = task.dueDate ? new Date(task.dueDate) : null;
+
+      // ✅ 修正: 日付がないタスクも表示する（日付がないタスクは常に表示）
+      if (!startDate && !dueDate) {
+        return true;
+      }
 
       // 開始日が範囲内にあるか
       if (startDate && !isNaN(startDate.getTime())) {
@@ -688,13 +705,37 @@ export class KanbanComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // ✅ 修正: 重複実行を防止
+    if (this.isChangingStatus) {
+      console.log('[changeTaskStatus] 既にステータス変更処理が実行中です');
+      return;
+    }
+
     // ✅ 修正: taskIdやnewStatusがundefinedやnullの場合の処理を追加
     if (!taskId) {
       console.error('タスクIDが指定されていません');
+      // ✅ 修正: ユーザーにエラーメッセージを表示
+      if (!this.destroy$.closed) {
+        this.snackBar.open(
+          this.languageService.translate('kanban.error.taskIdNotSpecified'),
+          'Close',
+          { duration: 3000 }
+        );
+      }
+      this.isChangingStatus = false; // ✅ 修正: フラグをリセット
       return;
     }
     if (!newStatus) {
       console.error('ステータスが指定されていません');
+      // ✅ 修正: ユーザーにエラーメッセージを表示
+      if (!this.destroy$.closed) {
+        this.snackBar.open(
+          this.languageService.translate('kanban.error.statusNotSpecified'),
+          'Close',
+          { duration: 3000 }
+        );
+      }
+      this.isChangingStatus = false; // ✅ 修正: フラグをリセット
       return;
     }
 
@@ -706,18 +747,45 @@ export class KanbanComponent implements OnInit, OnDestroy {
     ];
     if (!validStatuses.includes(newStatus as '未着手' | '作業中' | '完了')) {
       console.error('無効なステータス:', newStatus);
+      // ✅ 修正: ユーザーにエラーメッセージを表示
+      if (!this.destroy$.closed) {
+        this.snackBar.open(
+          this.languageService.translate('kanban.error.invalidStatus'),
+          'Close',
+          { duration: 3000 }
+        );
+      }
+      this.isChangingStatus = false; // ✅ 修正: フラグをリセット
       return;
     }
 
     // ✅ 修正: allTasksが配列でない場合の処理を追加
     if (!Array.isArray(this.allTasks)) {
       console.error('allTasksが配列ではありません:', this.allTasks);
+      // ✅ 修正: ユーザーにエラーメッセージを表示
+      if (!this.destroy$.closed) {
+        this.snackBar.open(
+          this.languageService.translate('kanban.error.tasksNotLoaded'),
+          'Close',
+          { duration: 3000 }
+        );
+      }
+      this.isChangingStatus = false; // ✅ 修正: フラグをリセット
       return;
     }
     // タスクのプロジェクトIDを取得
     const task = this.allTasks.find((t) => t && t.id === taskId);
     if (!task) {
       console.error('タスクが見つかりません:', taskId);
+      // ✅ 修正: ユーザーにエラーメッセージを表示
+      if (!this.destroy$.closed) {
+        this.snackBar.open(
+          this.languageService.translate('kanban.error.taskNotFound'),
+          'Close',
+          { duration: 3000 }
+        );
+      }
+      this.isChangingStatus = false; // ✅ 修正: フラグをリセット
       return;
     }
 
@@ -726,6 +794,15 @@ export class KanbanComponent implements OnInit, OnDestroy {
     // ✅ 修正: oldStatusがundefinedやnullの場合の処理を追加
     if (!oldStatus) {
       console.error('タスクのステータスが指定されていません:', taskId);
+      // ✅ 修正: ユーザーにエラーメッセージを表示
+      if (!this.destroy$.closed) {
+        this.snackBar.open(
+          this.languageService.translate('kanban.error.taskStatusNotSet'),
+          'Close',
+          { duration: 3000 }
+        );
+      }
+      this.isChangingStatus = false; // ✅ 修正: フラグをリセット
       return;
     }
 
@@ -733,6 +810,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
       // ✅ 修正: 非同期処理前にコンポーネントが破棄されていないかチェック
       if (this.destroy$.closed) {
         console.log('[changeTaskStatus] コンポーネントが破棄されたため、親タスク処理をスキップします');
+        this.isChangingStatus = false; // ✅ 修正: フラグをリセット
         return;
       }
       const parentTask = this.allTasks.find((t) => t && t.id === task.parentTaskId);
@@ -756,10 +834,28 @@ export class KanbanComponent implements OnInit, OnDestroy {
           // ✅ 修正: parentTask.idやparentTask.projectIdがundefinedやnullの場合の処理を追加
           if (!parentTask.id) {
             console.error('親タスクのIDが指定されていません');
+            // ✅ 修正: ユーザーにエラーメッセージを表示
+            if (!this.destroy$.closed) {
+              this.snackBar.open(
+                this.languageService.translate('kanban.error.parentTaskIdNotSet'),
+                'Close',
+                { duration: 3000 }
+              );
+            }
+            this.isChangingStatus = false; // ✅ 修正: フラグをリセット
             return;
           }
           if (!parentTask.projectId) {
             console.error('親タスクのプロジェクトIDが指定されていません');
+            // ✅ 修正: ユーザーにエラーメッセージを表示
+            if (!this.destroy$.closed) {
+              this.snackBar.open(
+                this.languageService.translate('kanban.error.parentTaskProjectIdNotSet'),
+                'Close',
+                { duration: 3000 }
+              );
+            }
+            this.isChangingStatus = false; // ✅ 修正: フラグをリセット
             return;
           }
           await this.taskService.updateTaskStatus(
@@ -780,8 +876,18 @@ export class KanbanComponent implements OnInit, OnDestroy {
           // ✅ 修正: エラー時もコンポーネントが破棄されていないかチェック
           if (this.destroy$.closed) {
             console.log('[changeTaskStatus] コンポーネントが破棄されたため、エラー処理をスキップします');
+            this.isChangingStatus = false; // ✅ 修正: フラグをリセット
             return;
           }
+          // ✅ 修正: ユーザーにエラーメッセージを表示
+          this.snackBar.open(
+            this.languageService.translate('kanban.error.parentTaskStatusUpdateFailed'),
+            'Close',
+            { duration: 5000 }
+          );
+          // ✅ 修正: 親タスクのステータス更新が失敗した場合、子タスクのステータス変更も中断する
+          this.isChangingStatus = false; // ✅ 修正: フラグをリセット
+          return;
         }
         // ✅ 修正: フィルター適用前にコンポーネントが破棄されていないかチェック
         if (!this.destroy$.closed) {
@@ -798,12 +904,22 @@ export class KanbanComponent implements OnInit, OnDestroy {
       // ✅ 修正: 非同期処理前にコンポーネントが破棄されていないかチェック
       if (this.destroy$.closed) {
         console.log('[changeTaskStatus] コンポーネントが破棄されたため、子タスクチェックをスキップします');
+        this.isChangingStatus = false; // ✅ 修正: フラグをリセット
         return;
       }
       try {
         // ✅ 修正: task.projectIdがundefinedやnullの場合の処理を追加
         if (!task.projectId) {
           console.error('タスクのプロジェクトIDが指定されていません:', taskId);
+          // ✅ 修正: ユーザーにエラーメッセージを表示
+          if (!this.destroy$.closed) {
+            this.snackBar.open(
+              this.languageService.translate('kanban.error.taskProjectIdNotSet'),
+              'Close',
+              { duration: 3000 }
+            );
+          }
+          this.isChangingStatus = false; // ✅ 修正: フラグをリセット
           return;
         }
         // 最新の子タスクデータを取得
@@ -815,16 +931,27 @@ export class KanbanComponent implements OnInit, OnDestroy {
         // ✅ 修正: 非同期処理後にコンポーネントが破棄されていないかチェック
         if (this.destroy$.closed) {
           console.log('[changeTaskStatus] コンポーネントが破棄されたため、子タスクチェック後の処理をスキップします');
+          this.isChangingStatus = false; // ✅ 修正: フラグをリセット
           return;
         }
         // ✅ 修正: allTasksが配列でない場合の処理を追加
         if (!Array.isArray(allTasks)) {
           console.error(`プロジェクト ${task.projectId} のタスクが配列ではありません:`, allTasks);
+          this.isChangingStatus = false; // ✅ 修正: フラグをリセット
           return;
         }
         // ✅ 修正: task.idがundefinedやnullの場合の処理を追加
         if (!task.id) {
           console.error('タスクのIDが指定されていません:', taskId);
+          // ✅ 修正: ユーザーにエラーメッセージを表示
+          if (!this.destroy$.closed) {
+            this.snackBar.open(
+              this.languageService.translate('kanban.error.taskIdNotSet'),
+              'Close',
+              { duration: 3000 }
+            );
+          }
+          this.isChangingStatus = false; // ✅ 修正: フラグをリセット
           return;
         }
         const latestChildTasks = allTasks.filter(
@@ -846,6 +973,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
               }
             )
           );
+          this.isChangingStatus = false; // ✅ 修正: フラグをリセット（子タスクが完了していない場合）
           return;
         }
       } catch (error) {
@@ -855,6 +983,12 @@ export class KanbanComponent implements OnInit, OnDestroy {
           console.log('[changeTaskStatus] コンポーネントが破棄されたため、エラー処理をスキップします');
           return;
         }
+        // ✅ 修正: ユーザーにエラーメッセージを表示
+        this.snackBar.open(
+          this.languageService.translate('kanban.error.subtaskCheckFailed'),
+          'Close',
+          { duration: 5000 }
+        );
         // エラー時は処理を中断
         return;
       }
@@ -864,8 +998,28 @@ export class KanbanComponent implements OnInit, OnDestroy {
       // ✅ 修正: task.projectIdやtask.projectNameがundefinedやnullの場合の処理を追加
       if (!task.projectId) {
         console.error('タスクのプロジェクトIDが指定されていません:', taskId);
-        return;
+        // ✅ 修正: ユーザーにエラーメッセージを表示
+        if (!this.destroy$.closed) {
+          this.snackBar.open(
+            this.languageService.translate('kanban.error.taskProjectIdNotSet'),
+            'Close',
+            { duration: 3000 }
+          );
+          }
+          this.isChangingStatus = false; // ✅ 修正: フラグをリセット
+          return;
+        }
+      // ✅ 修正: 楽観的UI更新（即座にUIを更新してから非同期処理を実行）
+      const taskIndex = this.allTasks.findIndex((t) => t && t.id === taskId);
+      if (taskIndex > -1 && this.allTasks[taskIndex]) {
+        // ローカルのタスクを即座に更新（ユーザー操作への即座のフィードバック）
+        this.allTasks[taskIndex].status = newStatus as
+          | '未着手'
+          | '作業中'
+          | '完了';
+        this.filterTasksBySelectedProjects();
       }
+
       // TaskServiceを使用してステータスを更新（編集ログも記録される）
       await this.taskService.updateTaskStatus(
         taskId,
@@ -883,25 +1037,9 @@ export class KanbanComponent implements OnInit, OnDestroy {
 
       console.log('✅ カンバンでタスクのステータスを更新しました');
 
-      // ローカルのタスクも更新
-      const taskIndex = this.allTasks.findIndex((t) => t && t.id === taskId);
-      if (taskIndex > -1) {
-        // ✅ 修正: allTasks[taskIndex]がnullやundefinedの場合のチェックを追加
-        if (this.allTasks[taskIndex]) {
-          this.allTasks[taskIndex].status = newStatus as
-            | '未着手'
-            | '作業中'
-            | '完了';
-          this.filterTasksBySelectedProjects();
-        } else {
-          console.warn('タスクが見つかりませんでした（インデックスは有効ですが、タスクがnullです）:', taskId);
-          // タスクが見つからない場合は、該当プロジェクトのタスクを再読み込み
-          if (task.projectId) {
-            this.refreshProjectTasks(task.projectId);
-          }
-        }
-      } else {
-        // ✅ 修正: タスクが見つからない場合のログを追加
+      // エラーが発生した場合は、ローカルのタスクを再読み込みして整合性を保つ
+      // （楽観的更新が失敗した場合のフォールバック）
+      if (taskIndex === -1 || !this.allTasks[taskIndex]) {
         console.warn('ローカルのタスクが見つかりませんでした。タスク一覧を再読み込みします:', taskId);
         // タスクが見つからない場合は、該当プロジェクトのタスクを再読み込み
         if (task.projectId) {
@@ -915,6 +1053,25 @@ export class KanbanComponent implements OnInit, OnDestroy {
         console.log('[changeTaskStatus] コンポーネントが破棄されたため、エラー処理をスキップします');
         return;
       }
+      // ✅ 修正: 楽観的更新をロールバック（エラーが発生した場合）
+      const taskIndex = this.allTasks.findIndex((t) => t && t.id === taskId);
+      if (taskIndex > -1 && this.allTasks[taskIndex]) {
+        // 元のステータスに戻す
+        this.allTasks[taskIndex].status = oldStatus as
+          | '未着手'
+          | '作業中'
+          | '完了';
+        this.filterTasksBySelectedProjects();
+      }
+      // ✅ 修正: ユーザーにエラーメッセージを表示
+      this.snackBar.open(
+        this.languageService.translate('kanban.error.statusUpdateFailed'),
+        'Close',
+        { duration: 5000 }
+      );
+    } finally {
+      // ✅ 修正: ステータス変更処理終了
+      this.isChangingStatus = false;
     }
   }
 
