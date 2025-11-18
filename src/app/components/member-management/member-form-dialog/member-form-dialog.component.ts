@@ -115,8 +115,12 @@ export class MemberFormDialogComponent implements OnInit {
 
     const formData = this.memberForm.value;
 
+    // ✅ 修正: 入力値にtrim()を適用
+    const trimmedName = formData.name?.trim() || '';
+    const trimmedEmail = formData.email?.trim() || '';
+
     // 名前にカンマが含まれているかチェック
-    if (formData.name && formData.name.includes(',')) {
+    if (trimmedName && trimmedName.includes(',')) {
       this.snackBar.open(
         this.languageService.translate('memberManagement.noComma'),
         this.languageService.translate('memberManagement.close'),
@@ -151,14 +155,12 @@ export class MemberFormDialogComponent implements OnInit {
 
         const nameExists = existingMembers.some(
           (member) =>
-            member.name?.toLowerCase().trim() ===
-            formData.name?.toLowerCase().trim()
+            member.name?.toLowerCase().trim() === trimmedName.toLowerCase()
         );
 
         const emailExists = existingMembers.some(
           (member) =>
-            member.email?.toLowerCase().trim() ===
-            formData.email?.toLowerCase().trim()
+            member.email?.toLowerCase().trim() === trimmedEmail.toLowerCase()
         );
 
         if (nameExists) {
@@ -205,14 +207,12 @@ export class MemberFormDialogComponent implements OnInit {
 
         const nameExists = otherMembers.some(
           (member) =>
-            member.name?.toLowerCase().trim() ===
-            formData.name?.toLowerCase().trim()
+            member.name?.toLowerCase().trim() === trimmedName.toLowerCase()
         );
 
         const emailExists = otherMembers.some(
           (member) =>
-            member.email?.toLowerCase().trim() ===
-            formData.email?.toLowerCase().trim()
+            member.email?.toLowerCase().trim() === trimmedEmail.toLowerCase()
         );
 
         if (nameExists) {
@@ -241,26 +241,34 @@ export class MemberFormDialogComponent implements OnInit {
     this.isSubmitting = true;
 
     try {
+      // ✅ 修正: trim()済みのデータを送信
+      const memberData = {
+        name: trimmedName,
+        email: trimmedEmail,
+      };
+
       if (this.data.mode === 'add') {
-        await this.memberService.addMember(formData);
+        await this.memberService.addMember(memberData);
         console.log('✅ メンバーを追加しました');
 
         // 追加されたメンバーが現在ログインしているユーザーの場合、ナビバーのユーザー名を更新
-        if (formData.email && formData.name) {
+        if (trimmedEmail && trimmedName) {
           this.authService.updateMemberNameIfCurrentUser(
-            formData.email,
-            formData.name
+            trimmedEmail,
+            trimmedName
           );
         }
       } else if (this.data.mode === 'edit' && this.data.member?.id) {
-        await this.memberService.updateMember(this.data.member.id, formData);
+        await this.memberService.updateMember(this.data.member.id, memberData);
         console.log('✅ メンバーを更新しました');
 
-        // 更新されたメンバーが現在ログインしているユーザーの場合、ナビバーのユーザー名を更新
-        if (this.data.member.email && formData.name) {
+        // ✅ 修正: 更新されたメンバーが現在ログインしているユーザーの場合、ナビバーのユーザー名を更新
+        // メールアドレスが変更された場合も考慮（新しいメールアドレスまたは古いメールアドレスのどちらかでチェック）
+        const emailToCheck = trimmedEmail || this.data.member.email;
+        if (emailToCheck && trimmedName) {
           this.authService.updateMemberNameIfCurrentUser(
-            this.data.member.email,
-            formData.name
+            emailToCheck,
+            trimmedName
           );
         }
       }

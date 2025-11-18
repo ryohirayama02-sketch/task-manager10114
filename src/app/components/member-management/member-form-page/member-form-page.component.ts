@@ -89,8 +89,12 @@ export class MemberFormPageComponent {
 
     const formData = this.memberForm.value;
 
+    // ✅ 修正: 入力値にtrim()を適用
+    const trimmedName = formData.name?.trim() || '';
+    const trimmedEmail = formData.email?.trim() || '';
+
     // 名前にカンマが含まれているかチェック
-    if (formData.name && formData.name.includes(',')) {
+    if (trimmedName && trimmedName.includes(',')) {
       this.snackBar.open(
         this.languageService.translate('memberManagement.noComma'),
         this.languageService.translate('memberManagement.close'),
@@ -124,14 +128,12 @@ export class MemberFormPageComponent {
 
       const nameExists = existingMembers.some(
         (member) =>
-          member.name?.toLowerCase().trim() ===
-          formData.name?.toLowerCase().trim()
+          member.name?.toLowerCase().trim() === trimmedName.toLowerCase()
       );
 
       const emailExists = existingMembers.some(
         (member) =>
-          member.email?.toLowerCase().trim() ===
-          formData.email?.toLowerCase().trim()
+          member.email?.toLowerCase().trim() === trimmedEmail.toLowerCase()
       );
 
       if (nameExists) {
@@ -166,13 +168,17 @@ export class MemberFormPageComponent {
     this.isSubmitting = true;
 
     try {
-      await this.memberService.addMember(formData);
+      // ✅ 修正: trim()済みのデータを送信
+      await this.memberService.addMember({
+        name: trimmedName,
+        email: trimmedEmail,
+      });
 
       // 追加されたメンバーが現在ログインしているユーザーの場合、ナビバーのユーザー名を更新
-      if (formData.email && formData.name) {
+      if (trimmedEmail && trimmedName) {
         this.authService.updateMemberNameIfCurrentUser(
-          formData.email,
-          formData.name
+          trimmedEmail,
+          trimmedName
         );
       }
 
