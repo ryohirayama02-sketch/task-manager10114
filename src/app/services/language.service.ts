@@ -1296,6 +1296,14 @@ export class LanguageService {
       ja: '不明なエラーが発生しました',
       en: 'An unknown error occurred',
     },
+    'taskDetail.error.attachmentUploadFailed': {
+      ja: '{{fileName}} のアップロードに失敗しました',
+      en: 'Failed to upload {{fileName}}',
+    },
+    'taskDetail.error.attachmentDeleteFailed': {
+      ja: '添付ファイルの削除に失敗しました',
+      en: 'Failed to delete attachment',
+    },
     'taskDetail.deleteConfirm.message': {
       ja: 'タスク「{taskName}」を削除してもよろしいですか？この操作は元に戻せません。',
       en: 'Do you want to delete task "{taskName}"? This operation cannot be undone.',

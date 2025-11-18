@@ -709,6 +709,13 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
   toggleEdit() {
     if (this.isEditing) {
       // 編集中から読み取りモードへ
+      // ✅ 修正: 保存処理が実行中の場合は何もしない
+      if (this.isSaving) {
+        console.warn(
+          '[toggleEdit] 保存処理が実行中のため、編集モードの切り替えをスキップします'
+        );
+        return;
+      }
       if (!this.canSaveTask()) {
         return;
       }
@@ -727,8 +734,13 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
               : [],
           }
         : null;
-      this.saveTask(snapshotToUse);
-      // 保存後にスナップショットをクリア
+      // ✅ 修正: saveTask()は非同期なので、awaitしないが、エラーハンドリングはsaveTask()内で行われる
+      this.saveTask(snapshotToUse).catch((error) => {
+        console.error('[toggleEdit] saveTask()でエラーが発生しました:', error);
+        // エラーハンドリングはsaveTask()内で行われているため、ここではログのみ
+      });
+      // ✅ 修正: originalTaskSnapshotはsaveTask()完了後にクリアされるべきだが、
+      // エラー時も編集モードがOFFになるため、ここでクリアしても問題ない
       this.originalTaskSnapshot = null;
     } else {
       // 読み取りモードから編集中へ
@@ -1100,6 +1112,12 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
 
   /** タスクを保存 */
   async saveTask(snapshotToUse?: Task | null) {
+    // ✅ 修正: 重複実行を防ぐチェックを追加
+    if (this.isSaving) {
+      console.warn('[saveTask] 既に保存処理が実行中です');
+      return;
+    }
+
     if (!this.task || !this.task.projectId || !this.task.id) {
       return;
     }
@@ -1280,7 +1298,21 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
       }
     }
 
+    // ✅ 修正: すべてのバリデーションチェックが完了した後にisSavingを設定
     this.isSaving = true;
+
+    // ✅ 修正: エラー時に状態を元に戻すために、現在の状態を保存
+    const originalEditableAttachments = [...this.editableAttachments];
+
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      console.log(
+        '[saveTask] コンポーネントが破棄されたため、保存処理をスキップします'
+      );
+      this.isSaving = false;
+      return;
+    }
+
     try {
       // 保留中のファイルをアップロード
       const uploadedAttachments = await this.uploadPendingFiles(this.task.id);
@@ -1433,6 +1465,14 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
       this.isSaving = false;
     } catch (error: Error | unknown) {
       console.error('タスク更新エラー:', error);
+
+      // ✅ 修正: エラー時にeditableAttachmentsの状態を元に戻す
+      // 注意: ファイルは既にアップロード/削除されているため、完全に元に戻すことはできないが、
+      // editableAttachmentsの状態は元に戻す（ユーザーが再試行できるように）
+      this.editableAttachments = originalEditableAttachments;
+      // attachmentsToRemoveは既に削除処理が実行されているため、元に戻さない
+      // （削除されたファイルは既にFirebase Storageから削除されている）
+
       const errorMessage =
         error instanceof Error
           ? error.message
@@ -1675,6 +1715,14 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
 
   /** カレンダー連携のON/OFFを切り替え */
   async toggleCalendarSync(): Promise<void> {
+    // ✅ 修正: 重複実行を防ぐチェックを追加
+    if (this.isCalendarSyncSaving) {
+      console.warn(
+        '[toggleCalendarSync] 既にカレンダー連携の切り替え処理が実行中です'
+      );
+      return;
+    }
+
     if (!this.task || !this.task.projectId || !this.task.id) {
       console.warn('カレンダー連携の切り替えに必要な情報が不足しています');
       return;
@@ -1706,6 +1754,10 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
     this.taskData.calendarSyncEnabled = nextValue;
     this.isCalendarSyncSaving = true;
 
+    // ✅ 修正: エラー時に状態を元に戻すために、現在の値を保存
+    const previousValue = currentValue;
+    let calendarAdded = false;
+
     try {
       // ON の場合のみ Googleカレンダーにタスクを追加
       // ただし、既にカレンダー連携が有効な場合は追加しない（重複防止）
@@ -1715,6 +1767,7 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
           this.taskData.taskName,
           this.taskData.dueDate
         );
+        calendarAdded = true; // ✅ 修正: カレンダーに追加されたことを記録
       } else {
         console.log('カレンダーに追加をスキップします（既に有効）');
       }
@@ -1733,6 +1786,27 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
     } catch (error: any) {
       console.error('カレンダー連携の更新に失敗しました', error);
 
+      // ✅ 修正: エラー時に状態を元に戻す
+      this.taskData.calendarSyncEnabled = previousValue;
+      this.task.calendarSyncEnabled = previousValue;
+
+      // ✅ 修正: カレンダーに追加されたが、タスクの更新に失敗した場合の処理
+      if (calendarAdded && nextValue) {
+        console.warn(
+          '[toggleCalendarSync] カレンダーには追加されましたが、タスクの更新に失敗しました'
+        );
+        // カレンダーから削除を試みる（オプション）
+        try {
+          // 注意: カレンダーから削除する機能が実装されていない場合は、この処理はスキップ
+          // await this.calendarService.removeTaskFromCalendar(...);
+        } catch (removeError) {
+          console.error(
+            '[toggleCalendarSync] カレンダーからの削除にも失敗しました:',
+            removeError
+          );
+        }
+      }
+
       const errorMsg =
         error?.message ||
         this.languageService.translate('taskDetail.error.unknownErrorOccurred');
@@ -1741,8 +1815,6 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
         { errorMessage: errorMsg }
       );
       alert(alertMessage);
-      this.taskData.calendarSyncEnabled = !nextValue;
-      this.task.calendarSyncEnabled = this.taskData.calendarSyncEnabled;
     } finally {
       this.isCalendarSyncSaving = false;
     }
@@ -2686,6 +2758,7 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
 
   private async uploadPendingFiles(taskId: string): Promise<TaskAttachment[]> {
     const uploaded: TaskAttachment[] = [];
+    const failedFiles: { id: string; file: File }[] = [];
 
     for (const pending of this.pendingFiles) {
       try {
@@ -2693,33 +2766,67 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
           taskId,
           pending.file
         );
-        uploaded.push(attachment);
+        if (attachment) {
+          uploaded.push(attachment);
+        } else {
+          console.warn(
+            '[uploadPendingFiles] アップロード結果がnull/undefined:',
+            {
+              fileName: pending.file.name,
+            }
+          );
+          failedFiles.push(pending);
+        }
       } catch (error) {
-        console.error('添付ファイルのアップロードに失敗しました:', error);
+        console.error(
+          '[uploadPendingFiles] 添付ファイルのアップロードに失敗しました:',
+          error
+        );
+        // ✅ 修正: エラーメッセージを国際化
         this.snackBar.open(
-          `${pending.file.name} のアップロードに失敗しました`,
-          '閉じる',
+          this.languageService.translateWithParams(
+            'taskDetail.error.attachmentUploadFailed',
+            { fileName: pending.file.name }
+          ),
+          this.languageService.translate('common.close'),
           { duration: 4000 }
         );
+        failedFiles.push(pending);
       }
     }
 
-    this.pendingFiles = [];
+    // ✅ 修正: アップロードに失敗したファイルのみをpendingFilesに残す
+    this.pendingFiles = failedFiles;
     return uploaded;
   }
 
   private async deleteMarkedAttachments(taskId: string): Promise<void> {
+    const failedAttachments: TaskAttachment[] = [];
+
     for (const attachment of this.attachmentsToRemove) {
       try {
         await this.attachmentService.deleteAttachment(attachment);
       } catch (error) {
-        console.error('添付ファイルの削除に失敗しました:', error);
-        this.snackBar.open('添付ファイルの削除に失敗しました', '閉じる', {
-          duration: 3000,
-        });
+        console.error(
+          '[deleteMarkedAttachments] 添付ファイルの削除に失敗しました:',
+          error
+        );
+        // ✅ 修正: エラーメッセージを国際化
+        this.snackBar.open(
+          this.languageService.translate(
+            'taskDetail.error.attachmentDeleteFailed'
+          ),
+          this.languageService.translate('common.close'),
+          {
+            duration: 3000,
+          }
+        );
+        failedAttachments.push(attachment);
       }
     }
-    this.attachmentsToRemove = [];
+
+    // ✅ 修正: 削除に失敗したファイルのみをattachmentsToRemoveに残す
+    this.attachmentsToRemove = failedAttachments;
   }
 
   private generateId(): string {
