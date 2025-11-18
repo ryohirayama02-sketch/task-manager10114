@@ -160,14 +160,23 @@ export class TaskCreatePageComponent implements OnInit, OnDestroy {
     // 複製データがある場合は、フォームに設定
     if (navState?.duplicateData) {
       const duplicateData = navState.duplicateData;
+      
+      // ✅ 修正: statusがstatusOptionsに存在する値かどうかを検証
+      const validStatus = this.statusOptions.includes(duplicateData.status)
+        ? duplicateData.status
+        : this.statusOptions[0];
+      
+      // ✅ 修正: priorityがpriorityOptionsに存在する値かどうかを検証
+      const validPriority = this.priorityOptions.includes(duplicateData.priority)
+        ? duplicateData.priority
+        : this.priorityOptions[1];
+      
       this.taskForm = {
         taskName: duplicateData.taskName || '',
-        status: duplicateData.status || this.statusOptions[0],
-        priority: duplicateData.priority || this.priorityOptions[1],
+        status: validStatus,
+        priority: validPriority,
         assignee: duplicateData.assignee || '',
-        assignedMembers: Array.isArray(duplicateData.assignedMembers)
-          ? [...duplicateData.assignedMembers]
-          : [],
+        assignedMembers: [], // 後で検証後に設定
         startDate: duplicateData.startDate || '',
         dueDate: duplicateData.dueDate || '',
         tags: Array.isArray(duplicateData.tags)
@@ -181,25 +190,59 @@ export class TaskCreatePageComponent implements OnInit, OnDestroy {
         urls: [], // 複製時はURLリンクも含めない
       };
 
-      // assignedMembersがある場合は、selectedMemberIdsに設定
+      // ✅ 修正: assignedMembersがprojectMembersに存在するIDかどうかを検証
+      // 注意: この時点ではprojectMembersがまだ読み込まれていない可能性があるため、
+      // loadMembers()の完了後に検証する必要があるが、ここでは基本的な検証のみ行う
       if (
         Array.isArray(duplicateData.assignedMembers) &&
         duplicateData.assignedMembers.length > 0
       ) {
+        // 基本的な配列のコピーを作成（後でloadMembers()完了後に検証）
         this.selectedMemberIds = [...duplicateData.assignedMembers];
+        this.taskForm.assignedMembers = [...duplicateData.assignedMembers];
       }
 
-      // 開始日と終了日をDateオブジェクトに変換して設定
+      // ✅ 修正: 開始日と終了日をDateオブジェクトに変換して設定（範囲チェック付き）
       if (duplicateData.startDate) {
         const startDate = new Date(duplicateData.startDate);
         if (!isNaN(startDate.getTime())) {
-          this.startDateObj = startDate;
+          // ✅ 修正: minDateとmaxDateの範囲内かどうかをチェック
+          if (startDate >= this.minDate && startDate <= this.maxDate) {
+            this.startDateObj = startDate;
+          } else {
+            console.warn(
+              '[ngOnInit] 複製データの開始日が範囲外です:',
+              startDate,
+              '範囲:',
+              this.minDate,
+              '-',
+              this.maxDate
+            );
+            // 範囲外の場合はnullに設定（ユーザーが再選択する必要がある）
+            this.startDateObj = null;
+            this.taskForm.startDate = '';
+          }
         }
       }
       if (duplicateData.dueDate) {
         const dueDate = new Date(duplicateData.dueDate);
         if (!isNaN(dueDate.getTime())) {
-          this.dueDateObj = dueDate;
+          // ✅ 修正: minDateとmaxDateの範囲内かどうかをチェック
+          if (dueDate >= this.minDate && dueDate <= this.maxDate) {
+            this.dueDateObj = dueDate;
+          } else {
+            console.warn(
+              '[ngOnInit] 複製データの終了日が範囲外です:',
+              dueDate,
+              '範囲:',
+              this.minDate,
+              '-',
+              this.maxDate
+            );
+            // 範囲外の場合はnullに設定（ユーザーが再選択する必要がある）
+            this.dueDateObj = null;
+            this.taskForm.dueDate = '';
+          }
         }
       }
 
@@ -431,6 +474,40 @@ export class TaskCreatePageComponent implements OnInit, OnDestroy {
                 // プロジェクトのメンバーが設定されていない場合は全メンバーを表示
                 this.projectMembers = members;
               }
+              
+              // ✅ 修正: 複製データのassignedMembersがprojectMembersに存在するIDかどうかを検証
+              if (this.selectedMemberIds.length > 0) {
+                const validMemberIds = this.selectedMemberIds.filter((id) =>
+                  this.projectMembers.some((m) => m.id === id)
+                );
+                
+                if (validMemberIds.length !== this.selectedMemberIds.length) {
+                  console.warn(
+                    '[loadMembers] 複製データのassignedMembersに無効なIDが含まれています',
+                    {
+                      originalIds: this.selectedMemberIds,
+                      validIds: validMemberIds,
+                      projectMembers: this.projectMembers.map((m) => m.id),
+                    }
+                  );
+                }
+                
+                // 有効なIDのみを設定
+                this.selectedMemberIds = validMemberIds;
+                this.taskForm.assignedMembers = validMemberIds;
+                
+                // assigneeも更新
+                if (validMemberIds.length > 0) {
+                  const firstMember = this.projectMembers.find(
+                    (m) => m.id === validMemberIds[0]
+                  );
+                  if (firstMember) {
+                    this.taskForm.assignee = firstMember.name;
+                  }
+                } else {
+                  this.taskForm.assignee = '';
+                }
+              }
             },
             error: (error) => {
               console.error(
@@ -439,12 +516,30 @@ export class TaskCreatePageComponent implements OnInit, OnDestroy {
               );
               // エラー時は全メンバーを表示
               this.projectMembers = members;
+              
+              // ✅ 修正: エラー時もassignedMembersの検証を行う
+              if (this.selectedMemberIds.length > 0) {
+                const validMemberIds = this.selectedMemberIds.filter((id) =>
+                  this.projectMembers.some((m) => m.id === id)
+                );
+                this.selectedMemberIds = validMemberIds;
+                this.taskForm.assignedMembers = validMemberIds;
+              }
             },
           });
         } else {
           console.log('🔍 [TaskCreate] プロジェクトIDが設定されていません');
           // プロジェクトIDがない場合は全メンバーを表示
           this.projectMembers = members;
+          
+          // ✅ 修正: プロジェクトIDがない場合もassignedMembersの検証を行う
+          if (this.selectedMemberIds.length > 0) {
+            const validMemberIds = this.selectedMemberIds.filter((id) =>
+              this.projectMembers.some((m) => m.id === id)
+            );
+            this.selectedMemberIds = validMemberIds;
+            this.taskForm.assignedMembers = validMemberIds;
+          }
         }
       },
       error: (error) => {
@@ -501,6 +596,20 @@ export class TaskCreatePageComponent implements OnInit, OnDestroy {
   addTag(tag: string) {
     const trimmedTag = tag?.trim();
     if (!trimmedTag) {
+      return;
+    }
+
+    // ✅ 修正: タグの長さ制限を追加（30文字）
+    const MAX_TAG_LENGTH = 30;
+    if (trimmedTag.length > MAX_TAG_LENGTH) {
+      this.snackBar.open(
+        this.languageService.translateWithParams(
+          'taskCreate.error.tagTooLong',
+          { maxLength: MAX_TAG_LENGTH.toString() }
+        ),
+        this.languageService.translate('taskCreate.close'),
+        { duration: 3000 }
+      );
       return;
     }
 
@@ -604,12 +713,39 @@ export class TaskCreatePageComponent implements OnInit, OnDestroy {
     if (url && url.trim()) {
       let trimmedUrl = url.trim();
       
+      // ✅ 修正: URLの長さ制限を追加（2048文字）
+      const MAX_URL_LENGTH = 2048;
+      if (trimmedUrl.length > MAX_URL_LENGTH) {
+        this.snackBar.open(
+          this.languageService.translateWithParams(
+            'taskCreate.error.urlTooLong',
+            { maxLength: MAX_URL_LENGTH.toString() }
+          ),
+          this.languageService.translate('taskCreate.close'),
+          { duration: 3000 }
+        );
+        return;
+      }
+      
       // ✅ 修正: プロトコルがない場合は自動的にhttps://を追加
       if (
         !trimmedUrl.startsWith('http://') &&
         !trimmedUrl.startsWith('https://')
       ) {
         trimmedUrl = 'https://' + trimmedUrl;
+      }
+
+      // ✅ 修正: プロトコル追加後の長さもチェック
+      if (trimmedUrl.length > MAX_URL_LENGTH) {
+        this.snackBar.open(
+          this.languageService.translateWithParams(
+            'taskCreate.error.urlTooLong',
+            { maxLength: MAX_URL_LENGTH.toString() }
+          ),
+          this.languageService.translate('taskCreate.close'),
+          { duration: 3000 }
+        );
+        return;
       }
 
       // URLのバリデーション：有効なURLかチェック
@@ -663,11 +799,16 @@ export class TaskCreatePageComponent implements OnInit, OnDestroy {
   }
 
   formatFileSize(bytes: number): string {
-    if (bytes === 0) return '0 B';
+    // ✅ 修正: 負の値やNaNの処理を追加
+    if (!bytes || bytes <= 0 || isNaN(bytes)) {
+      return '0 B';
+    }
     const k = 1024;
     const sizes = ['B', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+    // ✅ 修正: インデックスが範囲外の場合の処理を追加
+    const sizeIndex = Math.min(i, sizes.length - 1);
+    return Math.round((bytes / Math.pow(k, sizeIndex)) * 100) / 100 + ' ' + sizes[sizeIndex];
   }
 
   canSaveTask(): boolean {
@@ -678,6 +819,14 @@ export class TaskCreatePageComponent implements OnInit, OnDestroy {
 
     // 開始日と終了日の必須チェック
     if (!this.taskForm.startDate || !this.taskForm.dueDate) {
+      return false;
+    }
+
+    // ✅ 修正: 日付の有効性チェックを追加
+    if (this.startDateObj && isNaN(this.startDateObj.getTime())) {
+      return false;
+    }
+    if (this.dueDateObj && isNaN(this.dueDateObj.getTime())) {
       return false;
     }
 

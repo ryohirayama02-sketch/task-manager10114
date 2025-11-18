@@ -1940,6 +1940,14 @@ export class LanguageService {
       ja: 'プロジェクトIDが設定されていません。タスクを作成するにはプロジェクトが必要です。',
       en: 'Project ID is not set. A project is required to create a task.',
     },
+    'taskCreate.error.urlTooLong': {
+      ja: 'URLは{{maxLength}}文字以内で入力してください。',
+      en: 'URL must be within {{maxLength}} characters.',
+    },
+    'taskCreate.error.tagTooLong': {
+      ja: 'タグは{{maxLength}}文字以内で入力してください。',
+      en: 'Tag must be within {{maxLength}} characters.',
+    },
     'taskCreate.error.parentTaskFetchFailed': {
       ja: '親タスク情報の取得に失敗しました',
       en: 'Failed to fetch parent task information',
