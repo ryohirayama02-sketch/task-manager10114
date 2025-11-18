@@ -263,7 +263,8 @@ export class MemberProgressComponent implements OnInit, OnDestroy {
         // 既に同じタスクが追加されていないかチェック
         const memberTasks = memberTaskMap.get(name);
         // ✅ 修正: memberTasksがnull/undefinedの場合のチェックを追加
-        if (memberTasks && !memberTasks.some((t) => t && t.id === task.id)) {
+        // ✅ 修正: task.idがnull/undefinedの場合のチェックを追加
+        if (memberTasks && task.id && !memberTasks.some((t) => t && t.id && t.id === task.id)) {
           memberTasks.push(task);
         }
       });
@@ -287,13 +288,18 @@ export class MemberProgressComponent implements OnInit, OnDestroy {
           tasks = [];
         }
         const totalTasks = tasks.length;
-        const completedTasks = tasks.filter((t) => t && t.status === '完了');
-        const inProgressTasks = tasks.filter((t) => t && t.status === '作業中');
-        const notStartedTasks = tasks.filter((t) => t && t.status === '未着手');
-        const completionRate =
-          totalTasks > 0
-            ? Math.round((completedTasks.length / totalTasks) * 100)
-            : 0;
+        // ✅ 修正: statusが文字列でない場合のチェックを追加
+        const completedTasks = tasks.filter((t) => t && typeof t.status === 'string' && t.status === '完了');
+        const inProgressTasks = tasks.filter((t) => t && typeof t.status === 'string' && t.status === '作業中');
+        const notStartedTasks = tasks.filter((t) => t && typeof t.status === 'string' && t.status === '未着手');
+        // ✅ 修正: completionRateの計算を安全に（NaNや無限大を防ぐ）
+        let completionRate = 0;
+        if (totalTasks > 0 && completedTasks.length >= 0) {
+          const rate = (completedTasks.length / totalTasks) * 100;
+          completionRate = isNaN(rate) || !isFinite(rate) ? 0 : Math.round(rate);
+          // 0-100の範囲にクランプ
+          completionRate = Math.max(0, Math.min(100, completionRate));
+        }
 
         const completedByPriority =
           this.calculatePriorityBreakdown(completedTasks);
@@ -316,12 +322,26 @@ export class MemberProgressComponent implements OnInit, OnDestroy {
         };
       });
 
-    members.sort((a, b) => b.completionRate - a.completionRate);
+    // ✅ 修正: ソート処理を安全に（null/undefinedやNaNを防ぐ）
+    members.sort((a, b) => {
+      // ✅ 修正: aまたはbがnull/undefinedの場合のチェックを追加
+      if (!a && !b) return 0;
+      if (!a) return 1;
+      if (!b) return -1;
+      // ✅ 修正: completionRateがNaNや無限大の場合のチェックを追加
+      const aRate = typeof a.completionRate === 'number' && !isNaN(a.completionRate) && isFinite(a.completionRate) ? a.completionRate : 0;
+      const bRate = typeof b.completionRate === 'number' && !isNaN(b.completionRate) && isFinite(b.completionRate) ? b.completionRate : 0;
+      return bRate - aRate;
+    });
     console.log('メンバー進捗:', members);
     return members;
   }
 
   private applyPeriodFilter() {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
     const filteredTasks = this.filterTasksByPeriod(this.allTasks);
     this.members = this.buildMemberProgress(filteredTasks);
   }
@@ -348,14 +368,17 @@ export class MemberProgressComponent implements OnInit, OnDestroy {
       if (!task) {
         return false;
       }
-      if (!task.dueDate) {
+      // ✅ 修正: task.dueDateがnull/undefined/空文字列の場合のチェックを追加
+      if (!task.dueDate || (typeof task.dueDate === 'string' && task.dueDate.trim() === '')) {
         return false;
       }
 
       // 日付文字列をDateオブジェクトに変換
       const dueDate = new Date(task.dueDate);
       if (isNaN(dueDate.getTime())) {
-        console.warn('無効な日付:', task.dueDate, task.taskName);
+        // ✅ 修正: task.taskNameがnull/undefinedの場合のチェックを追加
+        const taskName = task.taskName || 'タスク名不明';
+        console.warn('無効な日付:', task.dueDate, taskName);
         return false;
       }
 
@@ -393,8 +416,10 @@ export class MemberProgressComponent implements OnInit, OnDestroy {
 
       const matches = afterStart && beforeEnd;
       if (matches) {
+        // ✅ 修正: task.taskNameがnull/undefinedの場合のチェックを追加
+        const taskName = task.taskName || 'タスク名不明';
         console.log('タスクが期間内:', {
-          taskName: task.taskName,
+          taskName: taskName,
           dueDate: task.dueDate,
           taskDateOnly: taskDateOnly.toISOString(),
           startDateOnly: startDateOnly?.toISOString(),
@@ -409,7 +434,11 @@ export class MemberProgressComponent implements OnInit, OnDestroy {
     return filteredTasks;
   }
 
-  getStatusColor(status: string): string {
+  getStatusColor(status: string | null | undefined): string {
+    // ✅ 修正: statusがnull/undefinedの場合のチェックを追加
+    if (!status) {
+      return '#9e9e9e';
+    }
     switch (status) {
       case '完了':
         return '#b2e9cb';
@@ -431,10 +460,11 @@ export class MemberProgressComponent implements OnInit, OnDestroy {
     if (!Array.isArray(tasks)) {
       return { high: 0, medium: 0, low: 0 };
     }
+    // ✅ 修正: priorityが文字列でない場合のチェックを追加
     return {
-      high: tasks.filter((t) => t && t.priority === '高').length,
-      medium: tasks.filter((t) => t && t.priority === '中').length,
-      low: tasks.filter((t) => t && t.priority === '低').length,
+      high: tasks.filter((t) => t && typeof t.priority === 'string' && t.priority === '高').length,
+      medium: tasks.filter((t) => t && typeof t.priority === 'string' && t.priority === '中').length,
+      low: tasks.filter((t) => t && typeof t.priority === 'string' && t.priority === '低').length,
     };
   }
 
@@ -449,8 +479,12 @@ export class MemberProgressComponent implements OnInit, OnDestroy {
   }
 
   onPeriodStartDateChange(): void {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
     console.log('開始日変更:', this.periodStartDateObj);
-    if (this.periodStartDateObj) {
+    if (this.periodStartDateObj && !isNaN(this.periodStartDateObj.getTime())) {
       this.periodStartDate = this.periodStartDateObj;
       console.log('開始日を設定:', this.periodStartDate);
     } else {
@@ -461,8 +495,12 @@ export class MemberProgressComponent implements OnInit, OnDestroy {
   }
 
   onPeriodEndDateChange(): void {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
     console.log('終了日変更:', this.periodEndDateObj);
-    if (this.periodEndDateObj) {
+    if (this.periodEndDateObj && !isNaN(this.periodEndDateObj.getTime())) {
       this.periodEndDate = this.periodEndDateObj;
       console.log('終了日を設定:', this.periodEndDate);
     } else {
@@ -473,6 +511,10 @@ export class MemberProgressComponent implements OnInit, OnDestroy {
   }
 
   resetPeriodFilter(): void {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
     this.periodStartDateObj = null;
     this.periodEndDateObj = null;
     this.periodStartDate = null;

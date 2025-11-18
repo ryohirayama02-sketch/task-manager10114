@@ -56,13 +56,13 @@
     <mat-card
       *ngFor="let member of members"
       class="member-card"
-      (click)="goToMemberDetail(member.name)"
+      (click)="goToMemberDetail(member?.name)"
     >
       <mat-card-content>
         <div class="member-header">
-          <h3 class="member-name">{{ member.name }}</h3>
+          <h3 class="member-name">{{ member?.name || '' }}</h3>
           <span class="completion-rate"
-            >{{ 'progress.members.completionRate' | translate }}: {{ member.completionRate }}%</span
+            >{{ 'progress.members.completionRate' | translate }}: {{ member?.completionRate ?? 0 }}%</span
           >
         </div>
 
@@ -80,48 +80,48 @@
 
           <div class="status-row completed">
             <div class="status-label">{{ 'progress.status.completed' | translate }}</div>
-            <div class="status-total">{{ member.completedTasks }}{{ 'progress.members.count' | translate }}</div>
+            <div class="status-total">{{ member?.completedTasks ?? 0 }}{{ 'progress.members.count' | translate }}</div>
             <div class="priority-details">
               <div class="priority-item high">
-                {{ member.completedByPriority.high }}
+                {{ member?.completedByPriority?.high ?? 0 }}
               </div>
               <div class="priority-item medium">
-                {{ member.completedByPriority.medium }}
+                {{ member?.completedByPriority?.medium ?? 0 }}
               </div>
               <div class="priority-item low">
-                {{ member.completedByPriority.low }}
+                {{ member?.completedByPriority?.low ?? 0 }}
               </div>
             </div>
           </div>
 
           <div class="status-row in-progress">
             <div class="status-label">{{ 'progress.status.inProgress' | translate }}</div>
-            <div class="status-total">{{ member.inProgressTasks }}{{ 'progress.members.count' | translate }}</div>
+            <div class="status-total">{{ member?.inProgressTasks ?? 0 }}{{ 'progress.members.count' | translate }}</div>
             <div class="priority-details">
               <div class="priority-item high">
-                {{ member.inProgressByPriority.high }}
+                {{ member?.inProgressByPriority?.high ?? 0 }}
               </div>
               <div class="priority-item medium">
-                {{ member.inProgressByPriority.medium }}
+                {{ member?.inProgressByPriority?.medium ?? 0 }}
               </div>
               <div class="priority-item low">
-                {{ member.inProgressByPriority.low }}
+                {{ member?.inProgressByPriority?.low ?? 0 }}
               </div>
             </div>
           </div>
 
           <div class="status-row not-started">
             <div class="status-label">{{ 'progress.status.notStarted' | translate }}</div>
-            <div class="status-total">{{ member.notStartedTasks }}{{ 'progress.members.count' | translate }}</div>
+            <div class="status-total">{{ member?.notStartedTasks ?? 0 }}{{ 'progress.members.count' | translate }}</div>
             <div class="priority-details">
               <div class="priority-item high">
-                {{ member.notStartedByPriority.high }}
+                {{ member?.notStartedByPriority?.high ?? 0 }}
               </div>
               <div class="priority-item medium">
-                {{ member.notStartedByPriority.medium }}
+                {{ member?.notStartedByPriority?.medium ?? 0 }}
               </div>
               <div class="priority-item low">
-                {{ member.notStartedByPriority.low }}
+                {{ member?.notStartedByPriority?.low ?? 0 }}
               </div>
             </div>
           </div>
