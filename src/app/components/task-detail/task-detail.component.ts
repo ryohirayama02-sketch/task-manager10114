@@ -2290,6 +2290,13 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
           subtaskOrder: [],
         };
       }
+      // ✅ 修正: 子タスクの場合、taskOrderは不要なので削除（データ整合性のため）
+      if (this.task.parentTaskId && this.detailSettings.taskOrder) {
+        // taskOrderを除外した新しいオブジェクトを作成
+        const { taskOrder, ...detailSettingsWithoutTaskOrder } =
+          this.detailSettings;
+        this.detailSettings = detailSettingsWithoutTaskOrder as any;
+      }
 
       // ✅ 修正: detailSettings.workTimeがundefinedの場合の処理を追加
       if (!this.detailSettings.workTime) {
@@ -2402,23 +2409,39 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
   private initializeDetailSettings(storedSettings: any) {
     const defaults = this.createDefaultDetailSettings();
 
-    this.detailSettings = {
-      notifications: {
-        ...defaults.notifications,
-        ...(storedSettings?.notifications ?? {}),
-      },
-      taskOrder: {
-        ...defaults.taskOrder,
-        ...(storedSettings?.taskOrder ?? {}),
-        subtaskOrder: storedSettings?.taskOrder?.subtaskOrder
-          ? [...storedSettings.taskOrder.subtaskOrder]
-          : [...defaults.taskOrder.subtaskOrder],
-      },
-      workTime: {
-        ...defaults.workTime,
-        ...(storedSettings?.workTime ?? {}),
-      },
-    };
+    // ✅ 修正: 子タスクの場合はtaskOrderを含めない
+    if (this.task?.parentTaskId) {
+      // 子タスクの場合
+      this.detailSettings = {
+        notifications: {
+          ...defaults.notifications,
+          ...(storedSettings?.notifications ?? {}),
+        },
+        workTime: {
+          ...defaults.workTime,
+          ...(storedSettings?.workTime ?? {}),
+        },
+      } as any;
+    } else {
+      // 親タスクの場合
+      this.detailSettings = {
+        notifications: {
+          ...defaults.notifications,
+          ...(storedSettings?.notifications ?? {}),
+        },
+        taskOrder: {
+          ...defaults.taskOrder,
+          ...(storedSettings?.taskOrder ?? {}),
+          subtaskOrder: storedSettings?.taskOrder?.subtaskOrder
+            ? [...storedSettings.taskOrder.subtaskOrder]
+            : [...defaults.taskOrder.subtaskOrder],
+        },
+        workTime: {
+          ...defaults.workTime,
+          ...(storedSettings?.workTime ?? {}),
+        },
+      };
+    }
 
     if (
       this.detailSettings.notifications.beforeDeadline === undefined ||
