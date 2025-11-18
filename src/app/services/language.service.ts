@@ -1651,8 +1651,8 @@ export class LanguageService {
       en: 'Failed to load members',
     },
     'projectForm.error.fileSizeExceeded': {
-      ja: 'は5MBを超えています。別のファイルを選択してください。',
-      en: ' exceeds 5MB. Please select another file.',
+      ja: '{{fileName}} は5MBを超えています。別のファイルを選択してください。',
+      en: '{{fileName}} exceeds 5MB. Please select another file.',
     },
     'projectForm.error.enterUrl': {
       ja: 'URLを入力してください',

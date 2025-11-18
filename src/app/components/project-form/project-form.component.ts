@@ -275,6 +275,17 @@ export class ProjectFormComponent implements OnInit {
         return;
       }
 
+      // ✅ 修正: 開始日が終了日より後の場合は、終了日を開始日に合わせる
+      if (this.endDateObj && parsedDate > this.endDateObj) {
+        this.endDateObj = new Date(parsedDate);
+        const endYear = this.endDateObj.getFullYear();
+        const endMonth = String(this.endDateObj.getMonth() + 1).padStart(2, '0');
+        const endDay = String(this.endDateObj.getDate()).padStart(2, '0');
+        this.projectForm.patchValue({
+          endDate: `${endYear}-${endMonth}-${endDay}`,
+        });
+      }
+
       // 日付が有効な場合のみ更新
       this.startDateObj = parsedDate;
       this.startDateError = null;
@@ -346,6 +357,17 @@ export class ProjectFormComponent implements OnInit {
         this.endDateObj = null;
         this.projectForm.patchValue({ endDate: '' });
         return;
+      }
+
+      // ✅ 修正: 終了日が開始日より前の場合は、開始日を終了日に合わせる
+      if (this.startDateObj && parsedDate < this.startDateObj) {
+        this.startDateObj = new Date(parsedDate);
+        const startYear = this.startDateObj.getFullYear();
+        const startMonth = String(this.startDateObj.getMonth() + 1).padStart(2, '0');
+        const startDay = String(this.startDateObj.getDate()).padStart(2, '0');
+        this.projectForm.patchValue({
+          startDate: `${startYear}-${startMonth}-${startDay}`,
+        });
       }
 
       // 日付が有効な場合のみ更新
@@ -700,11 +722,12 @@ export class ProjectFormComponent implements OnInit {
       }
 
       if (file.size > this.MAX_FILE_SIZE) {
+        // ✅ 修正: ファイルサイズエラーメッセージを国際化
         this.snackBar.open(
-          file.name +
-            this.languageService.translate(
-              'projectForm.error.fileSizeExceeded'
-            ),
+          this.languageService.translateWithParams(
+            'projectForm.error.fileSizeExceeded',
+            { fileName: file.name }
+          ),
           this.languageService.translate('projectForm.close'),
           { duration: 4000 }
         );

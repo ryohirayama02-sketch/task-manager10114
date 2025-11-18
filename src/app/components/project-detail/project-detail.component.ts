@@ -825,6 +825,26 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // ✅ 修正: 開始日と終了日の逆転チェックを追加
+    if (this.editableProject.startDate && this.editableProject.endDate) {
+      const startDate = new Date(this.editableProject.startDate);
+      const endDate = new Date(this.editableProject.endDate);
+      if (startDate > endDate) {
+        this.snackBar.open(
+          this.languageService.translate(
+            'projectDetail.error.startDateAfterEndDate'
+          ),
+          this.languageService.translate('common.close'),
+          {
+            duration: 3000,
+          }
+        );
+        event.source.checked = true;
+        this.isInlineEditMode = true;
+        return;
+      }
+    }
+
     if (!this.selectedResponsibles || this.selectedResponsibles.length === 0) {
       this.snackBar.open(
         this.languageService.translate(
@@ -2051,7 +2071,18 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
         '0'
       );
       const day = String(this.inlineStartDateObj.getDate()).padStart(2, '0');
-      this.editableProject.startDate = `${year}-${month}-${day}`;
+      const newStartDate = `${year}-${month}-${day}`;
+      
+      // ✅ 修正: 開始日が終了日より後の場合は、終了日を開始日に合わせる
+      if (this.inlineEndDateObj && this.inlineStartDateObj > this.inlineEndDateObj) {
+        this.inlineEndDateObj = new Date(this.inlineStartDateObj);
+        const endYear = this.inlineEndDateObj.getFullYear();
+        const endMonth = String(this.inlineEndDateObj.getMonth() + 1).padStart(2, '0');
+        const endDay = String(this.inlineEndDateObj.getDate()).padStart(2, '0');
+        this.editableProject.endDate = `${endYear}-${endMonth}-${endDay}`;
+      }
+      
+      this.editableProject.startDate = newStartDate;
     } else if (this.editableProject) {
       this.editableProject.startDate = '';
     }
@@ -2065,7 +2096,18 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
         '0'
       );
       const day = String(this.inlineEndDateObj.getDate()).padStart(2, '0');
-      this.editableProject.endDate = `${year}-${month}-${day}`;
+      const newEndDate = `${year}-${month}-${day}`;
+      
+      // ✅ 修正: 終了日が開始日より前の場合は、開始日を終了日に合わせる
+      if (this.inlineStartDateObj && this.inlineEndDateObj < this.inlineStartDateObj) {
+        this.inlineStartDateObj = new Date(this.inlineEndDateObj);
+        const startYear = this.inlineStartDateObj.getFullYear();
+        const startMonth = String(this.inlineStartDateObj.getMonth() + 1).padStart(2, '0');
+        const startDay = String(this.inlineStartDateObj.getDate()).padStart(2, '0');
+        this.editableProject.startDate = `${startYear}-${startMonth}-${startDay}`;
+      }
+      
+      this.editableProject.endDate = newEndDate;
     } else if (this.editableProject) {
       this.editableProject.endDate = '';
     }
