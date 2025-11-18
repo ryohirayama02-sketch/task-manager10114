@@ -924,6 +924,21 @@ export class TaskCreatePageComponent implements OnInit, OnDestroy {
         taskDataToCreate
       );
       const taskId = result.id;
+      
+      // ✅ 修正: taskIdがundefined/nullの場合のチェックを追加
+      if (!taskId) {
+        console.error('[save] タスクIDが取得できませんでした:', {
+          result,
+          projectId: this.projectId,
+        });
+        this.snackBar.open(
+          this.languageService.translate('taskCreate.error.taskIdNotReturned'),
+          this.languageService.translate('taskCreate.close'),
+          { duration: 5000 }
+        );
+        return;
+      }
+      
       console.log('[save] Step 1完了: タスク作成成功', {
         taskId,
         projectId: this.projectId,
@@ -984,27 +999,32 @@ export class TaskCreatePageComponent implements OnInit, OnDestroy {
           console.log('カレンダー連携: Googleカレンダーにタスクを追加しました');
 
           // カレンダー連携が成功した場合、タスクの calendarSyncEnabled フラグを確実に保存
-          await this.projectService.updateTask(this.projectId, taskId, {
-            calendarSyncEnabled: true,
-          });
-          console.log('カレンダー連携フラグを保存しました');
+          if (taskId) {
+            await this.projectService.updateTask(this.projectId, taskId, {
+              calendarSyncEnabled: true,
+            });
+            console.log('カレンダー連携フラグを保存しました');
+          }
         } catch (error: any) {
           console.error('Calendar sync error:', error);
           const errorMsg =
             error?.message ||
             this.languageService.translate('taskCreate.error.saveFailed');
-          const message = this.languageService
-            .translate('taskCreate.error.calendarSyncFailed')
-            .replace('{{error}}', errorMsg);
+          // ✅ 修正: translateWithParams()を使用して国際化対応
           this.snackBar.open(
-            message,
+            this.languageService.translateWithParams(
+              'taskCreate.error.calendarSyncFailed',
+              { error: errorMsg }
+            ),
             this.languageService.translate('taskCreate.close'),
             { duration: 5000 }
           );
           // エラーが発生した場合、calendarSyncEnabled を false に設定
-          await this.projectService.updateTask(this.projectId, taskId, {
-            calendarSyncEnabled: false,
-          });
+          if (taskId) {
+            await this.projectService.updateTask(this.projectId, taskId, {
+              calendarSyncEnabled: false,
+            });
+          }
         }
       }
 
@@ -1042,7 +1062,7 @@ export class TaskCreatePageComponent implements OnInit, OnDestroy {
                 validAttachments,
               });
 
-              if (validAttachments.length > 0) {
+              if (validAttachments.length > 0 && taskId) {
                 await this.projectService.updateTask(
                   this.projectId,
                   taskId,
@@ -1112,6 +1132,21 @@ export class TaskCreatePageComponent implements OnInit, OnDestroy {
       });
 
       // 作成したタスク詳細画面に遷移
+      // ✅ 修正: taskIdがundefined/nullの場合のチェックを追加
+      if (!taskId) {
+        console.error('[save] タスクIDが取得できませんでした。プロジェクト詳細画面に遷移します。');
+        this.snackBar.open(
+          this.languageService.translate('taskCreate.error.taskIdNotReturned'),
+          this.languageService.translate('taskCreate.close'),
+          { duration: 5000 }
+        );
+        // タスクIDが取得できない場合はプロジェクト詳細画面に遷移
+        this.router.navigate(['/project', this.projectId], {
+          replaceUrl: true,
+        });
+        return;
+      }
+      
       console.log('[save] 作成したタスク詳細画面に遷移:', {
         projectId: this.projectId,
         parentTaskId: this.parentTaskId,

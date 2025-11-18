@@ -1916,6 +1916,10 @@ export class LanguageService {
       ja: 'カレンダー連携に失敗しました: {{error}}',
       en: 'Calendar sync failed: {{error}}',
     },
+    'taskCreate.error.taskIdNotReturned': {
+      ja: 'タスクIDが取得できませんでした。タスクの作成に失敗した可能性があります。',
+      en: 'Task ID could not be retrieved. Task creation may have failed.',
+    },
     'taskCreate.error.parentTaskFetchFailed': {
       ja: '親タスク情報の取得に失敗しました',
       en: 'Failed to fetch parent task information',
