@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -17,6 +17,8 @@ import { FormsModule } from '@angular/forms';
 import { LanguageService } from '../../../services/language.service';
 import { MemberManagementService } from '../../../services/member-management.service';
 import { Member } from '../../../models/member.model';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 interface MemberProgress {
   name: string;
@@ -51,12 +53,13 @@ interface MemberProgress {
   templateUrl: './member-progress.component.html',
   styleUrls: ['./member-progress.component.css'],
 })
-export class MemberProgressComponent implements OnInit {
+export class MemberProgressComponent implements OnInit, OnDestroy {
   private projectService = inject(ProjectService);
   private router = inject(Router);
   private dialog = inject(MatDialog);
   public languageService = inject(LanguageService);
   private memberManagementService = inject(MemberManagementService);
+  private destroy$ = new Subject<void>();
 
   members: MemberProgress[] = [];
   isLoading = true;
@@ -70,55 +73,124 @@ export class MemberProgressComponent implements OnInit {
 
   ngOnInit() {
     // メンバー一覧を読み込み
-    this.memberManagementService.getMembers().subscribe({
-      next: (members) => {
-        this.allMembers = members;
-        console.log('メンバー一覧を読み込みました:', members.length, '件');
-        this.loadMemberProgress();
-      },
-      error: (error) => {
-        console.error('メンバー一覧の読み込みエラー:', error);
-        this.loadMemberProgress();
-      },
-    });
+    this.memberManagementService
+      .getMembers()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (members) => {
+          // ✅ 修正: コンポーネントが破棄されていないかチェック
+          if (this.destroy$.closed) {
+            return;
+          }
+          // ✅ 修正: membersが配列でない場合の処理を追加
+          if (!Array.isArray(members)) {
+            console.error('membersが配列ではありません:', members);
+            this.allMembers = [];
+            this.loadMemberProgress();
+            return;
+          }
+          this.allMembers = members;
+          console.log('メンバー一覧を読み込みました:', members.length, '件');
+          this.loadMemberProgress();
+        },
+        error: (error) => {
+          // ✅ 修正: コンポーネントが破棄されていないかチェック
+          if (this.destroy$.closed) {
+            return;
+          }
+          console.error('メンバー一覧の読み込みエラー:', error);
+          this.allMembers = [];
+          this.loadMemberProgress();
+        },
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadMemberProgress() {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
     this.isLoading = true;
     console.log('メンバー進捗を読み込み中...');
 
-    this.projectService.getProjects().subscribe((projects) => {
-      if (projects.length === 0) {
-        this.isLoading = false;
-        return;
-      }
-
-      const allTasks: Task[] = [];
-      let completedRequests = 0;
-
-      projects.forEach((project) => {
-        if (project.id) {
-          this.projectService
-            .getTasksByProjectId(project.id)
-            .subscribe((tasks) => {
-              allTasks.push(...tasks);
-              completedRequests++;
-
-              if (completedRequests === projects.length) {
-                this.processMemberProgress(allTasks);
-              }
-            });
-        } else {
-          completedRequests++;
-          if (completedRequests === projects.length) {
-            this.processMemberProgress(allTasks);
-          }
+    this.projectService
+      .getProjects()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((projects) => {
+        // ✅ 修正: コンポーネントが破棄されていないかチェック
+        if (this.destroy$.closed) {
+          return;
         }
+        // ✅ 修正: projectsが配列でない場合の処理を追加
+        if (!Array.isArray(projects)) {
+          console.error('projectsが配列ではありません:', projects);
+          this.isLoading = false;
+          return;
+        }
+        if (projects.length === 0) {
+          this.isLoading = false;
+          return;
+        }
+
+        const allTasks: Task[] = [];
+        let completedRequests = 0;
+
+        projects.forEach((project) => {
+          // ✅ 修正: projectがnull/undefinedの場合のチェックを追加
+          if (!project) {
+            completedRequests++;
+            if (completedRequests === projects.length) {
+              this.processMemberProgress(allTasks);
+            }
+            return;
+          }
+          if (project.id) {
+            this.projectService
+              .getTasksByProjectId(project.id)
+              .pipe(takeUntil(this.destroy$))
+              .subscribe((tasks) => {
+                // ✅ 修正: コンポーネントが破棄されていないかチェック
+                if (this.destroy$.closed) {
+                  return;
+                }
+                // ✅ 修正: tasksが配列でない場合の処理を追加
+                if (Array.isArray(tasks)) {
+                  allTasks.push(...tasks);
+                }
+                completedRequests++;
+
+                if (completedRequests === projects.length) {
+                  this.processMemberProgress(allTasks);
+                }
+              });
+          } else {
+            completedRequests++;
+            if (completedRequests === projects.length) {
+              this.processMemberProgress(allTasks);
+            }
+          }
+        });
       });
-    });
   }
 
   processMemberProgress(allTasks: Task[]) {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
+    // ✅ 修正: allTasksが配列でない場合の処理を追加
+    if (!Array.isArray(allTasks)) {
+      console.error('allTasksが配列ではありません:', allTasks);
+      this.allTasks = [];
+      this.applyPeriodFilter();
+      this.isLoading = false;
+      return;
+    }
     console.log('全タスク:', allTasks);
     this.allTasks = allTasks;
     this.applyPeriodFilter();
@@ -126,23 +198,45 @@ export class MemberProgressComponent implements OnInit {
   }
 
   private buildMemberProgress(tasks: Task[]): MemberProgress[] {
+    // ✅ 修正: tasksが配列でない場合の処理を追加
+    if (!Array.isArray(tasks)) {
+      console.error('tasksが配列ではありません:', tasks);
+      return [];
+    }
+    // ✅ 修正: allMembersが配列でない場合の処理を追加
+    if (!Array.isArray(this.allMembers)) {
+      console.error('this.allMembersが配列ではありません:', this.allMembers);
+      return [];
+    }
     const memberTaskMap = new Map<string, Task[]>();
 
     tasks.forEach((task) => {
+      // ✅ 修正: taskがnull/undefinedの場合のチェックを追加
+      if (!task) {
+        return;
+      }
       // assignedMembers からメンバー名を取得（削除済みメンバーは除外）
       let assignees: string[] = [];
 
       // assignedMembers からメンバー名を取得（削除済みメンバーは除外）
-      if (task.assignedMembers && task.assignedMembers.length > 0) {
+      if (task.assignedMembers && Array.isArray(task.assignedMembers) && task.assignedMembers.length > 0) {
         task.assignedMembers.forEach((memberId) => {
+          // ✅ 修正: memberIdがnull/undefinedの場合のチェックを追加
+          if (!memberId) {
+            return;
+          }
           // メンバーIDからメンバー名を取得（メンバー管理画面に存在するメンバーのみ）
-          const member = this.allMembers.find((m) => m.id === memberId);
+          const member = this.allMembers.find((m) => m && m.id === memberId);
           if (!member) {
             // 削除済みメンバーはスキップ
             return;
           }
 
+          // ✅ 修正: member.nameがnull/undefinedの場合のチェックを追加
           const memberName = member.name;
+          if (!memberName || typeof memberName !== 'string') {
+            return;
+          }
 
           // メンバー名がカンマ区切りの場合も分割
           const names = memberName
@@ -159,12 +253,17 @@ export class MemberProgressComponent implements OnInit {
 
       // 各メンバーにタスクを追加（重複チェック付き）
       assignees.forEach((name) => {
+        // ✅ 修正: nameがnull/undefinedの場合のチェックを追加
+        if (!name) {
+          return;
+        }
         if (!memberTaskMap.has(name)) {
           memberTaskMap.set(name, []);
         }
         // 既に同じタスクが追加されていないかチェック
-        const memberTasks = memberTaskMap.get(name)!;
-        if (!memberTasks.some((t) => t.id === task.id)) {
+        const memberTasks = memberTaskMap.get(name);
+        // ✅ 修正: memberTasksがnull/undefinedの場合のチェックを追加
+        if (memberTasks && !memberTasks.some((t) => t && t.id === task.id)) {
           memberTasks.push(task);
         }
       });
@@ -175,14 +274,22 @@ export class MemberProgressComponent implements OnInit {
     // メンバー管理画面に存在するメンバーのみを含める
     const members = Array.from(memberTaskMap.entries())
       .filter(([memberName]) => {
+        // ✅ 修正: memberNameがnull/undefinedの場合のチェックを追加
+        if (!memberName) {
+          return false;
+        }
         // メンバー管理画面に存在するメンバーのみをフィルタリング
-        return this.allMembers.some((m) => m.name === memberName);
+        return this.allMembers.some((m) => m && m.name === memberName);
       })
       .map(([memberName, tasks]) => {
+        // ✅ 修正: tasksが配列でない場合の処理を追加
+        if (!Array.isArray(tasks)) {
+          tasks = [];
+        }
         const totalTasks = tasks.length;
-        const completedTasks = tasks.filter((t) => t.status === '完了');
-        const inProgressTasks = tasks.filter((t) => t.status === '作業中');
-        const notStartedTasks = tasks.filter((t) => t.status === '未着手');
+        const completedTasks = tasks.filter((t) => t && t.status === '完了');
+        const inProgressTasks = tasks.filter((t) => t && t.status === '作業中');
+        const notStartedTasks = tasks.filter((t) => t && t.status === '未着手');
         const completionRate =
           totalTasks > 0
             ? Math.round((completedTasks.length / totalTasks) * 100)
@@ -220,6 +327,11 @@ export class MemberProgressComponent implements OnInit {
   }
 
   private filterTasksByPeriod(tasks: Task[]): Task[] {
+    // ✅ 修正: tasksが配列でない場合の処理を追加
+    if (!Array.isArray(tasks)) {
+      console.error('tasksが配列ではありません:', tasks);
+      return [];
+    }
     if (!this.periodStartDate && !this.periodEndDate) {
       console.log('期間フィルターなし: 全タスクを表示', tasks.length);
       return tasks;
@@ -232,6 +344,10 @@ export class MemberProgressComponent implements OnInit {
     });
 
     const filteredTasks = tasks.filter((task) => {
+      // ✅ 修正: taskがnull/undefinedの場合のチェックを追加
+      if (!task) {
+        return false;
+      }
       if (!task.dueDate) {
         return false;
       }
@@ -251,7 +367,7 @@ export class MemberProgressComponent implements OnInit {
       );
 
       // 開始日の時刻を0時に設定
-      const startDateOnly = this.periodStartDate
+      const startDateOnly = this.periodStartDate && !isNaN(this.periodStartDate.getTime())
         ? new Date(
             this.periodStartDate.getFullYear(),
             this.periodStartDate.getMonth(),
@@ -260,7 +376,7 @@ export class MemberProgressComponent implements OnInit {
         : null;
 
       // 終了日の時刻を23:59:59.999に設定（その日の終わりまで含める）
-      const endDateOnly = this.periodEndDate
+      const endDateOnly = this.periodEndDate && !isNaN(this.periodEndDate.getTime())
         ? new Date(
             this.periodEndDate.getFullYear(),
             this.periodEndDate.getMonth(),
@@ -311,14 +427,23 @@ export class MemberProgressComponent implements OnInit {
     medium: number;
     low: number;
   } {
+    // ✅ 修正: tasksが配列でない場合の処理を追加
+    if (!Array.isArray(tasks)) {
+      return { high: 0, medium: 0, low: 0 };
+    }
     return {
-      high: tasks.filter((t) => t.priority === '高').length,
-      medium: tasks.filter((t) => t.priority === '中').length,
-      low: tasks.filter((t) => t.priority === '低').length,
+      high: tasks.filter((t) => t && t.priority === '高').length,
+      medium: tasks.filter((t) => t && t.priority === '中').length,
+      low: tasks.filter((t) => t && t.priority === '低').length,
     };
   }
 
-  goToMemberDetail(memberName: string) {
+  goToMemberDetail(memberName: string | null | undefined) {
+    // ✅ 修正: memberNameがnull/undefinedの場合のチェックを追加
+    if (!memberName) {
+      console.error('メンバー名が指定されていません');
+      return;
+    }
     console.log('メンバー詳細画面に遷移:', memberName);
     this.router.navigate(['/progress/members', memberName]);
   }
