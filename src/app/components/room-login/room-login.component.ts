@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -7,7 +7,8 @@ import { RoomService } from '../../services/room.service';
 import { HomeScreenSettingsService } from '../../services/home-screen-settings.service';
 import { LanguageService } from '../../services/language.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-room-login',
@@ -155,7 +156,7 @@ import { firstValueFrom } from 'rxjs';
     `,
   ],
 })
-export class RoomLoginComponent {
+export class RoomLoginComponent implements OnDestroy {
   roomId = localStorage.getItem('roomId') || '';
   password = '';
   error: string | null = null;
@@ -168,16 +169,38 @@ export class RoomLoginComponent {
   roomIdExistsError: string | null = null;
   isCheckingRoomId = false;
 
+  // 競合状態を防ぐためのリクエストID
+  private checkRequestId = 0;
+  // デバウンス用のSubject
+  private roomIdInput$ = new Subject<string>();
+  // メモリリーク防止用
+  private destroy$ = new Subject<void>();
+
   constructor(
     private roomService: RoomService,
     private authService: AuthService,
     private router: Router,
     private homeScreenSettingsService: HomeScreenSettingsService,
     private languageService: LanguageService
-  ) {}
+  ) {
+    // デバウンス処理: 300ms待機してからチェックを実行
+    this.roomIdInput$
+      .pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe((roomId) => {
+        this.performRoomIdCheck(roomId);
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 
   async enterRoom() {
-    if (!this.roomId || !this.password) {
+    const trimmedRoomId = this.roomId?.trim() || '';
+    const trimmedPassword = this.password?.trim() || '';
+
+    if (!trimmedRoomId || !trimmedPassword) {
       return;
     }
     this.error = null;
@@ -185,8 +208,8 @@ export class RoomLoginComponent {
     this.isLoading = true;
     try {
       const roomDoc = await this.roomService.joinRoom(
-        this.roomId,
-        this.password
+        trimmedRoomId,
+        trimmedPassword
       );
       if (!roomDoc) {
         this.error = this.languageService.translate(
@@ -194,7 +217,7 @@ export class RoomLoginComponent {
         );
         return;
       }
-      this.authService.setRoomId(this.roomId, roomDoc.id);
+      this.authService.setRoomId(trimmedRoomId, roomDoc.id);
       await this.navigateToHomeScreen();
     } catch (err) {
       console.error('Failed to join room', err);
@@ -206,27 +229,59 @@ export class RoomLoginComponent {
     }
   }
 
-  async checkRoomIdExists() {
-    if (!this.newRoomId || this.newRoomId.trim() === '') {
+  /**
+   * ルームID入力時のデバウンス処理
+   */
+  checkRoomIdExists() {
+    const trimmedRoomId = this.newRoomId?.trim() || '';
+    if (!trimmedRoomId) {
       this.roomIdExistsError = null;
+      this.isCheckingRoomId = false;
       return;
     }
 
+    // デバウンス処理: Subjectに値を送信（300ms後に自動的にチェックが実行される）
     this.isCheckingRoomId = true;
+    this.roomIdInput$.next(trimmedRoomId);
+  }
+
+  /**
+   * 実際のルームID存在チェックを実行（競合状態を防ぐため、リクエストIDで管理）
+   */
+  private async performRoomIdCheck(roomId: string) {
+    if (!roomId || roomId.trim() === '') {
+      this.roomIdExistsError = null;
+      this.isCheckingRoomId = false;
+      return;
+    }
+
+    // リクエストIDをインクリメント（最新のリクエストを追跡）
+    const currentRequestId = ++this.checkRequestId;
     this.roomIdExistsError = null;
 
     try {
-      const exists = await this.roomService.roomIdExists(this.newRoomId.trim());
-      if (exists) {
-        this.roomIdExistsError = this.languageService.translate(
-          'roomLogin.error.roomIdExists'
-        );
+      const exists = await this.roomService.roomIdExists(roomId);
+
+      // このリクエストが最新のものであることを確認（競合状態を防ぐ）
+      if (currentRequestId === this.checkRequestId) {
+        if (exists) {
+          this.roomIdExistsError = this.languageService.translate(
+            'roomLogin.error.roomIdExists'
+          );
+        }
       }
     } catch (err) {
       console.error('Failed to check room ID', err);
       // エラーが発生した場合は警告を表示しない（ネットワークエラーなどの可能性）
+      // ただし、最新のリクエストの場合のみエラー状態をクリア
+      if (currentRequestId === this.checkRequestId) {
+        this.roomIdExistsError = null;
+      }
     } finally {
-      this.isCheckingRoomId = false;
+      // 最新のリクエストの場合のみローディング状態を解除
+      if (currentRequestId === this.checkRequestId) {
+        this.isCheckingRoomId = false;
+      }
     }
   }
 
