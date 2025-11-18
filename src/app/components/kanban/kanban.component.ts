@@ -89,10 +89,20 @@ export class KanbanComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$)) // ✅ 追加: メモリリーク防止
       .subscribe({
         next: (members) => {
+          // ✅ 修正: コンポーネントが破棄されていないかチェック
+          if (this.destroy$.closed) {
+            console.log('[ngOnInit] コンポーネントが破棄されたため、メンバー処理をスキップします');
+            return;
+          }
           this.members = members;
           console.log('メンバー一覧を読み込みました:', members.length, '件');
         },
         error: (error) => {
+          // ✅ 修正: コンポーネントが破棄されていないかチェック
+          if (this.destroy$.closed) {
+            console.log('[ngOnInit] コンポーネントが破棄されたため、エラー処理をスキップします');
+            return;
+          }
           console.error('メンバー一覧の読み込みエラー:', error);
         },
       });
@@ -119,6 +129,11 @@ export class KanbanComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: (projects) => {
+          // ✅ 修正: コンポーネントが破棄されていないかチェック
+          if (this.destroy$.closed) {
+            console.log('[ngOnInit] コンポーネントが破棄されたため、プロジェクト処理をスキップします');
+            return;
+          }
           console.log('🎯 カンバン用ルーム内全プロジェクト一覧:', projects);
           if (projects.length === 0) {
             this.resetProjectState();
@@ -129,6 +144,11 @@ export class KanbanComponent implements OnInit, OnDestroy {
           this.applyProjectList(projects);
         },
         error: (error) => {
+          // ✅ 修正: コンポーネントが破棄されていないかチェック
+          if (this.destroy$.closed) {
+            console.log('[ngOnInit] コンポーネントが破棄されたため、エラー処理をスキップします');
+            return;
+          }
           console.error('❌ プロジェクト取得エラー（オフライン等）:', error);
           // ✅ 修正: オフライン時などエラーが発生した場合でも、既存のプロジェクトデータを保持
           if (this.projects.length === 0) {
@@ -143,6 +163,11 @@ export class KanbanComponent implements OnInit, OnDestroy {
       .getSelectedProjectIds()
       .pipe(takeUntil(this.destroy$)) // ✅ 追加: メモリリーク防止
       .subscribe((projectIds: string[]) => {
+        // ✅ 修正: コンポーネントが破棄されていないかチェック
+        if (this.destroy$.closed) {
+          console.log('[ngOnInit] コンポーネントが破棄されたため、プロジェクト選択処理をスキップします');
+          return;
+        }
         this.selectedProjectIds = projectIds;
         this.filterTasksBySelectedProjects();
       });
@@ -155,6 +180,11 @@ export class KanbanComponent implements OnInit, OnDestroy {
   }
 
   private applyProjectList(projects: IProject[]): void {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      console.log('[applyProjectList] コンポーネントが破棄されたため、処理をスキップします');
+      return;
+    }
     this.projects = projects;
 
     const storedSelection =
@@ -203,6 +233,11 @@ export class KanbanComponent implements OnInit, OnDestroy {
                 console.log('[loadAllTasks] コンポーネントが破棄されたため、状態更新をスキップします');
                 return;
               }
+              // ✅ 修正: tasksが配列でない場合の処理を追加
+              if (!Array.isArray(tasks)) {
+                console.error(`プロジェクト ${project.id} のタスクが配列ではありません:`, tasks);
+                return;
+              }
               this.tasksByProject.set(project.id!, tasks);
               this.rebuildAllTasks();
             },
@@ -231,6 +266,11 @@ export class KanbanComponent implements OnInit, OnDestroy {
         return;
       }
       const tasks = this.tasksByProject.get(project.id) || [];
+      // ✅ 修正: tasksが配列でない場合の処理を追加
+      if (!Array.isArray(tasks)) {
+        console.error(`プロジェクト ${project.id} のタスクが配列ではありません:`, tasks);
+        return;
+      }
       const tasksWithProject = tasks.map((task) => ({
         ...task,
         projectId: task.projectId || project.id!,
@@ -255,11 +295,22 @@ export class KanbanComponent implements OnInit, OnDestroy {
 
   /** 選択されたプロジェクトのタスクをフィルタリング */
   filterTasksBySelectedProjects() {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      console.log('[filterTasksBySelectedProjects] コンポーネントが破棄されたため、処理をスキップします');
+      return;
+    }
     this.applyFilters();
   }
 
   /** フィルターを適用 */
   applyFilters() {
+    // ✅ 修正: allTasksが配列でない場合の処理を追加
+    if (!Array.isArray(this.allTasks)) {
+      console.error('allTasksが配列ではありません:', this.allTasks);
+      this.tasks = [];
+      return;
+    }
     let filteredTasks = [...this.allTasks];
 
     // 日付範囲フィルター（当月±3か月）
@@ -317,9 +368,12 @@ export class KanbanComponent implements OnInit, OnDestroy {
         const assignees: string[] = [];
 
         // assignedMembers から取得（メンバーIDをメンバー名に変換）
+        // ✅ 修正: membersがundefinedやnullの場合の処理を追加
         if (
           Array.isArray(task.assignedMembers) &&
-          task.assignedMembers.length > 0
+          task.assignedMembers.length > 0 &&
+          this.members &&
+          this.members.length > 0
         ) {
           const memberNames = getMemberNames(
             task.assignedMembers,
@@ -347,6 +401,11 @@ export class KanbanComponent implements OnInit, OnDestroy {
 
   /** フィルターをリセット */
   resetFilters() {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      console.log('[resetFilters] コンポーネントが破棄されたため、処理をスキップします');
+      return;
+    }
     this.filterPriority = [];
     this.filterAssignee = [];
     this.applyFilters();
@@ -355,6 +414,11 @@ export class KanbanComponent implements OnInit, OnDestroy {
   /** ユニークな担当者一覧を取得（assignedMembers（メンバーID配列）から取得） */
   getUniqueAssignees(): string[] {
     const assigneeSet = new Set<string>();
+
+    // ✅ 修正: membersがundefinedやnullの場合の処理を追加
+    if (!this.members || this.members.length === 0) {
+      return [];
+    }
 
     // 全タスクのassignedMembersからメンバー名を取得
     this.allTasks.forEach((task) => {
@@ -384,11 +448,20 @@ export class KanbanComponent implements OnInit, OnDestroy {
 
   /** プロジェクトが選択されているかチェック */
   isProjectSelected(projectId: string): boolean {
+    // ✅ 修正: projectIdがundefinedやnullの場合の処理を追加
+    if (!projectId) {
+      return false;
+    }
     return this.selectedProjectIds.includes(projectId);
   }
 
   /** プロジェクトをすべて選択 */
   selectAllProjects() {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      console.log('[selectAllProjects] コンポーネントが破棄されたため、処理をスキップします');
+      return;
+    }
     const allIds = this.projects
       .map((project) => project.id)
       .filter((id): id is string => !!id);
@@ -398,6 +471,11 @@ export class KanbanComponent implements OnInit, OnDestroy {
 
   /** プロジェクト選択を全て解除 */
   clearProjectSelection() {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      console.log('[clearProjectSelection] コンポーネントが破棄されたため、処理をスキップします');
+      return;
+    }
     this.selectedProjectIds = [];
     this.projectSelectionService.clearSelection();
   }
@@ -406,6 +484,11 @@ export class KanbanComponent implements OnInit, OnDestroy {
     // ✅ 修正: コンポーネントが破棄されていないかチェック
     if (this.destroy$.closed) {
       console.log('[refreshProjectTasks] コンポーネントが破棄されたため、処理をスキップします');
+      return;
+    }
+    // ✅ 修正: projectIdがundefinedやnullの場合の処理を追加
+    if (!projectId) {
+      console.error('プロジェクトIDが指定されていません');
       return;
     }
     try {
@@ -449,17 +532,30 @@ export class KanbanComponent implements OnInit, OnDestroy {
 
   /** プロジェクト選択をトグル */
   toggleProjectSelection(projectId: string) {
+    // ✅ 修正: projectIdがundefinedやnullの場合の処理を追加
+    if (!projectId) {
+      console.error('プロジェクトIDが指定されていません');
+      return;
+    }
     this.projectSelectionService.toggleProjectSelection(projectId);
   }
 
   /** プロジェクトIDからプロジェクト名を取得 */
   getProjectName(projectId: string): string {
+    // ✅ 修正: projectIdがundefinedやnullの場合の処理を追加
+    if (!projectId) {
+      return '';
+    }
     const project = this.projects.find((p) => p.id === projectId);
     return project ? project.projectName : '';
   }
 
   /** ステータスでタスクをフィルター */
   filterByStatus(status: string) {
+    // ✅ 修正: statusがundefinedやnullの場合の処理を追加
+    if (!status) {
+      return [];
+    }
     return this.tasks.filter((t) => t.status === status);
   }
 
@@ -468,6 +564,16 @@ export class KanbanComponent implements OnInit, OnDestroy {
     // ✅ 修正: コンポーネントが破棄されていないかチェック
     if (this.destroy$.closed) {
       console.log('[changeTaskStatus] コンポーネントが破棄されたため、処理をスキップします');
+      return;
+    }
+
+    // ✅ 修正: taskIdやnewStatusがundefinedやnullの場合の処理を追加
+    if (!taskId) {
+      console.error('タスクIDが指定されていません');
+      return;
+    }
+    if (!newStatus) {
+      console.error('ステータスが指定されていません');
       return;
     }
 
@@ -484,7 +590,10 @@ export class KanbanComponent implements OnInit, OnDestroy {
 
     // タスクのプロジェクトIDを取得
     const task = this.allTasks.find((t) => t.id === taskId);
-    if (!task) return;
+    if (!task) {
+      console.error('タスクが見つかりません:', taskId);
+      return;
+    }
 
     // 古いステータスを保存
     const oldStatus = task.status;
@@ -512,12 +621,21 @@ export class KanbanComponent implements OnInit, OnDestroy {
           )
         );
         try {
+          // ✅ 修正: parentTask.idやparentTask.projectIdがundefinedやnullの場合の処理を追加
+          if (!parentTask.id) {
+            console.error('親タスクのIDが指定されていません');
+            return;
+          }
+          if (!parentTask.projectId) {
+            console.error('親タスクのプロジェクトIDが指定されていません');
+            return;
+          }
           await this.taskService.updateTaskStatus(
-            parentTask.id!,
+            parentTask.id,
             '作業中',
             parentTask.status,
             parentTask.projectId,
-            parentTask.projectName
+            parentTask.projectName || ''
           );
           // ✅ 修正: 非同期処理後にコンポーネントが破棄されていないかチェック
           if (this.destroy$.closed) {
@@ -551,6 +669,11 @@ export class KanbanComponent implements OnInit, OnDestroy {
         return;
       }
       try {
+        // ✅ 修正: task.projectIdがundefinedやnullの場合の処理を追加
+        if (!task.projectId) {
+          console.error('タスクのプロジェクトIDが指定されていません:', taskId);
+          return;
+        }
         // 最新の子タスクデータを取得
         const allTasks = await firstValueFrom(
           this.projectService
@@ -596,13 +719,18 @@ export class KanbanComponent implements OnInit, OnDestroy {
     }
 
     try {
+      // ✅ 修正: task.projectIdやtask.projectNameがundefinedやnullの場合の処理を追加
+      if (!task.projectId) {
+        console.error('タスクのプロジェクトIDが指定されていません:', taskId);
+        return;
+      }
       // TaskServiceを使用してステータスを更新（編集ログも記録される）
       await this.taskService.updateTaskStatus(
         taskId,
         newStatus,
         oldStatus,
         task.projectId,
-        task.projectName
+        task.projectName || ''
       );
 
       // ✅ 修正: 非同期処理後にコンポーネントが破棄されていないかチェック
@@ -621,6 +749,13 @@ export class KanbanComponent implements OnInit, OnDestroy {
           | '作業中'
           | '完了';
         this.filterTasksBySelectedProjects();
+      } else {
+        // ✅ 修正: タスクが見つからない場合のログを追加
+        console.warn('ローカルのタスクが見つかりませんでした。タスク一覧を再読み込みします:', taskId);
+        // タスクが見つからない場合は、該当プロジェクトのタスクを再読み込み
+        if (task.projectId) {
+          this.refreshProjectTasks(task.projectId);
+        }
       }
     } catch (error) {
       console.error('❌ ステータス更新エラー:', error);
@@ -646,13 +781,24 @@ export class KanbanComponent implements OnInit, OnDestroy {
       console.log('[openTaskDetail] コンポーネントが破棄されたため、ナビゲーションをスキップします');
       return;
     }
+    // ✅ 修正: taskがundefinedやnullの場合の処理を追加
+    if (!task) {
+      console.error('タスクが指定されていません');
+      return;
+    }
     if (task.projectId && task.id) {
       this.router.navigate(['/project', task.projectId, 'task', task.id]);
+    } else {
+      console.error('タスクのプロジェクトIDまたはタスクIDが指定されていません');
     }
   }
 
   /** ステータスを表示（言語設定に応じて） */
   getStatusDisplay(status: string): string {
+    // ✅ 修正: statusがundefinedやnullの場合の処理を追加
+    if (!status) {
+      return '';
+    }
     const currentLanguage = this.languageService.getCurrentLanguage();
     const statusMap: Record<string, Record<'ja' | 'en', string>> = {
       未着手: { ja: '未着手', en: 'Not Started' },
@@ -664,6 +810,10 @@ export class KanbanComponent implements OnInit, OnDestroy {
 
   /** ステータスの短縮形を表示（言語設定に応じて） */
   getStatusShortDisplay(status: string): string {
+    // ✅ 修正: statusがundefinedやnullの場合の処理を追加
+    if (!status) {
+      return '';
+    }
     const currentLanguage = this.languageService.getCurrentLanguage();
     const statusShortMap: Record<string, Record<'ja' | 'en', string>> = {
       未着手: { ja: '未', en: 'NS' },
@@ -675,6 +825,10 @@ export class KanbanComponent implements OnInit, OnDestroy {
 
   /** 優先度を表示（言語設定に応じて） */
   getPriorityDisplay(priority: string): string {
+    // ✅ 修正: priorityがundefinedやnullの場合の処理を追加
+    if (!priority) {
+      return '';
+    }
     const currentLanguage = this.languageService.getCurrentLanguage();
     const priorityMap: Record<string, Record<'ja' | 'en', string>> = {
       高: { ja: '高', en: 'High' },
@@ -686,6 +840,12 @@ export class KanbanComponent implements OnInit, OnDestroy {
 
   /** タスクの担当者を表示（カンマ区切り対応） */
   getTaskAssigneeDisplay(task: Task): string {
+    // ✅ 修正: membersがundefinedやnullの場合の処理を追加
+    if (!this.members || this.members.length === 0) {
+      // membersが読み込まれていない場合は、assigneeをそのまま表示
+      return task.assignee || '—';
+    }
+
     // assignedMembers がある場合はそれを使用
     if (task.assignedMembers && task.assignedMembers.length > 0) {
       // デバッグ: assignedMembersとmembersの内容を確認
