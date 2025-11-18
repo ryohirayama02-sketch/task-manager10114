@@ -143,7 +143,12 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
     });
   }
 
-  onSortChange(option: (typeof this.sortOptions)[number]['value']): void {
+  onSortChange(option: (typeof this.sortOptions)[number]['value'] | null | undefined): void {
+    // ✅ 修正: optionがnull/undefinedの場合のチェックを追加
+    if (!option || !this.isValidSortOption(option)) {
+      console.error('無効なソートオプション:', option);
+      return;
+    }
     if (this.sortOption === option) {
       return;
     }
@@ -153,6 +158,15 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
   }
 
   getMemberDisplay(project: IProject): string {
+    // ✅ 修正: projectがnull/undefinedの場合のチェックを追加
+    if (!project) {
+      return this.languageService.translate('progress.projects.membersNotSet');
+    }
+    // ✅ 修正: membersが配列でない場合の処理を追加
+    if (!Array.isArray(this.members)) {
+      console.error('this.membersが配列ではありません:', this.members);
+      return this.languageService.translate('progress.projects.membersNotSet');
+    }
     const members: any = (project as any).members;
     const notSetText = this.languageService.translate(
       'progress.projects.membersNotSet'
@@ -166,7 +180,7 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
         .filter((name) => !!name)
         .filter((name) => {
           // メンバー管理画面に存在する名前のみを表示
-          return this.members.some((m) => m.name === name);
+          return this.members.some((m) => m && m.name === name);
         });
       return names.length > 0 ? names.join(', ') : notSetText;
     }
@@ -178,7 +192,7 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
         .filter((name) => !!name)
         .filter((name) => {
           // メンバー管理画面に存在する名前のみを表示
-          return this.members.some((m) => m.name === name);
+          return this.members.some((m) => m && m.name === name);
         });
       return memberNames.length > 0 ? memberNames.join(', ') : notSetText;
     }
@@ -195,6 +209,11 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
     if (!project) {
       return notSetText;
     }
+    // ✅ 修正: membersが配列でない場合の処理を追加
+    if (!Array.isArray(this.members)) {
+      console.error('this.membersが配列ではありません:', this.members);
+      return notSetText;
+    }
 
     // responsibles が配列で、memberId が含まれている場合は、それを使って最新のメンバー名を取得
     if (
@@ -203,15 +222,19 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
     ) {
       const names: string[] = [];
       project.responsibles.forEach((entry) => {
+        // ✅ 修正: entryがnull/undefinedの場合のチェックを追加
+        if (!entry) {
+          return;
+        }
         // memberId がある場合は、それを使って最新のメンバー名を取得
         if (entry.memberId) {
-          const member = this.members.find((m) => m.id === entry.memberId);
+          const member = this.members.find((m) => m && m.id === entry.memberId);
           if (member && member.name) {
             names.push(member.name);
           } else if (entry.memberName) {
             // memberId で見つからない場合は、メンバー管理画面に存在するかチェック
             const memberByName = this.members.find(
-              (m) => m.name === entry.memberName
+              (m) => m && m.name === entry.memberName
             );
             if (memberByName && memberByName.name) {
               names.push(memberByName.name);
@@ -219,7 +242,7 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
           }
         } else if (entry.memberName) {
           // memberId がない場合は、メンバー名で検索
-          const member = this.members.find((m) => m.name === entry.memberName);
+          const member = this.members.find((m) => m && m.name === entry.memberName);
           if (member && member.name) {
             names.push(member.name);
           }
@@ -237,7 +260,7 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
         .filter((name) => !!name)
         .filter((name) => {
           // メンバー管理画面に存在する名前のみを表示
-          return this.members.some((m) => m.name === name);
+          return this.members.some((m) => m && m.name === name);
         });
       return names.length > 0 ? names.join(', ') : notSetText;
     }
@@ -266,9 +289,15 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
     if (!date) {
       return this.languageService.translate('common.notSet');
     }
+    // ✅ 修正: 無効な日付の場合のチェックを追加
+    const dateObj = new Date(date);
+    if (isNaN(dateObj.getTime())) {
+      console.warn('無効な日付:', date);
+      return this.languageService.translate('common.notSet');
+    }
     const currentLanguage = this.languageService.getCurrentLanguage();
     const locale = currentLanguage === 'en' ? 'en-US' : 'ja-JP';
-    return new Date(date).toLocaleDateString(locale, {
+    return dateObj.toLocaleDateString(locale, {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
@@ -348,6 +377,14 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
   private async updateProjectsWithProgress(
     projects: IProject[]
   ): Promise<void> {
+    // ✅ 修正: projectsが配列でない場合の処理を追加
+    if (!Array.isArray(projects)) {
+      console.error('projectsが配列ではありません:', projects);
+      this.projects = [];
+      this.projectProgress = {};
+      this.applySort();
+      return;
+    }
     this.projects = projects;
     this.projectProgress = {};
 
@@ -363,7 +400,7 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
     }
 
     const projectIds = projects
-      .map((p) => p.id)
+      .map((p) => p && p.id)
       .filter((id): id is string => !!id);
 
     console.log('プロジェクトID一覧:', projectIds);
@@ -378,8 +415,22 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
           return;
         }
 
+        // ✅ 修正: progressDataが配列でない場合の処理を追加
+        if (!Array.isArray(progressData)) {
+          console.error('progressDataが配列ではありません:', progressData);
+          this.projectProgress = {};
+          if (requestId === this.progressRequestId) {
+            this.applySort();
+          }
+          return;
+        }
+
         const progressMap: { [key: string]: ProjectProgress } = {};
         progressData.forEach((progress) => {
+          // ✅ 修正: progressがnull/undefinedの場合のチェックを追加
+          if (!progress || !progress.projectId) {
+            return;
+          }
           console.log('プロジェクト進捗データ:', progress);
           progressMap[progress.projectId] = progress;
         });
@@ -408,7 +459,18 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
   }
 
   private applySort(): void {
+    // ✅ 修正: projectsが配列でない場合の処理を追加
+    if (!Array.isArray(this.projects)) {
+      console.error('projectsが配列ではありません:', this.projects);
+      this.projects = [];
+      return;
+    }
     this.projects.sort((a, b) => {
+      // ✅ 修正: aまたはbがnull/undefinedの場合のチェックを追加
+      if (!a && !b) return 0;
+      if (!a) return 1;
+      if (!b) return -1;
+
       const aCompleted = this.isCompleted(a);
       const bCompleted = this.isCompleted(b);
 
@@ -463,7 +525,15 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
   }
 
   private getProgressPercentage(project: IProject): number {
-    return this.projectProgress[project.id || '']?.progressPercentage ?? 0;
+    // ✅ 修正: projectがnull/undefinedの場合のチェックを追加
+    if (!project || !project.id) {
+      return 0;
+    }
+    // ✅ 修正: projectProgressがオブジェクトでない場合の処理を追加
+    if (!this.projectProgress || typeof this.projectProgress !== 'object') {
+      return 0;
+    }
+    return this.projectProgress[project.id]?.progressPercentage ?? 0;
   }
 
   private isCompleted(project: IProject): boolean {
@@ -471,6 +541,11 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
   }
 
   private compareEndDate(a: IProject, b: IProject, ascending: boolean): number {
+    // ✅ 修正: aまたはbがnull/undefinedの場合のチェックを追加
+    if (!a && !b) return 0;
+    if (!a) return 1;
+    if (!b) return -1;
+
     const aTime = this.parseDate(a.endDate);
     const bTime = this.parseDate(b.endDate);
 
@@ -486,12 +561,22 @@ export class ProjectsOverviewComponent implements OnInit, OnDestroy {
     b: IProject,
     descending: boolean
   ): number {
+    // ✅ 修正: aまたはbがnull/undefinedの場合のチェックを追加
+    if (!a && !b) return 0;
+    if (!a) return 1;
+    if (!b) return -1;
+
     const aProgress = this.getProgressPercentage(a);
     const bProgress = this.getProgressPercentage(b);
     return descending ? bProgress - aProgress : aProgress - bProgress;
   }
 
   private compareByName(a: IProject, b: IProject): number {
+    // ✅ 修正: aまたはbがnull/undefinedの場合のチェックを追加
+    if (!a && !b) return 0;
+    if (!a) return 1;
+    if (!b) return -1;
+
     return (a.projectName || '').localeCompare(b.projectName || '');
   }
 }
