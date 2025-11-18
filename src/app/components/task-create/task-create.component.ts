@@ -519,11 +519,12 @@ export class TaskCreatePageComponent implements OnInit, OnDestroy {
       }
 
       if (file.size > this.MAX_FILE_SIZE) {
-        const message = this.languageService
-          .translate('taskCreate.error.fileSizeExceeded')
-          .replace('{{fileName}}', file.name);
+        // ✅ 修正: ファイルサイズエラーメッセージを国際化
         this.snackBar.open(
-          message,
+          this.languageService.translateWithParams(
+            'taskCreate.error.fileSizeExceeded',
+            { fileName: file.name }
+          ),
           this.languageService.translate('taskCreate.close'),
           { duration: 4000 }
         );
@@ -684,9 +685,17 @@ export class TaskCreatePageComponent implements OnInit, OnDestroy {
   }
 
   async save() {
+    // ✅ 修正: 重複送信を防ぐ
+    if (this.isSaving || this.isUploading) {
+      return;
+    }
+
     if (!this.taskForm.taskName.trim()) {
-      alert(
-        this.languageService.translate('taskCreate.error.taskNameRequired')
+      // ✅ 修正: alert()をsnackBar.open()に変更
+      this.snackBar.open(
+        this.languageService.translate('taskCreate.error.taskNameRequired'),
+        this.languageService.translate('taskCreate.close'),
+        { duration: 3000 }
       );
       return;
     }
@@ -742,8 +751,11 @@ export class TaskCreatePageComponent implements OnInit, OnDestroy {
     }
 
     if (!this.projectId) {
-      alert(
-        this.languageService.translate('taskCreate.error.projectNotSpecified')
+      // ✅ 修正: alert()をsnackBar.open()に変更
+      this.snackBar.open(
+        this.languageService.translate('taskCreate.error.projectNotSpecified'),
+        this.languageService.translate('taskCreate.close'),
+        { duration: 3000 }
       );
       return;
     }
@@ -858,6 +870,8 @@ export class TaskCreatePageComponent implements OnInit, OnDestroy {
       // Step 1: タスクを作成（URL は含める）
       const taskDataToCreate = {
         ...this.taskForm,
+        taskName: this.taskForm.taskName.trim(), // ✅ 修正: trim()済みのtaskNameを使用
+        description: this.taskForm.description?.trim() || '', // ✅ 修正: descriptionにtrim()を適用
         projectName: this.projectName,
         attachments: [], // 初期値は空配列
         ...(this.parentTaskId && { parentTaskId: this.parentTaskId }),
@@ -1164,11 +1178,12 @@ export class TaskCreatePageComponent implements OnInit, OnDestroy {
           errorCode: error?.code,
           errorStack: error?.stack,
         });
-        const message = this.languageService
-          .translate('taskCreate.error.attachmentUploadFailed')
-          .replace('{{fileName}}', pending.file.name);
+        // ✅ 修正: エラーメッセージを国際化
         this.snackBar.open(
-          message,
+          this.languageService.translateWithParams(
+            'taskCreate.error.attachmentUploadFailed',
+            { fileName: pending.file.name }
+          ),
           this.languageService.translate('taskCreate.close'),
           { duration: 4000 }
         );
