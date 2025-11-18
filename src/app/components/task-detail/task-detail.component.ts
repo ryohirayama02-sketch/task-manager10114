@@ -1,4 +1,11 @@
-import { Component, OnInit, inject, Output, EventEmitter } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  inject,
+  Output,
+  EventEmitter,
+} from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -45,8 +52,8 @@ import {
 } from '../../utils/member-utils';
 import { LanguageService } from '../../services/language.service';
 import { AuthService } from '../../services/auth.service';
-import { filter, take, switchMap } from 'rxjs/operators';
-import { combineLatest, firstValueFrom } from 'rxjs';
+import { filter, take, switchMap, takeUntil } from 'rxjs/operators';
+import { combineLatest, firstValueFrom, Subject } from 'rxjs';
 
 @Component({
   selector: 'app-task-detail',
@@ -75,7 +82,7 @@ import { combineLatest, firstValueFrom } from 'rxjs';
   templateUrl: './task-detail.component.html',
   styleUrl: './task-detail.component.css',
 })
-export class TaskDetailComponent implements OnInit {
+export class TaskDetailComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private projectService = inject(ProjectService);
@@ -90,6 +97,10 @@ export class TaskDetailComponent implements OnInit {
   private firestore = inject(Firestore);
   private languageService = inject(LanguageService);
   private authService = inject(AuthService);
+
+  // ✅ 追加: メモリリーク防止用のSubject
+  private destroy$ = new Subject<void>();
+  private refreshTimeoutId: number | null = null;
 
   @Output() taskUpdated = new EventEmitter<any>();
 
@@ -248,7 +259,7 @@ export class TaskDetailComponent implements OnInit {
 
     // パラメータとクエリパラメータの両方を監視して、再読み込みを確実にする
     // パラメータとクエリパラメータの両方を監視
-    this.route.paramMap.subscribe((params) => {
+    this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe((params) => {
       const taskId = params.get('taskId');
       const projectId = params.get('projectId');
 
@@ -272,38 +283,57 @@ export class TaskDetailComponent implements OnInit {
     });
 
     // クエリパラメータの変更も監視（子タスク作成後の再読み込み用）
-    this.route.queryParamMap.subscribe((queryParams) => {
-      const refresh = queryParams.get('refresh');
-      const taskId = this.route.snapshot.paramMap.get('taskId');
-      const projectId = this.route.snapshot.paramMap.get('projectId');
+    this.route.queryParamMap
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((queryParams) => {
+        const refresh = queryParams.get('refresh');
+        const taskId = this.route.snapshot.paramMap.get('taskId');
+        const projectId = this.route.snapshot.paramMap.get('projectId');
 
-      console.log('[ngOnInit] クエリパラメータ変更:', {
-        refresh,
-        taskId,
-        projectId,
-        allQueryParams: Object.fromEntries(
-          queryParams.keys.map((key) => [key, queryParams.get(key)])
-        ),
-      });
-
-      if (refresh && taskId && projectId) {
-        console.log('[ngOnInit] クエリパラメータによる再読み込み実行:', {
+        console.log('[ngOnInit] クエリパラメータ変更:', {
           refresh,
           taskId,
           projectId,
+          allQueryParams: Object.fromEntries(
+            queryParams.keys.map((key) => [key, queryParams.get(key)])
+          ),
         });
-        // 少し待機してから再読み込み（Firestoreの同期を待つ）
-        setTimeout(() => {
-          // タスクが切り替わったときは編集モードをリセット
-          this.isEditing = false;
-          this.originalTaskSnapshot = null;
-          this.isLoading = true;
-          this.childTasks = [];
-          this.filteredChildTasks = [];
-          this.loadTaskDetails(projectId, taskId);
-        }, 300);
-      }
-    });
+
+        if (refresh && taskId && projectId) {
+          console.log('[ngOnInit] クエリパラメータによる再読み込み実行:', {
+            refresh,
+            taskId,
+            projectId,
+          });
+          // ✅ 修正: 既存のタイマーをクリア
+          if (this.refreshTimeoutId !== null) {
+            clearTimeout(this.refreshTimeoutId);
+          }
+          // 少し待機してから再読み込み（Firestoreの同期を待つ）
+          this.refreshTimeoutId = window.setTimeout(() => {
+            // タスクが切り替わったときは編集モードをリセット
+            this.isEditing = false;
+            this.originalTaskSnapshot = null;
+            this.isLoading = true;
+            this.childTasks = [];
+            this.filteredChildTasks = [];
+            this.loadTaskDetails(projectId, taskId);
+            this.refreshTimeoutId = null;
+          }, 300);
+        }
+      });
+  }
+
+  ngOnDestroy(): void {
+    // ✅ 追加: 購読を解除してメモリリークを防止
+    this.destroy$.next();
+    this.destroy$.complete();
+
+    // ✅ 追加: setTimeoutをクリア
+    if (this.refreshTimeoutId !== null) {
+      clearTimeout(this.refreshTimeoutId);
+      this.refreshTimeoutId = null;
+    }
   }
 
   /** タスク詳細を読み込み */
@@ -331,7 +361,8 @@ export class TaskDetailComponent implements OnInit {
             // ✅ 追加: 最初の値のみを受け取り、Firestoreの更新による再実行を防ぐ
             take(1)
           );
-        })
+        }),
+        takeUntil(this.destroy$) // ✅ 追加: メモリリーク防止
       )
       .subscribe({
         next: ([project, tasks]) => {
@@ -447,25 +478,30 @@ export class TaskDetailComponent implements OnInit {
   /** メンバー一覧を読み込み */
   loadMembers(): void {
     this.membersLoading = true;
-    this.memberService.getMembers().subscribe({
-      next: (members) => {
-        this.members = members;
-        this.membersLoading = false;
-        console.log('メンバー一覧を読み込みました:', members.length, '件');
+    this.memberService
+      .getMembers()
+      .pipe(takeUntil(this.destroy$)) // ✅ 追加: メモリリーク防止
+      .subscribe({
+        next: (members) => {
+          this.members = members;
+          this.membersLoading = false;
+          console.log('メンバー一覧を読み込みました:', members.length, '件');
 
-        // 現在の担当者に基づいてselectedMemberIdを設定
-        if (this.taskData.assignee) {
-          const member = members.find((m) => m.name === this.taskData.assignee);
-          if (member) {
-            this.selectedMemberId = member.id || '';
+          // 現在の担当者に基づいてselectedMemberIdを設定
+          if (this.taskData.assignee) {
+            const member = members.find(
+              (m) => m.name === this.taskData.assignee
+            );
+            if (member) {
+              this.selectedMemberId = member.id || '';
+            }
           }
-        }
-      },
-      error: (error) => {
-        console.error('メンバー一覧の読み込みエラー:', error);
-        this.membersLoading = false;
-      },
-    });
+        },
+        error: (error) => {
+          console.error('メンバー一覧の読み込みエラー:', error);
+          this.membersLoading = false;
+        },
+      });
   }
 
   /** 担当者選択の変更 */
@@ -496,78 +532,86 @@ export class TaskDetailComponent implements OnInit {
   /** プロジェクトメンバーを読み込み（プロジェクトのメンバーのみ） */
   private loadProjectMembers(projectId: string): void {
     this.membersLoading = true;
-    this.memberService.getMembers().subscribe({
-      next: (members) => {
-        // プロジェクト情報を取得して、プロジェクトのメンバーのみをフィルタリング
-        this.projectService.getProjectById(projectId).subscribe({
-          next: (project) => {
-            if (project?.members && project.members.trim().length > 0) {
-              // プロジェクトのmembersフィールドはメンバー名のカンマ区切り文字列
-              const projectMemberNames = project.members
-                .split(',')
-                .map((name) => name.trim())
-                .filter((name) => name.length > 0);
+    this.memberService
+      .getMembers()
+      .pipe(takeUntil(this.destroy$)) // ✅ 追加: メモリリーク防止
+      .subscribe({
+        next: (members) => {
+          // プロジェクト情報を取得して、プロジェクトのメンバーのみをフィルタリング
+          this.projectService
+            .getProjectById(projectId)
+            .pipe(takeUntil(this.destroy$)) // ✅ 追加: メモリリーク防止
+            .subscribe({
+              next: (project) => {
+                if (project?.members && project.members.trim().length > 0) {
+                  // プロジェクトのmembersフィールドはメンバー名のカンマ区切り文字列
+                  const projectMemberNames = project.members
+                    .split(',')
+                    .map((name) => name.trim())
+                    .filter((name) => name.length > 0);
 
-              // プロジェクトのメンバー名に一致するメンバーのみをフィルタリング
-              this.projectMembers = members.filter((member) =>
-                projectMemberNames.includes(member.name || '')
-              );
-            } else {
-              // プロジェクトのメンバーが設定されていない場合は全メンバーを表示
-              this.projectMembers = members;
-            }
+                  // プロジェクトのメンバー名に一致するメンバーのみをフィルタリング
+                  this.projectMembers = members.filter((member) =>
+                    projectMemberNames.includes(member.name || '')
+                  );
+                } else {
+                  // プロジェクトのメンバーが設定されていない場合は全メンバーを表示
+                  this.projectMembers = members;
+                }
 
-            this.membersLoading = false;
-            console.log(
-              'プロジェクトメンバーを読み込みました:',
-              this.projectMembers.length,
-              '件（全メンバー:',
-              members.length,
-              '件）'
-            );
+                this.membersLoading = false;
+                console.log(
+                  'プロジェクトメンバーを読み込みました:',
+                  this.projectMembers.length,
+                  '件（全メンバー:',
+                  members.length,
+                  '件）'
+                );
 
-            // プロジェクトメンバーが読み込まれた後に、子タスクの選択肢を再生成
-            if (this.task?.id && this.allProjectTasks.length > 0) {
-              console.log(
-                'プロジェクトメンバー読み込み完了: 子タスクの選択肢を再生成します'
-              );
-              this.setupChildTasks(this.allProjectTasks, this.task.id);
-            }
+                // プロジェクトメンバーが読み込まれた後に、子タスクの選択肢を再生成
+                if (this.task?.id && this.allProjectTasks.length > 0) {
+                  console.log(
+                    'プロジェクトメンバー読み込み完了: 子タスクの選択肢を再生成します'
+                  );
+                  this.setupChildTasks(this.allProjectTasks, this.task.id);
+                }
 
-            // 編集モードがONの場合は、担当者を初期化
-            if (this.isEditing) {
-              console.log('編集モードON中なので、担当者を初期化します');
-              this.initializeAssigneeForEdit();
-            } else {
-              // 読み取りモードの場合も、assignedMembers を selectedAssignedMemberIds に反映
-              if (
-                this.task?.assignedMembers &&
-                this.task.assignedMembers.length > 0
-              ) {
-                this.selectedAssignedMemberIds = [...this.task.assignedMembers];
-              } else if (
-                this.taskData.assignedMembers &&
-                this.taskData.assignedMembers.length > 0
-              ) {
-                this.selectedAssignedMemberIds = [
-                  ...this.taskData.assignedMembers,
-                ];
-              }
-            }
-          },
-          error: (error) => {
-            console.error('プロジェクト情報の取得エラー:', error);
-            // エラー時は全メンバーを表示
-            this.projectMembers = members;
-            this.membersLoading = false;
-          },
-        });
-      },
-      error: (error) => {
-        console.error('プロジェクトメンバーの読み込みエラー:', error);
-        this.membersLoading = false;
-      },
-    });
+                // 編集モードがONの場合は、担当者を初期化
+                if (this.isEditing) {
+                  console.log('編集モードON中なので、担当者を初期化します');
+                  this.initializeAssigneeForEdit();
+                } else {
+                  // 読み取りモードの場合も、assignedMembers を selectedAssignedMemberIds に反映
+                  if (
+                    this.task?.assignedMembers &&
+                    this.task.assignedMembers.length > 0
+                  ) {
+                    this.selectedAssignedMemberIds = [
+                      ...this.task.assignedMembers,
+                    ];
+                  } else if (
+                    this.taskData.assignedMembers &&
+                    this.taskData.assignedMembers.length > 0
+                  ) {
+                    this.selectedAssignedMemberIds = [
+                      ...this.taskData.assignedMembers,
+                    ];
+                  }
+                }
+              },
+              error: (error) => {
+                console.error('プロジェクト情報の取得エラー:', error);
+                // エラー時は全メンバーを表示
+                this.projectMembers = members;
+                this.membersLoading = false;
+              },
+            });
+        },
+        error: (error) => {
+          console.error('プロジェクトメンバーの読み込みエラー:', error);
+          this.membersLoading = false;
+        },
+      });
   }
 
   /** 複数メンバー選択の変更 */
