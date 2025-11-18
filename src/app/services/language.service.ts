@@ -1707,8 +1707,8 @@ export class LanguageService {
       en: 'Error loading members',
     },
     'projectForm.error.uploadFailed': {
-      ja: 'のアップロードに失敗しました',
-      en: ' failed to upload',
+      ja: '{{fileName}} のアップロードに失敗しました',
+      en: '{{fileName}} failed to upload',
     },
     'projectForm.error.attachmentUploadFailed': {
       ja: '添付ファイルのアップロードに失敗しました',

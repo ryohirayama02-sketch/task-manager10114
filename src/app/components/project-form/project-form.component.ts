@@ -1122,12 +1122,29 @@ export class ProjectFormComponent implements OnInit {
    * 送信前にマイルストーンを整形
    */
   private getPreparedMilestones() {
+    const startDate = this.projectForm.get('startDate')?.value;
+    const endDate = this.projectForm.get('endDate')?.value;
+    
     return (this.milestones.value as any[]).reduce((acc, milestone) => {
       const name = (milestone.name || '').trim();
       const date = (milestone.date || '').trim();
       const description = (milestone.description || '').trim();
 
       if (name || date || description) {
+        // ✅ 修正: マイルストーンの日付がプロジェクトの開始日・終了日の範囲内かチェック
+        if (date && startDate && endDate) {
+          const milestoneDate = new Date(date);
+          const projectStartDate = new Date(startDate);
+          const projectEndDate = new Date(endDate);
+          
+          if (milestoneDate < projectStartDate || milestoneDate > projectEndDate) {
+            // 日付が範囲外の場合は警告を表示してスキップ
+            console.warn(`マイルストーン「${name || date}」の日付がプロジェクト期間外です: ${date}`);
+            // ユーザーには警告を表示しない（既に保存処理中なので）
+            return acc;
+          }
+        }
+        
         acc.push({
           id: milestone.id || this.generateId(),
           name,
@@ -1213,9 +1230,12 @@ export class ProjectFormComponent implements OnInit {
             ),
             error
           );
+          // ✅ 修正: エラーメッセージを国際化
           this.snackBar.open(
-            pending.file.name +
-              this.languageService.translate('projectForm.error.uploadFailed'),
+            this.languageService.translateWithParams(
+              'projectForm.error.uploadFailed',
+              { fileName: pending.file.name }
+            ),
             this.languageService.translate('projectForm.close'),
             { duration: 4000 }
           );

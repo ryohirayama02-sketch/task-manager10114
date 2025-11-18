@@ -683,8 +683,24 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
       this.attachmentsToRemove = [];
     }
 
+    // ✅ 修正: マイルストーンの日付がプロジェクトの開始日・終了日の範囲内かチェック
     const milestonesPayload = this.editableMilestones
       .filter((milestone) => milestone.name || milestone.date)
+      .filter((milestone) => {
+        // 日付が設定されている場合のみ範囲チェック
+        if (milestone.date && this.editableProject?.startDate && this.editableProject?.endDate) {
+          const milestoneDate = new Date(milestone.date);
+          const projectStartDate = new Date(this.editableProject.startDate);
+          const projectEndDate = new Date(this.editableProject.endDate);
+          
+          // 日付が範囲外の場合は警告を表示してスキップ
+          if (milestoneDate < projectStartDate || milestoneDate > projectEndDate) {
+            console.warn(`マイルストーン「${milestone.name || milestone.date}」の日付がプロジェクト期間外です: ${milestone.date}`);
+            return false;
+          }
+        }
+        return true;
+      })
       .map((milestone) => ({
         id: milestone.id || this.generateId(),
         name: milestone.name?.trim() || '',
@@ -926,8 +942,24 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
       this.attachmentsToRemove = [];
     }
 
+    // ✅ 修正: マイルストーンの日付がプロジェクトの開始日・終了日の範囲内かチェック
     const milestonesPayload = this.editableMilestones
       .filter((milestone) => milestone.name || milestone.date)
+      .filter((milestone) => {
+        // 日付が設定されている場合のみ範囲チェック
+        if (milestone.date && this.editableProject?.startDate && this.editableProject?.endDate) {
+          const milestoneDate = new Date(milestone.date);
+          const projectStartDate = new Date(this.editableProject.startDate);
+          const projectEndDate = new Date(this.editableProject.endDate);
+          
+          // 日付が範囲外の場合は警告を表示してスキップ
+          if (milestoneDate < projectStartDate || milestoneDate > projectEndDate) {
+            console.warn(`マイルストーン「${milestone.name || milestone.date}」の日付がプロジェクト期間外です: ${milestone.date}`);
+            return false;
+          }
+        }
+        return true;
+      })
       .map((milestone) => ({
         id: milestone.id || this.generateId(),
         name: milestone.name?.trim() || '',
@@ -1001,9 +1033,14 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
       event.source.checked = false;
     } catch (error) {
       console.error('インライン編集の保存に失敗しました:', error);
-      this.snackBar.open('プロジェクトの更新に失敗しました', '閉じる', {
-        duration: 3000,
-      });
+      // ✅ 修正: エラーメッセージを国際化
+      this.snackBar.open(
+        this.languageService.translate('projectDetail.error.updateFailed'),
+        this.languageService.translate('common.close'),
+        {
+          duration: 3000,
+        }
+      );
       this.isInlineEditMode = true;
       event.source.checked = true;
     } finally {
