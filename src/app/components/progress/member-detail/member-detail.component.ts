@@ -222,12 +222,14 @@ export class MemberDetailComponent implements OnInit, AfterViewInit, OnDestroy {
 
         const allTasks: Task[] = [];
         let completedRequests = 0;
+        let hasProcessed = false; // ✅ 修正: 重複処理を防ぐフラグ
 
         projects.forEach((project) => {
           // ✅ 修正: projectがnull/undefinedの場合のチェックを追加
           if (!project) {
             completedRequests++;
-            if (completedRequests === projects.length) {
+            if (completedRequests === projects.length && !hasProcessed) {
+              hasProcessed = true;
               this.processMemberDetail(memberName, allTasks);
             }
             return;
@@ -236,24 +238,47 @@ export class MemberDetailComponent implements OnInit, AfterViewInit, OnDestroy {
             this.projectService
               .getTasksByProjectId(project.id)
               .pipe(takeUntil(this.destroy$))
-              .subscribe((tasks) => {
-                // ✅ 修正: コンポーネントが破棄されていないかチェック
-                if (this.destroy$.closed) {
-                  return;
-                }
-                // ✅ 修正: tasksが配列でない場合の処理を追加
-                if (Array.isArray(tasks)) {
-                  allTasks.push(...tasks);
-                }
-                completedRequests++;
+              .subscribe({
+                next: (tasks) => {
+                  // ✅ 修正: コンポーネントが破棄されていないかチェック
+                  if (this.destroy$.closed) {
+                    return;
+                  }
+                  // ✅ 修正: 重複処理を防ぐ
+                  if (hasProcessed) {
+                    return;
+                  }
+                  // ✅ 修正: tasksが配列でない場合の処理を追加
+                  if (Array.isArray(tasks)) {
+                    allTasks.push(...tasks);
+                  }
+                  completedRequests++;
 
-                if (completedRequests === projects.length) {
-                  this.processMemberDetail(memberName, allTasks);
-                }
+                  if (completedRequests === projects.length && !hasProcessed) {
+                    hasProcessed = true;
+                    this.processMemberDetail(memberName, allTasks);
+                  }
+                },
+                error: (error) => {
+                  // ✅ 修正: エラーが発生した場合もカウントを進める
+                  console.error(`プロジェクト ${project.id} のタスク取得エラー:`, error);
+                  if (this.destroy$.closed) {
+                    return;
+                  }
+                  if (hasProcessed) {
+                    return;
+                  }
+                  completedRequests++;
+                  if (completedRequests === projects.length && !hasProcessed) {
+                    hasProcessed = true;
+                    this.processMemberDetail(memberName, allTasks);
+                  }
+                },
               });
           } else {
             completedRequests++;
-            if (completedRequests === projects.length) {
+            if (completedRequests === projects.length && !hasProcessed) {
+              hasProcessed = true;
               this.processMemberDetail(memberName, allTasks);
             }
           }
@@ -350,6 +375,21 @@ export class MemberDetailComponent implements OnInit, AfterViewInit, OnDestroy {
       });
 
     if (memberTasks.length === 0) {
+      // ✅ 修正: タスクが0件の場合でもfilteredTasksを初期化し、applyTaskFiltersを呼ぶ
+      this.memberDetail = {
+        name: memberName,
+        projects: [],
+        totalTasks: 0,
+        completedTasks: 0,
+        inProgressTasks: 0,
+        notStartedTasks: 0,
+        completionRate: 0,
+        tasks: [],
+        completedByPriority: { high: 0, medium: 0, low: 0 },
+        inProgressByPriority: { high: 0, medium: 0, low: 0 },
+        notStartedByPriority: { high: 0, medium: 0, low: 0 },
+      };
+      this.filteredTasks = [];
       this.isLoading = false;
       return;
     }
