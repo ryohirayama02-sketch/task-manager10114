@@ -155,6 +155,8 @@ export class TaskCreatePageComponent implements OnInit, OnDestroy {
     this.projectId = navState?.projectId || '';
     this.returnUrl = navState?.returnUrl || '/kanban';
 
+    // ✅ 修正: projectIdが空の場合のエラーメッセージを追加（queryParams購読内で処理）
+
     // 複製データがある場合は、フォームに設定
     if (navState?.duplicateData) {
       const duplicateData = navState.duplicateData;
@@ -231,6 +233,25 @@ export class TaskCreatePageComponent implements OnInit, OnDestroy {
     this.activatedRoute.queryParams
       .pipe(takeUntil(this.destroy$))
       .subscribe((params) => {
+      // ✅ 修正: projectIdが空の場合、queryParamsから取得を試みる
+      if (!this.projectId && params['projectId']) {
+        this.projectId = params['projectId'];
+      }
+      // ✅ 修正: projectIdがまだ空の場合はエラーメッセージを表示
+      if (!this.projectId) {
+        console.warn('[TaskCreate] projectIdが設定されていません');
+        this.snackBar.open(
+          this.languageService.translate('taskCreate.error.projectIdRequired'),
+          this.languageService.translate('taskCreate.close'),
+          { duration: 5000 }
+        );
+        // 3秒後にカンバンに戻る
+        setTimeout(() => {
+          this.router.navigate(['/kanban'], { replaceUrl: true });
+        }, 3000);
+        return;
+      }
+      
       if (params['parentTaskId']) {
         this.parentTaskId = params['parentTaskId'];
         this.isSubtaskCreation = true;
@@ -525,6 +546,22 @@ export class TaskCreatePageComponent implements OnInit, OnDestroy {
         return;
       }
 
+      // ✅ 修正: 同じファイル名の重複チェックを追加
+      const isDuplicate = this.pendingFiles.some(
+        (pending) => pending.file.name === file.name && pending.file.size === file.size
+      );
+      if (isDuplicate) {
+        this.snackBar.open(
+          this.languageService.translateWithParams(
+            'taskCreate.error.fileAlreadyAdded',
+            { fileName: file.name }
+          ),
+          this.languageService.translate('taskCreate.close'),
+          { duration: 3000 }
+        );
+        return;
+      }
+
       if (file.size > this.MAX_FILE_SIZE) {
         // ✅ 修正: ファイルサイズエラーメッセージを国際化
         this.snackBar.open(
@@ -655,7 +692,8 @@ export class TaskCreatePageComponent implements OnInit, OnDestroy {
       this.maxDueDate = maxDueDate > this.maxDate ? this.maxDate : maxDueDate;
 
       // 終了日が30日を超えている場合は調整
-      if (this.dueDateObj && this.dueDateObj > this.maxDueDate) {
+      // ✅ 修正: maxDueDateがnullの場合のチェックを追加
+      if (this.dueDateObj && this.maxDueDate && this.dueDateObj > this.maxDueDate) {
         this.dueDateObj = new Date(this.maxDueDate);
         this.onDueDateChange();
         this.snackBar.open(
@@ -742,6 +780,24 @@ export class TaskCreatePageComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // ✅ 修正: 日付が有効かどうかのチェックを追加
+    if (this.startDateObj && isNaN(this.startDateObj.getTime())) {
+      this.snackBar.open(
+        this.languageService.translate('taskCreate.error.invalidStartDate'),
+        this.languageService.translate('taskCreate.close'),
+        { duration: 3000 }
+      );
+      return;
+    }
+    if (this.dueDateObj && isNaN(this.dueDateObj.getTime())) {
+      this.snackBar.open(
+        this.languageService.translate('taskCreate.error.invalidDueDate'),
+        this.languageService.translate('taskCreate.close'),
+        { duration: 3000 }
+      );
+      return;
+    }
+
     // 開始日と終了日の逆転チェック
     if (this.startDateObj && this.dueDateObj) {
       if (this.startDateObj > this.dueDateObj) {
@@ -802,11 +858,12 @@ export class TaskCreatePageComponent implements OnInit, OnDestroy {
         );
         const maxChildTasks = 5;
         if (childTaskCount >= maxChildTasks) {
-          const message = this.languageService
-            .translate('taskCreate.error.maxChildTasks')
-            .replace('{{count}}', maxChildTasks.toString());
+          // ✅ 修正: translateWithParams()を使用して国際化対応
           this.snackBar.open(
-            message,
+            this.languageService.translateWithParams(
+              'taskCreate.error.maxChildTasks',
+              { count: maxChildTasks.toString() }
+            ),
             this.languageService.translate('taskCreate.close'),
             { duration: 5000 }
           );
@@ -819,11 +876,12 @@ export class TaskCreatePageComponent implements OnInit, OnDestroy {
         );
         const maxParentTasks = 10;
         if (parentTaskCount >= maxParentTasks) {
-          const message = this.languageService
-            .translate('taskCreate.error.maxParentTasks')
-            .replace('{{count}}', maxParentTasks.toString());
+          // ✅ 修正: translateWithParams()を使用して国際化対応
           this.snackBar.open(
-            message,
+            this.languageService.translateWithParams(
+              'taskCreate.error.maxParentTasks',
+              { count: maxParentTasks.toString() }
+            ),
             this.languageService.translate('taskCreate.close'),
             { duration: 5000 }
           );
@@ -838,6 +896,16 @@ export class TaskCreatePageComponent implements OnInit, OnDestroy {
         {
           duration: 3000,
         }
+      );
+      return;
+    }
+
+    // ✅ 修正: 子タスク作成時にparentTaskIdの存在チェックを追加
+    if (isSubtask && !this.parentTaskId) {
+      this.snackBar.open(
+        this.languageService.translate('taskCreate.error.parentTaskIdRequired'),
+        this.languageService.translate('taskCreate.close'),
+        { duration: 5000 }
       );
       return;
     }
@@ -1265,11 +1333,14 @@ export class TaskCreatePageComponent implements OnInit, OnDestroy {
 
     // アップロードが完了したファイルをpendingFilesから削除
     // アップロードに失敗したファイルは残す（ユーザーに再試行の機会を与える）
+    // ✅ 修正: ファイル名とサイズで比較（uploadedFile.idが存在しない可能性があるため）
     const beforeFilterCount = this.pendingFiles.length;
+    const uploadedFileNames = new Set(
+      uploaded.map((att) => att.name || att.fileName || '').filter(Boolean)
+    );
     this.pendingFiles = this.pendingFiles.filter((pending) => {
-      return !filesToUpload.some(
-        (uploadedFile) => uploadedFile.id === pending.id
-      );
+      // アップロード成功したファイル名と一致しない場合は残す
+      return !uploadedFileNames.has(pending.file.name);
     });
     console.log('[uploadPendingFiles] pendingFiles更新:', {
       beforeCount: beforeFilterCount,
@@ -1281,10 +1352,17 @@ export class TaskCreatePageComponent implements OnInit, OnDestroy {
   }
 
   cancel() {
+    // ✅ 修正: 状態をリセットしてから戻る
+    this.isSaving = false;
+    this.isUploading = false;
     this.goBack();
   }
 
   goBack() {
+    // ✅ 修正: 状態をリセット
+    this.isSaving = false;
+    this.isUploading = false;
+    
     if (!this.projectId) {
       // プロジェクトIDがない場合は、カンバンに戻る
       this.router.navigate(['/kanban']);

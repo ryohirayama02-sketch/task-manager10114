@@ -1912,6 +1912,10 @@ export class LanguageService {
       ja: 'ファイル情報の更新に失敗しましたが、タスクは作成されました',
       en: 'Failed to update file information, but the task was created',
     },
+    'taskCreate.error.fileAlreadyAdded': {
+      ja: '{{fileName}} は既に追加されています',
+      en: '{{fileName}} has already been added',
+    },
     'taskCreate.error.calendarSyncFailed': {
       ja: 'カレンダー連携に失敗しました: {{error}}',
       en: 'Calendar sync failed: {{error}}',
@@ -1919,6 +1923,22 @@ export class LanguageService {
     'taskCreate.error.taskIdNotReturned': {
       ja: 'タスクIDが取得できませんでした。タスクの作成に失敗した可能性があります。',
       en: 'Task ID could not be retrieved. Task creation may have failed.',
+    },
+    'taskCreate.error.parentTaskIdRequired': {
+      ja: '親タスクIDが設定されていません。子タスクを作成するには親タスクが必要です。',
+      en: 'Parent task ID is not set. A parent task is required to create a child task.',
+    },
+    'taskCreate.error.invalidStartDate': {
+      ja: '開始日が無効です。有効な日付を選択してください。',
+      en: 'Start date is invalid. Please select a valid date.',
+    },
+    'taskCreate.error.invalidDueDate': {
+      ja: '期限日が無効です。有効な日付を選択してください。',
+      en: 'Due date is invalid. Please select a valid date.',
+    },
+    'taskCreate.error.projectIdRequired': {
+      ja: 'プロジェクトIDが設定されていません。タスクを作成するにはプロジェクトが必要です。',
+      en: 'Project ID is not set. A project is required to create a task.',
     },
     'taskCreate.error.parentTaskFetchFailed': {
       ja: '親タスク情報の取得に失敗しました',
