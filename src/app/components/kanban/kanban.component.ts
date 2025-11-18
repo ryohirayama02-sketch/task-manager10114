@@ -22,7 +22,14 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
 import { LanguageService } from '../../services/language.service';
 import { MemberManagementService } from '../../services/member-management.service';
 import { Member } from '../../models/member.model';
-import { Observable, forkJoin, of, firstValueFrom, combineLatest, Subject } from 'rxjs';
+import {
+  Observable,
+  forkJoin,
+  of,
+  firstValueFrom,
+  combineLatest,
+  Subject,
+} from 'rxjs';
 import { map, switchMap, filter, take, takeUntil } from 'rxjs/operators';
 import {
   getMemberNamesAsString,
@@ -57,7 +64,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
   allTasks: Task[] = []; // 全プロジェクトのタスクを保持
   statuses = ['未着手', '作業中', '完了'];
   private tasksByProject: Map<string, Task[]> = new Map<string, Task[]>();
-  
+
   // ✅ 追加: メモリリーク防止用のSubject
   private destroy$ = new Subject<void>();
 
@@ -88,13 +95,16 @@ export class KanbanComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     // メンバー一覧を読み込み
-    this.memberManagementService.getMembers()
+    this.memberManagementService
+      .getMembers()
       .pipe(takeUntil(this.destroy$)) // ✅ 追加: メモリリーク防止
       .subscribe({
         next: (members) => {
           // ✅ 修正: コンポーネントが破棄されていないかチェック
           if (this.destroy$.closed) {
-            console.log('[ngOnInit] コンポーネントが破棄されたため、メンバー処理をスキップします');
+            console.log(
+              '[ngOnInit] コンポーネントが破棄されたため、メンバー処理をスキップします'
+            );
             return;
           }
           // ✅ 修正: membersが配列でない場合の処理を追加
@@ -109,7 +119,9 @@ export class KanbanComponent implements OnInit, OnDestroy {
         error: (error) => {
           // ✅ 修正: コンポーネントが破棄されていないかチェック
           if (this.destroy$.closed) {
-            console.log('[ngOnInit] コンポーネントが破棄されたため、エラー処理をスキップします');
+            console.log(
+              '[ngOnInit] コンポーネントが破棄されたため、エラー処理をスキップします'
+            );
             return;
           }
           console.error('メンバー一覧の読み込みエラー:', error);
@@ -140,7 +152,9 @@ export class KanbanComponent implements OnInit, OnDestroy {
         next: (projects) => {
           // ✅ 修正: コンポーネントが破棄されていないかチェック
           if (this.destroy$.closed) {
-            console.log('[ngOnInit] コンポーネントが破棄されたため、プロジェクト処理をスキップします');
+            console.log(
+              '[ngOnInit] コンポーネントが破棄されたため、プロジェクト処理をスキップします'
+            );
             return;
           }
           console.log('🎯 カンバン用ルーム内全プロジェクト一覧:', projects);
@@ -162,7 +176,9 @@ export class KanbanComponent implements OnInit, OnDestroy {
         error: (error) => {
           // ✅ 修正: コンポーネントが破棄されていないかチェック
           if (this.destroy$.closed) {
-            console.log('[ngOnInit] コンポーネントが破棄されたため、エラー処理をスキップします');
+            console.log(
+              '[ngOnInit] コンポーネントが破棄されたため、エラー処理をスキップします'
+            );
             return;
           }
           console.error('❌ プロジェクト取得エラー（オフライン等）:', error);
@@ -181,7 +197,9 @@ export class KanbanComponent implements OnInit, OnDestroy {
       .subscribe((projectIds: string[]) => {
         // ✅ 修正: コンポーネントが破棄されていないかチェック
         if (this.destroy$.closed) {
-          console.log('[ngOnInit] コンポーネントが破棄されたため、プロジェクト選択処理をスキップします');
+          console.log(
+            '[ngOnInit] コンポーネントが破棄されたため、プロジェクト選択処理をスキップします'
+          );
           return;
         }
         // ✅ 修正: projectIdsが配列でない場合の処理を追加
@@ -204,7 +222,9 @@ export class KanbanComponent implements OnInit, OnDestroy {
   private applyProjectList(projects: IProject[]): void {
     // ✅ 修正: コンポーネントが破棄されていないかチェック
     if (this.destroy$.closed) {
-      console.log('[applyProjectList] コンポーネントが破棄されたため、処理をスキップします');
+      console.log(
+        '[applyProjectList] コンポーネントが破棄されたため、処理をスキップします'
+      );
       return;
     }
     // ✅ 修正: projectsが配列でない場合の処理を追加
@@ -218,12 +238,16 @@ export class KanbanComponent implements OnInit, OnDestroy {
     const storedSelection =
       this.projectSelectionService.getSelectedProjectIdsSync();
     // ✅ 修正: storedSelectionが配列でない場合の処理を追加
-    const validStoredSelection = Array.isArray(storedSelection) ? storedSelection : [];
+    const validStoredSelection = Array.isArray(storedSelection)
+      ? storedSelection
+      : [];
     const availableIds = new Set(
       projects.map((project) => project.id).filter((id): id is string => !!id)
     );
 
-    let nextSelection = validStoredSelection.filter((id) => availableIds.has(id));
+    let nextSelection = validStoredSelection.filter((id) =>
+      availableIds.has(id)
+    );
 
     // 初回起動時（ストレージに保存がない場合）のみ、すべてのプロジェクトを選択
     // ユーザーが意図的にすべてのチェックを外した場合は、空配列のまま保持
@@ -268,30 +292,44 @@ export class KanbanComponent implements OnInit, OnDestroy {
           next: (tasks) => {
             // ✅ 修正: コンポーネントが破棄されていないかチェック
             if (this.destroy$.closed) {
-              console.log('[loadAllTasks] コンポーネントが破棄されたため、状態更新をスキップします');
+              console.log(
+                '[loadAllTasks] コンポーネントが破棄されたため、状態更新をスキップします'
+              );
               return;
             }
             // ✅ 修正: tasksが配列でない場合の処理を追加
             if (!Array.isArray(tasks)) {
-              console.error(`プロジェクト ${project.id} のタスクが配列ではありません:`, tasks);
+              console.error(
+                `プロジェクト ${project.id} のタスクが配列ではありません:`,
+                tasks
+              );
               return;
             }
             this.tasksByProject.set(project.id!, tasks);
             this.rebuildAllTasks();
           },
           error: (error) => {
-            console.error(`プロジェクト ${project.id} のタスク読み込みエラー:`, error);
+            console.error(
+              `プロジェクト ${project.id} のタスク読み込みエラー:`,
+              error
+            );
             // ✅ 修正: エラー時もコンポーネントが破棄されていないかチェック
             if (this.destroy$.closed) {
-              console.log('[loadAllTasks] コンポーネントが破棄されたため、エラー処理をスキップします');
+              console.log(
+                '[loadAllTasks] コンポーネントが破棄されたため、エラー処理をスキップします'
+              );
               return;
             }
             // ✅ 修正: ユーザーにエラーメッセージを表示
-            const projectName = project.projectName || project.id || 'プロジェクト';
+            const projectName =
+              project.projectName || project.id || 'プロジェクト';
             this.snackBar.open(
-              this.languageService.translateWithParams('kanban.error.taskLoadFailed', {
-                projectName: projectName,
-              }),
+              this.languageService.translateWithParams(
+                'kanban.error.taskLoadFailed',
+                {
+                  projectName: projectName,
+                }
+              ),
               'Close',
               { duration: 5000 }
             );
@@ -303,7 +341,9 @@ export class KanbanComponent implements OnInit, OnDestroy {
   private rebuildAllTasks(): void {
     // ✅ 修正: コンポーネントが破棄されていないかチェック
     if (this.destroy$.closed) {
-      console.log('[rebuildAllTasks] コンポーネントが破棄されたため、処理をスキップします');
+      console.log(
+        '[rebuildAllTasks] コンポーネントが破棄されたため、処理をスキップします'
+      );
       return;
     }
     const aggregated: Task[] = [];
@@ -321,7 +361,10 @@ export class KanbanComponent implements OnInit, OnDestroy {
       const tasks = this.tasksByProject.get(project.id) || [];
       // ✅ 修正: tasksが配列でない場合の処理を追加
       if (!Array.isArray(tasks)) {
-        console.error(`プロジェクト ${project.id} のタスクが配列ではありません:`, tasks);
+        console.error(
+          `プロジェクト ${project.id} のタスクが配列ではありません:`,
+          tasks
+        );
         return;
       }
       const tasksWithProject = tasks
@@ -352,7 +395,9 @@ export class KanbanComponent implements OnInit, OnDestroy {
   filterTasksBySelectedProjects() {
     // ✅ 修正: コンポーネントが破棄されていないかチェック
     if (this.destroy$.closed) {
-      console.log('[filterTasksBySelectedProjects] コンポーネントが破棄されたため、処理をスキップします');
+      console.log(
+        '[filterTasksBySelectedProjects] コンポーネントが破棄されたため、処理をスキップします'
+      );
       return;
     }
     this.applyFilters();
@@ -415,7 +460,9 @@ export class KanbanComponent implements OnInit, OnDestroy {
           return false;
         }
         // ✅ 修正: task.projectIdがundefinedやnullの場合の処理を追加
-        return task.projectId && this.selectedProjectIds.includes(task.projectId);
+        return (
+          task.projectId && this.selectedProjectIds.includes(task.projectId)
+        );
       });
     } else {
       // プロジェクトが選択されていない場合は空配列
@@ -492,7 +539,9 @@ export class KanbanComponent implements OnInit, OnDestroy {
   resetFilters() {
     // ✅ 修正: コンポーネントが破棄されていないかチェック
     if (this.destroy$.closed) {
-      console.log('[resetFilters] コンポーネントが破棄されたため、処理をスキップします');
+      console.log(
+        '[resetFilters] コンポーネントが破棄されたため、処理をスキップします'
+      );
       return;
     }
     this.filterPriority = [];
@@ -575,7 +624,9 @@ export class KanbanComponent implements OnInit, OnDestroy {
   selectAllProjects() {
     // ✅ 修正: コンポーネントが破棄されていないかチェック
     if (this.destroy$.closed) {
-      console.log('[selectAllProjects] コンポーネントが破棄されたため、処理をスキップします');
+      console.log(
+        '[selectAllProjects] コンポーネントが破棄されたため、処理をスキップします'
+      );
       return;
     }
     // ✅ 修正: projectsが配列でない場合の処理を追加
@@ -595,7 +646,9 @@ export class KanbanComponent implements OnInit, OnDestroy {
   clearProjectSelection() {
     // ✅ 修正: コンポーネントが破棄されていないかチェック
     if (this.destroy$.closed) {
-      console.log('[clearProjectSelection] コンポーネントが破棄されたため、処理をスキップします');
+      console.log(
+        '[clearProjectSelection] コンポーネントが破棄されたため、処理をスキップします'
+      );
       return;
     }
     this.selectedProjectIds = [];
@@ -605,7 +658,9 @@ export class KanbanComponent implements OnInit, OnDestroy {
   private async refreshProjectTasks(projectId: string): Promise<void> {
     // ✅ 修正: コンポーネントが破棄されていないかチェック
     if (this.destroy$.closed) {
-      console.log('[refreshProjectTasks] コンポーネントが破棄されたため、処理をスキップします');
+      console.log(
+        '[refreshProjectTasks] コンポーネントが破棄されたため、処理をスキップします'
+      );
       return;
     }
     // ✅ 修正: projectIdがundefinedやnullの場合の処理を追加
@@ -620,7 +675,9 @@ export class KanbanComponent implements OnInit, OnDestroy {
 
       // ✅ 修正: 非同期処理後にコンポーネントが破棄されていないかチェック
       if (this.destroy$.closed) {
-        console.log('[refreshProjectTasks] コンポーネントが破棄されたため、処理をスキップします');
+        console.log(
+          '[refreshProjectTasks] コンポーネントが破棄されたため、処理をスキップします'
+        );
         return;
       }
 
@@ -634,13 +691,18 @@ export class KanbanComponent implements OnInit, OnDestroy {
 
       // ✅ 修正: 非同期処理後にコンポーネントが破棄されていないかチェック
       if (this.destroy$.closed) {
-        console.log('[refreshProjectTasks] コンポーネントが破棄されたため、状態更新をスキップします');
+        console.log(
+          '[refreshProjectTasks] コンポーネントが破棄されたため、状態更新をスキップします'
+        );
         return;
       }
 
       // ✅ 修正: tasksが配列でない場合の処理を追加
       if (!Array.isArray(tasks)) {
-        console.error(`プロジェクト ${projectId} のタスクが配列ではありません:`, tasks);
+        console.error(
+          `プロジェクト ${projectId} のタスクが配列ではありません:`,
+          tasks
+        );
         return;
       }
 
@@ -652,7 +714,9 @@ export class KanbanComponent implements OnInit, OnDestroy {
       console.error('プロジェクトタスク再取得エラー:', error);
       // ✅ 修正: エラー時もコンポーネントが破棄されていないかチェック
       if (this.destroy$.closed) {
-        console.log('[refreshProjectTasks] コンポーネントが破棄されたため、エラー処理をスキップします');
+        console.log(
+          '[refreshProjectTasks] コンポーネントが破棄されたため、エラー処理をスキップします'
+        );
         return;
       }
     }
@@ -701,7 +765,9 @@ export class KanbanComponent implements OnInit, OnDestroy {
   async changeTaskStatus(taskId: string, newStatus: string) {
     // ✅ 修正: コンポーネントが破棄されていないかチェック
     if (this.destroy$.closed) {
-      console.log('[changeTaskStatus] コンポーネントが破棄されたため、処理をスキップします');
+      console.log(
+        '[changeTaskStatus] コンポーネントが破棄されたため、処理をスキップします'
+      );
       return;
     }
 
@@ -806,14 +872,29 @@ export class KanbanComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // ✅ 修正: 親タスクのステータス更新が必要な場合の情報を保存（ロールバック用）
+    let parentTaskUpdated = false;
+    let parentTaskOldStatus: '未着手' | '作業中' | '完了' | undefined =
+      undefined;
+    let parentTaskForRollback: {
+      id: string;
+      status: '未着手' | '作業中' | '完了';
+      projectId: string;
+      projectName: string;
+    } | null = null;
+
     if (task.parentTaskId && newStatus !== '完了') {
       // ✅ 修正: 非同期処理前にコンポーネントが破棄されていないかチェック
       if (this.destroy$.closed) {
-        console.log('[changeTaskStatus] コンポーネントが破棄されたため、親タスク処理をスキップします');
+        console.log(
+          '[changeTaskStatus] コンポーネントが破棄されたため、親タスク処理をスキップします'
+        );
         this.isChangingStatus = false; // ✅ 修正: フラグをリセット
         return;
       }
-      const parentTask = this.allTasks.find((t) => t && t.id === task.parentTaskId);
+      const parentTask = this.allTasks.find(
+        (t) => t && t.id === task.parentTaskId
+      );
       if (
         parentTask &&
         parentTask.status &&
@@ -837,7 +918,9 @@ export class KanbanComponent implements OnInit, OnDestroy {
             // ✅ 修正: ユーザーにエラーメッセージを表示
             if (!this.destroy$.closed) {
               this.snackBar.open(
-                this.languageService.translate('kanban.error.parentTaskIdNotSet'),
+                this.languageService.translate(
+                  'kanban.error.parentTaskIdNotSet'
+                ),
                 'Close',
                 { duration: 3000 }
               );
@@ -850,7 +933,9 @@ export class KanbanComponent implements OnInit, OnDestroy {
             // ✅ 修正: ユーザーにエラーメッセージを表示
             if (!this.destroy$.closed) {
               this.snackBar.open(
-                this.languageService.translate('kanban.error.parentTaskProjectIdNotSet'),
+                this.languageService.translate(
+                  'kanban.error.parentTaskProjectIdNotSet'
+                ),
                 'Close',
                 { duration: 3000 }
               );
@@ -867,21 +952,41 @@ export class KanbanComponent implements OnInit, OnDestroy {
           );
           // ✅ 修正: 非同期処理後にコンポーネントが破棄されていないかチェック
           if (this.destroy$.closed) {
-            console.log('[changeTaskStatus] コンポーネントが破棄されたため、親タスク状態更新をスキップします');
+            console.log(
+              '[changeTaskStatus] コンポーネントが破棄されたため、親タスク状態更新をスキップします'
+            );
             return;
           }
+          // ✅ 修正: 親タスクのステータス更新情報を保存（ロールバック用）
+          parentTaskOldStatus = parentTask.status as
+            | '未着手'
+            | '作業中'
+            | '完了';
           parentTask.status = '作業中';
+          parentTaskUpdated = true;
+          if (parentTask.id && parentTask.projectId) {
+            parentTaskForRollback = {
+              id: parentTask.id,
+              status: '作業中',
+              projectId: parentTask.projectId,
+              projectName: parentTask.projectName || '',
+            };
+          }
         } catch (error) {
           console.error('親タスクのステータス更新に失敗しました', error);
           // ✅ 修正: エラー時もコンポーネントが破棄されていないかチェック
           if (this.destroy$.closed) {
-            console.log('[changeTaskStatus] コンポーネントが破棄されたため、エラー処理をスキップします');
+            console.log(
+              '[changeTaskStatus] コンポーネントが破棄されたため、エラー処理をスキップします'
+            );
             this.isChangingStatus = false; // ✅ 修正: フラグをリセット
             return;
           }
           // ✅ 修正: ユーザーにエラーメッセージを表示
           this.snackBar.open(
-            this.languageService.translate('kanban.error.parentTaskStatusUpdateFailed'),
+            this.languageService.translate(
+              'kanban.error.parentTaskStatusUpdateFailed'
+            ),
             'Close',
             { duration: 5000 }
           );
@@ -903,7 +1008,9 @@ export class KanbanComponent implements OnInit, OnDestroy {
     ) {
       // ✅ 修正: 非同期処理前にコンポーネントが破棄されていないかチェック
       if (this.destroy$.closed) {
-        console.log('[changeTaskStatus] コンポーネントが破棄されたため、子タスクチェックをスキップします');
+        console.log(
+          '[changeTaskStatus] コンポーネントが破棄されたため、子タスクチェックをスキップします'
+        );
         this.isChangingStatus = false; // ✅ 修正: フラグをリセット
         return;
       }
@@ -914,7 +1021,9 @@ export class KanbanComponent implements OnInit, OnDestroy {
           // ✅ 修正: ユーザーにエラーメッセージを表示
           if (!this.destroy$.closed) {
             this.snackBar.open(
-              this.languageService.translate('kanban.error.taskProjectIdNotSet'),
+              this.languageService.translate(
+                'kanban.error.taskProjectIdNotSet'
+              ),
               'Close',
               { duration: 3000 }
             );
@@ -924,19 +1033,22 @@ export class KanbanComponent implements OnInit, OnDestroy {
         }
         // 最新の子タスクデータを取得
         const allTasks = await firstValueFrom(
-          this.projectService
-            .getTasksByProjectId(task.projectId)
-            .pipe(take(1))
+          this.projectService.getTasksByProjectId(task.projectId).pipe(take(1))
         );
         // ✅ 修正: 非同期処理後にコンポーネントが破棄されていないかチェック
         if (this.destroy$.closed) {
-          console.log('[changeTaskStatus] コンポーネントが破棄されたため、子タスクチェック後の処理をスキップします');
+          console.log(
+            '[changeTaskStatus] コンポーネントが破棄されたため、子タスクチェック後の処理をスキップします'
+          );
           this.isChangingStatus = false; // ✅ 修正: フラグをリセット
           return;
         }
         // ✅ 修正: allTasksが配列でない場合の処理を追加
         if (!Array.isArray(allTasks)) {
-          console.error(`プロジェクト ${task.projectId} のタスクが配列ではありません:`, allTasks);
+          console.error(
+            `プロジェクト ${task.projectId} のタスクが配列ではありません:`,
+            allTasks
+          );
           this.isChangingStatus = false; // ✅ 修正: フラグをリセット
           return;
         }
@@ -980,8 +1092,39 @@ export class KanbanComponent implements OnInit, OnDestroy {
         console.error('子タスクチェックエラー:', error);
         // ✅ 修正: エラー時もコンポーネントが破棄されていないかチェック
         if (this.destroy$.closed) {
-          console.log('[changeTaskStatus] コンポーネントが破棄されたため、エラー処理をスキップします');
+          console.log(
+            '[changeTaskStatus] コンポーネントが破棄されたため、エラー処理をスキップします'
+          );
           return;
+        }
+        // ✅ 修正: 親タスクのステータスをロールバック（子タスクチェックエラー時）
+        if (parentTaskUpdated && parentTaskOldStatus && parentTaskForRollback) {
+          const parentTaskIndex = this.allTasks.findIndex(
+            (t) => t && t.id === parentTaskForRollback!.id
+          );
+          if (parentTaskIndex > -1 && this.allTasks[parentTaskIndex]) {
+            this.allTasks[parentTaskIndex].status = parentTaskOldStatus;
+            this.filterTasksBySelectedProjects();
+          }
+          // ✅ 修正: Firestoreからも親タスクのステータスをロールバック
+          try {
+            await this.taskService.updateTaskStatus(
+              parentTaskForRollback.id,
+              parentTaskOldStatus,
+              '作業中',
+              parentTaskForRollback.projectId,
+              parentTaskForRollback.projectName
+            );
+          } catch (rollbackError) {
+            console.error(
+              '親タスクのステータスロールバックに失敗しました:',
+              rollbackError
+            );
+            // ロールバックに失敗した場合は、該当プロジェクトのタスクを再読み込み
+            if (parentTaskForRollback.projectId) {
+              this.refreshProjectTasks(parentTaskForRollback.projectId);
+            }
+          }
         }
         // ✅ 修正: ユーザーにエラーメッセージを表示
         this.snackBar.open(
@@ -990,6 +1133,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
           { duration: 5000 }
         );
         // エラー時は処理を中断
+        this.isChangingStatus = false; // ✅ 修正: フラグをリセット
         return;
       }
     }
@@ -1005,10 +1149,13 @@ export class KanbanComponent implements OnInit, OnDestroy {
             'Close',
             { duration: 3000 }
           );
-          }
-          this.isChangingStatus = false; // ✅ 修正: フラグをリセット
-          return;
         }
+        this.isChangingStatus = false; // ✅ 修正: フラグをリセット
+        return;
+      }
+      // ✅ 修正: すべてのバリデーションチェックが完了したので、ステータス変更処理開始
+      this.isChangingStatus = true;
+
       // ✅ 修正: 楽観的UI更新（即座にUIを更新してから非同期処理を実行）
       const taskIndex = this.allTasks.findIndex((t) => t && t.id === taskId);
       if (taskIndex > -1 && this.allTasks[taskIndex]) {
@@ -1031,7 +1178,9 @@ export class KanbanComponent implements OnInit, OnDestroy {
 
       // ✅ 修正: 非同期処理後にコンポーネントが破棄されていないかチェック
       if (this.destroy$.closed) {
-        console.log('[changeTaskStatus] コンポーネントが破棄されたため、状態更新をスキップします');
+        console.log(
+          '[changeTaskStatus] コンポーネントが破棄されたため、状態更新をスキップします'
+        );
         return;
       }
 
@@ -1040,7 +1189,10 @@ export class KanbanComponent implements OnInit, OnDestroy {
       // エラーが発生した場合は、ローカルのタスクを再読み込みして整合性を保つ
       // （楽観的更新が失敗した場合のフォールバック）
       if (taskIndex === -1 || !this.allTasks[taskIndex]) {
-        console.warn('ローカルのタスクが見つかりませんでした。タスク一覧を再読み込みします:', taskId);
+        console.warn(
+          'ローカルのタスクが見つかりませんでした。タスク一覧を再読み込みします:',
+          taskId
+        );
         // タスクが見つからない場合は、該当プロジェクトのタスクを再読み込み
         if (task.projectId) {
           this.refreshProjectTasks(task.projectId);
@@ -1050,7 +1202,9 @@ export class KanbanComponent implements OnInit, OnDestroy {
       console.error('❌ ステータス更新エラー:', error);
       // ✅ 修正: エラー時もコンポーネントが破棄されていないかチェック
       if (this.destroy$.closed) {
-        console.log('[changeTaskStatus] コンポーネントが破棄されたため、エラー処理をスキップします');
+        console.log(
+          '[changeTaskStatus] コンポーネントが破棄されたため、エラー処理をスキップします'
+        );
         return;
       }
       // ✅ 修正: 楽観的更新をロールバック（エラーが発生した場合）
@@ -1062,6 +1216,35 @@ export class KanbanComponent implements OnInit, OnDestroy {
           | '作業中'
           | '完了';
         this.filterTasksBySelectedProjects();
+      }
+      // ✅ 修正: 親タスクのステータスもロールバック（子タスクのステータス更新が失敗した場合）
+      if (parentTaskUpdated && parentTaskOldStatus && parentTaskForRollback) {
+        const parentTaskIndex = this.allTasks.findIndex(
+          (t) => t && t.id === parentTaskForRollback.id
+        );
+        if (parentTaskIndex > -1 && this.allTasks[parentTaskIndex]) {
+          this.allTasks[parentTaskIndex].status = parentTaskOldStatus;
+          this.filterTasksBySelectedProjects();
+        }
+        // ✅ 修正: Firestoreからも親タスクのステータスをロールバック
+        try {
+          await this.taskService.updateTaskStatus(
+            parentTaskForRollback.id,
+            parentTaskOldStatus,
+            '作業中',
+            parentTaskForRollback.projectId,
+            parentTaskForRollback.projectName
+          );
+        } catch (rollbackError) {
+          console.error(
+            '親タスクのステータスロールバックに失敗しました:',
+            rollbackError
+          );
+          // ロールバックに失敗した場合は、該当プロジェクトのタスクを再読み込み
+          if (parentTaskForRollback.projectId) {
+            this.refreshProjectTasks(parentTaskForRollback.projectId);
+          }
+        }
       }
       // ✅ 修正: ユーザーにエラーメッセージを表示
       this.snackBar.open(
@@ -1079,7 +1262,9 @@ export class KanbanComponent implements OnInit, OnDestroy {
   openProjectDialog() {
     // ✅ 修正: コンポーネントが破棄されていないかチェック
     if (this.destroy$.closed) {
-      console.log('[openProjectDialog] コンポーネントが破棄されたため、ナビゲーションをスキップします');
+      console.log(
+        '[openProjectDialog] コンポーネントが破棄されたため、ナビゲーションをスキップします'
+      );
       return;
     }
     this.router.navigate(['/project-form'], {
@@ -1091,7 +1276,9 @@ export class KanbanComponent implements OnInit, OnDestroy {
   openTaskDetail(task: Task) {
     // ✅ 修正: コンポーネントが破棄されていないかチェック
     if (this.destroy$.closed) {
-      console.log('[openTaskDetail] コンポーネントが破棄されたため、ナビゲーションをスキップします');
+      console.log(
+        '[openTaskDetail] コンポーネントが破棄されたため、ナビゲーションをスキップします'
+      );
       return;
     }
     // ✅ 修正: taskがundefinedやnullの場合の処理を追加
