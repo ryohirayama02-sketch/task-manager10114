@@ -125,13 +125,21 @@ export class CalendarComponent implements OnInit, OnDestroy {
   }
 
   /** 優先度の値を取得（日本語キーを返す） */
-  getPriorityValue(key: 'high' | 'medium' | 'low'): string {
+  getPriorityValue(key: string | null | undefined): string {
+    // ✅ 修正: keyがnull/undefinedの場合のチェックを追加
+    if (!key) {
+      return '中'; // デフォルト値
+    }
     const priorityMap: Record<string, string> = {
       high: '高',
       medium: '中',
       low: '低',
+      // 日本語キーもサポート（後方互換性のため）
+      高: '高',
+      中: '中',
+      低: '低',
     };
-    return priorityMap[key] || key;
+    return priorityMap[key] || '中'; // デフォルト値を返す
   }
 
   // マイルストーン
@@ -187,6 +195,8 @@ export class CalendarComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    // ✅ 修正: ツールチップのイベントリスナーを削除
+    this.removeTooltipClickOutsideListener();
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -471,23 +481,38 @@ export class CalendarComponent implements OnInit, OnDestroy {
       return;
     }
 
-    let filteredTasks = this.selectedProjectIds.length
+    // ✅ 修正: selectedProjectIdsが配列でない場合の処理を追加
+    const validSelectedProjectIds = Array.isArray(this.selectedProjectIds)
+      ? this.selectedProjectIds
+      : [];
+    // ✅ 修正: filterPriority, filterAssignee, filterStatusが配列でない場合の処理を追加
+    const validFilterPriority = Array.isArray(this.filterPriority)
+      ? this.filterPriority
+      : [];
+    const validFilterAssignee = Array.isArray(this.filterAssignee)
+      ? this.filterAssignee
+      : [];
+    const validFilterStatus = Array.isArray(this.filterStatus)
+      ? this.filterStatus
+      : [];
+
+    let filteredTasks = validSelectedProjectIds.length
       ? this.allTasks.filter(
           (task) =>
             task &&
             task.projectId &&
-            this.selectedProjectIds.includes(task.projectId)
+            validSelectedProjectIds.includes(task.projectId)
         )
       : [];
 
-    if (this.filterPriority.length > 0) {
+    if (validFilterPriority.length > 0) {
       filteredTasks = filteredTasks.filter(
         (task) =>
-          task && task.priority && this.filterPriority.includes(task.priority)
+          task && task.priority && validFilterPriority.includes(task.priority)
       );
     }
     // 担当者フィルター（assignedMembers（メンバーID配列）から取得）
-    if (this.filterAssignee.length > 0) {
+    if (validFilterAssignee.length > 0) {
       filteredTasks = filteredTasks.filter((task) => {
         // ✅ 修正: taskがnull/undefinedの場合のチェックを追加
         if (!task) {
@@ -517,13 +542,13 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
         // フィルター値とマッチするか確認（いずれかの担当者がフィルターに含まれていればOK）
         return assignees.some(
-          (assignee) => assignee && this.filterAssignee.includes(assignee)
+          (assignee) => assignee && validFilterAssignee.includes(assignee)
         );
       });
     }
-    if (this.filterStatus.length > 0) {
+    if (validFilterStatus.length > 0) {
       filteredTasks = filteredTasks.filter(
-        (task) => task && task.status && this.filterStatus.includes(task.status)
+        (task) => task && task.status && validFilterStatus.includes(task.status)
       );
     }
 
@@ -613,6 +638,11 @@ export class CalendarComponent implements OnInit, OnDestroy {
     if (!date || isNaN(date.getTime())) {
       return [];
     }
+    // ✅ 修正: tasksが配列でない場合の処理を追加
+    if (!Array.isArray(this.tasks)) {
+      console.error('tasksが配列ではありません:', this.tasks);
+      return [];
+    }
     return this.tasks.filter((task) => {
       // 期限日でフィルタリング
       if (!task || !task.dueDate) return false;
@@ -625,8 +655,16 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
       // dueDateが文字列形式（YYYY-MM-DD）の場合
       if (typeof task.dueDate === 'string') {
+        // ✅ 修正: 空文字列や無効な形式の場合のチェックを追加
+        if (!task.dueDate || task.dueDate.trim().length === 0) {
+          return false;
+        }
         // 時刻部分を除去
         const dueDateStr = task.dueDate.split('T')[0];
+        // ✅ 修正: 分割後の文字列が有効かチェック
+        if (!dueDateStr || dueDateStr.length !== 10) {
+          return false;
+        }
         return dueDateStr === dateStr;
       }
 
@@ -652,8 +690,15 @@ export class CalendarComponent implements OnInit, OnDestroy {
       return [];
     }
     const allTasks = this.getTasksForDate(date);
+    // ✅ 修正: allTasksが配列でない場合の処理を追加
+    if (!Array.isArray(allTasks)) {
+      console.error('allTasksが配列ではありません:', allTasks);
+      return [];
+    }
+    // ✅ 修正: null/undefinedのタスクをフィルタリング
+    const validTasks = allTasks.filter((task) => task != null);
     const maxTasks = this.getMaxTasksForViewMode();
-    return allTasks.slice(0, maxTasks);
+    return validTasks.slice(0, maxTasks);
   }
 
   /** 指定された日付の残りのタスク数を取得 */
@@ -674,6 +719,11 @@ export class CalendarComponent implements OnInit, OnDestroy {
       return false;
     }
     const today = new Date();
+    // ✅ 修正: todayが無効な日付の場合のチェックを追加
+    if (isNaN(today.getTime())) {
+      console.error('今日の日付が無効です');
+      return false;
+    }
     // ローカルタイムゾーンで日付を比較
     return (
       date.getFullYear() === today.getFullYear() &&
@@ -774,7 +824,12 @@ export class CalendarComponent implements OnInit, OnDestroy {
   }
 
   /** 表示モードを変更 */
-  changeViewMode(mode: 'day' | 'week' | 'month') {
+  changeViewMode(mode: 'day' | 'week' | 'month' | null | undefined) {
+    // ✅ 修正: modeがnull/undefinedの場合のチェックを追加
+    if (!mode || (mode !== 'day' && mode !== 'week' && mode !== 'month')) {
+      console.error('無効な表示モード:', mode);
+      return;
+    }
     this.viewMode = mode;
     // ✅ 修正: selectedDateが無効な日付の場合のチェックを追加
     if (this.selectedDate && !isNaN(this.selectedDate.getTime())) {
@@ -963,19 +1018,46 @@ export class CalendarComponent implements OnInit, OnDestroy {
     if (!date || isNaN(date.getTime())) {
       return [];
     }
+    // ✅ 修正: allMilestonesが配列でない場合の処理を追加
+    if (!Array.isArray(this.allMilestones)) {
+      console.error('allMilestonesが配列ではありません:', this.allMilestones);
+      return [];
+    }
     // ローカルタイムゾーンで日付文字列を生成（YYYY-MM-DD形式）
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     const dateStr = `${year}-${month}-${day}`;
-    return this.allMilestones.filter((milestone) => milestone.date === dateStr);
+    return this.allMilestones.filter(
+      (milestone) => milestone && milestone.date === dateStr
+    );
   }
 
   /** マイルストーンツールチップを表示 */
   showMilestoneTooltip(event: MouseEvent, milestones: any[]) {
-    if (!milestones || milestones.length === 0) {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
       return;
     }
+    // ✅ 修正: milestonesが配列でない場合の処理を追加
+    if (!Array.isArray(milestones) || milestones.length === 0) {
+      return;
+    }
+    // ✅ 修正: eventがnull/undefinedの場合のチェックを追加
+    if (!event) {
+      console.error('MouseEventが指定されていません');
+      return;
+    }
+    // ✅ 修正: event.clientX/clientYが無効な値の場合のチェックを追加
+    const clientX =
+      typeof event.clientX === 'number' && !isNaN(event.clientX)
+        ? event.clientX
+        : 0;
+    const clientY =
+      typeof event.clientY === 'number' && !isNaN(event.clientY)
+        ? event.clientY
+        : 0;
+
     // 既に表示されている場合は一旦閉じる（新しい位置で表示するため）
     if (this.tooltipVisible) {
       this.tooltipVisible = false;
@@ -987,35 +1069,46 @@ export class CalendarComponent implements OnInit, OnDestroy {
     const padding = 10;
     const margin = 10;
 
-    let x = event.clientX + margin;
-    let y = event.clientY - margin;
+    let x = clientX + margin;
+    let y = clientY - margin;
 
     // ウィンドウの境界を取得
-    const windowWidth = window.innerWidth;
-    const windowHeight = window.innerHeight;
+    const windowWidth = window.innerWidth || 0;
+    const windowHeight = window.innerHeight || 0;
 
-    // 右側にはみ出る場合は左側に表示
-    if (x + tooltipWidth > windowWidth - padding) {
-      x = event.clientX - tooltipWidth - margin;
-    }
-
-    // 左側にはみ出る場合は右側に表示（最小限のマージンを確保）
-    if (x < padding) {
+    // ✅ 修正: ウィンドウサイズが無効な場合のチェックを追加
+    if (windowWidth <= 0 || windowHeight <= 0) {
+      console.warn('ウィンドウサイズが無効です:', {
+        windowWidth,
+        windowHeight,
+      });
+      // デフォルト位置を使用
       x = padding;
-    }
+      y = padding;
+    } else {
+      // 右側にはみ出る場合は左側に表示
+      if (x + tooltipWidth > windowWidth - padding) {
+        x = clientX - tooltipWidth - margin;
+      }
 
-    // 高さは後で調整するため、まずは上方向に配置
-    // マイルストーンの数から高さを推定（1項目あたり約60px、ヘッダー約40px）
-    const estimatedHeight = 40 + milestones.length * 60;
+      // 左側にはみ出る場合は右側に表示（最小限のマージンを確保）
+      if (x < padding) {
+        x = padding;
+      }
 
-    // 下側にはみ出る場合は上側に表示
-    if (y + estimatedHeight > windowHeight - padding) {
-      y = event.clientY - estimatedHeight - margin;
-    }
+      // 高さは後で調整するため、まずは上方向に配置
+      // マイルストーンの数から高さを推定（1項目あたり約60px、ヘッダー約40px）
+      const estimatedHeight = 40 + milestones.length * 60;
 
-    // 上側にはみ出る場合は下側に表示
-    if (y < padding) {
-      y = event.clientY + margin;
+      // 下側にはみ出る場合は上側に表示
+      if (y + estimatedHeight > windowHeight - padding) {
+        y = clientY - estimatedHeight - margin;
+      }
+
+      // 上側にはみ出る場合は下側に表示
+      if (y < padding) {
+        y = clientY + margin;
+      }
     }
 
     this.tooltipPosition = { x, y };
@@ -1023,29 +1116,66 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
     // DOMが更新された後に実際のサイズで再調整
     setTimeout(() => {
-      this.adjustTooltipPosition(event);
+      // ✅ 修正: コンポーネントが破棄されていないかチェック
+      if (!this.destroy$.closed) {
+        this.adjustTooltipPosition(event);
+      }
     }, 0);
   }
 
   /** ツールチップの位置を実際のサイズに基づいて調整 */
   adjustTooltipPosition(event: MouseEvent) {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
     if (!this.tooltipElement?.nativeElement) {
+      return;
+    }
+    // ✅ 修正: eventがnull/undefinedの場合のチェックを追加
+    if (!event) {
+      console.error('MouseEventが指定されていません');
       return;
     }
 
     const tooltip = this.tooltipElement.nativeElement;
     const tooltipRect = tooltip.getBoundingClientRect();
-    const windowWidth = window.innerWidth;
-    const windowHeight = window.innerHeight;
+    const windowWidth = window.innerWidth || 0;
+    const windowHeight = window.innerHeight || 0;
     const padding = 10;
     const margin = 10;
+
+    // ✅ 修正: ウィンドウサイズが無効な場合のチェックを追加
+    if (windowWidth <= 0 || windowHeight <= 0) {
+      console.warn('ウィンドウサイズが無効です:', {
+        windowWidth,
+        windowHeight,
+      });
+      return;
+    }
+
+    // ✅ 修正: tooltipRectが無効な場合のチェックを追加
+    if (!tooltipRect || tooltipRect.width <= 0 || tooltipRect.height <= 0) {
+      console.warn('ツールチップのサイズが無効です:', tooltipRect);
+      return;
+    }
+
+    // ✅ 修正: event.clientX/clientYが無効な値の場合のチェックを追加
+    const clientX =
+      typeof event.clientX === 'number' && !isNaN(event.clientX)
+        ? event.clientX
+        : 0;
+    const clientY =
+      typeof event.clientY === 'number' && !isNaN(event.clientY)
+        ? event.clientY
+        : 0;
 
     let x = this.tooltipPosition.x;
     let y = this.tooltipPosition.y;
 
     // 右側にはみ出る場合は左側に表示
     if (tooltipRect.right > windowWidth - padding) {
-      x = event.clientX - tooltipRect.width - margin;
+      x = clientX - tooltipRect.width - margin;
     }
 
     // 左側にはみ出る場合は右側に表示
@@ -1055,12 +1185,12 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
     // 下側にはみ出る場合は上側に表示
     if (tooltipRect.bottom > windowHeight - padding) {
-      y = event.clientY - tooltipRect.height - margin;
+      y = clientY - tooltipRect.height - margin;
     }
 
     // 上側にはみ出る場合は下側に表示
     if (tooltipRect.top < padding) {
-      y = event.clientY + margin;
+      y = clientY + margin;
     }
 
     // 最終的な境界チェック（確実に画面内に収める）
@@ -1322,7 +1452,11 @@ export class CalendarComponent implements OnInit, OnDestroy {
   }
 
   /** ステータスを表示（言語設定に応じて） */
-  getStatusDisplay(status: string): string {
+  getStatusDisplay(status: string | null | undefined): string {
+    // ✅ 修正: statusがnull/undefinedの場合のチェックを追加
+    if (!status) {
+      return '未着手'; // デフォルト値
+    }
     const currentLanguage = this.languageService.getCurrentLanguage();
     const statusMap: Record<string, Record<'ja' | 'en', string>> = {
       未着手: { ja: '未着手', en: 'Not Started' },
@@ -1336,7 +1470,11 @@ export class CalendarComponent implements OnInit, OnDestroy {
   }
 
   /** 優先度を表示（言語設定に応じて） */
-  getPriorityDisplay(priority: string): string {
+  getPriorityDisplay(priority: string | null | undefined): string {
+    // ✅ 修正: priorityがnull/undefinedの場合のチェックを追加
+    if (!priority) {
+      return '中'; // デフォルト値
+    }
     const currentLanguage = this.languageService.getCurrentLanguage();
     const priorityMap: Record<string, Record<'ja' | 'en', string>> = {
       高: { ja: '高', en: 'High' },
@@ -1383,7 +1521,11 @@ export class CalendarComponent implements OnInit, OnDestroy {
   }
 
   /** 表示モードのラベルを取得（言語設定に応じて） */
-  getViewModeLabel(mode: 'day' | 'week' | 'month'): string {
+  getViewModeLabel(mode: 'day' | 'week' | 'month' | null | undefined): string {
+    // ✅ 修正: modeがnull/undefinedの場合のチェックを追加
+    if (!mode || (mode !== 'day' && mode !== 'week' && mode !== 'month')) {
+      return '月'; // デフォルト値
+    }
     const currentLanguage = this.languageService.getCurrentLanguage();
     const labelMap: Record<string, Record<'ja' | 'en', string>> = {
       day: { ja: '日', en: 'Day' },
@@ -1395,11 +1537,14 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
   /** 残りのタスク数の表示テキストを取得（言語設定に応じて） */
   getRemainingTasksText(count: number): string {
+    // ✅ 修正: countが無効な値（負の値やNaN）の場合のチェックを追加
+    const validCount =
+      typeof count === 'number' && !isNaN(count) && count >= 0 ? count : 0;
     const currentLanguage = this.languageService.getCurrentLanguage();
     if (currentLanguage === 'en') {
-      return `+${count} more`;
+      return `+${validCount} more`;
     }
-    return `他${count}件`;
+    return `他${validCount}件`;
   }
 
   /** タスクのツールチップテキストを取得 */
