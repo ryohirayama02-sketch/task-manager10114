@@ -94,6 +94,12 @@ export class KanbanComponent implements OnInit, OnDestroy {
             console.log('[ngOnInit] コンポーネントが破棄されたため、メンバー処理をスキップします');
             return;
           }
+          // ✅ 修正: membersが配列でない場合の処理を追加
+          if (!Array.isArray(members)) {
+            console.error('メンバー一覧が配列ではありません:', members);
+            this.members = [];
+            return;
+          }
           this.members = members;
           console.log('メンバー一覧を読み込みました:', members.length, '件');
         },
@@ -185,15 +191,23 @@ export class KanbanComponent implements OnInit, OnDestroy {
       console.log('[applyProjectList] コンポーネントが破棄されたため、処理をスキップします');
       return;
     }
+    // ✅ 修正: projectsが配列でない場合の処理を追加
+    if (!Array.isArray(projects)) {
+      console.error('projectsが配列ではありません:', projects);
+      this.projects = [];
+      return;
+    }
     this.projects = projects;
 
     const storedSelection =
       this.projectSelectionService.getSelectedProjectIdsSync();
+    // ✅ 修正: storedSelectionが配列でない場合の処理を追加
+    const validStoredSelection = Array.isArray(storedSelection) ? storedSelection : [];
     const availableIds = new Set(
       projects.map((project) => project.id).filter((id): id is string => !!id)
     );
 
-    let nextSelection = storedSelection.filter((id) => availableIds.has(id));
+    let nextSelection = validStoredSelection.filter((id) => availableIds.has(id));
 
     // 初回起動時（ストレージに保存がない場合）のみ、すべてのプロジェクトを選択
     // ユーザーが意図的にすべてのチェックを外した場合は、空配列のまま保持
@@ -271,11 +285,13 @@ export class KanbanComponent implements OnInit, OnDestroy {
         console.error(`プロジェクト ${project.id} のタスクが配列ではありません:`, tasks);
         return;
       }
-      const tasksWithProject = tasks.map((task) => ({
-        ...task,
-        projectId: task.projectId || project.id!,
-        projectName: task.projectName || project.projectName,
-      }));
+      const tasksWithProject = tasks
+        .filter((task) => task != null) // ✅ 修正: taskがnullやundefinedの場合をフィルタリング
+        .map((task) => ({
+          ...task,
+          projectId: task.projectId || project.id!,
+          projectName: task.projectName || project.projectName,
+        }));
       aggregated.push(...tasksWithProject);
     });
     this.allTasks = aggregated;
@@ -321,6 +337,10 @@ export class KanbanComponent implements OnInit, OnDestroy {
     const maxDate = new Date(currentYear, currentMonth + 4, 0); // 3か月後の月末日
 
     filteredTasks = filteredTasks.filter((task) => {
+      // ✅ 修正: taskがnullやundefinedの場合をフィルタリング
+      if (!task) {
+        return false;
+      }
       // 開始日または終了日が範囲内にあるタスクのみを表示
       const startDate = task.startDate ? new Date(task.startDate) : null;
       const dueDate = task.dueDate ? new Date(task.dueDate) : null;
@@ -345,10 +365,14 @@ export class KanbanComponent implements OnInit, OnDestroy {
 
     // プロジェクトフィルター
     if (this.selectedProjectIds.length > 0) {
-      filteredTasks = filteredTasks.filter((task) =>
+      filteredTasks = filteredTasks.filter((task) => {
+        // ✅ 修正: taskがnullやundefinedの場合をフィルタリング
+        if (!task) {
+          return false;
+        }
         // ✅ 修正: task.projectIdがundefinedやnullの場合の処理を追加
-        task.projectId && this.selectedProjectIds.includes(task.projectId)
-      );
+        return task.projectId && this.selectedProjectIds.includes(task.projectId);
+      });
     } else {
       // プロジェクトが選択されていない場合は空配列
       filteredTasks = [];
@@ -356,15 +380,23 @@ export class KanbanComponent implements OnInit, OnDestroy {
 
     // 優先度フィルター
     if (this.filterPriority.length > 0) {
-      filteredTasks = filteredTasks.filter((task) =>
+      filteredTasks = filteredTasks.filter((task) => {
+        // ✅ 修正: taskがnullやundefinedの場合をフィルタリング
+        if (!task) {
+          return false;
+        }
         // ✅ 修正: task.priorityがundefinedやnullの場合の処理を追加
-        task.priority && this.filterPriority.includes(task.priority)
-      );
+        return task.priority && this.filterPriority.includes(task.priority);
+      });
     }
 
     // 担当者フィルター（assignedMembers（メンバーID配列）から取得）
     if (this.filterAssignee.length > 0) {
       filteredTasks = filteredTasks.filter((task) => {
+        // ✅ 修正: taskがnullやundefinedの場合をフィルタリング
+        if (!task) {
+          return false;
+        }
         const assignees: string[] = [];
 
         // assignedMembers から取得（メンバーIDをメンバー名に変換）
@@ -379,7 +411,10 @@ export class KanbanComponent implements OnInit, OnDestroy {
             task.assignedMembers,
             this.members
           );
-          assignees.push(...memberNames);
+          // ✅ 修正: memberNamesが配列でない場合の処理を追加
+          if (Array.isArray(memberNames)) {
+            assignees.push(...memberNames);
+          }
         }
 
         // 担当者がいない場合はフィルターにマッチしない
@@ -516,6 +551,12 @@ export class KanbanComponent implements OnInit, OnDestroy {
         return;
       }
 
+      // ✅ 修正: tasksが配列でない場合の処理を追加
+      if (!Array.isArray(tasks)) {
+        console.error(`プロジェクト ${projectId} のタスクが配列ではありません:`, tasks);
+        return;
+      }
+
       this.tasksByProject.set(projectId, tasks);
 
       this.rebuildAllTasks();
@@ -597,6 +638,11 @@ export class KanbanComponent implements OnInit, OnDestroy {
 
     // 古いステータスを保存
     const oldStatus = task.status;
+    // ✅ 修正: oldStatusがundefinedやnullの場合の処理を追加
+    if (!oldStatus) {
+      console.error('タスクのステータスが指定されていません:', taskId);
+      return;
+    }
 
     if (task.parentTaskId && newStatus !== '完了') {
       // ✅ 修正: 非同期処理前にコンポーネントが破棄されていないかチェック
@@ -607,6 +653,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
       const parentTask = this.allTasks.find((t) => t.id === task.parentTaskId);
       if (
         parentTask &&
+        parentTask.status &&
         parentTask.status === '完了' &&
         parentTask.detailSettings?.taskOrder?.requireSubtaskCompletion
       ) {
@@ -685,11 +732,21 @@ export class KanbanComponent implements OnInit, OnDestroy {
           console.log('[changeTaskStatus] コンポーネントが破棄されたため、子タスクチェック後の処理をスキップします');
           return;
         }
+        // ✅ 修正: allTasksが配列でない場合の処理を追加
+        if (!Array.isArray(allTasks)) {
+          console.error(`プロジェクト ${task.projectId} のタスクが配列ではありません:`, allTasks);
+          return;
+        }
+        // ✅ 修正: task.idがundefinedやnullの場合の処理を追加
+        if (!task.id) {
+          console.error('タスクのIDが指定されていません:', taskId);
+          return;
+        }
         const latestChildTasks = allTasks.filter(
-          (child) => child.parentTaskId === task.id
+          (child) => child && child.parentTaskId === task.id
         );
         const incompleteChild = latestChildTasks.find(
-          (child) => child.status !== '完了'
+          (child) => child && child.status !== '完了'
         );
 
         if (incompleteChild) {
@@ -769,6 +826,11 @@ export class KanbanComponent implements OnInit, OnDestroy {
 
   /** ＋プロジェクト：ダイアログを開く */
   openProjectDialog() {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      console.log('[openProjectDialog] コンポーネントが破棄されたため、ナビゲーションをスキップします');
+      return;
+    }
     this.router.navigate(['/project-form'], {
       state: { returnUrl: this.router.url },
     });
@@ -840,6 +902,10 @@ export class KanbanComponent implements OnInit, OnDestroy {
 
   /** タスクの担当者を表示（カンマ区切り対応） */
   getTaskAssigneeDisplay(task: Task): string {
+    // ✅ 修正: taskがundefinedやnullの場合の処理を追加
+    if (!task) {
+      return '—';
+    }
     // ✅ 修正: membersがundefinedやnullの場合の処理を追加
     if (!this.members || this.members.length === 0) {
       // membersが読み込まれていない場合は、assigneeをそのまま表示
