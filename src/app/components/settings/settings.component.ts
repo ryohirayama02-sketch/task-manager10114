@@ -150,7 +150,15 @@ export class SettingsComponent implements OnInit, OnDestroy {
     // デフォルト設定を初期化
     this.notificationSettings =
       this.notificationService.createDefaultNotificationSettings();
-    this.selectedLanguage = this.languageService.getCurrentLanguage();
+    // ✅ 修正: getCurrentLanguage()の戻り値の検証
+    const currentLanguage = this.languageService.getCurrentLanguage();
+    const validLanguages: SupportedLanguage[] = ['ja', 'en'];
+    if (currentLanguage && validLanguages.includes(currentLanguage)) {
+      this.selectedLanguage = currentLanguage;
+    } else {
+      console.warn('無効な言語設定値が検出されました。デフォルト値を使用します:', currentLanguage);
+      this.selectedLanguage = 'ja'; // デフォルト値
+    }
     await this.loadNotificationSettings();
     await this.loadHomeScreenSettings();
     await this.loadRoomInfo();
