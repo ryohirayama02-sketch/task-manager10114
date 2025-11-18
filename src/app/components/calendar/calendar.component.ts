@@ -450,9 +450,13 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
   /** 指定された日付のタスクを取得（期限ベース） */
   getTasksForDate(date: Date): Task[] {
+    // ✅ 修正: 無効な日付のチェックを追加
+    if (!date || isNaN(date.getTime())) {
+      return [];
+    }
     return this.tasks.filter((task) => {
       // 期限日でフィルタリング
-      if (!task.dueDate) return false;
+      if (!task || !task.dueDate) return false;
 
       // ローカルタイムゾーンで日付文字列を生成（YYYY-MM-DD形式）
       const dateYear = date.getFullYear();
@@ -469,6 +473,10 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
       // dueDateがDateオブジェクトの場合
       const dueDate = new Date(task.dueDate);
+      // ✅ 修正: 無効な日付のチェックを追加
+      if (isNaN(dueDate.getTime())) {
+        return false;
+      }
       const dueYear = dueDate.getFullYear();
       const dueMonth = String(dueDate.getMonth() + 1).padStart(2, '0');
       const dueDay = String(dueDate.getDate()).padStart(2, '0');
@@ -480,6 +488,10 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
   /** 指定された日付のタスクの表示用リストを取得（最大件数制限付き） */
   getDisplayTasksForDate(date: Date): Task[] {
+    // ✅ 修正: 無効な日付のチェックを追加
+    if (!date || isNaN(date.getTime())) {
+      return [];
+    }
     const allTasks = this.getTasksForDate(date);
     const maxTasks = this.getMaxTasksForViewMode();
     return allTasks.slice(0, maxTasks);
@@ -487,6 +499,10 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
   /** 指定された日付の残りのタスク数を取得 */
   getRemainingTasksCount(date: Date): number {
+    // ✅ 修正: 無効な日付のチェックを追加
+    if (!date || isNaN(date.getTime())) {
+      return 0;
+    }
     const allTasks = this.getTasksForDate(date);
     const maxTasks = this.getMaxTasksForViewMode();
     return Math.max(0, allTasks.length - maxTasks);
@@ -494,6 +510,10 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
   /** 日付が今日かチェック */
   isToday(date: Date): boolean {
+    // ✅ 修正: 無効な日付のチェックを追加
+    if (!date || isNaN(date.getTime())) {
+      return false;
+    }
     const today = new Date();
     // ローカルタイムゾーンで日付を比較
     return (
@@ -505,6 +525,10 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
   /** 日付が現在の月かチェック */
   isCurrentMonth(date: Date): boolean {
+    // ✅ 修正: 無効な日付のチェックを追加
+    if (!date || isNaN(date.getTime()) || !this.currentDate || isNaN(this.currentDate.getTime())) {
+      return false;
+    }
     return date.getMonth() === this.currentDate.getMonth();
   }
 
@@ -567,13 +591,23 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
   /** 日付が選択中かチェック */
   isSelectedDate(date: Date): boolean {
-    return !!this.selectedDate
-      ? date.toDateString() === this.selectedDate.toDateString()
-      : false;
+    // ✅ 修正: 無効な日付のチェックを追加
+    if (!date || isNaN(date.getTime())) {
+      return false;
+    }
+    if (!this.selectedDate || isNaN(this.selectedDate.getTime())) {
+      return false;
+    }
+    return date.toDateString() === this.selectedDate.toDateString();
   }
 
   /** 日付を選択 */
   onDateSelected(date: Date) {
+    // ✅ 修正: 無効な日付のチェックを追加
+    if (!date || isNaN(date.getTime())) {
+      console.error('無効な日付が選択されました:', date);
+      return;
+    }
     this.selectedDate = new Date(date);
     this.currentDate = new Date(date);
     this.generateCalendarDays();
@@ -592,6 +626,10 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
   /** 表示名を取得 */
   getDisplayName(): string {
+    // ✅ 修正: currentDateが無効な日付の場合のチェックを追加
+    if (!this.currentDate || isNaN(this.currentDate.getTime())) {
+      return '';
+    }
     const currentLanguage = this.languageService.getCurrentLanguage();
     const locale = currentLanguage === 'en' ? 'en-US' : 'ja-JP';
 
@@ -671,6 +709,11 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
   /** タスク詳細画面に遷移 */
   openTaskDetail(task: Task) {
+    // ✅ 修正: taskがnull/undefinedの場合のチェックを追加
+    if (!task) {
+      console.error('タスクが指定されていません');
+      return;
+    }
     console.log('Navigating to task detail:', task);
     if (task.projectId && task.id) {
       this.router.navigate(['/project', task.projectId, 'task', task.id]);
@@ -688,6 +731,10 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
   /** 指定された日付にマイルストーンがあるかチェック */
   getMilestonesForDate(date: Date): any[] {
+    // ✅ 修正: 無効な日付のチェックを追加
+    if (!date || isNaN(date.getTime())) {
+      return [];
+    }
     // ローカルタイムゾーンで日付文字列を生成（YYYY-MM-DD形式）
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -979,8 +1026,17 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
   /** 指定された日付が表示可能な範囲内かチェック */
   private isDateInAvailableRange(date: Date): boolean {
+    // ✅ 修正: 無効な日付のチェックを追加
+    if (!date || isNaN(date.getTime())) {
+      return false;
+    }
     if (!this.minAvailableDate || !this.maxAvailableDate) {
       return true; // 制限がない場合は常にtrue
+    }
+
+    // ✅ 修正: minAvailableDateとmaxAvailableDateが無効な日付の場合のチェックを追加
+    if (isNaN(this.minAvailableDate.getTime()) || isNaN(this.maxAvailableDate.getTime())) {
+      return true; // 無効な範囲の場合は制限なしとして扱う
     }
 
     // 月単位で比較（日付の詳細は無視）
