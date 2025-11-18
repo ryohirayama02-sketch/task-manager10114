@@ -36,8 +36,8 @@ import {
   SupportedLanguage,
 } from '../../services/language.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
-import { firstValueFrom, Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { firstValueFrom, Subject, combineLatest } from 'rxjs';
+import { takeUntil, distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
   selector: 'app-settings',
@@ -77,6 +77,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   homeScreenSettings: HomeScreenSettings | null = null;
   selectedHomeScreen: HomeScreenType = 'kanban';
   homeScreenOptions = HOME_SCREEN_OPTIONS;
+  private previousUserId: string | null = null; // 前のユーザーIDを保持
 
   // 言語設定
   languageOptions: Array<{ value: SupportedLanguage; labelKey: string }> = [
@@ -87,6 +88,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   isSavingLanguage = false;
   private languageService = inject(LanguageService);
   private destroy$ = new Subject<void>();
+  private homeScreenSettingsDestroy$ = new Subject<void>(); // ホーム画面設定読み込み専用のSubject
 
   private getCloseLabel(): string {
     return this.languageService.translate('common.close');
@@ -152,6 +154,49 @@ export class SettingsComponent implements OnInit, OnDestroy {
     await this.loadNotificationSettings();
     await this.loadHomeScreenSettings();
     await this.loadRoomInfo();
+
+    // ✅ 修正: ユーザー変更時のホーム画面設定の再読み込み
+    this.authService.user$
+      .pipe(
+        distinctUntilChanged((prev, curr) => prev?.uid === curr?.uid),
+        takeUntil(this.destroy$)
+      )
+      .subscribe({
+        next: (user) => {
+          // ✅ 修正: コンポーネントが破棄されていないかチェック
+          if (this.destroy$.closed) {
+            return;
+          }
+          // ✅ 修正: ユーザーがログアウトした場合、またはユーザーが変更された場合、ホーム画面設定を再読み込み
+          if (!user) {
+            // ユーザーがログアウトした場合、設定をクリア
+            this.homeScreenSettings = null;
+            this.selectedHomeScreen =
+              this.homeScreenSettingsService.getDefaultHomeScreen();
+            this.previousUserId = null;
+            // ✅ 修正: 保存処理中の場合は、isSavingをリセット
+            if (this.isSaving) {
+              this.isSaving = false;
+            }
+          } else if (this.previousUserId !== null && this.previousUserId !== user.uid) {
+            // ユーザーが変更された場合、設定を再読み込み
+            console.log('ユーザーが変更されました。ホーム画面設定を再読み込みします。');
+            // ✅ 修正: 保存処理中の場合は、isSavingをリセット
+            if (this.isSaving) {
+              this.isSaving = false;
+            }
+            this.loadHomeScreenSettings();
+          }
+          this.previousUserId = user?.uid || null;
+        },
+        error: (error) => {
+          // ✅ 修正: コンポーネントが破棄されていないかチェック
+          if (this.destroy$.closed) {
+            return;
+          }
+          console.error('ユーザー監視エラー:', error);
+        },
+      });
   }
 
   /** 通知設定を読み込み */
@@ -1079,26 +1124,57 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   /** ホーム画面設定を読み込み */
   async loadHomeScreenSettings() {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
+    // ✅ 修正: 既存のsubscriptionをクリアして重複を防ぐ
+    this.homeScreenSettingsDestroy$.next();
+    this.homeScreenSettingsDestroy$.complete();
+    this.homeScreenSettingsDestroy$ = new Subject<void>();
     try {
       this.homeScreenSettingsService.getHomeScreenSettings()
-        .pipe(takeUntil(this.destroy$))
+        .pipe(
+          takeUntil(this.destroy$),
+          takeUntil(this.homeScreenSettingsDestroy$) // ✅ 修正: ホーム画面設定読み込み専用のSubjectも監視
+        )
         .subscribe({
         next: (settings) => {
+          // ✅ 修正: コンポーネントが破棄されていないかチェック
+          if (this.destroy$.closed) {
+            return;
+          }
           if (settings) {
             this.homeScreenSettings = settings;
-            this.selectedHomeScreen = settings.homeScreen;
+            // ✅ 修正: settings.homeScreenの値検証
+            const validHomeScreenTypes: HomeScreenType[] = ['kanban', 'gantt', 'calendar'];
+            if (settings.homeScreen && validHomeScreenTypes.includes(settings.homeScreen)) {
+              this.selectedHomeScreen = settings.homeScreen;
+            } else {
+              console.warn('無効なホーム画面設定値が検出されました。デフォルト値を使用します:', settings.homeScreen);
+              this.selectedHomeScreen =
+                this.homeScreenSettingsService.getDefaultHomeScreen();
+            }
           } else {
             this.selectedHomeScreen =
               this.homeScreenSettingsService.getDefaultHomeScreen();
           }
         },
         error: (error) => {
+          // ✅ 修正: コンポーネントが破棄されていないかチェック
+          if (this.destroy$.closed) {
+            return;
+          }
           console.error('ホーム画面設定の読み込みエラー:', error);
           this.selectedHomeScreen =
             this.homeScreenSettingsService.getDefaultHomeScreen();
         },
       });
     } catch (error) {
+      // ✅ 修正: コンポーネントが破棄されていないかチェック
+      if (this.destroy$.closed) {
+        return;
+      }
       console.error('ホーム画面設定の読み込みエラー:', error);
       this.selectedHomeScreen =
         this.homeScreenSettingsService.getDefaultHomeScreen();
@@ -1107,11 +1183,32 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   /** ホーム画面設定を保存 */
   async saveHomeScreenSettings() {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
+    // ✅ 修正: selectedHomeScreenの値検証
+    const validHomeScreenTypes: HomeScreenType[] = ['kanban', 'gantt', 'calendar'];
+    if (!this.selectedHomeScreen || !validHomeScreenTypes.includes(this.selectedHomeScreen)) {
+      console.error('無効なホーム画面設定値です:', this.selectedHomeScreen);
+      this.snackBar.open(
+        this.languageService.translate('settings.homeScreenSaveFailed'),
+        this.getCloseLabel(),
+        {
+          duration: 3000,
+        }
+      );
+      return;
+    }
     this.isSaving = true;
     try {
       await this.homeScreenSettingsService.saveHomeScreenSettings(
         this.selectedHomeScreen
       );
+      // ✅ 修正: 保存完了時のコンポーネント破棄チェック
+      if (this.destroy$.closed) {
+        return;
+      }
       this.snackBar.open(
         this.languageService.translate('settings.homeScreenSaved'),
         this.getCloseLabel(),
@@ -1120,6 +1217,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
         }
       );
     } catch (error) {
+      // ✅ 修正: エラー時のコンポーネント破棄チェック
+      if (this.destroy$.closed) {
+        return;
+      }
       console.error('ホーム画面設定の保存エラー:', error);
       this.snackBar.open(
         this.languageService.translate('settings.homeScreenSaveFailed'),
@@ -1129,17 +1230,38 @@ export class SettingsComponent implements OnInit, OnDestroy {
         }
       );
     } finally {
-      this.isSaving = false;
+      // ✅ 修正: finallyブロックでのコンポーネント破棄チェック
+      if (!this.destroy$.closed) {
+        this.isSaving = false;
+      }
     }
   }
 
   /** ホーム画面選択変更 */
   onHomeScreenChange() {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
+    // ✅ 修正: 既に保存中の場合は重複保存を防ぐ
+    if (this.isSaving) {
+      console.warn('ホーム画面設定の保存中です。重複保存をスキップします。');
+      return;
+    }
     // 即座に保存
     this.saveHomeScreenSettings();
   }
 
-  getHomeScreenLabel(value: HomeScreenType): string {
+  getHomeScreenLabel(value: HomeScreenType | null | undefined): string {
+    // ✅ 修正: null/undefinedチェックと値検証
+    if (!value || typeof value !== 'string') {
+      return this.languageService.translate('homeScreen.kanban'); // デフォルト値
+    }
+    const validHomeScreenTypes: HomeScreenType[] = ['kanban', 'gantt', 'calendar'];
+    if (!validHomeScreenTypes.includes(value)) {
+      console.warn('無効なホーム画面タイプです:', value);
+      return this.languageService.translate('homeScreen.kanban'); // デフォルト値
+    }
     return this.languageService.translate(`homeScreen.${value}`);
   }
 
@@ -1287,5 +1409,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    // ✅ 修正: ホーム画面設定読み込み専用のSubjectもクリア
+    if (!this.homeScreenSettingsDestroy$.closed) {
+      this.homeScreenSettingsDestroy$.next();
+      this.homeScreenSettingsDestroy$.complete();
+    }
   }
 }
