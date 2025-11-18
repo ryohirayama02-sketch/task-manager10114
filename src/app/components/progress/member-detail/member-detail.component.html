@@ -19,31 +19,31 @@
     <mat-card class="member-info-card">
       <mat-card-content>
         <div class="member-info">
-          <h3 class="member-name">{{ memberDetail.name }}</h3>
-          <div class="member-meta">
-            <span class="completion-rate"
-              >{{ "progress.member.completionRate" | translate }}:
-              {{ memberDetail.completionRate }}%</span
-            >
-            <span class="total-tasks"
-              >{{ "progress.member.totalTasks" | translate }}:
-              {{ memberDetail.totalTasks }}</span
-            >
-          </div>
-          <div class="projects">
-            <strong>{{ "progress.member.projects" | translate }}:</strong>
-            <span
-              *ngFor="let project of memberDetail.projects"
-              class="project-chip"
-              role="button"
-              tabindex="0"
-              (click)="navigateToProject(project, $event)"
-              (keydown.enter)="navigateToProject(project, $event)"
-              (keydown.space)="navigateToProject(project, $event)"
-            >
-              {{ project }}
-            </span>
-          </div>
+            <h3 class="member-name">{{ memberDetail?.name || '' }}</h3>
+            <div class="member-meta">
+              <span class="completion-rate"
+                >{{ "progress.member.completionRate" | translate }}:
+                {{ memberDetail?.completionRate ?? 0 }}%</span
+              >
+              <span class="total-tasks"
+                >{{ "progress.member.totalTasks" | translate }}:
+                {{ memberDetail?.totalTasks ?? 0 }}</span
+              >
+            </div>
+            <div class="projects">
+              <strong>{{ "progress.member.projects" | translate }}:</strong>
+              <span
+                *ngFor="let project of memberDetail?.projects"
+                class="project-chip"
+                role="button"
+                tabindex="0"
+                (click)="navigateToProject(project, $event)"
+                (keydown.enter)="navigateToProject(project, $event)"
+                (keydown.space)="navigateToProject(project, $event)"
+              >
+                {{ project }}
+              </span>
+            </div>
         </div>
       </mat-card-content>
     </mat-card>
@@ -136,18 +136,18 @@
               {{ "progress.status.completed" | translate }}
             </div>
             <div class="status-total">
-              {{ memberDetail.completedTasks
+              {{ memberDetail?.completedTasks ?? 0
               }}{{ "progress.members.count" | translate }}
             </div>
             <div class="priority-details">
               <span class="priority-item high">{{
-                memberDetail.completedByPriority.high
+                memberDetail?.completedByPriority?.high ?? 0
               }}</span>
               <span class="priority-item medium">{{
-                memberDetail.completedByPriority.medium
+                memberDetail?.completedByPriority?.medium ?? 0
               }}</span>
               <span class="priority-item low">{{
-                memberDetail.completedByPriority.low
+                memberDetail?.completedByPriority?.low ?? 0
               }}</span>
             </div>
           </div>
@@ -157,18 +157,18 @@
               {{ "progress.status.inProgress" | translate }}
             </div>
             <div class="status-total">
-              {{ memberDetail.inProgressTasks
+              {{ memberDetail?.inProgressTasks ?? 0
               }}{{ "progress.members.count" | translate }}
             </div>
             <div class="priority-details">
               <span class="priority-item high">{{
-                memberDetail.inProgressByPriority.high
+                memberDetail?.inProgressByPriority?.high ?? 0
               }}</span>
               <span class="priority-item medium">{{
-                memberDetail.inProgressByPriority.medium
+                memberDetail?.inProgressByPriority?.medium ?? 0
               }}</span>
               <span class="priority-item low">{{
-                memberDetail.inProgressByPriority.low
+                memberDetail?.inProgressByPriority?.low ?? 0
               }}</span>
             </div>
           </div>
@@ -178,18 +178,18 @@
               {{ "progress.status.notStarted" | translate }}
             </div>
             <div class="status-total">
-              {{ memberDetail.notStartedTasks
+              {{ memberDetail?.notStartedTasks ?? 0
               }}{{ "progress.members.count" | translate }}
             </div>
             <div class="priority-details">
               <span class="priority-item high">{{
-                memberDetail.notStartedByPriority.high
+                memberDetail?.notStartedByPriority?.high ?? 0
               }}</span>
               <span class="priority-item medium">{{
-                memberDetail.notStartedByPriority.medium
+                memberDetail?.notStartedByPriority?.medium ?? 0
               }}</span>
               <span class="priority-item low">{{
-                memberDetail.notStartedByPriority.low
+                memberDetail?.notStartedByPriority?.low ?? 0
               }}</span>
             </div>
           </div>
@@ -306,11 +306,11 @@
                   [ngStyle]="getProjectNameStyle(task)"
                   role="button"
                   tabindex="0"
-                  (click)="navigateToProject(task.projectName, $event)"
-                  (keydown.enter)="navigateToProject(task.projectName, $event)"
-                  (keydown.space)="navigateToProject(task.projectName, $event)"
+                  (click)="navigateToProject(task?.projectName, $event)"
+                  (keydown.enter)="navigateToProject(task?.projectName, $event)"
+                  (keydown.space)="navigateToProject(task?.projectName, $event)"
                 >
-                  <span class="truncate-text">{{ task.projectName }}</span>
+                  <span class="truncate-text">{{ task?.projectName || '' }}</span>
                 </div>
               </td>
             </ng-container>
@@ -329,7 +329,7 @@
                   (keydown.enter)="navigateToTask(task, $event)"
                   (keydown.space)="navigateToTask(task, $event)"
                 >
-                  <span class="truncate-text">{{ task.taskName }}</span>
+                  <span class="truncate-text">{{ task?.taskName || '' }}</span>
                 </div>
               </td>
             </ng-container>
@@ -342,9 +342,9 @@
               <td mat-cell *matCellDef="let task">
                 <span
                   class="status-chip"
-                  [style.background-color]="getStatusColor(task.status)"
+                  [style.background-color]="getStatusColor(task?.status)"
                 >
-                  {{ translateStatus(task.status) }}
+                  {{ translateStatus(task?.status) }}
                 </span>
               </td>
             </ng-container>
@@ -354,7 +354,7 @@
               <th mat-header-cell *matHeaderCellDef>
                 {{ "progress.member.table.dueDate" | translate }}
               </th>
-              <td mat-cell *matCellDef="let task">{{ task.dueDate }}</td>
+              <td mat-cell *matCellDef="let task">{{ task?.dueDate || '' }}</td>
             </ng-container>
 
             <!-- 優先度列 -->
@@ -365,9 +365,9 @@
               <td mat-cell *matCellDef="let task">
                 <span
                   class="priority-chip"
-                  [style.background-color]="getPriorityColor(task.priority)"
+                  [style.background-color]="getPriorityColor(task?.priority)"
                 >
-                  {{ translatePriority(task.priority) }}
+                  {{ translatePriority(task?.priority) }}
                 </span>
               </td>
             </ng-container>
