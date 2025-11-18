@@ -178,12 +178,20 @@ export class SettingsComponent implements OnInit, OnDestroy {
             if (this.isSaving) {
               this.isSaving = false;
             }
+            // ✅ 修正: 言語設定保存処理中の場合は、isSavingLanguageをリセット
+            if (this.isSavingLanguage) {
+              this.isSavingLanguage = false;
+            }
           } else if (this.previousUserId !== null && this.previousUserId !== user.uid) {
             // ユーザーが変更された場合、設定を再読み込み
             console.log('ユーザーが変更されました。ホーム画面設定を再読み込みします。');
             // ✅ 修正: 保存処理中の場合は、isSavingをリセット
             if (this.isSaving) {
               this.isSaving = false;
+            }
+            // ✅ 修正: 言語設定保存処理中の場合は、isSavingLanguageをリセット
+            if (this.isSavingLanguage) {
+              this.isSavingLanguage = false;
             }
             this.loadHomeScreenSettings();
           }
@@ -302,13 +310,34 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   /** 言語設定を保存 */
   saveLanguageSetting(): void {
-    if (!this.selectedLanguage || this.isSavingLanguage) {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
+    // ✅ 修正: selectedLanguageの値検証
+    const validLanguages: SupportedLanguage[] = ['ja', 'en'];
+    if (!this.selectedLanguage || !validLanguages.includes(this.selectedLanguage)) {
+      console.error('無効な言語設定値です:', this.selectedLanguage);
+      this.snackBar.open(
+        this.languageService.translate('settings.language.saveError'),
+        this.getCloseLabel(),
+        {
+          duration: 3000,
+        }
+      );
+      return;
+    }
+    if (this.isSavingLanguage) {
       return;
     }
 
     this.isSavingLanguage = true;
     try {
       this.languageService.setLanguage(this.selectedLanguage);
+      // ✅ 修正: 保存完了時のコンポーネント破棄チェック
+      if (this.destroy$.closed) {
+        return;
+      }
       this.snackBar.open(
         this.languageService.translate('settings.language.saved'),
         this.getCloseLabel(),
@@ -317,6 +346,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
         }
       );
     } catch (error) {
+      // ✅ 修正: エラー時のコンポーネント破棄チェック
+      if (this.destroy$.closed) {
+        return;
+      }
       console.error('言語設定の保存エラー:', error);
       this.snackBar.open(
         this.languageService.translate('settings.language.saveError'),
@@ -326,7 +359,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
         }
       );
     } finally {
-      this.isSavingLanguage = false;
+      // ✅ 修正: finallyブロックでのコンポーネント破棄チェック
+      if (!this.destroy$.closed) {
+        this.isSavingLanguage = false;
+      }
     }
   }
 
