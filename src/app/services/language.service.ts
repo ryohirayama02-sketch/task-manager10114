@@ -1690,13 +1690,17 @@ export class LanguageService {
       ja: 'このプロジェクト名は既に使用されています',
       en: 'This project name is already in use',
     },
+    'projectForm.error.startDateAfterEndDate': {
+      ja: '開始日は終了日より前の日付を設定してください',
+      en: 'Start date must be before end date',
+    },
     'projectForm.success.created': {
       ja: 'プロジェクトを作成しました',
       en: 'Project created successfully',
     },
     'projectForm.error.createFailed': {
-      ja: 'プロジェクトの作成に失敗しました',
-      en: 'Failed to create project',
+      ja: 'プロジェクトの作成に失敗しました: {{errorMessage}}',
+      en: 'Failed to create project: {{errorMessage}}',
     },
     'projectForm.error.membersLoadFailed': {
       ja: 'メンバー一覧の読み込みエラー',

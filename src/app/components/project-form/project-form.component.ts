@@ -839,6 +839,24 @@ export class ProjectFormComponent implements OnInit {
       return;
     }
 
+    // ✅ 修正: 開始日と終了日の逆転チェックを追加
+    const startDateValue = this.projectForm.get('startDate')?.value;
+    const endDateValue = this.projectForm.get('endDate')?.value;
+    if (startDateValue && endDateValue) {
+      const startDate = new Date(startDateValue);
+      const endDate = new Date(endDateValue);
+      if (startDate > endDate) {
+        this.snackBar.open(
+          this.languageService.translate('projectForm.error.startDateAfterEndDate'),
+          this.languageService.translate('projectForm.close'),
+          {
+            duration: 3000,
+          }
+        );
+        return;
+      }
+    }
+
     // 責任者の必須チェック
     if (!this.selectedResponsibles || this.selectedResponsibles.length === 0) {
       this.snackBar.open(
@@ -935,8 +953,10 @@ export class ProjectFormComponent implements OnInit {
       const primaryResponsibleEmail = responsibleEmailsArray[0] ?? '';
 
       const projectData = {
-        projectName: formData.projectName,
-        overview: formData.overview || '',
+        // ✅ 修正: trim()済みのprojectName変数を使用
+        projectName: projectName || '',
+        // ✅ 修正: overviewにtrim()を適用
+        overview: formData.overview?.trim() || '',
         startDate: formData.startDate || '',
         endDate: formData.endDate || '',
         themeColor: finalThemeColor,
@@ -985,8 +1005,21 @@ export class ProjectFormComponent implements OnInit {
       } else {
         this.router.navigate(['/progress/projects'], { replaceUrl: true });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('プロジェクト作成エラー:', error);
+      // ✅ 修正: ユーザーにエラーメッセージを表示
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : this.languageService.translate('projectForm.error.createFailed');
+      this.snackBar.open(
+        this.languageService.translateWithParams(
+          'projectForm.error.createFailed',
+          { errorMessage }
+        ),
+        this.languageService.translate('projectForm.close'),
+        { duration: 5000 }
+      );
     } finally {
       this.isSubmitting = false;
     }
