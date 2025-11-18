@@ -56,7 +56,10 @@ export class LoginComponent implements OnInit {
 
   /** メールログイン */
   async onEmailLogin(email: string, password: string) {
-    if (!email || !password) {
+    const trimmedEmail = email?.trim() || '';
+    const trimmedPassword = password?.trim() || '';
+    
+    if (!trimmedEmail || !trimmedPassword) {
       this.errorMessage = this.languageService.translate('login.error.emailPasswordRequired');
       return;
     }
@@ -64,16 +67,16 @@ export class LoginComponent implements OnInit {
     try {
       this.isLoading = true;
       this.errorMessage = '';
-      const user = await this.authService.signInWithEmail(email, password);
+      const user = await this.authService.signInWithEmail(trimmedEmail, trimmedPassword);
       console.log('[UI] メールログイン成功:', user.uid);
       
       // メールアドレスを保存
-      localStorage.setItem(this.EMAIL_STORAGE_KEY, email);
+      localStorage.setItem(this.EMAIL_STORAGE_KEY, trimmedEmail);
       
       this.router.navigate(['/kanban']);
     } catch (error: any) {
       console.error('[UI] メールログインエラー:', error);
-      this.errorMessage = this.getErrorMessage(error.code);
+      this.errorMessage = this.getErrorMessage(error?.code);
     } finally {
       this.isLoading = false;
     }
@@ -81,17 +84,21 @@ export class LoginComponent implements OnInit {
 
   /** メール登録 */
   async onEmailSignUp(email: string, password: string, confirmPassword: string) {
-    if (!email || !password || !confirmPassword) {
+    const trimmedEmail = email?.trim() || '';
+    const trimmedPassword = password?.trim() || '';
+    const trimmedConfirmPassword = confirmPassword?.trim() || '';
+    
+    if (!trimmedEmail || !trimmedPassword || !trimmedConfirmPassword) {
       this.errorMessage = this.languageService.translate('login.error.allFieldsRequired');
       return;
     }
 
-    if (password !== confirmPassword) {
+    if (trimmedPassword !== trimmedConfirmPassword) {
       this.errorMessage = this.languageService.translate('login.error.passwordMismatch');
       return;
     }
 
-    if (password.length < 6) {
+    if (trimmedPassword.length < 6) {
       this.errorMessage = this.languageService.translate('login.error.passwordMinLength');
       return;
     }
@@ -99,16 +106,16 @@ export class LoginComponent implements OnInit {
     try {
       this.isLoading = true;
       this.errorMessage = '';
-      const user = await this.authService.signUpWithEmail(email, password);
+      const user = await this.authService.signUpWithEmail(trimmedEmail, trimmedPassword);
       console.log('[UI] メール登録成功:', user.uid);
       
       // メールアドレスを保存
-      localStorage.setItem(this.EMAIL_STORAGE_KEY, email);
+      localStorage.setItem(this.EMAIL_STORAGE_KEY, trimmedEmail);
       
       this.router.navigate(['/kanban']);
     } catch (error: any) {
       console.error('[UI] メール登録エラー:', error);
-      this.errorMessage = this.getErrorMessage(error.code);
+      this.errorMessage = this.getErrorMessage(error?.code);
     } finally {
       this.isLoading = false;
     }
@@ -123,7 +130,11 @@ export class LoginComponent implements OnInit {
   }
 
   /** エラーメッセージを取得 */
-  private getErrorMessage(errorCode: string): string {
+  private getErrorMessage(errorCode: string | undefined): string {
+    if (!errorCode) {
+      return this.languageService.translate('login.error.loginFailed');
+    }
+    
     switch (errorCode) {
       case 'auth/invalid-email':
         return this.languageService.translate('login.error.invalidEmail');

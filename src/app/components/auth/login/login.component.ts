@@ -43,7 +43,10 @@ export class LoginComponent {
 
   /** メール・パスワードでログイン */
   async signInWithEmail() {
-    if (!this.email || !this.password) {
+    const trimmedEmail = this.email?.trim() || '';
+    const trimmedPassword = this.password?.trim() || '';
+    
+    if (!trimmedEmail || !trimmedPassword) {
       this.errorMessage = this.languageService.translate('login.error.emailPasswordRequiredNoPeriod');
       return;
     }
@@ -52,10 +55,10 @@ export class LoginComponent {
     this.errorMessage = '';
 
     try {
-      await this.authService.signInWithEmail(this.email, this.password);
+      await this.authService.signInWithEmail(trimmedEmail, trimmedPassword);
       this.router.navigate(['/']);
     } catch (error: any) {
-      this.errorMessage = this.getErrorMessage(error.code);
+      this.errorMessage = this.getErrorMessage(error?.code);
     } finally {
       this.isLoading = false;
     }
@@ -63,12 +66,15 @@ export class LoginComponent {
 
   /** メール・パスワードでサインアップ */
   async signUpWithEmail() {
-    if (!this.email || !this.password) {
+    const trimmedEmail = this.email?.trim() || '';
+    const trimmedPassword = this.password?.trim() || '';
+    
+    if (!trimmedEmail || !trimmedPassword) {
       this.errorMessage = this.languageService.translate('login.error.emailPasswordRequiredNoPeriod');
       return;
     }
 
-    if (this.password.length < 6) {
+    if (trimmedPassword.length < 6) {
       this.errorMessage = this.languageService.translate('login.error.passwordMinLengthNoPeriod');
       return;
     }
@@ -77,10 +83,10 @@ export class LoginComponent {
     this.errorMessage = '';
 
     try {
-      await this.authService.signUpWithEmail(this.email, this.password);
+      await this.authService.signUpWithEmail(trimmedEmail, trimmedPassword);
       this.router.navigate(['/']);
     } catch (error: any) {
-      this.errorMessage = this.getErrorMessage(error.code);
+      this.errorMessage = this.getErrorMessage(error?.code);
     } finally {
       this.isLoading = false;
     }
@@ -98,13 +104,17 @@ export class LoginComponent {
       // リダイレクト後はこの行には到達しない（ページがリダイレクトされる）
     } catch (error: any) {
       // ここでエラーキャッチするのはリダイレクト前のエラーのみ
-      this.errorMessage = this.getErrorMessage(error.code || error.message);
+      this.errorMessage = this.getErrorMessage(error?.code || error?.message);
       this.isLoading = false;
     }
   }
 
   /** エラーメッセージを取得 */
-  private getErrorMessage(errorCode: string): string {
+  private getErrorMessage(errorCode: string | undefined): string {
+    if (!errorCode) {
+      return this.languageService.translate('login.error.loginFailedNoPeriod');
+    }
+    
     switch (errorCode) {
       case 'auth/user-not-found':
         return this.languageService.translate('login.error.userNotFoundNoPeriod');
