@@ -22,6 +22,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { Auth } from '@angular/fire/auth';
@@ -52,6 +53,7 @@ import {
 } from '../../utils/member-utils';
 import { LanguageService } from '../../services/language.service';
 import { AuthService } from '../../services/auth.service';
+import { TaskDeleteConfirmDialogComponent } from './task-delete-confirm-dialog.component';
 import { filter, take, switchMap, takeUntil } from 'rxjs/operators';
 import { combineLatest, firstValueFrom, Subject } from 'rxjs';
 
@@ -74,6 +76,7 @@ import { combineLatest, firstValueFrom, Subject } from 'rxjs';
     MatProgressSpinnerModule,
     MatSlideToggleModule,
     MatSnackBarModule,
+    MatDialogModule,
     MatDatepickerModule,
     MatNativeDateModule,
     ProjectChatComponent,
@@ -92,6 +95,7 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
   private auth = inject(Auth);
   private calendarService = inject(CalendarService);
   private snackBar = inject(MatSnackBar);
+  private dialog = inject(MatDialog);
   private attachmentService = inject(TaskAttachmentService);
   private navigationHistory = inject(NavigationHistoryService);
   private firestore = inject(Firestore);
@@ -1563,57 +1567,61 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
 
   /** タスクを削除 */
   deleteTask() {
+    if (!this.task || !this.task.projectId || !this.task.id) {
+      return;
+    }
+
     const childTasksCount = this.childTasks?.length || 0;
-    let confirmMessage = this.languageService.translateWithParams(
-      'taskDetail.deleteConfirm.message',
-      { taskName: this.taskData.taskName || '' }
-    );
+    const dialogRef = this.dialog.open(TaskDeleteConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        taskName: this.taskData.taskName || '',
+        taskId: this.task.id,
+        childTasksCount: childTasksCount,
+      },
+    });
 
-    if (childTasksCount > 0) {
-      confirmMessage +=
-        '\n\n' +
-        this.languageService.translateWithParams(
-          'taskDetail.deleteConfirm.childTasksWarning',
-          { count: childTasksCount.toString() }
-        );
-    }
+    dialogRef
+      .afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((confirmed: boolean | undefined) => {
+        if (confirmed === true) {
+          const projectId = this.task!.projectId!;
+          const isSubtask = !!this.task!.parentTaskId;
+          const parentTaskId = this.task!.parentTaskId;
 
-    if (confirm(confirmMessage)) {
-      if (this.task && this.task.projectId && this.task.id) {
-        const projectId = this.task.projectId;
-        const isSubtask = !!this.task.parentTaskId;
-        const parentTaskId = this.task.parentTaskId;
+          this.taskService
+            .deleteTask(this.task!.id!, this.taskData, projectId)
+            .then(() => {
+              console.log('タスクが削除されました');
+              if (childTasksCount > 0) {
+                console.log(`${childTasksCount}件の子タスクも削除されました`);
+              }
 
-        this.taskService
-          .deleteTask(this.task.id, this.taskData, projectId)
-          .then(() => {
-            console.log('タスクが削除されました');
-            if (childTasksCount > 0) {
-              console.log(`${childTasksCount}件の子タスクも削除されました`);
-            }
-
-            // 子タスクの場合は親タスク詳細へ、親タスクの場合はプロジェクト詳細へ
-            if (isSubtask && parentTaskId) {
-              // 子タスク: 親タスク詳細へ
-              this.router.navigate(
-                ['/project', projectId, 'task', parentTaskId],
-                { replaceUrl: true }
+              // 子タスクの場合は親タスク詳細へ、親タスクの場合はプロジェクト詳細へ
+              if (isSubtask && parentTaskId) {
+                // 子タスク: 親タスク詳細へ
+                this.router.navigate(
+                  ['/project', projectId, 'task', parentTaskId],
+                  { replaceUrl: true }
+                );
+              } else {
+                // 親タスク: プロジェクト詳細へ
+                this.router.navigate(['/project', projectId], {
+                  replaceUrl: true,
+                });
+              }
+            })
+            .catch((error: Error) => {
+              console.error('タスク削除エラー:', error);
+              this.snackBar.open(
+                this.languageService.translate('taskDetail.error.deleteFailed'),
+                this.languageService.translate('common.close'),
+                { duration: 5000 }
               );
-            } else {
-              // 親タスク: プロジェクト詳細へ
-              this.router.navigate(['/project', projectId], {
-                replaceUrl: true,
-              });
-            }
-          })
-          .catch((error: Error) => {
-            console.error('タスク削除エラー:', error);
-            alert(
-              this.languageService.translate('taskDetail.error.deleteFailed')
-            );
-          });
-      }
-    }
+            });
+        }
+      });
   }
 
   /** カレンダー連携のON/OFFを切り替え */
@@ -2551,8 +2559,11 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
 
       if (file.size > this.MAX_FILE_SIZE) {
         this.snackBar.open(
-          `${file.name} は5MBを超えています。別のファイルを選択してください。`,
-          '閉じる',
+          this.languageService.translateWithParams(
+            'taskDetail.error.fileSizeExceeded',
+            { fileName: file.name }
+          ),
+          this.languageService.translate('common.close'),
           { duration: 4000 }
         );
         return;

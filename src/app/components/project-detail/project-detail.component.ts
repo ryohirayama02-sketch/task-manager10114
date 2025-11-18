@@ -604,6 +604,32 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // プロジェクト名の重複チェック
+    if (trimmedName && this.project?.id) {
+      try {
+        const exists = await this.projectService.projectNameExists(
+          trimmedName,
+          this.project.id
+        );
+        if (exists) {
+          this.snackBar.open(
+            this.languageService.translate(
+              'projectDetail.error.projectNameExists'
+            ),
+            this.languageService.translate('common.close'),
+            {
+              duration: 5000,
+            }
+          );
+          this.isInlineEditMode = true;
+          return;
+        }
+      } catch (error) {
+        console.error('プロジェクト名重複チェックエラー:', error);
+        // エラーが発生しても更新処理は続行
+      }
+    }
+
     const membersString =
       this.selectedMembers.length > 0
         ? this.selectedMembers

@@ -702,8 +702,20 @@ export class TaskCreatePageComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // 開始日から終了日までの期間が30日を超えていないかチェック
+    // 開始日と終了日の逆転チェック
     if (this.startDateObj && this.dueDateObj) {
+      if (this.startDateObj > this.dueDateObj) {
+        this.snackBar.open(
+          this.languageService.translate('taskCreate.error.startDateAfterDueDate'),
+          this.languageService.translate('taskCreate.close'),
+          {
+            duration: 3000,
+          }
+        );
+        return;
+      }
+
+      // 開始日から終了日までの期間が30日を超えていないかチェック
       const daysDiff = Math.floor(
         (this.dueDateObj.getTime() - this.startDateObj.getTime()) /
           (1000 * 60 * 60 * 24)
@@ -1085,7 +1097,19 @@ export class TaskCreatePageComponent implements OnInit, OnDestroy {
           dueDate: this.taskForm.dueDate,
         },
       });
-      // タスク作成失敗時はコンソールにエラーを記録（メッセージは表示しない）
+      // タスク作成失敗時はユーザーにエラーメッセージを表示
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : this.languageService.translate('taskCreate.error.unknownError');
+      this.snackBar.open(
+        this.languageService.translateWithParams(
+          'taskCreate.error.saveFailed',
+          { errorMessage }
+        ),
+        this.languageService.translate('taskCreate.close'),
+        { duration: 5000 }
+      );
     } finally {
       this.isSaving = false;
       this.isUploading = false;

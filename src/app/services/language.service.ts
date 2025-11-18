@@ -968,6 +968,10 @@ export class LanguageService {
       ja: '資料の削除に失敗しました',
       en: 'Failed to delete material',
     },
+    'projectDetail.error.projectNameExists': {
+      ja: 'このプロジェクト名は既に使用されています',
+      en: 'This project name is already in use',
+    },
     'projectDetail.error.membersLoadFailed': {
       ja: 'メンバー一覧の取得に失敗しました',
       en: 'Failed to load members',
@@ -1291,6 +1295,10 @@ export class LanguageService {
     'taskDetail.error.maxAttachmentsReached': {
       ja: 'ファイルとURLの合計は3つまでです',
       en: 'Maximum 3 attachments (files and URLs) allowed',
+    },
+    'taskDetail.error.fileSizeExceeded': {
+      ja: '{{fileName}} は5MBを超えています。別のファイルを選択してください。',
+      en: '{{fileName}} exceeds 5MB. Please select another file.',
     },
     'taskDetail.error.maxTagsReached': {
       ja: 'タグは3つまでです',
@@ -1857,12 +1865,20 @@ export class LanguageService {
       en: 'This task name is already in use',
     },
     'taskCreate.error.saveFailed': {
-      ja: '保存に失敗しました',
-      en: 'Failed to save',
+      ja: '保存に失敗しました: {{errorMessage}}',
+      en: 'Failed to save: {{errorMessage}}',
+    },
+    'taskCreate.error.unknownError': {
+      ja: '不明なエラーが発生しました',
+      en: 'An unknown error occurred',
     },
     'taskCreate.error.fileSizeExceeded': {
       ja: '{{fileName}} は5MBを超えています。別のファイルを選択してください。',
       en: '{{fileName}} exceeds 5MB. Please select another file.',
+    },
+    'taskCreate.error.startDateAfterDueDate': {
+      ja: '開始日は期限日より前の日付を設定してください',
+      en: 'Start date must be before due date',
     },
     'taskCreate.error.invalidUrl': {
       ja: 'URLはhttp://またはhttps://で始まる必要があります',
