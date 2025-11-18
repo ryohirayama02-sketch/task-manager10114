@@ -322,11 +322,11 @@ export class TaskDetailComponent implements OnInit {
         take(1), // 最初の有効なroomIdのみを使用
         switchMap((roomId) => {
           console.log('🔑 roomIdが設定されました（タスク詳細）:', roomId);
-          
+
           // プロジェクト情報とタスク情報を並行して取得
           return combineLatest([
             this.projectService.getProjectById(projectId),
-            this.projectService.getTasksByProjectId(projectId)
+            this.projectService.getTasksByProjectId(projectId),
           ]).pipe(
             // ✅ 追加: 最初の値のみを受け取り、Firestoreの更新による再実行を防ぐ
             take(1)
@@ -337,7 +337,7 @@ export class TaskDetailComponent implements OnInit {
         next: ([project, tasks]) => {
           console.log('プロジェクト情報:', project);
           console.log('取得したタスク一覧:', tasks);
-          
+
           // プロジェクトが見つからない場合の処理
           if (!project) {
             console.warn('プロジェクトが見つかりませんでした:', projectId);
@@ -348,7 +348,7 @@ export class TaskDetailComponent implements OnInit {
             }
             return;
           }
-          
+
           this.project = project;
           this.projectThemeColor = resolveProjectThemeColor(project);
           // プロジェクト名を最新の情報で更新
@@ -1170,7 +1170,7 @@ export class TaskDetailComponent implements OnInit {
         const incompleteChildNames = incompleteChildren
           .map((child) => child.taskName)
           .join('、');
-        
+
         this.snackBar.open(
           this.languageService.translateWithParams(
             'taskEditDialog.error.incompleteChildTask',
@@ -1348,6 +1348,8 @@ export class TaskDetailComponent implements OnInit {
       );
       alert(alertMessage);
       this.isSaving = false;
+      // ✅ 修正: エラー時も編集モードをOFFにする（オフライン時などでエラーが発生した場合でも編集モードが残らないように）
+      this.isEditing = false;
     }
   }
 
@@ -2048,9 +2050,9 @@ export class TaskDetailComponent implements OnInit {
     try {
       // 親タスクを取得
       const allTasks = await firstValueFrom(
-        this.projectService.getTasksByProjectId(this.task.projectId).pipe(
-          take(1)
-        )
+        this.projectService
+          .getTasksByProjectId(this.task.projectId)
+          .pipe(take(1))
       );
       const parentTask = allTasks.find((t) => t.id === parentTaskId);
 
