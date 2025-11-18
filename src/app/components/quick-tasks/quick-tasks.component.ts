@@ -101,10 +101,27 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
         return;
       }
       if (user) {
+        // ✅ 修正: ユーザーが変更された場合、前のユーザーのタスク一覧をクリア
+        const previousUserEmail = this.currentUser?.email;
+        const newUserEmail = user?.email;
+        if (
+          previousUserEmail &&
+          newUserEmail &&
+          previousUserEmail !== newUserEmail
+        ) {
+          // ユーザーが変更された場合、タスク一覧をクリア
+          this.tasks = [];
+          this.filteredTasks = [];
+          this.loading = false;
+        }
         this.currentUser = user;
         void this.loadQuickTasks();
       } else {
+        // ✅ 修正: ユーザーがログアウトした場合、タスク一覧をクリア
         this.currentUser = null;
+        this.tasks = [];
+        this.filteredTasks = [];
+        this.loading = false;
       }
     });
   }
@@ -120,6 +137,11 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
     if (this.destroy$.closed) {
       return;
     }
+    // ✅ 修正: 既に読み込み中の場合は重複読み込みを防ぐ
+    if (this.loading) {
+      console.warn('⚠️ タスク読み込み中です。重複読み込みをスキップします。');
+      return;
+    }
     this.loadQuickTasks();
   }
 
@@ -127,6 +149,11 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
   async loadQuickTasks() {
     // ✅ 修正: コンポーネントが破棄されていないかチェック
     if (this.destroy$.closed) {
+      return;
+    }
+    // ✅ 修正: 既に読み込み中の場合は重複読み込みを防ぐ
+    if (this.loading) {
+      console.warn('⚠️ タスク読み込み中です。重複読み込みをスキップします。');
       return;
     }
     this.loading = true;
@@ -145,47 +172,16 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
     }
 
     // メンバー一覧が読み込まれていることを確認
+    // ✅ 修正: メンバー一覧が空の場合は、ngOnInit()で既に読み込みが開始されているため、
+    // その完了を待つ必要がある。ただし、重複購読を避けるため、既に読み込み中の場合は
+    // そのままタスク取得を試みる（メンバー一覧が空でもタスク取得は可能）
     if (this.members.length === 0) {
       console.warn(
-        '⚠️ メンバー一覧がまだ読み込まれていません。タスク取得を待機します...'
+        '⚠️ メンバー一覧がまだ読み込まれていません。タスク取得を続行します...'
       );
-      // メンバー一覧の読み込みを待つ
-      this.memberService
-        .getMembers()
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: (members) => {
-            // ✅ 修正: コンポーネントが破棄されていないかチェック
-            if (this.destroy$.closed) {
-              return;
-            }
-            // ✅ 修正: membersが配列でない場合の処理を追加
-            if (!Array.isArray(members)) {
-              console.error('membersが配列ではありません:', members);
-              this.members = [];
-              this.loadTasksAfterMembersLoaded(userEmail, memberName);
-              return;
-            }
-            this.members = members;
-            console.log(
-              'メンバー一覧を読み込みました（タスク取得前）:',
-              members.length,
-              '件'
-            );
-            // メンバー一覧が読み込まれたらタスクを取得
-            this.loadTasksAfterMembersLoaded(userEmail, memberName);
-          },
-          error: (error) => {
-            // ✅ 修正: コンポーネントが破棄されていないかチェック
-            if (this.destroy$.closed) {
-              return;
-            }
-            console.error('メンバー一覧の読み込みエラー:', error);
-            this.members = [];
-            // エラーでもタスク取得は続行
-            this.loadTasksAfterMembersLoaded(userEmail, memberName);
-          },
-        });
+      // メンバー一覧が空でもタスク取得は続行（assignedMembersがIDベースの場合は
+      // メンバー一覧がなくても動作する可能性がある）
+      this.loadTasksAfterMembersLoaded(userEmail, memberName);
     } else {
       // メンバー一覧が既に読み込まれている場合はそのままタスク取得
       this.loadTasksAfterMembersLoaded(userEmail, memberName);
@@ -201,8 +197,16 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
     if (this.destroy$.closed) {
       return;
     }
+    // ✅ 修正: daysFilterが不正な値の場合のチェックを追加
+    const daysFilterValue =
+      typeof this.daysFilter === 'number' &&
+      !isNaN(this.daysFilter) &&
+      isFinite(this.daysFilter) &&
+      this.daysFilter > 0
+        ? this.daysFilter
+        : 7; // デフォルト値
     this.taskService
-      .getQuickTasks(this.daysFilter, userEmail, memberName)
+      .getQuickTasks(daysFilterValue, userEmail, memberName)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (tasks: Task[]) => {
@@ -364,7 +368,11 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
 
   /** 📝 プロジェクト名を30文字に制限 */
   formatProjectName(projectName?: string | null): string {
-    if (!projectName) {
+    // ✅ 修正: projectNameがnull/undefined/空文字列の場合のチェックを追加
+    if (
+      !projectName ||
+      (typeof projectName === 'string' && projectName.trim() === '')
+    ) {
       return `（${this.languageService.translate('common.nameNotSet')}）`;
     }
     const name = projectName.trim();
@@ -386,7 +394,13 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
       return;
     }
     if (task.id && task.projectId) {
-      this.router.navigate(['/project', task.projectId, 'task', task.id]);
+      // ✅ 修正: ナビゲーションエラーハンドリングを追加
+      this.router
+        .navigate(['/project', task.projectId, 'task', task.id])
+        .catch((error) => {
+          console.error('タスク詳細画面への遷移に失敗しました:', error);
+          // ユーザーにエラーメッセージを表示する場合は、ここでMatSnackBarなどを使用
+        });
     } else {
       console.error('タスクIDまたはプロジェクトIDが指定されていません:', task);
     }
