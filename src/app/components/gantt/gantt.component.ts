@@ -30,8 +30,8 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
 import { AuthService } from '../../services/auth.service';
 import { MemberManagementService } from '../../services/member-management.service';
 import { Member } from '../../models/member.model';
-import { combineLatest, of } from 'rxjs';
-import { switchMap, filter, take } from 'rxjs/operators';
+import { combineLatest, of, Subject } from 'rxjs';
+import { switchMap, filter, take, takeUntil } from 'rxjs/operators';
 import {
   getMemberNamesAsString,
   getMemberNames,
@@ -101,6 +101,9 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('tooltip', { static: false }) tooltipElement?: ElementRef;
   private tooltipClickOutsideListener?: (event: Event) => void;
 
+  // ✅ 追加: メモリリーク防止用のSubject
+  private destroy$ = new Subject<void>();
+
   // ステータス色（日本語キーを保持して後方互換性を維持）
   statusColors: { [key: string]: string } = {
     未着手: '#fdd6d5',
@@ -166,15 +169,26 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit(): void {
     // メンバー一覧を読み込み
-    this.memberManagementService.getMembers().subscribe({
-      next: (members) => {
-        this.members = members;
-        console.log('Members loaded:', members.length);
-      },
-      error: (error) => {
-        console.error('Failed to load members:', error);
-      },
-    });
+    this.memberManagementService
+      .getMembers()
+      .pipe(takeUntil(this.destroy$)) // ✅ 追加: メモリリーク防止
+      .subscribe({
+        next: (members) => {
+          // ✅ 修正: コンポーネントが破棄されていないかチェック
+          if (this.destroy$.closed) {
+            return;
+          }
+          this.members = members;
+          console.log('Members loaded:', members.length);
+        },
+        error: (error) => {
+          // ✅ 修正: コンポーネントが破棄されていないかチェック
+          if (this.destroy$.closed) {
+            return;
+          }
+          console.error('Failed to load members:', error);
+        },
+      });
 
     this.initializeDateRange();
     this.observeUserProjects();
@@ -183,7 +197,12 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.projectSelectionService
       .getSelectedProjectIds()
+      .pipe(takeUntil(this.destroy$)) // ✅ 追加: メモリリーク防止
       .subscribe((projectIds: string[]) => {
+        // ✅ 修正: コンポーネントが破棄されていないかチェック
+        if (this.destroy$.closed) {
+          return;
+        }
         this.selectedProjectIds = projectIds;
         this.filterTasksBySelectedProjects();
       });
@@ -198,6 +217,10 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    // ✅ 追加: メモリリーク防止
+    this.destroy$.next();
+    this.destroy$.complete();
+
     this.headerResizeObserver?.disconnect();
     const container = this.timelineContainer?.nativeElement;
     if (container && this.timelineScrollListener) {
@@ -291,10 +314,15 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
             return of([]);
           }
           return this.projectService.getProjects();
-        })
+        }),
+        takeUntil(this.destroy$) // ✅ 追加: メモリリーク防止
       )
       .subscribe({
         next: (projects) => {
+          // ✅ 修正: コンポーネントが破棄されていないかチェック
+          if (this.destroy$.closed) {
+            return;
+          }
           console.log('🎯 ガント用ルーム内全プロジェクト一覧:', projects);
           if (projects.length === 0) {
             this.resetProjectState();
@@ -305,6 +333,10 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
           this.applyProjectList(projects);
         },
         error: (error) => {
+          // ✅ 修正: コンポーネントが破棄されていないかチェック
+          if (this.destroy$.closed) {
+            return;
+          }
           console.error('❌ プロジェクト取得エラー（オフライン等）:', error);
           // ✅ 修正: オフライン時などエラーが発生した場合でも、既存のプロジェクトデータを保持
           if (this.projects.length === 0) {
@@ -351,28 +383,59 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** 全プロジェクトのタスクを読み込み */
   loadAllTasks() {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
     this.allTasks = [];
     this.projects.forEach((project) => {
       if (project.id) {
         this.projectService
           .getTasksByProjectId(project.id)
-          .subscribe((tasks) => {
-            const themeColor = this.getProjectThemeColor(project.id!);
-            const tasksWithProject = tasks.map((task) => ({
-              ...task,
-              projectId: task.projectId || project.id!,
-              projectName: task.projectName || project.projectName,
-              projectThemeColor: task.projectThemeColor || themeColor,
-            }));
+          .pipe(takeUntil(this.destroy$)) // ✅ 追加: メモリリーク防止
+          .subscribe({
+            next: (tasks) => {
+              // ✅ 修正: コンポーネントが破棄されていないかチェック
+              if (this.destroy$.closed) {
+                return;
+              }
+              // ✅ 修正: tasksが配列でない場合の処理を追加
+              if (!Array.isArray(tasks)) {
+                console.error(
+                  `プロジェクト ${project.id} のタスクが配列ではありません:`,
+                  tasks
+                );
+                return;
+              }
+              const themeColor = this.getProjectThemeColor(project.id!);
+              const tasksWithProject = tasks
+                .filter((task) => task != null) // ✅ 修正: null/undefinedのタスクをフィルタリング
+                .map((task) => ({
+                  ...task,
+                  projectId: task.projectId || project.id!,
+                  projectName: task.projectName || project.projectName,
+                  projectThemeColor: task.projectThemeColor || themeColor,
+                }));
 
-            this.allTasks = this.allTasks.filter(
-              (t) => t.projectId !== project.id
-            );
-            const normalizedTasks = tasksWithProject.map((task) =>
-              this.withTaskTheme(task)
-            );
-            this.allTasks = [...this.allTasks, ...normalizedTasks];
-            this.filterTasksBySelectedProjects();
+              this.allTasks = this.allTasks.filter(
+                (t) => t && t.projectId !== project.id
+              );
+              const normalizedTasks = tasksWithProject.map((task) =>
+                this.withTaskTheme(task)
+              );
+              this.allTasks = [...this.allTasks, ...normalizedTasks];
+              this.filterTasksBySelectedProjects();
+            },
+            error: (error) => {
+              // ✅ 修正: コンポーネントが破棄されていないかチェック
+              if (this.destroy$.closed) {
+                return;
+              }
+              console.error(
+                `プロジェクト ${project.id} のタスク読み込みエラー:`,
+                error
+              );
+            },
           });
       }
     });
@@ -402,12 +465,25 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** フィルターを適用 */
   applyFilters() {
-    let filteredTasks = [...this.allTasks];
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
+    // ✅ 修正: allTasksが配列でない場合の処理を追加
+    if (!Array.isArray(this.allTasks)) {
+      console.error('allTasksが配列ではありません:', this.allTasks);
+      this.tasks = [];
+      return;
+    }
+    let filteredTasks = [...this.allTasks].filter((task) => task != null); // ✅ 修正: null/undefinedのタスクをフィルタリング
 
     // プロジェクトフィルター
     if (this.selectedProjectIds.length > 0) {
-      filteredTasks = filteredTasks.filter((task) =>
-        this.selectedProjectIds.includes(task.projectId)
+      filteredTasks = filteredTasks.filter(
+        (task) =>
+          task &&
+          task.projectId &&
+          this.selectedProjectIds.includes(task.projectId)
       );
     } else {
       // プロジェクトが選択されていない場合は空配列
@@ -416,14 +492,18 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // 優先度フィルター
     if (this.filterPriority.length > 0) {
-      filteredTasks = filteredTasks.filter((task) =>
-        this.filterPriority.includes(task.priority)
+      filteredTasks = filteredTasks.filter(
+        (task) =>
+          task && task.priority && this.filterPriority.includes(task.priority)
       );
     }
 
     // 担当者フィルター（assignedMembers（メンバーID配列）から取得）
     if (this.filterAssignee.length > 0) {
       filteredTasks = filteredTasks.filter((task) => {
+        if (!task) {
+          return false;
+        }
         const assignees: string[] = [];
 
         // assignedMembers から取得（メンバーIDをメンバー名に変換）
@@ -435,7 +515,10 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
             task.assignedMembers,
             this.members
           );
-          assignees.push(...memberNames);
+          // ✅ 修正: memberNamesが配列であることを確認
+          if (Array.isArray(memberNames)) {
+            assignees.push(...memberNames.filter((name) => name != null));
+          }
         }
 
         // 担当者がいない場合はフィルターにマッチしない
@@ -444,21 +527,30 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
         }
 
         // フィルター値とマッチするか確認（いずれかの担当者がフィルターに含まれていればOK）
-        return assignees.some((assignee) =>
-          this.filterAssignee.includes(assignee)
+        return assignees.some(
+          (assignee) => assignee && this.filterAssignee.includes(assignee)
         );
       });
     }
 
     // ステータスフィルター
     if (this.filterStatus.length > 0) {
-      filteredTasks = filteredTasks.filter((task) =>
-        this.filterStatus.includes(task.status)
+      filteredTasks = filteredTasks.filter(
+        (task) => task && task.status && this.filterStatus.includes(task.status)
       );
     }
 
+    // ✅ 修正: filteredTasksが配列でない場合の処理を追加
+    if (!Array.isArray(filteredTasks)) {
+      console.error('filteredTasksが配列ではありません:', filteredTasks);
+      this.tasks = [];
+      return;
+    }
+
     // フィルター後の結果を表示
-    this.tasks = filteredTasks.map((task) => this.withTaskTheme(task));
+    this.tasks = filteredTasks
+      .filter((task) => task != null)
+      .map((task) => this.withTaskTheme(task));
     this.calculateAssigneeColumnWidth(); // フィルター適用後も担当者列の幅を計算
     this.updateTimelineRange(this.tasks);
   }
@@ -929,28 +1021,61 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** ユニークな担当者一覧を取得（assignedMembers（メンバーID配列）から取得） */
   getUniqueAssignees(): string[] {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return [];
+    }
     const assigneeSet = new Set<string>();
+
+    // ✅ 修正: allTasksが配列でない場合の処理を追加
+    if (!Array.isArray(this.allTasks)) {
+      console.error('allTasksが配列ではありません:', this.allTasks);
+      return [];
+    }
 
     // 全タスクのassignedMembersからメンバー名を取得
     this.allTasks.forEach((task) => {
+      if (!task) {
+        return; // ✅ 修正: null/undefinedのタスクをスキップ
+      }
       if (
         Array.isArray(task.assignedMembers) &&
         task.assignedMembers.length > 0
       ) {
         const memberNames = getMemberNames(task.assignedMembers, this.members);
-        memberNames.forEach((name) => assigneeSet.add(name));
+        // ✅ 修正: memberNamesが配列であることを確認
+        if (Array.isArray(memberNames)) {
+          memberNames.forEach((name) => {
+            if (name) {
+              assigneeSet.add(name);
+            }
+          });
+        }
       }
     });
 
+    // ✅ 修正: membersが配列でない場合の処理を追加
+    if (!Array.isArray(this.members)) {
+      console.error('membersが配列ではありません:', this.members);
+      return Array.from(assigneeSet).sort();
+    }
+
     // メンバー管理画面のメンバー一覧からも取得（assignedMembersに含まれていないメンバーも選択肢に含める）
     this.members.forEach((member) => {
+      if (!member) {
+        return; // ✅ 修正: null/undefinedのメンバーをスキップ
+      }
       if (member.name) {
         // メンバー名がカンマ区切りの場合も分割
         const names = member.name
           .split(',')
           .map((n) => n.trim())
           .filter((n) => n.length > 0);
-        names.forEach((name) => assigneeSet.add(name));
+        names.forEach((name) => {
+          if (name) {
+            assigneeSet.add(name);
+          }
+        });
       }
     });
 
@@ -1079,6 +1204,15 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** タスク詳細画面に遷移 */
   openTaskDetail(task: Task) {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
+    // ✅ 修正: taskがnull/undefinedの場合のチェック
+    if (!task) {
+      console.error('タスクが指定されていません');
+      return;
+    }
     console.log('Navigating to task detail:', task);
     if (task.projectId && task.id) {
       this.router.navigate(['/project', task.projectId, 'task', task.id]);
@@ -1211,6 +1345,10 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** タスクの担当者を表示（カンマ区切り対応） */
   getTaskAssigneeDisplay(task: Task): string {
+    // ✅ 修正: taskがnull/undefinedの場合のチェック
+    if (!task) {
+      return '—';
+    }
     // assignedMembers がある場合はそれを使用
     if (task.assignedMembers && task.assignedMembers.length > 0) {
       // デバッグ: assignedMembersとmembersの内容を確認
