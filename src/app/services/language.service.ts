@@ -203,12 +203,12 @@ export class LanguageService {
       en: 'Email notifications may be received as spam.',
     },
     'settings.notifications.targets': {
-      ja: '通知先設定',
-      en: 'Notification Targets',
+      ja: '通知ON/OFF設定',
+      en: 'Notification ON/OFF Settings',
     },
     'settings.notifications.email': {
-      ja: 'メール通知',
-      en: 'Email Notifications',
+      ja: '通知先',
+      en: 'Notification Target',
     },
     'settings.notifications.address': {
       ja: 'メールアドレス',

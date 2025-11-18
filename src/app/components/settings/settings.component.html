@@ -89,7 +89,7 @@
       </mat-card-header>
 
       <mat-card-content>
-        <!-- 通知先設定 -->
+        <!-- 通知ON/OFF設定 -->
         <mat-expansion-panel class="expansion-panel">
           <mat-expansion-panel-header>
             <mat-panel-title>
@@ -99,7 +99,7 @@
           </mat-expansion-panel-header>
 
           <div class="notification-channels">
-            <!-- メール通知設定 -->
+            <!-- 通知先設定 -->
             <div class="channel-section">
               <div class="channel-header">
                 <mat-slide-toggle
@@ -121,11 +121,10 @@
                   <input
                     matInput
                     type="email"
-                    [(ngModel)]="
-                      notificationSettings.notificationChannels.email.address
-                    "
+                    [value]="notificationSettings.notificationChannels.email.address"
                     name="emailAddress"
                     [placeholder]="'settings.notifications.address' | translate"
+                    [disabled]="true"
                   />
                 </mat-form-field>
               </div>

@@ -171,6 +171,11 @@ export class SettingsComponent implements OnInit {
 
       if (loadedSettings) {
         this.notificationSettings = loadedSettings;
+        // ✅ 修正: ログインユーザーのメールアドレスを固定で設定
+        const currentUserEmail = currentUser.email || '';
+        if (currentUserEmail) {
+          this.notificationSettings.notificationChannels.email.address = currentUserEmail;
+        }
         // 通知オフ期間機能を無効化（コードは残す）
         // // quietHoursが存在しない場合は初期化
         // if (!this.notificationSettings.quietHours) {
@@ -216,6 +221,11 @@ export class SettingsComponent implements OnInit {
         // デフォルト設定を作成
         this.notificationSettings =
           this.notificationService.createDefaultNotificationSettings();
+        // ✅ 修正: ログインユーザーのメールアドレスを固定で設定
+        const currentUserEmail = currentUser.email || '';
+        if (currentUserEmail) {
+          this.notificationSettings.notificationChannels.email.address = currentUserEmail;
+        }
         // 通知オフ期間機能を無効化（コードは残す）
         // console.log('📋 デフォルト通知設定を作成:', {
         //   quietHours: this.notificationSettings.quietHours,
@@ -335,6 +345,12 @@ export class SettingsComponent implements OnInit {
 
     this.isSaving = true;
     try {
+      // ✅ 修正: ログインユーザーのメールアドレスを固定で設定
+      const currentUser = this.authService.getCurrentUser();
+      if (currentUser?.email) {
+        this.notificationSettings.notificationChannels.email.address = currentUser.email;
+      }
+
       // 選択された日数を設定に反映
       this.notificationSettings.taskDeadlineNotifications.daysBeforeDeadline =
         this.selectedDeadlineDays;
