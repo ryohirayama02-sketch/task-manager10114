@@ -578,7 +578,17 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** プロジェクトをすべて選択 */
   selectAllProjects() {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
+    // ✅ 修正: projectsが配列でない場合の処理
+    if (!Array.isArray(this.projects)) {
+      console.error('projectsが配列ではありません:', this.projects);
+      return;
+    }
     const allIds = this.projects
+      .filter((project) => project != null) // ✅ 修正: null/undefinedのプロジェクトをフィルタリング
       .map((project) => project.id)
       .filter((id): id is string => !!id);
     this.selectedProjectIds = allIds;
@@ -587,19 +597,35 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** プロジェクト選択を全て解除 */
   clearProjectSelection() {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
     this.selectedProjectIds = [];
     this.projectSelectionService.clearSelection();
   }
 
   /** プロジェクトが選択されているかチェック */
   isProjectSelected(projectId: string): boolean {
+    // ✅ 修正: projectIdがnull/undefinedの場合の処理
+    if (!projectId) {
+      return false;
+    }
     return this.selectedProjectIds.includes(projectId);
   }
 
   /** プロジェクトIDからプロジェクト名を取得 */
   getProjectName(projectId: string): string {
-    const project = this.projects.find((p) => p.id === projectId);
-    return project ? project.projectName : '';
+    // ✅ 修正: projectIdがnull/undefinedの場合の処理
+    if (!projectId) {
+      return '';
+    }
+    // ✅ 修正: projectsが配列でない場合の処理
+    if (!Array.isArray(this.projects)) {
+      return '';
+    }
+    const project = this.projects.find((p) => p && p.id === projectId);
+    return project ? project.projectName || '' : '';
   }
 
   private updateThemeColorMap(): void {
@@ -639,19 +665,39 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   /** タスクの開始日を取得 */
-  getTaskStartDate(task: Task): Date {
-    return task.startDate ? new Date(task.startDate) : new Date();
+  getTaskStartDate(task: Task): Date | null {
+    if (!task || !task.startDate) {
+      return null;
+    }
+    const date = new Date(task.startDate);
+    // ✅ 修正: 無効な日付の場合はnullを返す
+    if (isNaN(date.getTime())) {
+      return null;
+    }
+    return date;
   }
 
   /** タスクの終了日を取得 */
-  getTaskEndDate(task: Task): Date {
-    return task.dueDate ? new Date(task.dueDate) : new Date();
+  getTaskEndDate(task: Task): Date | null {
+    if (!task || !task.dueDate) {
+      return null;
+    }
+    const date = new Date(task.dueDate);
+    // ✅ 修正: 無効な日付の場合はnullを返す
+    if (isNaN(date.getTime())) {
+      return null;
+    }
+    return date;
   }
 
   /** タスクの期間を計算 */
   getTaskDuration(task: Task): number {
     const start = this.getTaskStartDate(task);
     const end = this.getTaskEndDate(task);
+    // ✅ 修正: 日付が無効な場合は0を返す
+    if (!start || !end) {
+      return 0;
+    }
     return (
       Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1
     );
@@ -660,6 +706,10 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
   /** タスクの開始位置を計算 */
   getTaskStartPosition(task: Task): number {
     const start = this.getTaskStartDate(task);
+    // ✅ 修正: 日付が無効な場合は0を返す
+    if (!start) {
+      return 0;
+    }
     const daysDiff = Math.floor(
       (start.getTime() - this.startDate.getTime()) / (1000 * 60 * 60 * 24)
     );
@@ -1006,6 +1056,10 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** プロジェクト作成ダイアログを開く */
   openProjectDialog() {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
     this.router.navigate(['/project-form'], {
       state: { returnUrl: this.router.url },
     });
@@ -1013,6 +1067,10 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** フィルターをリセット */
   resetFilters() {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
     this.filterPriority = [];
     this.filterAssignee = [];
     this.filterStatus = [];
@@ -1086,12 +1144,20 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
   isDateInTaskRange(date: Date, task: Task): boolean {
     const taskStart = this.getTaskStartDate(task);
     const taskEnd = this.getTaskEndDate(task);
+    // ✅ 修正: 日付が無効な場合はfalseを返す
+    if (!taskStart || !taskEnd) {
+      return false;
+    }
     return date >= taskStart && date <= taskEnd;
   }
 
   /** タスクバーの開始位置を計算（ピクセル単位） */
   getTaskBarStartPosition(task: Task): number {
     const taskStart = this.getTaskStartDate(task);
+    // ✅ 修正: 日付が無効な場合は0を返す
+    if (!taskStart) {
+      return 0;
+    }
     const daysDiff = Math.floor(
       (taskStart.getTime() - this.startDate.getTime()) / (1000 * 60 * 60 * 24)
     );
@@ -1102,11 +1168,15 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
   getTaskBarWidth(task: Task): number {
     const taskStart = this.getTaskStartDate(task);
     const taskEnd = this.getTaskEndDate(task);
+    // ✅ 修正: 日付が無効な場合は0を返す
+    if (!taskStart || !taskEnd) {
+      return 0;
+    }
     const totalDays =
       Math.ceil(
         (taskEnd.getTime() - taskStart.getTime()) / (1000 * 60 * 60 * 24)
       ) + 1;
-    return totalDays * 30; // 1日 = 30px
+    return Math.max(0, totalDays * 30); // 1日 = 30px、負の値の場合は0
   }
 
   private updateTimelineRange(tasks: Task[]): void {
@@ -1265,6 +1335,10 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** プロジェクト詳細画面に遷移 */
   openProjectDetail(projectId?: string | null) {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
     if (projectId) {
       this.router.navigate(['/project', projectId]);
     } else {
@@ -1396,12 +1470,18 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** タスクバーのツールチップテキストを取得 */
   getTaskBarTooltip(task: Task): string {
-    const statusDisplay = this.getStatusDisplay(task.status);
+    // ✅ 修正: taskがnull/undefinedの場合のチェック
+    if (!task) {
+      return '';
+    }
+    const statusDisplay = this.getStatusDisplay(task.status || '');
     const startDate = task.startDate || '';
     const dueDate = task.dueDate || '';
     const currentLanguage = this.languageService.getCurrentLanguage();
     const separator = currentLanguage === 'ja' ? ' ～ ' : ' - ';
-    return `${task.taskName} (${statusDisplay}) - ${startDate}${separator}${dueDate}`;
+    return `${
+      task.taskName || ''
+    } (${statusDisplay}) - ${startDate}${separator}${dueDate}`;
   }
 
   /** 画面幅警告を設定 */
