@@ -114,14 +114,14 @@
               </div>
 
               <div
-                *ngIf="notificationSettings.notificationChannels.email.enabled"
+                *ngIf="notificationSettings?.notificationChannels?.email?.enabled"
                 class="channel-settings"
               >
                 <mat-form-field appearance="outline" class="full-width">
                   <input
                     matInput
                     type="email"
-                    [value]="notificationSettings.notificationChannels.email.address"
+                    [value]="notificationSettings?.notificationChannels?.email?.address || ''"
                     name="emailAddress"
                     [placeholder]="'settings.notifications.address' | translate"
                     [disabled]="true"

@@ -207,6 +207,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
             this.notificationSettings =
               this.notificationService.createDefaultNotificationSettings();
             this.selectedDeadlineDays = [1, 3, 7];
+            // ✅ 修正: 時間オブジェクトもリセット
+            this.taskDeadlineTime = { hour: '09', minute: '00' };
+            this.workTimeOverflowTime = { hour: '09', minute: '00' };
+            this.dailyReminderTime = { hour: '09', minute: '00' };
             this.isLoading = false;
             return;
           }
@@ -303,9 +307,9 @@ export class SettingsComponent implements OnInit, OnDestroy {
         // }
 
         // 時間を{ hour, minute }形式に変換
+        // ✅ 修正: オプショナルチェーンを使用して安全にアクセス
         this.taskDeadlineTime = this.parseTimeString(
-          this.notificationSettings.taskDeadlineNotifications.timeOfDay ||
-            '09:00'
+          this.notificationSettings.taskDeadlineNotifications?.timeOfDay || '09:00'
         );
         // 通知オフ期間機能を無効化（コードは残す）
         // this.quietStartTime = this.parseTimeString(
@@ -315,11 +319,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
         //   this.notificationSettings.quietHours.endTime || '08:00'
         // );
         this.workTimeOverflowTime = this.parseTimeString(
-          this.notificationSettings.workTimeOverflowNotifications.timeOfDay ||
-            '09:00'
+          this.notificationSettings.workTimeOverflowNotifications?.timeOfDay || '09:00'
         );
         this.dailyReminderTime = this.parseTimeString(
-          this.notificationSettings.dailyDeadlineReminder.timeOfDay || '09:00'
+          this.notificationSettings.dailyDeadlineReminder?.timeOfDay || '09:00'
         );
 
         // デバッグ: 読み込んだ設定を確認
@@ -337,6 +340,16 @@ export class SettingsComponent implements OnInit, OnDestroy {
         if (currentUserEmail) {
           this.notificationSettings.notificationChannels.email.address = currentUserEmail;
         }
+        // ✅ 修正: デフォルト設定を作成した場合も時間オブジェクトを初期化
+        this.taskDeadlineTime = this.parseTimeString(
+          this.notificationSettings.taskDeadlineNotifications?.timeOfDay || '09:00'
+        );
+        this.workTimeOverflowTime = this.parseTimeString(
+          this.notificationSettings.workTimeOverflowNotifications?.timeOfDay || '09:00'
+        );
+        this.dailyReminderTime = this.parseTimeString(
+          this.notificationSettings.dailyDeadlineReminder?.timeOfDay || '09:00'
+        );
         // 通知オフ期間機能を無効化（コードは残す）
         // console.log('📋 デフォルト通知設定を作成:', {
         //   quietHours: this.notificationSettings.quietHours,
@@ -450,11 +463,16 @@ export class SettingsComponent implements OnInit, OnDestroy {
   */
 
   /** 時間文字列（'HH:mm'）を{ hour, minute }形式に変換 */
-  parseTimeString(timeString: string): { hour: string; minute: string } {
-    if (!timeString || !timeString.includes(':')) {
+  parseTimeString(timeString: string | null | undefined): { hour: string; minute: string } {
+    // ✅ 修正: null/undefinedチェック
+    if (!timeString || typeof timeString !== 'string' || !timeString.includes(':')) {
       return { hour: '00', minute: '00' };
     }
     const [hour, minute] = timeString.split(':');
+    // ✅ 修正: hourとminuteがundefinedの場合のチェック
+    if (!hour || !minute) {
+      return { hour: '00', minute: '00' };
+    }
     return {
       hour: hour.padStart(2, '0'),
       minute: minute.padStart(2, '0'),
@@ -462,8 +480,14 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   /** { hour, minute }形式を時間文字列（'HH:mm'）に変換 */
-  formatTimeString(time: { hour: string; minute: string }): string {
-    return `${time.hour.padStart(2, '0')}:${time.minute.padStart(2, '0')}`;
+  formatTimeString(time: { hour: string; minute: string } | null | undefined): string {
+    // ✅ 修正: null/undefinedチェック
+    if (!time || typeof time !== 'object') {
+      return '00:00';
+    }
+    const hour = time.hour || '00';
+    const minute = time.minute || '00';
+    return `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
   }
 
   /** 通知オフ期間の時間が有効かチェック（開始時間と終了時間が同じでないか） */
@@ -618,6 +642,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   /** テスト通知を送信 */
   async sendTestNotification() {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
     if (!this.notificationSettings) return;
 
     // 連続クリックを防ぐ
@@ -629,11 +657,19 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.isSaving = true;
     console.log('テスト通知送信開始');
     try {
+      // ✅ 修正: コンポーネントが破棄されていないかチェック
+      if (this.destroy$.closed) {
+        return;
+      }
       // メール通知のテスト
-      if (this.notificationSettings.notificationChannels.email.enabled) {
+      if (this.notificationSettings.notificationChannels?.email?.enabled) {
         const emailAddress =
           this.notificationSettings.notificationChannels.email.address;
         if (!emailAddress) {
+          // ✅ 修正: コンポーネントが破棄されていないかチェック
+          if (this.destroy$.closed) {
+            return;
+          }
           this.snackBar.open(
             this.languageService.translate('settings.emailRequired'),
             this.getCloseLabel(),
@@ -649,6 +685,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
         // メールアドレスの検証
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(emailAddress)) {
+          // ✅ 修正: コンポーネントが破棄されていないかチェック
+          if (this.destroy$.closed) {
+            return;
+          }
           this.snackBar.open(
             this.languageService.translate('settings.validEmailRequired'),
             this.getCloseLabel(),
@@ -664,6 +704,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
         );
         console.log('送信結果:', result);
 
+        // ✅ 修正: コンポーネントが破棄されていないかチェック
+        if (this.destroy$.closed) {
+          return;
+        }
         if (result) {
           this.snackBar.open(
             this.languageService.translate('settings.testNotificationSent'),
@@ -682,6 +726,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
           );
         }
       } else {
+        // ✅ 修正: コンポーネントが破棄されていないかチェック
+        if (this.destroy$.closed) {
+          return;
+        }
         this.snackBar.open(
           this.languageService.translate('settings.enableEmailNotification'),
           this.getCloseLabel(),
@@ -691,6 +739,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
         );
       }
     } catch (error: any) {
+      // ✅ 修正: コンポーネントが破棄されていないかチェック
+      if (this.destroy$.closed) {
+        return;
+      }
       console.error('テスト通知エラー:', error);
       const errorMessage = error?.message || error?.code || '不明なエラー';
       this.snackBar.open(
@@ -706,7 +758,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
         }
       );
     } finally {
-      this.isSaving = false;
+      // ✅ 修正: コンポーネントが破棄されていないかチェック
+      if (!this.destroy$.closed) {
+        this.isSaving = false;
+      }
     }
   }
 
@@ -714,9 +769,17 @@ export class SettingsComponent implements OnInit, OnDestroy {
    * 期限が近いタスクのメール通知を手動送信（テスト用）
    */
   async sendTaskRemindersTest(): Promise<void> {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
     const roomId = this.authService.getCurrentRoomId();
     const roomDocId = this.authService.getCurrentRoomDocId();
     if (!roomId || !roomDocId) {
+      // ✅ 修正: コンポーネントが破棄されていないかチェック
+      if (this.destroy$.closed) {
+        return;
+      }
       this.snackBar.open(
         this.languageService.translate('settings.roomEnterRequired'),
         this.getCloseLabel(),
@@ -730,17 +793,25 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.isSaving = true;
 
     try {
+      // ✅ 修正: コンポーネントが破棄されていないかチェック
+      if (this.destroy$.closed) {
+        return;
+      }
       console.log('🔔 期限が近いタスクのメール通知をテスト送信');
 
       const result = await this.taskReminderService.sendTaskReminders();
 
+      // ✅ 修正: コンポーネントが破棄されていないかチェック
+      if (this.destroy$.closed) {
+        return;
+      }
       if (result.success) {
         this.snackBar.open(
           this.languageService.translateWithParams(
             'settings.deadlineNotificationSent',
             {
-              taskCount: String(result.taskCount),
-              userCount: String(result.userCount),
+              taskCount: String(result.taskCount || 0),
+              userCount: String(result.userCount || 0),
             }
           ),
           this.getCloseLabel(),
@@ -756,6 +827,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
         );
       }
     } catch (error) {
+      // ✅ 修正: コンポーネントが破棄されていないかチェック
+      if (this.destroy$.closed) {
+        return;
+      }
       console.error('期限が近いタスクのメール通知テストエラー:', error);
       this.snackBar.open(
         this.languageService.translate('settings.emailNotificationFailed'),
@@ -765,7 +840,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
         }
       );
     } finally {
-      this.isSaving = false;
+      // ✅ 修正: コンポーネントが破棄されていないかチェック
+      if (!this.destroy$.closed) {
+        this.isSaving = false;
+      }
     }
   }
 
@@ -1418,6 +1496,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   /** 作業予定時間オーバー通知の説明文を取得 */
   getWorkTimeDescription(): string {
+    // ✅ 修正: null/undefinedチェック
+    if (!this.notificationSettings?.workTimeOverflowNotifications) {
+      return '';
+    }
     const days =
       this.notificationSettings.workTimeOverflowNotifications.checkPeriodDays ||
       1;
