@@ -203,6 +203,11 @@ export class SettingsComponent implements OnInit, OnDestroy {
             }
             // ✅ 修正: roomInfoをクリア
             this.roomInfo = null;
+            // ✅ 修正: notificationSettingsをクリア
+            this.notificationSettings =
+              this.notificationService.createDefaultNotificationSettings();
+            this.selectedDeadlineDays = [1, 3, 7];
+            this.isLoading = false;
             return;
           }
           // ✅ 修正: ユーザーが変更された場合、設定を再読み込み
@@ -219,6 +224,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
             this.loadHomeScreenSettings();
             // ✅ 修正: roomInfoを再読み込み
             this.loadRoomInfo();
+            // ✅ 修正: notificationSettingsを再読み込み
+            this.loadNotificationSettings();
           }
           // ✅ 修正: ルームIDが変更された場合、roomInfoを再読み込み
           if (this.previousRoomId !== null && this.previousRoomId !== roomId) {
@@ -241,10 +248,22 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   /** 通知設定を読み込み */
   async loadNotificationSettings() {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
     this.isLoading = true;
     try {
+      // ✅ 修正: コンポーネントが破棄されていないかチェック
+      if (this.destroy$.closed) {
+        return;
+      }
       const currentUser = this.authService.getCurrentUser();
       if (!currentUser) {
+        // ✅ 修正: コンポーネントが破棄されていないかチェック
+        if (this.destroy$.closed) {
+          return;
+        }
         this.snackBar.open(
           this.languageService.translate('settings.loginRequired'),
           this.getCloseLabel(),
@@ -255,6 +274,11 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
       const loadedSettings =
         await this.notificationService.getNotificationSettings(currentUser.uid);
+
+      // ✅ 修正: コンポーネントが破棄されていないかチェック
+      if (this.destroy$.closed) {
+        return;
+      }
 
       if (loadedSettings) {
         this.notificationSettings = loadedSettings;
@@ -321,9 +345,20 @@ export class SettingsComponent implements OnInit, OnDestroy {
       }
 
       // 選択された日数を設定
-      this.selectedDeadlineDays =
+      // ✅ 修正: daysBeforeDeadlineが配列でない場合のチェック
+      const daysBeforeDeadline =
         this.notificationSettings.taskDeadlineNotifications.daysBeforeDeadline;
+      if (Array.isArray(daysBeforeDeadline)) {
+        this.selectedDeadlineDays = daysBeforeDeadline;
+      } else {
+        // デフォルト値を使用
+        this.selectedDeadlineDays = [1, 3, 7];
+      }
     } catch (error) {
+      // ✅ 修正: コンポーネントが破棄されていないかチェック
+      if (this.destroy$.closed) {
+        return;
+      }
       console.error('通知設定の読み込みエラー:', error);
       console.error('エラーの詳細:', error);
       this.snackBar.open(
@@ -336,7 +371,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
         }
       );
     } finally {
-      this.isLoading = false;
+      // ✅ 修正: コンポーネントが破棄されていないかチェック
+      if (!this.destroy$.closed) {
+        this.isLoading = false;
+      }
     }
   }
 
@@ -443,7 +481,16 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   /** 通知設定を保存 */
   async saveNotificationSettings() {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
     if (!this.notificationSettings) return;
+
+    // ✅ 修正: 重複保存を防ぐ
+    if (this.isSaving) {
+      return;
+    }
 
     // 通知オフ期間機能を無効化（コードは残す）
     // // 通知オフ期間の時間バリデーション
@@ -460,6 +507,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
     this.isSaving = true;
     try {
+      // ✅ 修正: コンポーネントが破棄されていないかチェック
+      if (this.destroy$.closed) {
+        return;
+      }
       // ✅ 修正: ログインユーザーのメールアドレスを固定で設定
       const currentUser = this.authService.getCurrentUser();
       if (currentUser?.email) {
@@ -467,8 +518,14 @@ export class SettingsComponent implements OnInit, OnDestroy {
       }
 
       // 選択された日数を設定に反映
-      this.notificationSettings.taskDeadlineNotifications.daysBeforeDeadline =
-        this.selectedDeadlineDays;
+      // ✅ 修正: selectedDeadlineDaysが配列でない場合のチェック
+      if (Array.isArray(this.selectedDeadlineDays)) {
+        this.notificationSettings.taskDeadlineNotifications.daysBeforeDeadline =
+          this.selectedDeadlineDays;
+      } else {
+        // デフォルト値を使用
+        this.notificationSettings.taskDeadlineNotifications.daysBeforeDeadline = [1, 3, 7];
+      }
 
       // 時間を文字列形式に変換して設定に反映
       this.notificationSettings.taskDeadlineNotifications.timeOfDay =
@@ -495,6 +552,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
       await this.notificationService.saveNotificationSettings(
         this.notificationSettings
       );
+      // ✅ 修正: コンポーネントが破棄されていないかチェック
+      if (this.destroy$.closed) {
+        return;
+      }
       this.snackBar.open(
         this.languageService.translate('settings.saveSuccess'),
         this.getCloseLabel(),
@@ -503,6 +564,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
         }
       );
     } catch (error) {
+      // ✅ 修正: コンポーネントが破棄されていないかチェック
+      if (this.destroy$.closed) {
+        return;
+      }
       console.error('通知設定の保存エラー:', error);
       this.snackBar.open(
         this.languageService.translate('settings.saveError'),
@@ -512,14 +577,28 @@ export class SettingsComponent implements OnInit, OnDestroy {
         }
       );
     } finally {
-      this.isSaving = false;
+      // ✅ 修正: コンポーネントが破棄されていないかチェック
+      if (!this.destroy$.closed) {
+        this.isSaving = false;
+      }
     }
   }
 
   /** 通知日数の選択を更新 */
   updateDeadlineDays(day: number, checked: boolean) {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
+    // ✅ 修正: selectedDeadlineDaysが配列でない場合のチェック
+    if (!Array.isArray(this.selectedDeadlineDays)) {
+      this.selectedDeadlineDays = [];
+    }
     if (checked) {
-      this.selectedDeadlineDays.push(day);
+      // ✅ 修正: 既に含まれている場合は追加しない
+      if (!this.selectedDeadlineDays.includes(day)) {
+        this.selectedDeadlineDays.push(day);
+      }
     } else {
       this.selectedDeadlineDays = this.selectedDeadlineDays.filter(
         (d) => d !== day
@@ -530,6 +609,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   /** 通知日数が選択されているかチェック */
   isDeadlineDaySelected(day: number): boolean {
+    // ✅ 修正: selectedDeadlineDaysが配列でない場合のチェック
+    if (!Array.isArray(this.selectedDeadlineDays)) {
+      return false;
+    }
     return this.selectedDeadlineDays.includes(day);
   }
 
