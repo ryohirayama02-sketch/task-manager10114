@@ -248,36 +248,43 @@ export class KanbanComponent implements OnInit, OnDestroy {
   private loadAllTasks(): void {
     this.allTasks = [];
     this.tasksByProject.clear();
+    // ✅ 修正: projectsが配列でない場合の処理を追加
+    if (!Array.isArray(this.projects)) {
+      console.error('projectsが配列ではありません:', this.projects);
+      return;
+    }
     this.projects.forEach((project) => {
-      if (project.id) {
-        this.projectService
-          .getTasksByProjectId(project.id)
-          .pipe(takeUntil(this.destroy$)) // ✅ 追加: メモリリーク防止
-          .subscribe({
-            next: (tasks) => {
-              // ✅ 修正: コンポーネントが破棄されていないかチェック
-              if (this.destroy$.closed) {
-                console.log('[loadAllTasks] コンポーネントが破棄されたため、状態更新をスキップします');
-                return;
-              }
-              // ✅ 修正: tasksが配列でない場合の処理を追加
-              if (!Array.isArray(tasks)) {
-                console.error(`プロジェクト ${project.id} のタスクが配列ではありません:`, tasks);
-                return;
-              }
-              this.tasksByProject.set(project.id!, tasks);
-              this.rebuildAllTasks();
-            },
-            error: (error) => {
-              console.error(`プロジェクト ${project.id} のタスク読み込みエラー:`, error);
-              // ✅ 修正: エラー時もコンポーネントが破棄されていないかチェック
-              if (this.destroy$.closed) {
-                console.log('[loadAllTasks] コンポーネントが破棄されたため、エラー処理をスキップします');
-                return;
-              }
-            },
-          });
+      // ✅ 修正: projectがnullやundefinedの場合をスキップ
+      if (!project || !project.id) {
+        return;
       }
+      this.projectService
+        .getTasksByProjectId(project.id)
+        .pipe(takeUntil(this.destroy$)) // ✅ 追加: メモリリーク防止
+        .subscribe({
+          next: (tasks) => {
+            // ✅ 修正: コンポーネントが破棄されていないかチェック
+            if (this.destroy$.closed) {
+              console.log('[loadAllTasks] コンポーネントが破棄されたため、状態更新をスキップします');
+              return;
+            }
+            // ✅ 修正: tasksが配列でない場合の処理を追加
+            if (!Array.isArray(tasks)) {
+              console.error(`プロジェクト ${project.id} のタスクが配列ではありません:`, tasks);
+              return;
+            }
+            this.tasksByProject.set(project.id!, tasks);
+            this.rebuildAllTasks();
+          },
+          error: (error) => {
+            console.error(`プロジェクト ${project.id} のタスク読み込みエラー:`, error);
+            // ✅ 修正: エラー時もコンポーネントが破棄されていないかチェック
+            if (this.destroy$.closed) {
+              console.log('[loadAllTasks] コンポーネントが破棄されたため、エラー処理をスキップします');
+              return;
+            }
+          },
+        });
     });
   }
 
@@ -288,8 +295,15 @@ export class KanbanComponent implements OnInit, OnDestroy {
       return;
     }
     const aggregated: Task[] = [];
+    // ✅ 修正: projectsが配列でない場合の処理を追加
+    if (!Array.isArray(this.projects)) {
+      console.error('projectsが配列ではありません:', this.projects);
+      this.allTasks = [];
+      return;
+    }
     this.projects.forEach((project) => {
-      if (!project.id) {
+      // ✅ 修正: projectがnullやundefinedの場合をスキップ
+      if (!project || !project.id) {
         return;
       }
       const tasks = this.tasksByProject.get(project.id) || [];
@@ -643,7 +657,12 @@ export class KanbanComponent implements OnInit, OnDestroy {
     if (!projectId) {
       return '';
     }
-    const project = this.projects.find((p) => p.id === projectId);
+    // ✅ 修正: projectsが配列でない場合の処理を追加
+    if (!Array.isArray(this.projects)) {
+      console.error('projectsが配列ではありません:', this.projects);
+      return '';
+    }
+    const project = this.projects.find((p) => p && p.id === projectId);
     return project ? project.projectName : '';
   }
 
@@ -653,7 +672,12 @@ export class KanbanComponent implements OnInit, OnDestroy {
     if (!status) {
       return [];
     }
-    return this.tasks.filter((t) => t.status === status);
+    // ✅ 修正: tasksが配列でない場合の処理を追加
+    if (!Array.isArray(this.tasks)) {
+      console.error('tasksが配列ではありません:', this.tasks);
+      return [];
+    }
+    return this.tasks.filter((t) => t && t.status === status);
   }
 
   /** タスクのステータスを変更 */
