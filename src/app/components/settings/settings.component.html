@@ -693,17 +693,17 @@
         <div class="room-info-content">
           <div class="room-info-item">
             <label>{{ "settings.roomInfo.roomName" | translate }}:</label>
-            <span class="room-value">{{ roomInfo.name }}</span>
+            <span class="room-value">{{ roomInfo?.name || '' }}</span>
           </div>
 
           <div class="room-info-item">
             <label>{{ "settings.roomInfo.roomId" | translate }}:</label>
-            <span class="room-value">{{ roomInfo.roomId }}</span>
+            <span class="room-value">{{ roomInfo?.roomId || '' }}</span>
           </div>
 
           <div class="room-info-item">
             <label>{{ "settings.roomInfo.password" | translate }}:</label>
-            <span class="room-value">{{ roomInfo.password }}</span>
+            <span class="room-value">{{ roomInfo?.password || '' }}</span>
           </div>
         </div>
       </mat-card-content>

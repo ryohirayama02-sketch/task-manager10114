@@ -190,6 +190,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
             if (this.isSavingLanguage) {
               this.isSavingLanguage = false;
             }
+            // ✅ 修正: roomInfoをクリア
+            this.roomInfo = null;
           } else if (this.previousUserId !== null && this.previousUserId !== user.uid) {
             // ユーザーが変更された場合、設定を再読み込み
             console.log('ユーザーが変更されました。ホーム画面設定を再読み込みします。');
@@ -202,6 +204,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
               this.isSavingLanguage = false;
             }
             this.loadHomeScreenSettings();
+            // ✅ 修正: roomInfoを再読み込み
+            this.loadRoomInfo();
           }
           this.previousUserId = user?.uid || null;
         },
@@ -1327,30 +1331,66 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   /** ルーム情報を読み込み */
   async loadRoomInfo() {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
     try {
       const roomId = this.authService.getCurrentRoomId();
       if (!roomId) {
         console.warn('ルームIDが設定されていません');
+        this.roomInfo = null;
         return;
       }
-      this.roomInfo = await this.roomService.getRoomInfo(roomId);
+      const roomInfo = await this.roomService.getRoomInfo(roomId);
+      // ✅ 修正: コンポーネントが破棄されていないかチェック
+      if (this.destroy$.closed) {
+        return;
+      }
+      // ✅ 修正: roomInfoがnullの場合の処理
+      if (roomInfo && typeof roomInfo === 'object' && roomInfo.name && roomInfo.roomId && roomInfo.password) {
+        this.roomInfo = roomInfo;
+      } else {
+        console.warn('ルーム情報が無効です:', roomInfo);
+        this.roomInfo = null;
+      }
     } catch (error) {
+      // ✅ 修正: コンポーネントが破棄されていないかチェック
+      if (this.destroy$.closed) {
+        return;
+      }
       console.error('ルーム情報の読み込みエラー:', error);
+      this.roomInfo = null;
     }
   }
 
   /** ルームを変更 */
   changeRoom() {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
     // 現在のルームから退出（サインイン状態は維持）
     this.authService.clearRoomId();
     // プロジェクト選択状態もクリア
     this.projectSelectionService.clearSelection();
+    // ✅ 修正: roomInfoをクリア
+    this.roomInfo = null;
     // ルーム入室画面に遷移
-    this.router.navigate(['/room-login']);
+    this.router.navigate(['/room-login']).catch((error) => {
+      // ✅ 修正: ナビゲーションエラーハンドリング
+      if (!this.destroy$.closed) {
+        console.error('ルーム変更画面への遷移エラー:', error);
+      }
+    });
   }
 
   /** ルームを削除 */
   async deleteRoom() {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
     if (!this.roomInfo) {
       return;
     }
@@ -1359,18 +1399,26 @@ export class SettingsComponent implements OnInit, OnDestroy {
     const dialogRef = this.dialog.open(RoomDeleteConfirmDialogComponent, {
       width: '500px',
       data: {
-        roomName: this.roomInfo.name,
-        roomId: this.roomInfo.roomId,
+        roomName: this.roomInfo?.name || '',
+        roomId: this.roomInfo?.roomId || '',
       },
     });
 
     dialogRef.afterClosed()
       .pipe(takeUntil(this.destroy$))
       .subscribe(async (confirmed) => {
+      // ✅ 修正: コンポーネントが破棄されていないかチェック
+      if (this.destroy$.closed) {
+        return;
+      }
       if (confirmed) {
         try {
           const roomId = this.authService.getCurrentRoomId();
           if (!roomId) {
+            // ✅ 修正: コンポーネントが破棄されていないかチェック
+            if (this.destroy$.closed) {
+              return;
+            }
             this.snackBar.open(
               this.languageService.translate('settings.roomIdNotAvailable'),
               this.getCloseLabel(),
@@ -1385,20 +1433,30 @@ export class SettingsComponent implements OnInit, OnDestroy {
           const projects = await firstValueFrom(
             this.projectService.getProjects()
           );
-          if (projects && projects.length > 0) {
+          // ✅ 修正: 配列チェック
+          if (Array.isArray(projects) && projects.length > 0) {
             for (const project of projects) {
-              if (project.id) {
+              // ✅ 修正: コンポーネントが破棄されていないかチェック
+              if (this.destroy$.closed) {
+                return;
+              }
+              if (project && project.id) {
                 try {
                   // プロジェクトデータをそのまま使用（getProjectsで取得したデータ）
                   await this.projectService.deleteProject(project.id, project);
                 } catch (error) {
                   console.error(
-                    `プロジェクト「${project.projectName}」の削除エラー:`,
+                    `プロジェクト「${project?.projectName || '不明'}」の削除エラー:`,
                     error
                   );
                 }
               }
             }
+          }
+
+          // ✅ 修正: コンポーネントが破棄されていないかチェック
+          if (this.destroy$.closed) {
+            return;
           }
 
           // ルーム内のすべてのメンバーを削除
@@ -1410,6 +1468,11 @@ export class SettingsComponent implements OnInit, OnDestroy {
             // エラーが発生しても続行
           }
 
+          // ✅ 修正: コンポーネントが破棄されていないかチェック
+          if (this.destroy$.closed) {
+            return;
+          }
+
           // ルーム内のすべての編集ログを削除
           try {
             await this.editLogService.deleteAllEditLogsInRoom(roomId);
@@ -1419,12 +1482,24 @@ export class SettingsComponent implements OnInit, OnDestroy {
             // エラーが発生しても続行
           }
 
+          // ✅ 修正: コンポーネントが破棄されていないかチェック
+          if (this.destroy$.closed) {
+            return;
+          }
+
           // ルームを削除
           await this.roomService.deleteRoom(roomId);
+
+          // ✅ 修正: コンポーネントが破棄されていないかチェック
+          if (this.destroy$.closed) {
+            return;
+          }
 
           // ルーム情報をクリア
           this.authService.clearRoomId();
           this.projectSelectionService.clearSelection();
+          // ✅ 修正: roomInfoをクリア
+          this.roomInfo = null;
 
           this.snackBar.open(
             this.languageService.translate('settings.roomDeleted'),
@@ -1435,9 +1510,20 @@ export class SettingsComponent implements OnInit, OnDestroy {
           );
 
           // ルーム入室画面に遷移
-          this.router.navigate(['/room-login']);
+          this.router.navigate(['/room-login']).catch((error) => {
+            // ✅ 修正: ナビゲーションエラーハンドリング
+            if (!this.destroy$.closed) {
+              console.error('ルーム入室画面への遷移エラー:', error);
+            }
+          });
         } catch (error) {
+          // ✅ 修正: コンポーネントが破棄されていないかチェック
+          if (this.destroy$.closed) {
+            return;
+          }
           console.error('ルーム削除エラー:', error);
+          // ✅ 修正: エラー時にroomInfoをクリア
+          this.roomInfo = null;
           this.snackBar.open(
             this.languageService.translate('settings.roomDeleteFailed'),
             this.getCloseLabel(),
