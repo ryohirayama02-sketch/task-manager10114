@@ -274,7 +274,7 @@
               [style.background-color]="getTaskBarBackground(task)"
               [style.left]="getTaskBarStartPosition(task) + 'px'"
               [style.width]="getTaskBarWidth(task) + 'px'"
-              [style.top]="i * 40 + 4 + 'px'"
+              [style.top]="getTaskBarTopPosition(i) + 'px'"
               [title]="getTaskBarTooltip(task)"
               (click)="openTaskDetail(task)"
             >

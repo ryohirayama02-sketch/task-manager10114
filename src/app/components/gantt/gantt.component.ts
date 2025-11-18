@@ -605,10 +605,22 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** プロジェクト選択をトグル */
   toggleProjectSelection(projectId: string) {
+    // ✅ 修正: projectIdがundefinedやnullの場合の処理を追加
+    if (!projectId) {
+      console.error('プロジェクトIDが指定されていません');
+      return;
+    }
     this.projectSelectionService.toggleProjectSelection(projectId);
   }
 
   getProjectNameStyle(task: Task) {
+    // ✅ 修正: taskがnull/undefinedの場合のチェックを追加
+    if (!task) {
+      return {
+        backgroundColor: this.defaultThemeColor,
+        color: '#1f2933',
+      };
+    }
     const color = this.getProjectThemeColor(task.projectId);
     return {
       backgroundColor: color,
@@ -617,10 +629,18 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   getTaskBarBackground(task: Task): string {
+    // ✅ 修正: taskがnull/undefinedの場合のチェックを追加
+    if (!task || !task.status) {
+      return '#fdd6d5';
+    }
     return this.statusColors[task.status] || '#fdd6d5';
   }
 
   getTaskBarTextColor(task: Task): string {
+    // ✅ 修正: taskがnull/undefinedの場合のチェックを追加
+    if (!task || !task.status) {
+      return '#000000';
+    }
     return this.statusTextColors[task.status] || '#000000';
   }
 
@@ -1254,7 +1274,9 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
     const daysDiff = Math.floor(
       (startDate.getTime() - this.startDate.getTime()) / (1000 * 60 * 60 * 24)
     );
-    return Math.max(0, daysDiff * 30); // 1日 = 30px
+    // ✅ 修正: タスクが日付範囲外にある場合でも、負の値を返すことで
+    // スクロールして見ることができるようにする（クリップはCSSで処理）
+    return daysDiff * 30; // 1日 = 30px（負の値も許可）
   }
 
   /** タスクバーの幅を計算（ピクセル単位） */
@@ -1373,6 +1395,15 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
     return (index + 1) * rowHeight;
   }
 
+  /** タスクバーの垂直位置を計算（日付がないタスクを考慮） */
+  getTaskBarTopPosition(taskIndex: number): number {
+    // ✅ 修正: タスクバーの位置は、そのタスクがtasks配列内の何番目かで決まる
+    // 日付がないタスクも含めて、全てのタスクが同じ行に表示されるため、
+    // taskIndexをそのまま使用する
+    const rowHeight = 40;
+    return taskIndex * rowHeight + 4; // 4pxはタスクバーのマージン
+  }
+
   /** タスク詳細画面に遷移 */
   openTaskDetail(task: Task) {
     // ✅ 修正: コンポーネントが破棄されていないかチェック
@@ -1453,25 +1484,19 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
   setupScrollSync() {
     // DOMが完全に読み込まれた後に実行
     setTimeout(() => {
-      const dateHeader = document.querySelector('.date-header') as HTMLElement;
-      const ganttBarsColumn = document.querySelector(
-        '.gantt-bars-column'
-      ) as HTMLElement;
-
-      if (dateHeader && ganttBarsColumn) {
-        // 日付ヘッダーのスクロールをガントバー列に同期
-        dateHeader.addEventListener('scroll', () => {
-          ganttBarsColumn.scrollLeft = dateHeader.scrollLeft;
-          this.updateScrollPosition(dateHeader.scrollLeft);
-          this.updateVisibleYearMonth(); // スクロール位置が変更されたら年月も更新
-        });
-
-        // ガントバー列のスクロールを日付ヘッダーに同期
-        ganttBarsColumn.addEventListener('scroll', () => {
-          dateHeader.scrollLeft = ganttBarsColumn.scrollLeft;
-          this.updateScrollPosition(ganttBarsColumn.scrollLeft);
-          this.updateVisibleYearMonth(); // スクロール位置が変更されたら年月も更新
-        });
+      // ✅ 修正: 実際のHTML構造に合わせてセレクターを修正
+      // 水平スクロールは #timelineContainer (.gantt-right-pane) で行われる
+      // 日付ヘッダー (.gantt-header-right) は sticky で固定されているため、
+      // 実際には timelineContainer のスクロールを追跡するだけで良い
+      // このメソッドは現在の実装では不要だが、将来の拡張のために残す
+      const timelineContainer = this.timelineContainer?.nativeElement;
+      if (timelineContainer) {
+        // initializeHorizontalScrollTracking() で既に処理されているため、
+        // ここでは特に追加の処理は不要
+        // ただし、エラーを防ぐために要素の存在確認のみ行う
+        console.log('スクロール同期: timelineContainer が見つかりました');
+      } else {
+        console.warn('スクロール同期: timelineContainer が見つかりませんでした');
       }
     }, 100);
   }
@@ -1506,6 +1531,10 @@ export class GanttComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** 優先度の短縮形を表示（言語設定に応じて） */
   getPriorityShortDisplay(priority: string): string {
+    // ✅ 修正: priorityがnull/undefinedの場合のチェックを追加
+    if (!priority) {
+      return '';
+    }
     const currentLanguage = this.languageService.getCurrentLanguage();
     const priorityShortMap: Record<string, Record<'ja' | 'en', string>> = {
       高: { ja: '高', en: 'H' },
