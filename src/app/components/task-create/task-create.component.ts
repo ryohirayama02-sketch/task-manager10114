@@ -23,7 +23,7 @@ import { TaskService } from '../../services/task.service';
 import { Member } from '../../models/member.model';
 import { AuthService } from '../../services/auth.service';
 import { filter, take, switchMap, takeUntil } from 'rxjs/operators';
-import { Subject } from 'rxjs';
+import { Subject, timer, firstValueFrom, race } from 'rxjs';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { LanguageService } from '../../services/language.service';
 import {
@@ -100,6 +100,7 @@ export class TaskCreatePageComponent implements OnInit, OnDestroy {
   maxDate!: Date; // 当月から3か月後の月末日（ngOnInitで初期化）
   maxDueDate: Date | null = null; // 開始日から30日後の日付
   private destroy$ = new Subject<void>();
+  private navigationTimeoutId: NodeJS.Timeout | null = null; // ✅ 修正: setTimeoutのクリーンアップ用
 
   private firestore = inject(Firestore);
 
@@ -289,8 +290,10 @@ export class TaskCreatePageComponent implements OnInit, OnDestroy {
           { duration: 5000 }
         );
         // 3秒後にカンバンに戻る
-        setTimeout(() => {
+        // ✅ 修正: setTimeoutのクリーンアップ用にIDを保存
+        this.navigationTimeoutId = setTimeout(() => {
           this.router.navigate(['/kanban'], { replaceUrl: true });
+          this.navigationTimeoutId = null;
         }, 3000);
         return;
       }
@@ -1275,10 +1278,16 @@ export class TaskCreatePageComponent implements OnInit, OnDestroy {
             { duration: 5000 }
           );
           // エラーが発生した場合、calendarSyncEnabled を false に設定
+          // ✅ 修正: updateTaskのエラーハンドリングを追加
           if (taskId) {
-            await this.projectService.updateTask(this.projectId, taskId, {
-              calendarSyncEnabled: false,
-            });
+            try {
+              await this.projectService.updateTask(this.projectId, taskId, {
+                calendarSyncEnabled: false,
+              });
+            } catch (updateError: any) {
+              console.error('[save] カレンダー連携フラグの更新に失敗しました:', updateError);
+              // エラーが発生しても続行（タスクは既に作成されている）
+            }
           }
         }
       }
@@ -1410,7 +1419,26 @@ export class TaskCreatePageComponent implements OnInit, OnDestroy {
         isSubtask: !!this.parentTaskId,
       });
       // Firestoreの同期を待つため、少し待機してから遷移
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // ✅ 修正: コンポーネントが破棄されていないかチェックしながら待機
+      try {
+        await firstValueFrom(
+          race([
+            timer(1000), // 1秒待機
+            this.destroy$, // コンポーネントが破棄された場合は即座に完了
+          ]).pipe(take(1))
+        );
+      } catch {
+        // コンポーネントが破棄された場合はナビゲーションをスキップ
+        console.log('[save] コンポーネントが破棄されたため、ナビゲーションをスキップします');
+        return;
+      }
+      
+      // ✅ 修正: コンポーネントが破棄されていないかチェック
+      if (this.destroy$.closed) {
+        console.log('[save] コンポーネントが破棄されたため、ナビゲーションをスキップします');
+        return;
+      }
+      
       console.log('[save] 遷移実行:', {
         projectId: this.projectId,
         taskId,
@@ -1575,6 +1603,12 @@ export class TaskCreatePageComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    // ✅ 修正: setTimeoutのクリーンアップ
+    if (this.navigationTimeoutId !== null) {
+      clearTimeout(this.navigationTimeoutId);
+      this.navigationTimeoutId = null;
+    }
+    
     this.destroy$.next();
     this.destroy$.complete();
   }
