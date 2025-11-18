@@ -1236,6 +1236,18 @@ export class LanguageService {
       ja: 'プロジェクトが見つかりませんでした',
       en: 'Project not found',
     },
+    'taskDetail.error.detailSettingsNotInitialized': {
+      ja: '詳細設定が初期化されていません。ページを再読み込みしてください。',
+      en: 'Detail settings are not initialized. Please reload the page.',
+    },
+    'taskDetail.error.taskDataNotInitialized': {
+      ja: 'タスクデータが初期化されていません。ページを再読み込みしてください。',
+      en: 'Task data is not initialized. Please reload the page.',
+    },
+    'taskDetail.error.invalidDate': {
+      ja: '無効な日付が設定されています。有効な日付を選択してください。',
+      en: 'Invalid date is set. Please select a valid date.',
+    },
     'taskDetail.error.taskNotFound': {
       ja: 'タスクが見つかりませんでした',
       en: 'Task not found',

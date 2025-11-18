@@ -734,15 +734,22 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
       // 読み取りモードから編集中へ
       this.isEditing = true;
       // Dateオブジェクトを初期化
-      this.taskStartDateObj = this.taskData.startDate
-        ? new Date(this.taskData.startDate)
-        : null;
-      this.taskDueDateObj = this.taskData.dueDate
-        ? new Date(this.taskData.dueDate)
-        : null;
+      // ✅ 修正: 無効な日付の場合の処理を追加
+      if (this.taskData.startDate) {
+        const startDate = new Date(this.taskData.startDate);
+        this.taskStartDateObj = !isNaN(startDate.getTime()) ? startDate : null;
+      } else {
+        this.taskStartDateObj = null;
+      }
+      if (this.taskData.dueDate) {
+        const dueDate = new Date(this.taskData.dueDate);
+        this.taskDueDateObj = !isNaN(dueDate.getTime()) ? dueDate : null;
+      } else {
+        this.taskDueDateObj = null;
+      }
 
       // 開始日から30日後の日付を計算
-      if (this.taskStartDateObj) {
+      if (this.taskStartDateObj && !isNaN(this.taskStartDateObj.getTime())) {
         const maxDueDate = new Date(this.taskStartDateObj);
         maxDueDate.setDate(maxDueDate.getDate() + 30);
         this.maxTaskDueDate = maxDueDate;
@@ -796,6 +803,10 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
     if (this.taskData.startDate && this.taskData.dueDate) {
       const startDate = new Date(this.taskData.startDate);
       const dueDate = new Date(this.taskData.dueDate);
+      // ✅ 修正: 日付の有効性チェックを追加
+      if (isNaN(startDate.getTime()) || isNaN(dueDate.getTime())) {
+        return false;
+      }
       if (startDate > dueDate) {
         return false;
       }
@@ -1122,6 +1133,17 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
     if (this.taskData.startDate && this.taskData.dueDate) {
       const startDate = new Date(this.taskData.startDate);
       const dueDate = new Date(this.taskData.dueDate);
+      // ✅ 修正: 日付の有効性チェックを追加
+      if (isNaN(startDate.getTime()) || isNaN(dueDate.getTime())) {
+        this.snackBar.open(
+          this.languageService.translate('taskDetail.error.invalidDate'),
+          this.languageService.translate('common.close'),
+          {
+            duration: 3000,
+          }
+        );
+        return;
+      }
       if (startDate > dueDate) {
         this.snackBar.open(
           this.languageService.translate(
@@ -1483,6 +1505,20 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
   /** 子タスクを作成 */
   async createSubtask() {
     if (!this.task?.projectId || !this.task?.id) {
+      console.warn('[createSubtask] タスク情報が不足しています:', {
+        task: this.task,
+      });
+      return;
+    }
+
+    // ✅ 修正: projectがundefinedの場合のエラーハンドリングを追加
+    if (!this.project) {
+      console.error('[createSubtask] プロジェクト情報が取得できません');
+      this.snackBar.open(
+        this.languageService.translate('taskDetail.error.projectNotFound'),
+        this.languageService.translate('common.close'),
+        { duration: 3000 }
+      );
       return;
     }
 
@@ -1526,8 +1562,8 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
     this.router.navigate(['/task-create'], {
       queryParams: { parentTaskId: this.task?.id },
       state: {
-        projectName: this.project?.projectName,
-        projectId: this.task?.projectId,
+        projectName: this.project.projectName || '',
+        projectId: this.task.projectId,
         returnUrl: this.router.url,
       },
     });
@@ -1536,6 +1572,19 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
   /** タスクを複製 */
   duplicateTask() {
     if (!this.task || !this.project) {
+      return;
+    }
+
+    // ✅ 修正: taskDataがundefinedの場合のチェックを追加
+    if (!this.taskData) {
+      console.error('[duplicateTask] taskDataが未初期化です');
+      this.snackBar.open(
+        this.languageService.translate(
+          'taskDetail.error.taskDataNotInitialized'
+        ),
+        this.languageService.translate('common.close'),
+        { duration: 3000 }
+      );
       return;
     }
 
@@ -1701,6 +1750,13 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
 
   /** タスク期限通知を切り替え */
   toggleTaskDeadlineNotification(): void {
+    // ✅ 修正: detailSettings.notificationsがundefinedの場合の処理を追加
+    if (!this.detailSettings?.notifications) {
+      console.warn(
+        '[toggleTaskDeadlineNotification] detailSettings.notificationsが未初期化です'
+      );
+      return;
+    }
     const current = this.detailSettings.notifications.beforeDeadline ?? true;
     const nextValue = !current;
     this.detailSettings.notifications.beforeDeadline = nextValue;
@@ -1713,7 +1769,13 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
   }
 
   onEstimatedTimeChange(): void {
-    this.detailSettings.workTime.estimatedHours = `${this.estimatedHours.hour}:${this.estimatedHours.minute}`;
+    // ✅ 修正: estimatedHours.hour/minuteがundefined/nullの場合の処理を追加
+    const hour = this.estimatedHours?.hour || '00';
+    const minute = this.estimatedHours?.minute || '00';
+    this.detailSettings.workTime.estimatedHours = `${hour.padStart(
+      2,
+      '0'
+    )}:${minute.padStart(2, '0')}`;
   }
 
   /** タグを追加 */
@@ -1884,6 +1946,20 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
   /** 詳細設定を保存 */
   saveDetailSettings() {
     if (this.task && this.task.projectId && this.task.id) {
+      // ✅ 修正: detailSettings.notificationsがundefinedの場合の処理を追加
+      if (!this.detailSettings?.notifications) {
+        console.warn(
+          '[saveDetailSettings] detailSettings.notificationsが未初期化です'
+        );
+        this.snackBar.open(
+          this.languageService.translate(
+            'taskDetail.error.detailSettingsNotInitialized'
+          ),
+          this.languageService.translate('common.close'),
+          { duration: 3000 }
+        );
+        return;
+      }
       if (
         this.detailSettings.notifications.beforeDeadline === undefined ||
         this.detailSettings.notifications.beforeDeadline === null
@@ -1891,8 +1967,22 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
         this.detailSettings.notifications.beforeDeadline = true;
       }
 
+      // ✅ 修正: detailSettings.taskOrderがundefinedの場合の処理を追加（親タスクの場合）
+      if (!this.task.parentTaskId && !this.detailSettings.taskOrder) {
+        this.detailSettings.taskOrder = {
+          requireSubtaskCompletion: false,
+          subtaskOrder: [],
+        };
+      }
+
       // 作業予定時間を保存（estimatedHoursからdetailSettings.workTime.estimatedHoursに反映）
-      this.detailSettings.workTime.estimatedHours = `${this.estimatedHours.hour}:${this.estimatedHours.minute}`;
+      // ✅ 修正: estimatedHours.hour/minuteがundefined/nullの場合の処理を追加
+      const hour = this.estimatedHours?.hour || '00';
+      const minute = this.estimatedHours?.minute || '00';
+      this.detailSettings.workTime.estimatedHours = `${hour.padStart(
+        2,
+        '0'
+      )}:${minute.padStart(2, '0')}`;
 
       // 通知先は常に担当者に設定（通知先フィールドは削除されたため）
       this.detailSettings.notifications.recipients =
