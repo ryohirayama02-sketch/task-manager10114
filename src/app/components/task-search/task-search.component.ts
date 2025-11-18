@@ -11,9 +11,10 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, combineLatest, distinctUntilChanged } from 'rxjs';
 import { ProjectService } from '../../services/project.service';
 import { MemberManagementService } from '../../services/member-management.service';
+import { AuthService } from '../../services/auth.service';
 import { Member } from '../../models/member.model';
 import { Task } from '../../models/task.model';
 import { IProject } from '../../models/project.model';
@@ -61,6 +62,7 @@ export class TaskSearchComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private memberManagementService = inject(MemberManagementService);
   private languageService = inject(LanguageService);
+  private authService = inject(AuthService);
 
   // 検索フィルター
   filters: SearchFilters = {
@@ -87,8 +89,67 @@ export class TaskSearchComponent implements OnInit, OnDestroy {
   taskNameById: Record<string, string> = {}; // 親タスク名を取得するためのマップ
 
   private destroy$ = new Subject<void>();
+  private searchDestroy$ = new Subject<void>(); // 検索処理専用のSubject
+  private previousRoomId: string | null = null; // 前のルームIDを保持
+  private searchStartRoomId: string | null = null; // 検索処理開始時のルームIDを保持
 
   ngOnInit() {
+    // ✅ 修正: ルーム変更やユーザーログアウト時の状態管理を追加
+    combineLatest([
+      this.authService.user$,
+      this.authService.currentRoomId$,
+    ])
+      .pipe(
+        distinctUntilChanged((prev, curr) => {
+          // ルームIDが変更された場合のみ処理を実行
+          return prev[1] === curr[1] && prev[0]?.uid === curr[0]?.uid;
+        }),
+        takeUntil(this.destroy$)
+      )
+      .subscribe({
+        next: ([user, roomId]) => {
+          // ✅ 修正: コンポーネントが破棄されていないかチェック
+          if (this.destroy$.closed) {
+            return;
+          }
+          // ✅ 修正: ユーザーがログアウトした場合、またはルームIDがnullの場合、状態をクリア
+          if (!user || !roomId) {
+            // ✅ 修正: 検索処理を中断
+            this.searchDestroy$.next();
+            this.searchDestroy$.complete();
+            this.searchDestroy$ = new Subject<void>();
+            this.clearSearchState();
+            this.previousRoomId = null;
+            return;
+          }
+          // ✅ 修正: ルームIDが変更された場合、状態をクリアしてフィルター選択肢を再読み込み
+          if (this.previousRoomId !== null && this.previousRoomId !== roomId) {
+            console.log('ルームが変更されました。検索処理を中断し、フィルター選択肢を再読み込みします。');
+            // ✅ 修正: 検索処理を中断
+            this.searchDestroy$.next();
+            this.searchDestroy$.complete();
+            this.searchDestroy$ = new Subject<void>();
+            this.clearSearchState();
+            // メンバー一覧とフィルター選択肢を再読み込み
+            this.loadMembersAndFilterOptions();
+          }
+          this.previousRoomId = roomId;
+        },
+        error: (error) => {
+          // ✅ 修正: コンポーネントが破棄されていないかチェック
+          if (this.destroy$.closed) {
+            return;
+          }
+          console.error('ユーザー/ルーム状態の監視エラー:', error);
+        },
+      });
+
+    // メンバー一覧とフィルター選択肢を読み込み
+    this.loadMembersAndFilterOptions();
+  }
+
+  /** メンバー一覧とフィルター選択肢を読み込み */
+  private loadMembersAndFilterOptions() {
     // メンバー一覧を読み込み
     this.memberManagementService
       .getMembers()
@@ -123,6 +184,9 @@ export class TaskSearchComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    // ✅ 修正: 検索処理も中断
+    this.searchDestroy$.next();
+    this.searchDestroy$.complete();
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -172,7 +236,7 @@ export class TaskSearchComponent implements OnInit, OnDestroy {
             if (project.id) {
               this.projectService
                 .getTasksByProjectId(project.id)
-                .pipe(takeUntil(this.destroy$))
+                .pipe(takeUntil(this.destroy$)) // loadFilterOptions用なのでsearchDestroy$は不要
                 .subscribe({
                   next: (tasks) => {
                     // ✅ 修正: コンポーネントが破棄されていないかチェック
@@ -397,18 +461,33 @@ export class TaskSearchComponent implements OnInit, OnDestroy {
       console.warn('⚠️ 検索中です。重複検索をスキップします。');
       return;
     }
+    // ✅ 修正: 検索処理開始時のルームIDを保存
+    const currentRoomId = this.authService.getCurrentRoomId();
+    // ✅ 修正: ルームIDがnullの場合、検索処理を開始しない
+    if (!currentRoomId) {
+      console.warn('⚠️ ルームIDが設定されていないため、検索処理をスキップします。');
+      return;
+    }
     this.isLoading = true;
     this.hasSearched = true;
-    console.log('タスク検索開始:', this.filters);
+    this.searchStartRoomId = currentRoomId;
+    console.log('タスク検索開始:', this.filters, 'ルームID:', this.searchStartRoomId);
 
     // 全プロジェクトのタスクを取得
     this.projectService
       .getProjects()
-      .pipe(takeUntil(this.destroy$))
+      .pipe(
+        takeUntil(this.destroy$),
+        takeUntil(this.searchDestroy$) // ✅ 修正: 検索処理専用のSubjectも監視
+      )
       .subscribe({
         next: (projects) => {
           // ✅ 修正: コンポーネントが破棄されていないかチェック
           if (this.destroy$.closed) {
+            return;
+          }
+          // ✅ 修正: 検索処理が中断されたかチェック
+          if (this.searchDestroy$.closed) {
             return;
           }
           // ✅ 修正: projectsが配列でない場合の処理を追加
@@ -434,7 +513,8 @@ export class TaskSearchComponent implements OnInit, OnDestroy {
             // ✅ 修正: projectがnull/undefinedの場合のチェックを追加
             if (!project) {
               completedRequests++;
-              if (completedRequests === projects.length && !hasError) {
+              // ✅ 修正: 検索処理が中断されていないかチェック
+              if (completedRequests === projects.length && !hasError && !this.searchDestroy$.closed) {
                 this.filterTasks(allTasks);
               }
               return;
@@ -442,18 +522,26 @@ export class TaskSearchComponent implements OnInit, OnDestroy {
             if (project.id) {
               this.projectService
                 .getTasksByProjectId(project.id)
-                .pipe(takeUntil(this.destroy$))
+                .pipe(
+                  takeUntil(this.destroy$),
+                  takeUntil(this.searchDestroy$) // ✅ 修正: 検索処理専用のSubjectも監視
+                )
                 .subscribe({
                   next: (tasks) => {
                     // ✅ 修正: コンポーネントが破棄されていないかチェック
                     if (this.destroy$.closed) {
                       return;
                     }
+                    // ✅ 修正: 検索処理が中断されたかチェック
+                    if (this.searchDestroy$.closed) {
+                      return;
+                    }
                     // ✅ 修正: tasksが配列でない場合の処理を追加
                     if (!Array.isArray(tasks)) {
                       console.error('tasksが配列ではありません:', tasks);
                       completedRequests++;
-                      if (completedRequests === projects.length && !hasError) {
+                      // ✅ 修正: 検索処理が中断されていないかチェック
+                      if (completedRequests === projects.length && !hasError && !this.searchDestroy$.closed) {
                         this.filterTasks(allTasks);
                       }
                       return;
@@ -481,7 +569,8 @@ export class TaskSearchComponent implements OnInit, OnDestroy {
                     completedRequests++;
 
                     // すべてのプロジェクトのタスクを取得したら処理を実行
-                    if (completedRequests === projects.length && !hasError) {
+                    // ✅ 修正: 検索処理が中断されていないかチェック
+                    if (completedRequests === projects.length && !hasError && !this.searchDestroy$.closed) {
                       // 親タスク名のマップを作成
                       this.taskNameById = allTasks.reduce((acc, task) => {
                         if (task && task.id && task.taskName) {
@@ -497,20 +586,26 @@ export class TaskSearchComponent implements OnInit, OnDestroy {
                     if (this.destroy$.closed) {
                       return;
                     }
+                    // ✅ 修正: 検索処理が中断されたかチェック
+                    if (this.searchDestroy$.closed) {
+                      return;
+                    }
                     console.error(
                       `[検索] プロジェクト「${project.projectName}」のタスク取得エラー:`,
                       error
                     );
                     hasError = true;
                     completedRequests++;
-                    if (completedRequests === projects.length) {
+                    // ✅ 修正: 検索処理が中断されていないか再チェック
+                    if (completedRequests === projects.length && !this.searchDestroy$.closed) {
                       this.filterTasks(allTasks);
                     }
                   },
                 });
             } else {
               completedRequests++;
-              if (completedRequests === projects.length && !hasError) {
+              // ✅ 修正: 検索処理が中断されていないかチェック
+              if (completedRequests === projects.length && !hasError && !this.searchDestroy$.closed) {
                 this.filterTasks(allTasks);
               }
             }
@@ -519,6 +614,10 @@ export class TaskSearchComponent implements OnInit, OnDestroy {
         error: (error) => {
           // ✅ 修正: コンポーネントが破棄されていないかチェック
           if (this.destroy$.closed) {
+            return;
+          }
+          // ✅ 修正: 検索処理が中断されたかチェック
+          if (this.searchDestroy$.closed) {
             return;
           }
           console.error('プロジェクト取得エラー:', error);
@@ -531,6 +630,11 @@ export class TaskSearchComponent implements OnInit, OnDestroy {
   filterTasks(allTasks: Task[]) {
     // ✅ 修正: コンポーネントが破棄されていないかチェック
     if (this.destroy$.closed) {
+      return;
+    }
+    // ✅ 修正: 検索処理が中断されたかチェック
+    if (this.searchDestroy$.closed) {
+      console.log('検索処理が中断されたため、フィルタリングをスキップします。');
       return;
     }
     // ✅ 修正: allTasksが配列でない場合の処理を追加
@@ -669,6 +773,22 @@ export class TaskSearchComponent implements OnInit, OnDestroy {
       });
     }
 
+    // ✅ 修正: 検索処理が中断されていないか再チェック
+    if (this.destroy$.closed || this.searchDestroy$.closed) {
+      console.log('検索処理が中断されたため、検索結果の設定をスキップします。');
+      this.isLoading = false;
+      return;
+    }
+    // ✅ 修正: 検索処理開始時のルームIDと現在のルームIDを比較
+    const currentRoomId = this.authService.getCurrentRoomId();
+    if (this.searchStartRoomId !== null && this.searchStartRoomId !== currentRoomId) {
+      console.log('検索処理完了時にルームIDが変更されていたため、検索結果を設定しません。', {
+        searchStartRoomId: this.searchStartRoomId,
+        currentRoomId: currentRoomId,
+      });
+      this.isLoading = false;
+      return;
+    }
     // ✅ 修正: null/undefinedのタスクをフィルタリングしてからマップ
     this.searchResults = filteredTasks
       .filter((task) => task != null)
@@ -698,15 +818,47 @@ export class TaskSearchComponent implements OnInit, OnDestroy {
     };
     this.searchResults = [];
     this.hasSearched = false;
+    this.isLoading = false; // ✅ 修正: ローディング状態もリセット
+  }
+
+  /** 検索状態をクリア（ルーム変更やログアウト時） */
+  private clearSearchState() {
+    this.searchResults = [];
+    this.filters = {
+      assignee: [],
+      priority: [],
+      status: [],
+      tags: [],
+      freeWord: '',
+    };
+    this.hasSearched = false;
+    this.isLoading = false;
+    this.assignees = [];
+    this.allTags = [];
+    this.taskNameById = {};
+    this.themeColorByProjectId = {};
+    this.searchStartRoomId = null; // ✅ 修正: 検索開始時のルームIDもクリア
   }
 
   addTag(tag: string) {
-    if (tag && !this.filters.tags.includes(tag)) {
+    // ✅ 修正: tagがnull/undefinedの場合、またはthis.filters.tagsが配列でない場合のチェックを追加
+    if (!tag || typeof tag !== 'string') {
+      return;
+    }
+    if (!Array.isArray(this.filters.tags)) {
+      this.filters.tags = [];
+    }
+    if (!this.filters.tags.includes(tag)) {
       this.filters.tags.push(tag);
     }
   }
 
   removeTag(tag: string) {
+    // ✅ 修正: this.filters.tagsが配列でない場合のチェックを追加
+    if (!Array.isArray(this.filters.tags)) {
+      this.filters.tags = [];
+      return;
+    }
     this.filters.tags = this.filters.tags.filter((t) => t !== tag);
   }
 
