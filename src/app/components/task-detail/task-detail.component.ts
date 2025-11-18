@@ -1267,6 +1267,13 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
             .getTasksByProjectId(this.task.projectId)
             .pipe(take(1))
         );
+        // ✅ 修正: 非同期処理後にコンポーネントが破棄されていないかチェック
+        if (this.destroy$.closed) {
+          console.log(
+            '[saveTask] コンポーネントが破棄されたため、タスク順番管理の処理をスキップします'
+          );
+          return;
+        }
         const latestChildTasks = allTasks.filter(
           (t) => t.parentTaskId === taskId
         );
@@ -1277,6 +1284,13 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
           );
 
           if (incompleteChildren.length > 0) {
+            // ✅ 修正: snackBar.open()の前にコンポーネントが破棄されていないかチェック
+            if (this.destroy$.closed) {
+              console.log(
+                '[saveTask] コンポーネントが破棄されたため、警告メッセージの表示をスキップします'
+              );
+              return;
+            }
             // 未完了の子タスクがある場合、警告を出してステータスを「作業中」に強制的に変更
             const incompleteChildNames = incompleteChildren
               .map((child) => child.taskName)
@@ -1616,6 +1630,13 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
         this.task.projectId,
         this.task.id
       );
+      // ✅ 修正: 非同期処理後にコンポーネントが破棄されていないかチェック
+      if (this.destroy$.closed) {
+        console.log(
+          '[createSubtask] コンポーネントが破棄されたため、処理をスキップします'
+        );
+        return;
+      }
       const maxChildTasks = 5;
       if (childTaskCount >= maxChildTasks) {
         this.snackBar.open(
@@ -1631,6 +1652,13 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
         return;
       }
     } catch (error) {
+      // ✅ 修正: エラー処理前にコンポーネントが破棄されていないかチェック
+      if (this.destroy$.closed) {
+        console.log(
+          '[createSubtask] コンポーネントが破棄されたため、エラー処理をスキップします'
+        );
+        return;
+      }
       console.error('子タスク数チェックエラー:', error);
       this.snackBar.open(
         this.languageService.translate(
@@ -1640,6 +1668,13 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
         {
           duration: 3000,
         }
+      );
+      return;
+    }
+    // ✅ 修正: ナビゲーション前にコンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      console.log(
+        '[createSubtask] コンポーネントが破棄されたため、ナビゲーションをスキップします'
       );
       return;
     }
@@ -1659,6 +1694,14 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
 
   /** タスクを複製 */
   duplicateTask() {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      console.log(
+        '[duplicateTask] コンポーネントが破棄されたため、処理をスキップします'
+      );
+      return;
+    }
+
     if (!this.task || !this.project) {
       return;
     }
@@ -1693,6 +1736,14 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
     const queryParams: any = {};
     if (this.task.parentTaskId) {
       queryParams.parentTaskId = this.task.parentTaskId;
+    }
+
+    // ✅ 修正: ナビゲーション前にコンポーネントが破棄されていないか再チェック
+    if (this.destroy$.closed) {
+      console.log(
+        '[duplicateTask] コンポーネントが破棄されたため、ナビゲーションをスキップします'
+      );
+      return;
     }
 
     this.router.navigate(['/task-create'], {
@@ -1889,9 +1940,16 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
   }
 
   onEstimatedTimeChange(): void {
+    // ✅ 修正: detailSettings.workTimeがundefinedの場合の処理を追加
+    if (!this.detailSettings.workTime) {
+      this.detailSettings.workTime = {
+        estimatedHours: '00:00',
+      };
+    }
     // ✅ 修正: estimatedHours.hour/minuteがundefined/nullの場合の処理を追加
-    const hour = this.estimatedHours?.hour || '00';
-    const minute = this.estimatedHours?.minute || '00';
+    // ✅ 修正: padStart()が文字列でない場合の処理を追加
+    const hour = String(this.estimatedHours?.hour || '00');
+    const minute = String(this.estimatedHours?.minute || '00');
     this.detailSettings.workTime.estimatedHours = `${hour.padStart(
       2,
       '0'
@@ -1988,10 +2046,23 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // ✅ 修正: エラー時に状態を元に戻すために、現在のタグを保存
+    const originalTags = this.taskData.tags ? [...this.taskData.tags] : [];
+
     try {
       // tagsが未初期化の場合は空配列に設定
       if (!this.taskData.tags) {
         this.taskData.tags = [];
+      }
+
+      // ✅ 修正: updateDoc()の前にコンポーネントが破棄されていないか再チェック
+      if (this.destroy$.closed) {
+        console.log(
+          '[saveTagsOnly] コンポーネントが破棄されたため、保存処理をスキップします'
+        );
+        // 状態を元に戻す
+        this.taskData.tags = originalTags;
+        return;
       }
 
       // 直接Firestoreを更新して編集ログを記録しない
@@ -2004,12 +2075,24 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
         tags: this.taskData.tags,
       });
 
+      // ✅ 修正: updateDoc()の後にコンポーネントが破棄されていないかチェック
+      if (this.destroy$.closed) {
+        console.log(
+          '[saveTagsOnly] コンポーネントが破棄されたため、処理をスキップします'
+        );
+        return;
+      }
+
       console.log('タグを保存しました（自動保存）:', this.taskData.tags);
       console.log(
         'this.task.tagsは更新していません（編集モードOFF時に変更検出のため）'
       );
     } catch (error) {
       console.error('タグの保存エラー:', error);
+      // ✅ 修正: エラー時に状態を元に戻す（ユーザーが再試行できるように）
+      if (!this.destroy$.closed) {
+        this.taskData.tags = originalTags;
+      }
       // エラー時はユーザーに通知しない（タグ追加・削除時の自動保存のため）
     }
   }
@@ -2053,13 +2136,18 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
 
   /** URLのラベルを抽出 */
   extractUrlLabel(url: string): string {
+    // ✅ 修正: urlが空文字列やnullの場合の処理を追加
+    if (!url || typeof url !== 'string') {
+      return '';
+    }
     try {
       const urlObj = new URL(url);
       // ホスト名またはパス名から短いラベルを作成
       const hostname = urlObj.hostname.replace('www.', '');
       return hostname || url.substring(0, 30);
     } catch {
-      return url.substring(0, 30);
+      // ✅ 修正: urlが空文字列の場合の処理を追加
+      return url.length > 0 ? url.substring(0, 30) : '';
     }
   }
 
@@ -2112,15 +2200,17 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
         return;
       }
 
+      // ✅ 修正: taskData.urlsの初期化を先に行う
       if (!this.taskData.urls) {
         this.taskData.urls = [];
       }
 
       // ファイルとURLの合計が3つを超えないようにチェック
+      // ✅ 修正: editableAttachmentsとpendingFilesがundefinedの場合の処理を追加
       const currentTotal =
-        this.taskData.urls.length +
-        this.editableAttachments.length +
-        this.pendingFiles.length;
+        (this.taskData.urls?.length || 0) +
+        (this.editableAttachments?.length || 0) +
+        (this.pendingFiles?.length || 0);
       if (currentTotal >= 3) {
         this.snackBar.open(
           this.languageService.translate(
@@ -2201,10 +2291,17 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
         };
       }
 
+      // ✅ 修正: detailSettings.workTimeがundefinedの場合の処理を追加
+      if (!this.detailSettings.workTime) {
+        this.detailSettings.workTime = {
+          estimatedHours: '00:00',
+        };
+      }
       // 作業予定時間を保存（estimatedHoursからdetailSettings.workTime.estimatedHoursに反映）
       // ✅ 修正: estimatedHours.hour/minuteがundefined/nullの場合の処理を追加
-      const hour = this.estimatedHours?.hour || '00';
-      const minute = this.estimatedHours?.minute || '00';
+      // ✅ 修正: padStart()が文字列でない場合の処理を追加
+      const hour = String(this.estimatedHours?.hour || '00');
+      const minute = String(this.estimatedHours?.minute || '00');
       this.detailSettings.workTime.estimatedHours = `${hour.padStart(
         2,
         '0'
@@ -2361,9 +2458,12 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
     }
 
     // assignedMembers から名前を取得して追加
+    // ✅ 修正: projectMembersがundefinedやnullの場合の処理を追加
     if (
       this.taskData.assignedMembers &&
-      this.taskData.assignedMembers.length > 0
+      this.taskData.assignedMembers.length > 0 &&
+      this.projectMembers &&
+      this.projectMembers.length > 0
     ) {
       const memberNames = getMemberNames(
         this.taskData.assignedMembers,
@@ -2818,6 +2918,12 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
   }
 
   private rebuildTimePickers(): void {
+    // ✅ 修正: detailSettings.workTimeがundefinedの場合の処理を追加
+    if (!this.detailSettings.workTime) {
+      this.detailSettings.workTime = {
+        estimatedHours: '00:00',
+      };
+    }
     this.estimatedHours = this.splitTimeString(
       this.detailSettings.workTime.estimatedHours
     );
