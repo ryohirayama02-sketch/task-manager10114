@@ -472,14 +472,21 @@ export class KanbanComponent implements OnInit, OnDestroy {
       }
     }
 
+    // ✅ 修正: 古いデータではなく、最新の子タスクデータを取得してチェック（他のユーザーが子タスクを変更した場合も正しく判定するため）
     if (
       newStatus === '完了' &&
       task.detailSettings?.taskOrder?.requireSubtaskCompletion
     ) {
-      const childTasks = this.allTasks.filter(
+      // 最新の子タスクデータを取得
+      const allTasks = await firstValueFrom(
+        this.projectService
+          .getTasksByProjectId(task.projectId)
+          .pipe(take(1))
+      );
+      const latestChildTasks = allTasks.filter(
         (child) => child.parentTaskId === task.id
       );
-      const incompleteChild = childTasks.find(
+      const incompleteChild = latestChildTasks.find(
         (child) => child.status !== '完了'
       );
 

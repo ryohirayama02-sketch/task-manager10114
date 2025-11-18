@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -22,7 +22,8 @@ import { CalendarService } from '../../services/calendar.service';
 import { TaskService } from '../../services/task.service';
 import { Member } from '../../models/member.model';
 import { AuthService } from '../../services/auth.service';
-import { filter, take, switchMap } from 'rxjs/operators';
+import { filter, take, switchMap, takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { LanguageService } from '../../services/language.service';
 import {
@@ -53,7 +54,7 @@ import {
   templateUrl: './task-create.component.html',
   styleUrl: './task-create.component.css',
 })
-export class TaskCreatePageComponent implements OnInit {
+export class TaskCreatePageComponent implements OnInit, OnDestroy {
   projectName: string = '';
   projectId: string = '';
   returnUrl: string = '';
@@ -98,6 +99,7 @@ export class TaskCreatePageComponent implements OnInit {
   minDate!: Date; // 当月から3か月前の1日（ngOnInitで初期化）
   maxDate!: Date; // 当月から3か月後の月末日（ngOnInitで初期化）
   maxDueDate: Date | null = null; // 開始日から30日後の日付
+  private destroy$ = new Subject<void>();
 
   private firestore = inject(Firestore);
 
@@ -215,7 +217,8 @@ export class TaskCreatePageComponent implements OnInit {
           switchMap((roomId) => {
             console.log('🔑 roomIdが設定されました（タスク作成・テーマ色）:', roomId);
             return this.projectService.getProjectById(this.projectId);
-          })
+          }),
+          takeUntil(this.destroy$)
         )
         .subscribe((project) => {
           if (project) {
@@ -225,7 +228,9 @@ export class TaskCreatePageComponent implements OnInit {
     }
 
     // Check for parentTaskId query parameter
-    this.activatedRoute.queryParams.subscribe((params) => {
+    this.activatedRoute.queryParams
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((params) => {
       if (params['parentTaskId']) {
         this.parentTaskId = params['parentTaskId'];
         this.isSubtaskCreation = true;
@@ -234,6 +239,7 @@ export class TaskCreatePageComponent implements OnInit {
         if (this.projectId && this.parentTaskId) {
           this.projectService
             .getTask(this.projectId, this.parentTaskId)
+            .pipe(takeUntil(this.destroy$))
             .subscribe({
               next: (task) => {
                 this.parentTaskName = task.taskName || '';
@@ -257,6 +263,7 @@ export class TaskCreatePageComponent implements OnInit {
         if (this.projectId && this.parentTaskId) {
           this.projectService
             .getTask(this.projectId, this.parentTaskId)
+            .pipe(takeUntil(this.destroy$))
             .subscribe({
               next: (task) => {
                 this.parentTaskName = task.taskName || '';
@@ -302,7 +309,9 @@ export class TaskCreatePageComponent implements OnInit {
   }
 
   loadMembers() {
-    this.memberService.getMembers().subscribe({
+    this.memberService.getMembers()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
       next: (members) => {
         this.members = members;
         console.log('🔍 [TaskCreate] 全メンバー数:', members.length, '件');
@@ -321,7 +330,8 @@ export class TaskCreatePageComponent implements OnInit {
               switchMap((roomId) => {
                 console.log('🔑 roomIdが設定されました（タスク作成・メンバー）:', roomId);
                 return this.projectService.getProjectById(this.projectId);
-              })
+              }),
+              takeUntil(this.destroy$)
             )
             .subscribe({
             next: (project) => {
@@ -1189,5 +1199,10 @@ export class TaskCreatePageComponent implements OnInit {
       // 親タスク: プロジェクト詳細へ
       this.router.navigate(['/project', this.projectId]);
     }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

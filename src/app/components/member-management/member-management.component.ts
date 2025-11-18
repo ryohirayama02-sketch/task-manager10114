@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -22,7 +22,8 @@ import {
   MemberRemoveConfirmDialogComponent,
   MemberRemoveConfirmDialogData,
 } from '../project-detail/member-remove-confirm-dialog.component';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { Task } from '../../models/task.model';
 
 @Component({
@@ -46,13 +47,14 @@ import { Task } from '../../models/task.model';
   templateUrl: './member-management.component.html',
   styleUrls: ['./member-management.component.css'],
 })
-export class MemberManagementComponent implements OnInit {
+export class MemberManagementComponent implements OnInit, OnDestroy {
   members: Member[] = [];
   displayedColumns: string[] = ['name', 'email', 'actions'];
   loading = false;
   private memberAddedFeedback = false;
   memberCountLimitReached = false;
   readonly maxMemberCount = 10;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private memberService: MemberManagementService,
@@ -74,7 +76,9 @@ export class MemberManagementComponent implements OnInit {
    */
   loadMembers(): void {
     this.loading = true;
-    this.memberService.getMembers().subscribe({
+    this.memberService.getMembers()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
       next: (members) => {
         this.members = members;
         this.memberCountLimitReached = members.length >= this.maxMemberCount;
@@ -126,18 +130,20 @@ export class MemberManagementComponent implements OnInit {
       data: { mode: 'edit', member: member },
     });
 
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result === 'success') {
-        this.loadMembers();
-        this.snackBar.open(
-          this.languageService.translate('memberManagement.memberUpdated'),
-          this.languageService.translate('common.close'),
-          {
-            duration: 3000,
-          }
-        );
-      }
-    });
+    dialogRef.afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((result) => {
+        if (result === 'success') {
+          this.loadMembers();
+          this.snackBar.open(
+            this.languageService.translate('memberManagement.memberUpdated'),
+            this.languageService.translate('common.close'),
+            {
+              duration: 3000,
+            }
+          );
+        }
+      });
   }
 
   /**
@@ -204,32 +210,34 @@ export class MemberManagementComponent implements OnInit {
       data: dialogData,
     });
 
-    dialogRef.afterClosed().subscribe(async (confirmed) => {
-      if (!confirmed) {
-        return;
-      }
+    dialogRef.afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(async (confirmed) => {
+        if (!confirmed) {
+          return;
+        }
 
-      try {
-        await this.memberService.deleteMember(memberId);
-        this.loadMembers();
-        this.snackBar.open(
-          this.languageService.translate('memberManagement.memberDeleted'),
-          this.languageService.translate('common.close'),
-          {
-            duration: 3000,
-          }
-        );
-      } catch (error) {
-        console.error('メンバー削除エラー:', error);
-        this.snackBar.open(
-          this.languageService.translate('memberManagement.deleteFailed'),
-          this.languageService.translate('common.close'),
-          {
-            duration: 3000,
-          }
-        );
-      }
-    });
+        try {
+          await this.memberService.deleteMember(memberId);
+          this.loadMembers();
+          this.snackBar.open(
+            this.languageService.translate('memberManagement.memberDeleted'),
+            this.languageService.translate('common.close'),
+            {
+              duration: 3000,
+            }
+          );
+        } catch (error) {
+          console.error('メンバー削除エラー:', error);
+          this.snackBar.open(
+            this.languageService.translate('memberManagement.deleteFailed'),
+            this.languageService.translate('common.close'),
+            {
+              duration: 3000,
+            }
+          );
+        }
+      });
   }
 
   /**
@@ -278,6 +286,11 @@ export class MemberManagementComponent implements OnInit {
     if (!email) return '';
     if (email.length <= 30) return email;
     return email.substring(0, 30) + '...';
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   /**

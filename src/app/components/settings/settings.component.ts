@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -36,7 +36,8 @@ import {
   SupportedLanguage,
 } from '../../services/language.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-settings',
@@ -62,7 +63,7 @@ import { firstValueFrom } from 'rxjs';
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.css',
 })
-export class SettingsComponent implements OnInit {
+export class SettingsComponent implements OnInit, OnDestroy {
   notificationSettings!: NotificationSettings; // 非null assertion
   isLoading = false;
   isSaving = false;
@@ -85,6 +86,7 @@ export class SettingsComponent implements OnInit {
   selectedLanguage: SupportedLanguage = 'ja';
   isSavingLanguage = false;
   private languageService = inject(LanguageService);
+  private destroy$ = new Subject<void>();
 
   private getCloseLabel(): string {
     return this.languageService.translate('common.close');
@@ -1078,7 +1080,9 @@ export class SettingsComponent implements OnInit {
   /** ホーム画面設定を読み込み */
   async loadHomeScreenSettings() {
     try {
-      this.homeScreenSettingsService.getHomeScreenSettings().subscribe({
+      this.homeScreenSettingsService.getHomeScreenSettings()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
         next: (settings) => {
           if (settings) {
             this.homeScreenSettings = settings;
@@ -1194,7 +1198,9 @@ export class SettingsComponent implements OnInit {
       },
     });
 
-    dialogRef.afterClosed().subscribe(async (confirmed) => {
+    dialogRef.afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(async (confirmed) => {
       if (confirmed) {
         try {
           const roomId = this.authService.getCurrentRoomId();
@@ -1276,5 +1282,10 @@ export class SettingsComponent implements OnInit {
         }
       }
     });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

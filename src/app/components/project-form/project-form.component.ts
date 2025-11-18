@@ -33,8 +33,8 @@ import {
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { LanguageService } from '../../services/language.service';
 import { AuthService } from '../../services/auth.service';
-import { filter, take, switchMap } from 'rxjs/operators';
-import { of } from 'rxjs';
+import { filter, take, switchMap, takeUntil } from 'rxjs/operators';
+import { of, Subject } from 'rxjs';
 
 @Component({
   selector: 'app-project-form',
@@ -86,6 +86,7 @@ export class ProjectFormComponent implements OnInit {
   private readonly MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
   readonly themeColorOptions = PROJECT_THEME_COLORS;
   private returnUrl: string | null = null;
+  private destroy$ = new Subject<void>();
   private readonly themeColorLabelMap: Record<ProjectThemeColor, string> = {
     '#fde4ec': 'projectForm.themeColor.pink',
     '#ffe6dc': 'projectForm.themeColor.peach',
@@ -160,10 +161,11 @@ export class ProjectFormComponent implements OnInit {
       const roomId = await new Promise<string | null>((resolve) => {
         this.authService.currentRoomId$
           .pipe(
-            filter((id) => !!id),
-            take(1)
+            filter((id): id is string => !!id),
+            take(1),
+            takeUntil(this.destroy$)
           )
-          .subscribe((id) => {
+          .subscribe((id: string) => {
             console.log('🔑 roomIdが設定されました（プロジェクト作成）:', id);
             resolve(id);
           });
@@ -557,8 +559,10 @@ export class ProjectFormComponent implements OnInit {
    */
   loadMembers(): void {
     this.loading = true;
-    this.memberService.getMembers().subscribe({
-      next: (members) => {
+    this.memberService.getMembers()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+      next: (members: Member[]) => {
         this.members = members;
         this.loading = false;
         console.log('メンバー一覧を読み込みました:', members.length, '件');
@@ -1226,5 +1230,10 @@ export class ProjectFormComponent implements OnInit {
       }
     }
     return 'en';
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }
