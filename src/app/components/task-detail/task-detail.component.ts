@@ -1314,14 +1314,44 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
     }
 
     try {
+      // ✅ 修正: 非同期処理の途中でコンポーネントが破棄されていないかチェック
+      if (this.destroy$.closed) {
+        console.log(
+          '[saveTask] コンポーネントが破棄されたため、ファイル処理をスキップします'
+        );
+        this.isSaving = false;
+        this.isEditing = false;
+        return;
+      }
+
       // 保留中のファイルをアップロード
       const uploadedAttachments = await this.uploadPendingFiles(this.task.id);
+
+      // ✅ 修正: ファイルアップロード後にコンポーネントが破棄されていないかチェック
+      if (this.destroy$.closed) {
+        console.log(
+          '[saveTask] コンポーネントが破棄されたため、保存処理をスキップします'
+        );
+        this.isSaving = false;
+        this.isEditing = false;
+        return;
+      }
 
       // アップロードされたファイルを追加
       this.editableAttachments.push(...uploadedAttachments);
 
       // 削除済みファイルをFirebase Storageから削除
       await this.deleteMarkedAttachments(this.task.id);
+
+      // ✅ 修正: ファイル削除後にコンポーネントが破棄されていないかチェック
+      if (this.destroy$.closed) {
+        console.log(
+          '[saveTask] コンポーネントが破棄されたため、保存処理をスキップします'
+        );
+        this.isSaving = false;
+        this.isEditing = false;
+        return;
+      }
 
       // タスクデータに添付ファイル情報を追加
       this.taskData.attachments = this.editableAttachments || [];
@@ -1458,7 +1488,25 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
         oldTaskData?.status === '完了' && // 以前のステータスが「完了」
         this.taskData.status !== '完了' // 新しいステータスが「完了」以外
       ) {
-        await this.reopenParentTaskFromChild(this.task.parentTaskId);
+        // ✅ 修正: コンポーネントが破棄されていないかチェック
+        if (!this.destroy$.closed) {
+          try {
+            await this.reopenParentTaskFromChild(this.task.parentTaskId);
+          } catch (error) {
+            console.error(
+              '[saveTask] 親タスクの再オープンに失敗しました:',
+              error
+            );
+            // エラーが発生してもタスクの保存は成功しているため、警告のみ表示
+            this.snackBar.open(
+              this.languageService.translate(
+                'taskDetail.error.parentTaskReopenFailed'
+              ),
+              this.languageService.translate('common.close'),
+              { duration: 3000 }
+            );
+          }
+        }
       }
 
       this.isEditing = false;
@@ -1862,6 +1910,20 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
       this.taskData.tags = [];
     }
 
+    // ✅ 修正: タグの長さ制限を追加（20文字）
+    const MAX_TAG_LENGTH = 20;
+    if (trimmedTag.length > MAX_TAG_LENGTH) {
+      this.snackBar.open(
+        this.languageService.translateWithParams(
+          'taskDetail.error.tagTooLong',
+          { maxLength: MAX_TAG_LENGTH.toString() }
+        ),
+        this.languageService.translate('common.close'),
+        { duration: 3000 }
+      );
+      return;
+    }
+
     // タグの数が3つを超えないようにチェック
     if (this.taskData.tags.length >= 3) {
       this.snackBar.open(
@@ -1872,13 +1934,26 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // 既に存在する場合は追加しない
-    if (!this.taskData.tags.includes(trimmedTag)) {
-      this.taskData.tags.push(trimmedTag);
-      console.log('タグを追加:', trimmedTag, '現在のタグ:', this.taskData.tags);
+    // ✅ 修正: 重複タグ追加時にユーザーに通知
+    if (this.taskData.tags.includes(trimmedTag)) {
+      this.snackBar.open(
+        this.languageService.translateWithParams(
+          'taskDetail.error.tagAlreadyAdded',
+          { tag: trimmedTag }
+        ),
+        this.languageService.translate('common.close'),
+        { duration: 3000 }
+      );
+      return;
+    }
 
-      // 編集モードの場合、自動保存
-      if (this.isEditing && this.task && this.task.projectId && this.task.id) {
+    this.taskData.tags.push(trimmedTag);
+    console.log('タグを追加:', trimmedTag, '現在のタグ:', this.taskData.tags);
+
+    // 編集モードの場合、自動保存
+    if (this.isEditing && this.task && this.task.projectId && this.task.id) {
+      // ✅ 修正: コンポーネントが破棄されていないかチェック
+      if (!this.destroy$.closed) {
         await this.saveTagsOnly();
       }
     }
@@ -1891,7 +1966,10 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
 
       // 編集モードの場合、自動保存
       if (this.isEditing && this.task && this.task.projectId && this.task.id) {
-        await this.saveTagsOnly();
+        // ✅ 修正: コンポーネントが破棄されていないかチェック
+        if (!this.destroy$.closed) {
+          await this.saveTagsOnly();
+        }
       }
     }
   }
@@ -1899,6 +1977,14 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
   /** タグのみを保存（メッセージと編集ログなし、this.taskは更新しない） */
   private async saveTagsOnly(): Promise<void> {
     if (!this.task || !this.task.projectId || !this.task.id) {
+      return;
+    }
+
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      console.log(
+        '[saveTagsOnly] コンポーネントが破棄されたため、保存処理をスキップします'
+      );
       return;
     }
 
@@ -1980,7 +2066,52 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
   /** URLを追加 */
   addUrl(url: string): void {
     if (url && url.trim()) {
-      const trimmedUrl = url.trim();
+      let trimmedUrl = url.trim();
+
+      // ✅ 修正: URLの長さ制限を追加（2048文字）
+      const MAX_URL_LENGTH = 2048;
+      if (trimmedUrl.length > MAX_URL_LENGTH) {
+        this.snackBar.open(
+          this.languageService.translateWithParams(
+            'taskDetail.error.urlTooLong',
+            { maxLength: MAX_URL_LENGTH.toString() }
+          ),
+          this.languageService.translate('common.close'),
+          { duration: 3000 }
+        );
+        return;
+      }
+
+      // ✅ 修正: プロトコルがない場合に自動追加
+      try {
+        new URL(trimmedUrl);
+      } catch {
+        // プロトコルがない場合、https://を追加
+        trimmedUrl = 'https://' + trimmedUrl;
+        // ✅ 修正: プロトコル追加後の長さもチェック
+        if (trimmedUrl.length > MAX_URL_LENGTH) {
+          this.snackBar.open(
+            this.languageService.translateWithParams(
+              'taskDetail.error.urlTooLong',
+              { maxLength: MAX_URL_LENGTH.toString() }
+            ),
+            this.languageService.translate('common.close'),
+            { duration: 3000 }
+          );
+          return;
+        }
+      }
+
+      // ✅ 修正: URLの有効性をチェック
+      if (!this.isUrl(trimmedUrl)) {
+        this.snackBar.open(
+          this.languageService.translate('taskDetail.error.invalidUrl'),
+          this.languageService.translate('common.close'),
+          { duration: 3000 }
+        );
+        return;
+      }
+
       if (!this.taskData.urls) {
         this.taskData.urls = [];
       }
@@ -2001,10 +2132,25 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
         return;
       }
 
-      if (!this.taskData.urls.includes(trimmedUrl)) {
-        this.taskData.urls.push(trimmedUrl);
-        this.newUrlInput = '';
+      // ✅ 修正: 重複URL追加時にユーザーに通知
+      if (this.taskData.urls.includes(trimmedUrl)) {
+        this.snackBar.open(
+          this.languageService.translateWithParams(
+            'taskDetail.error.urlAlreadyAdded',
+            {
+              url:
+                trimmedUrl.substring(0, 50) +
+                (trimmedUrl.length > 50 ? '...' : ''),
+            }
+          ),
+          this.languageService.translate('common.close'),
+          { duration: 3000 }
+        );
+        return;
       }
+
+      this.taskData.urls.push(trimmedUrl);
+      this.newUrlInput = '';
     }
   }
 
@@ -2017,6 +2163,14 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
 
   /** 詳細設定を保存 */
   saveDetailSettings() {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      console.log(
+        '[saveDetailSettings] コンポーネントが破棄されたため、保存処理をスキップします'
+      );
+      return;
+    }
+
     if (this.task && this.task.projectId && this.task.id) {
       // ✅ 修正: detailSettings.notificationsがundefinedの場合の処理を追加
       if (!this.detailSettings?.notifications) {
@@ -2065,6 +2219,13 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
           detailSettings: this.detailSettings,
         })
         .then(() => {
+          // ✅ 修正: コンポーネントが破棄されていないかチェック
+          if (this.destroy$.closed) {
+            console.log(
+              '[saveDetailSettings] コンポーネントが破棄されたため、処理をスキップします'
+            );
+            return;
+          }
           console.log('詳細設定が保存されました');
           this.task = {
             ...this.task,
@@ -2074,6 +2235,13 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
           this.closeDetailSettings();
         })
         .catch((error) => {
+          // ✅ 修正: コンポーネントが破棄されていないかチェック
+          if (this.destroy$.closed) {
+            console.log(
+              '[saveDetailSettings] コンポーネントが破棄されたため、エラー処理をスキップします'
+            );
+            return;
+          }
           console.error('詳細設定の保存エラー:', error);
           this.snackBar.open(
             this.languageService.translate(

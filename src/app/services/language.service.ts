@@ -1304,6 +1304,30 @@ export class LanguageService {
       ja: '添付ファイルの削除に失敗しました',
       en: 'Failed to delete attachment',
     },
+    'taskDetail.error.parentTaskReopenFailed': {
+      ja: '親タスクの再オープンに失敗しました。タスクは保存されましたが、親タスクのステータスが更新されていない可能性があります。',
+      en: 'Failed to reopen parent task. The task was saved, but the parent task status may not have been updated.',
+    },
+    'taskDetail.error.urlTooLong': {
+      ja: 'URLは{{maxLength}}文字以内で入力してください。',
+      en: 'URL must be within {{maxLength}} characters.',
+    },
+    'taskDetail.error.invalidUrl': {
+      ja: '無効なURLです。正しいURLを入力してください。',
+      en: 'Invalid URL. Please enter a valid URL.',
+    },
+    'taskDetail.error.urlAlreadyAdded': {
+      ja: '{{url}} は既に追加されています',
+      en: '{{url}} has already been added',
+    },
+    'taskDetail.error.tagTooLong': {
+      ja: 'タグは{{maxLength}}文字以内で入力してください。',
+      en: 'Tag must be within {{maxLength}} characters.',
+    },
+    'taskDetail.error.tagAlreadyAdded': {
+      ja: '「{{tag}}」は既に追加されています',
+      en: '{{tag}} has already been added',
+    },
     'taskDetail.deleteConfirm.message': {
       ja: 'タスク「{taskName}」を削除してもよろしいですか？この操作は元に戻せません。',
       en: 'Do you want to delete task "{taskName}"? This operation cannot be undone.',
