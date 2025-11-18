@@ -833,7 +833,16 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
   /** TouchEventをMouseEventに変換 */
   private touchToMouseEvent(event: TouchEvent): MouseEvent {
-    const touch = event.touches[0] || event.changedTouches[0];
+    // ✅ 修正: touchesまたはchangedTouchesが空の場合のエラーハンドリング
+    const touch = event.touches?.[0] || event.changedTouches?.[0];
+    if (!touch) {
+      // タッチ情報が取得できない場合は、デフォルト値を使用
+      console.warn('TouchEventからタッチ情報を取得できませんでした');
+      return {
+        clientX: 0,
+        clientY: 0,
+      } as MouseEvent;
+    }
     return {
       clientX: touch.clientX,
       clientY: touch.clientY,

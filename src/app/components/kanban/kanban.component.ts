@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -22,8 +22,8 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
 import { LanguageService } from '../../services/language.service';
 import { MemberManagementService } from '../../services/member-management.service';
 import { Member } from '../../models/member.model';
-import { Observable, forkJoin, of, firstValueFrom, combineLatest } from 'rxjs';
-import { map, switchMap, filter, take } from 'rxjs/operators';
+import { Observable, forkJoin, of, firstValueFrom, combineLatest, Subject } from 'rxjs';
+import { map, switchMap, filter, take, takeUntil } from 'rxjs/operators';
 import {
   getMemberNamesAsString,
   getMemberNames,
@@ -50,13 +50,16 @@ import {
   templateUrl: './kanban.component.html',
   styleUrls: ['./kanban.component.css'],
 })
-export class KanbanComponent implements OnInit {
+export class KanbanComponent implements OnInit, OnDestroy {
   tasks: Task[] = [];
   projects: IProject[] = [];
   selectedProjectIds: string[] = [];
   allTasks: Task[] = []; // 全プロジェクトのタスクを保持
   statuses = ['未着手', '作業中', '完了'];
   private tasksByProject: Map<string, Task[]> = new Map<string, Task[]>();
+  
+  // ✅ 追加: メモリリーク防止用のSubject
+  private destroy$ = new Subject<void>();
 
   // フィルター用
   filterPriority: string[] = [];
@@ -82,15 +85,17 @@ export class KanbanComponent implements OnInit {
 
   ngOnInit(): void {
     // メンバー一覧を読み込み
-    this.memberManagementService.getMembers().subscribe({
-      next: (members) => {
-        this.members = members;
-        console.log('メンバー一覧を読み込みました:', members.length, '件');
-      },
-      error: (error) => {
-        console.error('メンバー一覧の読み込みエラー:', error);
-      },
-    });
+    this.memberManagementService.getMembers()
+      .pipe(takeUntil(this.destroy$)) // ✅ 追加: メモリリーク防止
+      .subscribe({
+        next: (members) => {
+          this.members = members;
+          console.log('メンバー一覧を読み込みました:', members.length, '件');
+        },
+        error: (error) => {
+          console.error('メンバー一覧の読み込みエラー:', error);
+        },
+      });
 
     // ✅ 修正: roomIdが設定されるまで待ってから処理を進める（PCとスマホのタイミング差を解消）
     combineLatest([
@@ -109,7 +114,8 @@ export class KanbanComponent implements OnInit {
             return of([]);
           }
           return this.projectService.getProjects();
-        })
+        }),
+        takeUntil(this.destroy$) // ✅ 追加: メモリリーク防止
       )
       .subscribe({
         next: (projects) => {
@@ -135,10 +141,17 @@ export class KanbanComponent implements OnInit {
     // プロジェクト選択状態の変更を監視
     this.projectSelectionService
       .getSelectedProjectIds()
+      .pipe(takeUntil(this.destroy$)) // ✅ 追加: メモリリーク防止
       .subscribe((projectIds: string[]) => {
         this.selectedProjectIds = projectIds;
         this.filterTasksBySelectedProjects();
       });
+  }
+
+  ngOnDestroy(): void {
+    // ✅ 追加: 購読を解除してメモリリークを防止
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private applyProjectList(projects: IProject[]): void {
@@ -182,6 +195,7 @@ export class KanbanComponent implements OnInit {
       if (project.id) {
         this.projectService
           .getTasksByProjectId(project.id)
+          .pipe(takeUntil(this.destroy$)) // ✅ 追加: メモリリーク防止
           .subscribe((tasks) => {
             this.tasksByProject.set(project.id!, tasks);
             this.rebuildAllTasks();

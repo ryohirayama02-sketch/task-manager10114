@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -49,8 +49,8 @@ import {
 } from '../../utils/member-utils';
 import { LanguageService } from '../../services/language.service';
 import { AuthService } from '../../services/auth.service';
-import { firstValueFrom } from 'rxjs';
-import { filter, take, switchMap } from 'rxjs/operators';
+import { firstValueFrom, Subject } from 'rxjs';
+import { filter, take, switchMap, takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-project-detail',
@@ -79,7 +79,7 @@ import { filter, take, switchMap } from 'rxjs/operators';
   templateUrl: './project-detail.component.html',
   styleUrls: ['./project-detail.component.css'],
 })
-export class ProjectDetailComponent implements OnInit {
+export class ProjectDetailComponent implements OnInit, OnDestroy {
   project: IProject | null = null;
   projectId: string | null = null;
   projectProgress: ProjectProgress | null = null;
@@ -88,6 +88,9 @@ export class ProjectDetailComponent implements OnInit {
   projectThemeColor = DEFAULT_PROJECT_THEME_COLOR;
   taskNameById: Record<string, string> = {};
   isInlineEditMode = false;
+  
+  // ✅ 追加: メモリリーク防止用のSubject
+  private destroy$ = new Subject<void>();
   editableProject: {
     projectName: string;
     overview: string;
@@ -240,7 +243,8 @@ export class ProjectDetailComponent implements OnInit {
             console.log('🔑 roomIdが設定されました（プロジェクト詳細）:', roomId);
             
             return this.projectService.getProjectById(this.projectId!);
-          })
+          }),
+          takeUntil(this.destroy$) // ✅ 追加: メモリリーク防止
         )
         .subscribe(async (data) => {
           if (!data) {
@@ -1212,10 +1216,12 @@ export class ProjectDetailComponent implements OnInit {
       data: dialogData,
     });
 
-    dialogRef.afterClosed().subscribe(async (confirmed) => {
-      if (!confirmed) {
-        return;
-      }
+    dialogRef.afterClosed()
+      .pipe(takeUntil(this.destroy$)) // ✅ 追加: メモリリーク防止
+      .subscribe(async (confirmed) => {
+        if (!confirmed) {
+          return;
+        }
 
       try {
         // タスクからメンバーを削除、またはタスクを削除
@@ -1376,11 +1382,13 @@ export class ProjectDetailComponent implements OnInit {
       },
     });
 
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result === true) {
-        this.deleteProject();
-      }
-    });
+    dialogRef.afterClosed()
+      .pipe(takeUntil(this.destroy$)) // ✅ 追加: メモリリーク防止
+      .subscribe((result) => {
+        if (result === true) {
+          this.deleteProject();
+        }
+      });
   }
 
   private async deleteProject(): Promise<void> {
@@ -1649,7 +1657,9 @@ export class ProjectDetailComponent implements OnInit {
 
   private loadMembers(): void {
     this.membersLoading = true;
-    this.memberService.getMembers().subscribe({
+    this.memberService.getMembers()
+      .pipe(takeUntil(this.destroy$)) // ✅ 追加: メモリリーク防止
+      .subscribe({
       next: (members) => {
         this.members = members;
         this.membersLoading = false;
@@ -1730,7 +1740,8 @@ export class ProjectDetailComponent implements OnInit {
           console.log('🔑 roomIdが設定されました（タスク一覧）:', roomId);
           
           return this.projectService.getTasksByProjectId(this.projectId!);
-        })
+        }),
+        takeUntil(this.destroy$) // ✅ 追加: メモリリーク防止
       )
       .subscribe((tasks) => {
         const nameMap: Record<string, string> = {};
@@ -2152,5 +2163,11 @@ export class ProjectDetailComponent implements OnInit {
       .filter((name): name is string => name !== null);
 
     return updatedNames.length > 0 ? updatedNames.join(', ') : '—';
+  }
+
+  ngOnDestroy(): void {
+    // ✅ 追加: 購読を解除してメモリリークを防止
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

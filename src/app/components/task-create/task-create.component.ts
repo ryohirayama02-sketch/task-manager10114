@@ -647,8 +647,18 @@ export class TaskCreatePageComponent implements OnInit {
           // maxDate（当月+3か月の月末）を超えないようにする
           const limitedMaxDueDate =
             maxDueDate > this.maxDate ? this.maxDate : maxDueDate;
-          this.dueDateObj = new Date(limitedMaxDueDate);
-          this.onDueDateChange();
+          
+          // ✅ 修正: 無限再帰を防ぐため、調整前の日付と調整後の日付が異なる場合のみ再帰呼び出し
+          const adjustedDate = new Date(limitedMaxDueDate);
+          const currentDate = new Date(this.dueDateObj);
+          
+          // 日付が実際に変更される場合のみ再帰呼び出し
+          if (adjustedDate.getTime() !== currentDate.getTime()) {
+            this.dueDateObj = adjustedDate;
+            // 日付を更新した後、再帰的に呼び出してtaskForm.dueDateも更新
+            this.onDueDateChange();
+          }
+          
           this.snackBar.open(
             this.languageService.translate(
               'taskCreate.error.dateRangeExceeded'

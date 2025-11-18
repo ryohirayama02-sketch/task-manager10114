@@ -118,16 +118,18 @@ export class LogsComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     // メンバー一覧を読み込み
-    this.memberManagementService.getMembers().subscribe({
-      next: (members) => {
-        this.allMembers = members;
-        console.log('メンバー一覧を読み込みました:', members.length, '件');
-        this.updateMemberOptions();
-      },
-      error: (error) => {
-        console.error('メンバー一覧の読み込みエラー:', error);
-      },
-    });
+    this.memberManagementService.getMembers()
+      .pipe(takeUntil(this.destroy$)) // ✅ 追加: メモリリーク防止
+      .subscribe({
+        next: (members) => {
+          this.allMembers = members;
+          console.log('メンバー一覧を読み込みました:', members.length, '件');
+          this.updateMemberOptions();
+        },
+        error: (error) => {
+          console.error('メンバー一覧の読み込みエラー:', error);
+        },
+      });
 
     // ルーターイベントを監視して、編集ログ画面に戻ってきた時にプロジェクト一覧を再読み込み
     let isInitialLoad = true;
