@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -11,6 +11,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatExpansionModule } from '@angular/material/expansion';
+import { Subject, takeUntil } from 'rxjs';
 import { ProjectService } from '../../services/project.service';
 import { MemberManagementService } from '../../services/member-management.service';
 import { Member } from '../../models/member.model';
@@ -55,7 +56,7 @@ interface SearchFilters {
   templateUrl: './task-search.component.html',
   styleUrl: './task-search.component.css',
 })
-export class TaskSearchComponent implements OnInit {
+export class TaskSearchComponent implements OnInit, OnDestroy {
   private projectService = inject(ProjectService);
   private router = inject(Router);
   private memberManagementService = inject(MemberManagementService);
@@ -85,90 +86,192 @@ export class TaskSearchComponent implements OnInit {
   readonly defaultThemeColor = DEFAULT_PROJECT_THEME_COLOR;
   taskNameById: Record<string, string> = {}; // 親タスク名を取得するためのマップ
 
+  private destroy$ = new Subject<void>();
+
   ngOnInit() {
     // メンバー一覧を読み込み
-    this.memberManagementService.getMembers().subscribe({
-      next: (members) => {
-        this.allMembers = members;
-        console.log('メンバー一覧を読み込みました:', members.length, '件');
-        this.loadFilterOptions();
-      },
-      error: (error) => {
-        console.error('メンバー一覧の読み込みエラー:', error);
-        this.loadFilterOptions();
-      },
-    });
+    this.memberManagementService
+      .getMembers()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (members) => {
+          // ✅ 修正: コンポーネントが破棄されていないかチェック
+          if (this.destroy$.closed) {
+            return;
+          }
+          // ✅ 修正: membersが配列でない場合の処理を追加
+          if (!Array.isArray(members)) {
+            console.error('membersが配列ではありません:', members);
+            this.allMembers = [];
+            this.loadFilterOptions();
+            return;
+          }
+          this.allMembers = members;
+          console.log('メンバー一覧を読み込みました:', members.length, '件');
+          this.loadFilterOptions();
+        },
+        error: (error) => {
+          // ✅ 修正: コンポーネントが破棄されていないかチェック
+          if (this.destroy$.closed) {
+            return;
+          }
+          console.error('メンバー一覧の読み込みエラー:', error);
+          this.allMembers = [];
+          this.loadFilterOptions();
+        },
+      });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadFilterOptions() {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
     console.log('フィルター選択肢を読み込み中...');
 
     // 全プロジェクトのタスクを取得して選択肢を生成
-    this.projectService.getProjects().subscribe((projects) => {
-      if (projects.length === 0) {
-        return;
-      }
+    this.projectService
+      .getProjects()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (projects) => {
+          // ✅ 修正: コンポーネントが破棄されていないかチェック
+          if (this.destroy$.closed) {
+            return;
+          }
+          // ✅ 修正: projectsが配列でない場合の処理を追加
+          if (!Array.isArray(projects)) {
+            console.error('projectsが配列ではありません:', projects);
+            return;
+          }
+          if (projects.length === 0) {
+            return;
+          }
 
-      this.updateThemeColorMap(projects as IProject[]);
+          this.updateThemeColorMap(projects as IProject[]);
 
-      const allTasks: Task[] = [];
-      let completedRequests = 0;
+          const allTasks: Task[] = [];
+          let completedRequests = 0;
+          let hasError = false;
 
-      // 各プロジェクトのタスクを取得
-      projects.forEach((project) => {
-        if (project.id) {
-          this.projectService
-            .getTasksByProjectId(project.id)
-            .subscribe((tasks) => {
-              // タスクデータにprojectIdを追加
-              console.log(
-                `プロジェクト「${project.projectName}」のタスク取得:`,
-                tasks.length,
-                '件'
-              );
-              if (tasks.length > 0) {
-                console.log('最初のタスクのデータ構造:', tasks[0]);
-                console.log(
-                  '最初のタスクのtags:',
-                  tasks[0].tags,
-                  '型:',
-                  typeof tasks[0].tags
-                );
-              }
-              const tasksWithProjectId = tasks.map((task) => ({
-                ...task,
-                projectId: task.projectId || project.id,
-                projectName: task.projectName || project.projectName,
-                projectThemeColor:
-                  task.projectThemeColor ||
-                  this.getProjectThemeColor(project.id as string),
-              }));
-              allTasks.push(...tasksWithProjectId);
+          // 各プロジェクトのタスクを取得
+          projects.forEach((project) => {
+            // ✅ 修正: projectがnull/undefinedの場合のチェックを追加
+            if (!project) {
               completedRequests++;
-
-              // すべてのプロジェクトのタスクを取得したら処理を実行
-              if (completedRequests === projects.length) {
-                // 親タスク名のマップを作成
-                this.taskNameById = allTasks.reduce((acc, task) => {
-                  if (task.id && task.taskName) {
-                    acc[task.id] = task.taskName;
-                  }
-                  return acc;
-                }, {} as Record<string, string>);
+              if (completedRequests === projects.length && !hasError) {
                 this.generateFilterOptions(allTasks);
               }
-            });
-        } else {
-          completedRequests++;
-          if (completedRequests === projects.length) {
-            this.generateFilterOptions(allTasks);
+              return;
+            }
+            if (project.id) {
+              this.projectService
+                .getTasksByProjectId(project.id)
+                .pipe(takeUntil(this.destroy$))
+                .subscribe({
+                  next: (tasks) => {
+                    // ✅ 修正: コンポーネントが破棄されていないかチェック
+                    if (this.destroy$.closed) {
+                      return;
+                    }
+                    // ✅ 修正: tasksが配列でない場合の処理を追加
+                    if (!Array.isArray(tasks)) {
+                      console.error('tasksが配列ではありません:', tasks);
+                      completedRequests++;
+                      if (completedRequests === projects.length && !hasError) {
+                        this.generateFilterOptions(allTasks);
+                      }
+                      return;
+                    }
+                    // タスクデータにprojectIdを追加
+                    console.log(
+                      `プロジェクト「${project.projectName}」のタスク取得:`,
+                      tasks.length,
+                      '件'
+                    );
+                    if (tasks.length > 0) {
+                      console.log('最初のタスクのデータ構造:', tasks[0]);
+                      console.log(
+                        '最初のタスクのtags:',
+                        tasks[0].tags,
+                        '型:',
+                        typeof tasks[0].tags
+                      );
+                    }
+                    // ✅ 修正: null/undefinedのタスクをフィルタリング
+                    const validTasks = tasks.filter((task) => task != null);
+                    const tasksWithProjectId = validTasks.map((task) => ({
+                      ...task,
+                      projectId: task.projectId || project.id,
+                      projectName: task.projectName || project.projectName,
+                      projectThemeColor:
+                        task.projectThemeColor ||
+                        this.getProjectThemeColor(project.id as string),
+                    }));
+                    allTasks.push(...tasksWithProjectId);
+                    completedRequests++;
+
+                    // すべてのプロジェクトのタスクを取得したら処理を実行
+                    if (completedRequests === projects.length && !hasError) {
+                      // 親タスク名のマップを作成
+                      this.taskNameById = allTasks.reduce((acc, task) => {
+                        if (task && task.id && task.taskName) {
+                          acc[task.id] = task.taskName;
+                        }
+                        return acc;
+                      }, {} as Record<string, string>);
+                      this.generateFilterOptions(allTasks);
+                    }
+                  },
+                  error: (error) => {
+                    // ✅ 修正: コンポーネントが破棄されていないかチェック
+                    if (this.destroy$.closed) {
+                      return;
+                    }
+                    console.error(
+                      `プロジェクト「${project.projectName}」のタスク取得エラー:`,
+                      error
+                    );
+                    hasError = true;
+                    completedRequests++;
+                    if (completedRequests === projects.length) {
+                      this.generateFilterOptions(allTasks);
+                    }
+                  },
+                });
+            } else {
+              completedRequests++;
+              if (completedRequests === projects.length && !hasError) {
+                this.generateFilterOptions(allTasks);
+              }
+            }
+          });
+        },
+        error: (error) => {
+          // ✅ 修正: コンポーネントが破棄されていないかチェック
+          if (this.destroy$.closed) {
+            return;
           }
-        }
+          console.error('プロジェクト取得エラー:', error);
+        },
       });
-    });
   }
 
   generateFilterOptions(allTasks: Task[]) {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
+    // ✅ 修正: allTasksが配列でない場合の処理を追加
+    if (!Array.isArray(allTasks)) {
+      console.error('allTasksが配列ではありません:', allTasks);
+      return;
+    }
     console.log('フィルター選択肢を生成中...', allTasks);
     console.log('タスク数:', allTasks.length);
 
@@ -177,25 +280,39 @@ export class TaskSearchComponent implements OnInit {
 
     // assignedMembers から取得（メンバーIDからメンバー名に変換）
     allTasks.forEach((task) => {
+      // ✅ 修正: taskがnull/undefinedの場合のチェックを追加
+      if (!task) {
+        return;
+      }
       if (Array.isArray((task as any).assignedMembers)) {
         const memberNames = getMemberNames(
           (task as any).assignedMembers,
           this.allMembers
         );
-        memberNames.forEach((name) => assigneeSet.add(name));
+        memberNames.forEach((name) => {
+          if (name && typeof name === 'string') {
+            assigneeSet.add(name);
+          }
+        });
       }
     });
 
     // メンバー管理画面のメンバー一覧からも取得
-    this.allMembers.forEach((member) => {
-      if (member.name) {
-        const names = member.name
-          .split(',')
-          .map((n) => n.trim())
-          .filter((n) => n.length > 0);
-        names.forEach((name) => assigneeSet.add(name));
-      }
-    });
+    if (Array.isArray(this.allMembers)) {
+      this.allMembers.forEach((member) => {
+        // ✅ 修正: memberがnull/undefinedの場合のチェックを追加
+        if (!member) {
+          return;
+        }
+        if (member.name && typeof member.name === 'string') {
+          const names = member.name
+            .split(',')
+            .map((n) => n.trim())
+            .filter((n) => n.length > 0);
+          names.forEach((name) => assigneeSet.add(name));
+        }
+      });
+    }
 
     this.assignees = Array.from(assigneeSet).sort();
 
@@ -214,23 +331,27 @@ export class TaskSearchComponent implements OnInit {
 
     const allTags: string[] = [];
     allTasks.forEach((task) => {
+      // ✅ 修正: taskがnull/undefinedの場合のチェックを追加
+      if (!task) {
+        return;
+      }
       let tags: string[] = [];
 
       // tagsフィールドの型を確認
       if (task.tags) {
         if (Array.isArray(task.tags)) {
-          tags = task.tags;
+          tags = task.tags.filter((tag) => tag != null);
         } else if (typeof task.tags === 'string') {
           // 文字列の場合は配列に変換を試みる
           try {
             const parsed = JSON.parse(task.tags);
-            tags = Array.isArray(parsed) ? parsed : [task.tags];
+            tags = Array.isArray(parsed) ? parsed.filter((tag) => tag != null) : [task.tags];
           } catch {
             tags = [task.tags];
           }
         } else {
           console.warn(
-            `タスク「${task.taskName}」のtagsが予期しない型です:`,
+            `タスク「${task.taskName || '不明'}」のtagsが予期しない型です:`,
             typeof task.tags,
             task.tags
           );
@@ -238,7 +359,7 @@ export class TaskSearchComponent implements OnInit {
       }
 
       console.log(
-        `タスク「${task.taskName}」のタグ:`,
+        `タスク「${task.taskName || '不明'}」のタグ:`,
         tags,
         '型:',
         typeof tags,
@@ -267,103 +388,200 @@ export class TaskSearchComponent implements OnInit {
   }
 
   searchTasks() {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
+    // ✅ 修正: 既に読み込み中の場合は重複検索を防ぐ
+    if (this.isLoading) {
+      console.warn('⚠️ 検索中です。重複検索をスキップします。');
+      return;
+    }
     this.isLoading = true;
     this.hasSearched = true;
     console.log('タスク検索開始:', this.filters);
 
     // 全プロジェクトのタスクを取得
-    this.projectService.getProjects().subscribe((projects) => {
-      if (projects.length === 0) {
-        this.isLoading = false;
-        return;
-      }
+    this.projectService
+      .getProjects()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (projects) => {
+          // ✅ 修正: コンポーネントが破棄されていないかチェック
+          if (this.destroy$.closed) {
+            return;
+          }
+          // ✅ 修正: projectsが配列でない場合の処理を追加
+          if (!Array.isArray(projects)) {
+            console.error('projectsが配列ではありません:', projects);
+            this.searchResults = [];
+            this.isLoading = false;
+            return;
+          }
+          if (projects.length === 0) {
+            this.searchResults = [];
+            this.isLoading = false;
+            return;
+          }
 
-      this.updateThemeColorMap(projects as IProject[]);
-      const allTasks: Task[] = [];
-      let completedRequests = 0;
+          this.updateThemeColorMap(projects as IProject[]);
+          const allTasks: Task[] = [];
+          let completedRequests = 0;
+          let hasError = false;
 
-      // 各プロジェクトのタスクを取得
-      projects.forEach((project) => {
-        if (project.id) {
-          this.projectService
-            .getTasksByProjectId(project.id)
-            .subscribe((tasks) => {
-              // タスクデータにprojectIdを追加
-              console.log(
-                `[検索] プロジェクト「${project.projectName}」のタスク取得:`,
-                tasks.length,
-                '件'
-              );
-              if (tasks.length > 0) {
-                console.log('[検索] 最初のタスクのtags:', tasks[0].tags);
-              }
-              const tasksWithProjectId = tasks.map((task) => ({
-                ...task,
-                projectId: task.projectId || project.id,
-                projectName: task.projectName || project.projectName,
-                projectThemeColor:
-                  task.projectThemeColor ||
-                  this.getProjectThemeColor(project.id as string),
-              }));
-              allTasks.push(...tasksWithProjectId);
+          // 各プロジェクトのタスクを取得
+          projects.forEach((project) => {
+            // ✅ 修正: projectがnull/undefinedの場合のチェックを追加
+            if (!project) {
               completedRequests++;
-
-              // すべてのプロジェクトのタスクを取得したら処理を実行
-              if (completedRequests === projects.length) {
-                // 親タスク名のマップを作成
-                this.taskNameById = allTasks.reduce((acc, task) => {
-                  if (task.id && task.taskName) {
-                    acc[task.id] = task.taskName;
-                  }
-                  return acc;
-                }, {} as Record<string, string>);
+              if (completedRequests === projects.length && !hasError) {
                 this.filterTasks(allTasks);
               }
-            });
-        } else {
-          completedRequests++;
-          if (completedRequests === projects.length) {
-            this.filterTasks(allTasks);
+              return;
+            }
+            if (project.id) {
+              this.projectService
+                .getTasksByProjectId(project.id)
+                .pipe(takeUntil(this.destroy$))
+                .subscribe({
+                  next: (tasks) => {
+                    // ✅ 修正: コンポーネントが破棄されていないかチェック
+                    if (this.destroy$.closed) {
+                      return;
+                    }
+                    // ✅ 修正: tasksが配列でない場合の処理を追加
+                    if (!Array.isArray(tasks)) {
+                      console.error('tasksが配列ではありません:', tasks);
+                      completedRequests++;
+                      if (completedRequests === projects.length && !hasError) {
+                        this.filterTasks(allTasks);
+                      }
+                      return;
+                    }
+                    // タスクデータにprojectIdを追加
+                    console.log(
+                      `[検索] プロジェクト「${project.projectName}」のタスク取得:`,
+                      tasks.length,
+                      '件'
+                    );
+                    if (tasks.length > 0) {
+                      console.log('[検索] 最初のタスクのtags:', tasks[0].tags);
+                    }
+                    // ✅ 修正: null/undefinedのタスクをフィルタリング
+                    const validTasks = tasks.filter((task) => task != null);
+                    const tasksWithProjectId = validTasks.map((task) => ({
+                      ...task,
+                      projectId: task.projectId || project.id,
+                      projectName: task.projectName || project.projectName,
+                      projectThemeColor:
+                        task.projectThemeColor ||
+                        this.getProjectThemeColor(project.id as string),
+                    }));
+                    allTasks.push(...tasksWithProjectId);
+                    completedRequests++;
+
+                    // すべてのプロジェクトのタスクを取得したら処理を実行
+                    if (completedRequests === projects.length && !hasError) {
+                      // 親タスク名のマップを作成
+                      this.taskNameById = allTasks.reduce((acc, task) => {
+                        if (task && task.id && task.taskName) {
+                          acc[task.id] = task.taskName;
+                        }
+                        return acc;
+                      }, {} as Record<string, string>);
+                      this.filterTasks(allTasks);
+                    }
+                  },
+                  error: (error) => {
+                    // ✅ 修正: コンポーネントが破棄されていないかチェック
+                    if (this.destroy$.closed) {
+                      return;
+                    }
+                    console.error(
+                      `[検索] プロジェクト「${project.projectName}」のタスク取得エラー:`,
+                      error
+                    );
+                    hasError = true;
+                    completedRequests++;
+                    if (completedRequests === projects.length) {
+                      this.filterTasks(allTasks);
+                    }
+                  },
+                });
+            } else {
+              completedRequests++;
+              if (completedRequests === projects.length && !hasError) {
+                this.filterTasks(allTasks);
+              }
+            }
+          });
+        },
+        error: (error) => {
+          // ✅ 修正: コンポーネントが破棄されていないかチェック
+          if (this.destroy$.closed) {
+            return;
           }
-        }
+          console.error('プロジェクト取得エラー:', error);
+          this.searchResults = [];
+          this.isLoading = false;
+        },
       });
-    });
   }
 
   filterTasks(allTasks: Task[]) {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
+    // ✅ 修正: allTasksが配列でない場合の処理を追加
+    if (!Array.isArray(allTasks)) {
+      console.error('allTasksが配列ではありません:', allTasks);
+      this.searchResults = [];
+      this.isLoading = false;
+      return;
+    }
     console.log('タスクをフィルタリング中...', allTasks);
     console.log(
       '全タスクのID情報:',
       allTasks.map((task) => ({
-        id: task.id,
-        projectId: task.projectId,
-        taskName: task.taskName,
-        parentTaskId: (task as any).parentTaskId,
+        id: task?.id,
+        projectId: task?.projectId,
+        taskName: task?.taskName,
+        parentTaskId: (task as any)?.parentTaskId,
       }))
     );
 
     // 子タスクの数を確認
-    const subtasks = allTasks.filter((task) => (task as any).parentTaskId);
+    const subtasks = allTasks.filter((task) => task && (task as any).parentTaskId);
     console.log(
       `子タスクの数: ${subtasks.length}件`,
       subtasks.map((task) => ({
-        id: task.id,
-        taskName: task.taskName,
-        parentTaskId: (task as any).parentTaskId,
+        id: task?.id,
+        taskName: task?.taskName,
+        parentTaskId: (task as any)?.parentTaskId,
       }))
     );
 
-    let filteredTasks = [...allTasks];
+    // ✅ 修正: null/undefinedのタスクをフィルタリング
+    let filteredTasks = allTasks.filter((task) => task != null);
 
     // 担当者でフィルタリング（カンマ区切り対応、複数選択対応）
-    if (this.filters.assignee.length > 0) {
+    if (Array.isArray(this.filters.assignee) && this.filters.assignee.length > 0) {
       filteredTasks = filteredTasks.filter((task) => {
+        // ✅ 修正: taskがnull/undefinedの場合のチェックを追加
+        if (!task) {
+          return false;
+        }
         const assignees: string[] = [];
 
         // assignedMembers から取得（メンバーIDからメンバー名に変換）
         if (Array.isArray((task as any).assignedMembers)) {
           (task as any).assignedMembers.forEach((memberId: string) => {
-            const member = this.allMembers.find((m) => m.id === memberId);
+            // ✅ 修正: memberIdがnull/undefinedの場合のチェックを追加
+            if (!memberId) {
+              return;
+            }
+            const member = Array.isArray(this.allMembers) ? this.allMembers.find((m) => m && m.id === memberId) : null;
             if (member && member.name) {
               // メンバー名がカンマ区切りの場合も分割
               const names = member.name
@@ -376,14 +594,14 @@ export class TaskSearchComponent implements OnInit {
         }
 
         // assignee から取得（メンバー管理画面に存在する名前のみ）
-        if (task.assignee) {
+        if (task.assignee && typeof task.assignee === 'string') {
           const names = task.assignee
             .split(',')
             .map((name) => name.trim())
             .filter((name) => name.length > 0)
             .filter((name) => {
               // メンバー管理画面に存在する名前のみを追加
-              return this.allMembers.some((m) => m.name === name);
+              return Array.isArray(this.allMembers) && this.allMembers.some((m) => m && m.name === name);
             });
           assignees.push(...names);
         }
@@ -399,47 +617,72 @@ export class TaskSearchComponent implements OnInit {
     }
 
     // 優先度でフィルタリング（複数選択対応）
-    if (this.filters.priority.length > 0) {
-      filteredTasks = filteredTasks.filter((task) =>
-        this.filters.priority.includes(task.priority)
-      );
+    if (Array.isArray(this.filters.priority) && this.filters.priority.length > 0) {
+      filteredTasks = filteredTasks.filter((task) => {
+        // ✅ 修正: taskがnull/undefinedの場合のチェックを追加
+        if (!task) {
+          return false;
+        }
+        return task.priority && this.filters.priority.includes(task.priority);
+      });
     }
 
     // ステータスでフィルタリング（複数選択対応）
-    if (this.filters.status.length > 0) {
-      filteredTasks = filteredTasks.filter((task) =>
-        this.filters.status.includes(task.status)
-      );
+    if (Array.isArray(this.filters.status) && this.filters.status.length > 0) {
+      filteredTasks = filteredTasks.filter((task) => {
+        // ✅ 修正: taskがnull/undefinedの場合のチェックを追加
+        if (!task) {
+          return false;
+        }
+        return task.status && this.filters.status.includes(task.status);
+      });
     }
 
     // タグでフィルタリング
-    if (this.filters.tags.length > 0) {
-      filteredTasks = filteredTasks.filter((task) =>
-        this.filters.tags.some((tag) => task.tags?.includes(tag))
-      );
+    if (Array.isArray(this.filters.tags) && this.filters.tags.length > 0) {
+      filteredTasks = filteredTasks.filter((task) => {
+        // ✅ 修正: taskがnull/undefinedの場合のチェックを追加
+        if (!task) {
+          return false;
+        }
+        if (!task.tags) {
+          return false;
+        }
+        const taskTags = Array.isArray(task.tags) ? task.tags : [];
+        return this.filters.tags.some((tag) => taskTags.includes(tag));
+      });
     }
 
     // フリーワードでフィルタリング
-    if (this.filters.freeWord.trim()) {
+    if (this.filters.freeWord && typeof this.filters.freeWord === 'string' && this.filters.freeWord.trim()) {
       const searchWord = this.filters.freeWord.toLowerCase();
-      filteredTasks = filteredTasks.filter(
-        (task) =>
-          task.taskName.toLowerCase().includes(searchWord) ||
-          task.description?.toLowerCase().includes(searchWord) ||
-          task.projectName.toLowerCase().includes(searchWord)
-      );
+      filteredTasks = filteredTasks.filter((task) => {
+        // ✅ 修正: taskがnull/undefinedの場合のチェックを追加
+        if (!task) {
+          return false;
+        }
+        return (
+          (task.taskName && typeof task.taskName === 'string' && task.taskName.toLowerCase().includes(searchWord)) ||
+          (task.description && typeof task.description === 'string' && task.description.toLowerCase().includes(searchWord)) ||
+          (task.projectName && typeof task.projectName === 'string' && task.projectName.toLowerCase().includes(searchWord))
+        );
+      });
     }
 
-    this.searchResults = filteredTasks.map((task) => this.withTaskTheme(task));
+    // ✅ 修正: null/undefinedのタスクをフィルタリングしてからマップ
+    this.searchResults = filteredTasks
+      .filter((task) => task != null)
+      .map((task) => this.withTaskTheme(task))
+      .filter((task) => task != null && Object.keys(task).length > 0); // 空のタスクオブジェクトを除外
     console.log('検索結果:', this.searchResults);
     console.log(
       '検索結果のタスク詳細:',
       this.searchResults.map((task) => ({
-        id: task.id,
-        projectId: task.projectId,
-        taskName: task.taskName,
-        projectName: task.projectName,
-        assignee: task.assignee,
+        id: task?.id,
+        projectId: task?.projectId,
+        taskName: task?.taskName,
+        projectName: task?.projectName,
+        assignee: task?.assignee,
       }))
     );
     this.isLoading = false;
@@ -467,7 +710,16 @@ export class TaskSearchComponent implements OnInit {
     this.filters.tags = this.filters.tags.filter((t) => t !== tag);
   }
 
-  goToTaskDetail(task: Task, event?: Event) {
+  goToTaskDetail(task: Task | null | undefined, event?: Event) {
+    // ✅ 修正: taskがnull/undefinedの場合のチェックを追加
+    if (!task) {
+      console.error('タスクが指定されていません');
+      return;
+    }
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
     if (event) {
       event.stopPropagation();
     }
@@ -476,7 +728,10 @@ export class TaskSearchComponent implements OnInit {
     console.log('projectId:', task.projectId, 'id:', task.id);
 
     if (task.projectId && task.id) {
-      this.router.navigate(['/project', task.projectId, 'task', task.id]);
+      // ✅ 修正: ナビゲーションエラーハンドリングを追加
+      this.router.navigate(['/project', task.projectId, 'task', task.id]).catch((error) => {
+        console.error('タスク詳細画面への遷移に失敗しました:', error);
+      });
     } else {
       console.error('タスクのprojectIdまたはidが不足しています:', {
         projectId: task.projectId,
@@ -487,22 +742,34 @@ export class TaskSearchComponent implements OnInit {
   }
 
   private updateThemeColorMap(projects: IProject[]): void {
+    // ✅ 修正: projectsが配列でない場合の処理を追加
+    if (!Array.isArray(projects)) {
+      console.error('projectsが配列ではありません:', projects);
+      this.themeColorByProjectId = {};
+      return;
+    }
     this.themeColorByProjectId = projects.reduce((acc, project) => {
-      if (project.id) {
+      // ✅ 修正: projectがnull/undefinedの場合のチェックを追加
+      if (project && project.id) {
         acc[project.id] = resolveProjectThemeColor(project);
       }
       return acc;
     }, {} as Record<string, string>);
   }
 
-  private getProjectThemeColor(projectId?: string): string {
-    if (!projectId) {
+  private getProjectThemeColor(projectId?: string | null): string {
+    if (!projectId || typeof projectId !== 'string') {
       return this.defaultThemeColor;
     }
     return this.themeColorByProjectId[projectId] || this.defaultThemeColor;
   }
 
-  private withTaskTheme(task: Task): Task {
+  private withTaskTheme(task: Task | null | undefined): Task {
+    // ✅ 修正: taskがnull/undefinedの場合のチェックを追加
+    if (!task) {
+      // ダミーのタスクを返す（実際には呼び出し側でnullチェックが必要）
+      return {} as Task;
+    }
     const color =
       task.projectThemeColor || this.getProjectThemeColor(task.projectId);
     return {
@@ -547,7 +814,11 @@ export class TaskSearchComponent implements OnInit {
   /**
    * 優先度の表示用テキストを取得
    */
-  getPriorityDisplay(priority: string): string {
+  getPriorityDisplay(priority: string | null | undefined): string {
+    // ✅ 修正: priorityがnull/undefinedの場合のチェックを追加
+    if (!priority || typeof priority !== 'string') {
+      return '';
+    }
     const priorityMap: Record<string, string> = {
       高: 'progress.priority.high',
       中: 'progress.priority.medium',
@@ -559,7 +830,11 @@ export class TaskSearchComponent implements OnInit {
   /**
    * ステータスの表示用テキストを取得
    */
-  getStatusDisplay(status: string): string {
+  getStatusDisplay(status: string | null | undefined): string {
+    // ✅ 修正: statusがnull/undefinedの場合のチェックを追加
+    if (!status || typeof status !== 'string') {
+      return '';
+    }
     const statusMap: Record<string, string> = {
       完了: 'progress.status.completed',
       作業中: 'progress.status.inProgress',

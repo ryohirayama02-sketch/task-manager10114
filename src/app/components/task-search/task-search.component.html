@@ -105,28 +105,28 @@
       <mat-card
         *ngFor="let task of searchResults"
         class="task-card"
-        [ngClass]="{ completed: task.status === '完了' }"
+        [ngClass]="{ completed: task?.status === '完了' }"
         (click)="goToTaskDetail(task, $event)"
       >
         <mat-card-header class="task-card-header">
           <mat-card-title>
-            <span class="task-card-title-text">{{ task.taskName }}</span>
+            <span class="task-card-title-text">{{ task?.taskName || '' }}</span>
           </mat-card-title>
           <div class="task-card-meta">
             <mat-chip-set>
               <mat-chip
                 class="status-chip"
-                [ngClass]="'status-' + task.status"
+                [ngClass]="'status-' + (task?.status || '')"
                 selected
               >
-                {{ getStatusDisplay(task.status) }}
+                {{ getStatusDisplay(task?.status) }}
               </mat-chip>
               <mat-chip
                 class="priority-chip"
-                [ngClass]="'priority-' + task.priority"
+                [ngClass]="'priority-' + (task?.priority || '')"
                 selected
               >
-                {{ getPriorityDisplay(task.priority) }}
+                {{ getPriorityDisplay(task?.priority) }}
               </mat-chip>
             </mat-chip-set>
           </div>
@@ -135,10 +135,10 @@
         <mat-card-content>
           <div class="task-details">
             <div class="task-main-info">
-              <div class="task-detail-item project-name" *ngIf="task.projectName">
+              <div class="task-detail-item project-name" *ngIf="task?.projectName">
                 <mat-icon class="project-icon">folder</mat-icon>
                 <span class="project-name-text"
-                  >{{ 'taskSearch.project' | translate }}{{ task.projectName }}</span
+                  >{{ 'taskSearch.project' | translate }}{{ task?.projectName || '' }}</span
                 >
               </div>
             </div>
@@ -146,16 +146,16 @@
             <div class="task-detail-item task-detail-member">
               <mat-icon class="assignee-icon">person</mat-icon>
               <span class="task-member-name">{{ getTaskAssigneeDisplay(task) }}</span>
-              <div class="task-member-due" *ngIf="task.dueDate">
+              <div class="task-member-due" *ngIf="task?.dueDate">
                 <mat-icon class="due-icon">schedule</mat-icon>
-                <span>{{ task.dueDate }}</span>
+                <span>{{ task?.dueDate || '' }}</span>
               </div>
             </div>
             
-            <div class="task-detail-item parent-task" *ngIf="task.parentTaskId && taskNameById[task.parentTaskId]">
+            <div class="task-detail-item parent-task" *ngIf="task?.parentTaskId && taskNameById[task?.parentTaskId || '']">
               <mat-icon>subdirectory_arrow_right</mat-icon>
               <span class="task-parent-name"
-                >{{ 'taskSearch.parentTask' | translate }}{{ taskNameById[task.parentTaskId] }}</span
+                >{{ 'taskSearch.parentTask' | translate }}{{ taskNameById[task?.parentTaskId || ''] || '' }}</span
               >
             </div>
           </div>
