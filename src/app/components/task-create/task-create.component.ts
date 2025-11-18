@@ -454,17 +454,37 @@ export class TaskCreatePageComponent implements OnInit, OnDestroy {
   }
 
   onMembersSelectionChange(memberIds: string[]) {
-    this.selectedMemberIds = memberIds;
-    // assignedMembers（ID配列）を設定
-    this.taskForm.assignedMembers = memberIds || [];
+    // ✅ 修正: 選択されたメンバーIDがprojectMembersに存在するかどうかを検証
+    const validMemberIds = (memberIds || []).filter((id) =>
+      this.projectMembers.some((m) => m.id === id)
+    );
+    
+    // 無効なIDが含まれている場合は警告を表示
+    if (validMemberIds.length !== (memberIds || []).length) {
+      console.warn(
+        '[onMembersSelectionChange] 無効なメンバーIDが含まれています',
+        {
+          selectedIds: memberIds,
+          validIds: validMemberIds,
+          projectMembers: this.projectMembers.map((m) => m.id),
+        }
+      );
+    }
+    
+    this.selectedMemberIds = validMemberIds;
+    // assignedMembers（ID配列）を設定（有効なIDのみ）
+    this.taskForm.assignedMembers = validMemberIds;
 
     // 後方互換性のため、最初のメンバーを assignee にも設定
-    if (memberIds && memberIds.length > 0) {
+    if (validMemberIds.length > 0) {
       const firstMember = this.projectMembers.find(
-        (m) => m.id === memberIds[0]
+        (m) => m.id === validMemberIds[0]
       );
       if (firstMember) {
         this.taskForm.assignee = firstMember.name;
+      } else {
+        // 念のため、見つからない場合は空文字列に設定
+        this.taskForm.assignee = '';
       }
     } else {
       this.taskForm.assignee = '';
@@ -966,11 +986,29 @@ export class TaskCreatePageComponent implements OnInit, OnDestroy {
         urlsCount: this.taskForm.urls?.length || 0,
       });
 
+      // ✅ 修正: assignedMembersに無効なIDが含まれていないか検証
+      const validAssignedMembers = (this.taskForm.assignedMembers || []).filter(
+        (id) => this.projectMembers.some((m) => m.id === id)
+      );
+      
+      // 無効なIDが含まれている場合は警告を表示
+      if (validAssignedMembers.length !== (this.taskForm.assignedMembers || []).length) {
+        console.warn(
+          '[save] assignedMembersに無効なIDが含まれています',
+          {
+            originalIds: this.taskForm.assignedMembers,
+            validIds: validAssignedMembers,
+            projectMembers: this.projectMembers.map((m) => m.id),
+          }
+        );
+      }
+
       // Step 1: タスクを作成（URL は含める）
       const taskDataToCreate = {
         ...this.taskForm,
         taskName: this.taskForm.taskName.trim(), // ✅ 修正: trim()済みのtaskNameを使用
         description: this.taskForm.description?.trim() || '', // ✅ 修正: descriptionにtrim()を適用
+        assignedMembers: validAssignedMembers, // ✅ 修正: 有効なIDのみを含める
         projectName: this.projectName,
         attachments: [], // 初期値は空配列
         ...(this.parentTaskId && { parentTaskId: this.parentTaskId }),
@@ -1188,7 +1226,8 @@ export class TaskCreatePageComponent implements OnInit, OnDestroy {
         }
       }
 
-      // Step 5: リスト初期化
+      // Step 5: リスト初期化（成功時のみ）
+      // ✅ 修正: エラー時はデータを保持するため、成功時のみクリア
       this.pendingFiles = [];
       this.taskForm.urls = [];
 
@@ -1232,6 +1271,8 @@ export class TaskCreatePageComponent implements OnInit, OnDestroy {
         replaceUrl: true,
       });
     } catch (error: any) {
+      // ✅ 修正: エラー時はpendingFilesとurlsを保持（ユーザーが再試行できるように）
+      // pendingFilesとtaskForm.urlsはクリアしない
       console.error('[save] タスク作成失敗:', error);
       console.error('[save] エラー詳細:', {
         errorMessage: error?.message,
