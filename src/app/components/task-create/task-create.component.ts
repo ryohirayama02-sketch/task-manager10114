@@ -473,8 +473,15 @@ export class TaskCreatePageComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // ✅ 修正: 重複タグ追加時にユーザーに通知
     if (!this.taskForm.tags.includes(trimmedTag)) {
       this.taskForm.tags.push(trimmedTag);
+    } else {
+      this.snackBar.open(
+        this.languageService.translate('taskCreate.error.tagAlreadyAdded'),
+        this.languageService.translate('taskCreate.close'),
+        { duration: 3000 }
+      );
     }
   }
 
@@ -538,12 +545,20 @@ export class TaskCreatePageComponent implements OnInit, OnDestroy {
 
   addUrl(url: string): void {
     if (url && url.trim()) {
-      const trimmedUrl = url.trim();
-      // URLのバリデーション：http/httpsで始まるかチェック
+      let trimmedUrl = url.trim();
+      
+      // ✅ 修正: プロトコルがない場合は自動的にhttps://を追加
       if (
         !trimmedUrl.startsWith('http://') &&
         !trimmedUrl.startsWith('https://')
       ) {
+        trimmedUrl = 'https://' + trimmedUrl;
+      }
+
+      // URLのバリデーション：有効なURLかチェック
+      try {
+        new URL(trimmedUrl);
+      } catch {
         this.snackBar.open(
           this.languageService.translate('taskCreate.error.invalidUrl'),
           this.languageService.translate('taskCreate.close'),
@@ -564,9 +579,16 @@ export class TaskCreatePageComponent implements OnInit, OnDestroy {
         return;
       }
 
+      // ✅ 修正: 重複URL追加時にユーザーに通知
       if (!this.taskForm.urls.includes(trimmedUrl)) {
         this.taskForm.urls.push(trimmedUrl);
         this.newUrlInput = '';
+      } else {
+        this.snackBar.open(
+          this.languageService.translate('taskCreate.error.urlAlreadyAdded'),
+          this.languageService.translate('taskCreate.close'),
+          { duration: 3000 }
+        );
       }
     }
   }
@@ -616,6 +638,15 @@ export class TaskCreatePageComponent implements OnInit, OnDestroy {
       const month = String(this.startDateObj.getMonth() + 1).padStart(2, '0');
       const day = String(this.startDateObj.getDate()).padStart(2, '0');
       this.taskForm.startDate = `${year}-${month}-${day}`;
+
+      // ✅ 修正: 開始日が終了日より後の場合は、終了日を開始日に合わせる
+      if (this.dueDateObj && this.startDateObj > this.dueDateObj) {
+        this.dueDateObj = new Date(this.startDateObj);
+        const dueYear = this.dueDateObj.getFullYear();
+        const dueMonth = String(this.dueDateObj.getMonth() + 1).padStart(2, '0');
+        const dueDay = String(this.dueDateObj.getDate()).padStart(2, '0');
+        this.taskForm.dueDate = `${dueYear}-${dueMonth}-${dueDay}`;
+      }
 
       // 開始日から30日後の日付を計算
       const maxDueDate = new Date(this.startDateObj);

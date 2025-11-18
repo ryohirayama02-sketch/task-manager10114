@@ -1896,6 +1896,14 @@ export class LanguageService {
       ja: 'タグは3つまでです',
       en: 'Maximum 3 tags allowed',
     },
+    'taskCreate.error.tagAlreadyAdded': {
+      ja: 'このタグは既に追加されています',
+      en: 'This tag has already been added',
+    },
+    'taskCreate.error.urlAlreadyAdded': {
+      ja: 'このURLは既に追加されています',
+      en: 'This URL has already been added',
+    },
     'taskCreate.error.attachmentUploadFailed': {
       ja: '{{fileName}} のアップロードに失敗しました',
       en: 'Failed to upload {{fileName}}',
