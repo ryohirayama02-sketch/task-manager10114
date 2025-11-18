@@ -63,21 +63,21 @@
             <!-- タスクヘッダー -->
             <mat-card-header>
               <div class="task-header">
-                <h3 class="task-title">{{ task.taskName }}</h3>
+                <h3 class="task-title">{{ task?.taskName || '' }}</h3>
                 <div class="task-badges">
                   <mat-chip
                     class="status-chip"
-                    [ngClass]="'status-' + task.status"
+                    [ngClass]="'status-' + (task?.status || '')"
                     selected
                   >
-                    {{ translateStatus(task.status) }}
+                    {{ translateStatus(task?.status) }}
                   </mat-chip>
                   <mat-chip
                     class="priority-chip"
-                    [ngClass]="'priority-' + task.priority"
+                    [ngClass]="'priority-' + (task?.priority || '')"
                     selected
                   >
-                    {{ translatePriority(task.priority) }}
+                    {{ translatePriority(task?.priority) }}
                   </mat-chip>
                 </div>
               </div>
@@ -89,18 +89,18 @@
                 <div class="project-info">
                   <span>{{ "quickTasks.projectName" | translate }}</span>
                   <span class="project-name-pill">
-                    {{ formatProjectName(task.projectName) }}
+                    {{ formatProjectName(task?.projectName) }}
                   </span>
                 </div>
 
                 <div class="due-date-info">
                   <span>{{ "quickTasks.dueDateLabel" | translate }}</span>
-                  <span>{{ task.dueDate }}</span>
-                  <span class="days-until" *ngIf="!isOverdue(task.dueDate)">
+                  <span>{{ task?.dueDate || '' }}</span>
+                  <span class="days-until" *ngIf="task?.dueDate && !isOverdue(task.dueDate)">
                     ({{ getDaysUntilDue(task.dueDate)
                     }}{{ "quickTasks.daysAfter" | translate }})
                   </span>
-                  <span class="days-until" *ngIf="isOverdue(task.dueDate)">
+                  <span class="days-until" *ngIf="task?.dueDate && isOverdue(task.dueDate)">
                     ({{ getAbsoluteValue(getDaysUntilDue(task.dueDate))
                     }}{{ "quickTasks.daysOverdue" | translate }})
                   </span>
@@ -118,12 +118,12 @@
         <h4>{{ "quickTasks.noUserTasksFound" | translate }}</h4>
         <p>{{ "quickTasks.checkAllTaskAssignees" | translate }}</p>
         <div *ngFor="let task of allTasks; let i = index" class="debug-task">
-          <strong>{{ i + 1 }}.</strong> {{ task.taskName }}
+          <strong>{{ i + 1 }}.</strong> {{ task?.taskName || '' }}
           <span class="debug-details">
             ({{ "quickTasks.assignee" | translate }}
             {{ getTaskAssigneeDisplay(task) }},
             {{ "quickTasks.assigneeEmail" | translate }}
-            {{ task.assigneeEmail }})
+            {{ task?.assigneeEmail || '' }})
           </span>
         </div>
       </div>
@@ -153,21 +153,21 @@
         <!-- タスクヘッダー -->
         <mat-card-header>
           <div class="task-header">
-            <h3 class="task-title">{{ task.taskName }}</h3>
+            <h3 class="task-title">{{ task?.taskName || '' }}</h3>
             <div class="task-badges">
               <mat-chip
                 class="status-chip"
-                [ngClass]="'status-' + task.status"
+                [ngClass]="'status-' + (task?.status || '')"
                 selected
               >
-                {{ translateStatus(task.status) }}
+                {{ translateStatus(task?.status) }}
               </mat-chip>
               <mat-chip
                 class="priority-chip"
-                [ngClass]="'priority-' + task.priority"
+                [ngClass]="'priority-' + (task?.priority || '')"
                 selected
               >
-                {{ translatePriority(task.priority) }}
+                {{ translatePriority(task?.priority) }}
               </mat-chip>
             </div>
           </div>
@@ -179,18 +179,18 @@
             <div class="project-info">
               <span>{{ "quickTasks.projectName" | translate }}</span>
               <span class="project-name-pill">
-                {{ formatProjectName(task.projectName) }}
+                {{ formatProjectName(task?.projectName) }}
               </span>
             </div>
 
             <div class="due-date-info">
               <span>{{ "quickTasks.dueDateLabel" | translate }}</span>
-              <span>{{ task.dueDate }}</span>
-              <span class="days-until" *ngIf="!isOverdue(task.dueDate)">
+              <span>{{ task?.dueDate || '' }}</span>
+              <span class="days-until" *ngIf="task?.dueDate && !isOverdue(task.dueDate)">
                 ({{ getDaysUntilDue(task.dueDate)
                 }}{{ "quickTasks.daysAfter" | translate }})
               </span>
-              <span class="days-until" *ngIf="isOverdue(task.dueDate)">
+              <span class="days-until" *ngIf="task?.dueDate && isOverdue(task.dueDate)">
                 ({{ getAbsoluteValue(getDaysUntilDue(task.dueDate))
                 }}{{ "quickTasks.daysOverdue" | translate }})
               </span>

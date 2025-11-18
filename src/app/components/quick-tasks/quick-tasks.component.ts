@@ -67,17 +67,39 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     // メンバー一覧を読み込み
-    this.memberService.getMembers().subscribe({
-      next: (members) => {
-        this.members = members;
-        console.log('メンバー一覧を読み込みました:', members.length, '件');
-      },
-      error: (error) => {
-        console.error('メンバー一覧の読み込みエラー:', error);
-      },
-    });
+    this.memberService
+      .getMembers()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (members) => {
+          // ✅ 修正: コンポーネントが破棄されていないかチェック
+          if (this.destroy$.closed) {
+            return;
+          }
+          // ✅ 修正: membersが配列でない場合の処理を追加
+          if (!Array.isArray(members)) {
+            console.error('membersが配列ではありません:', members);
+            this.members = [];
+            return;
+          }
+          this.members = members;
+          console.log('メンバー一覧を読み込みました:', members.length, '件');
+        },
+        error: (error) => {
+          // ✅ 修正: コンポーネントが破棄されていないかチェック
+          if (this.destroy$.closed) {
+            return;
+          }
+          console.error('メンバー一覧の読み込みエラー:', error);
+          this.members = [];
+        },
+      });
 
     this.authService.user$.pipe(takeUntil(this.destroy$)).subscribe((user) => {
+      // ✅ 修正: コンポーネントが破棄されていないかチェック
+      if (this.destroy$.closed) {
+        return;
+      }
       if (user) {
         this.currentUser = user;
         void this.loadQuickTasks();
@@ -94,14 +116,25 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
 
   /** 🔁 日数フィルター変更時 */
   onDaysFilterChange() {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
     this.loadQuickTasks();
   }
 
   /** 📦 タスク取得 */
   async loadQuickTasks() {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
     this.loading = true;
     const userEmail = this.currentUser?.email;
-    if (!userEmail) return;
+    if (!userEmail) {
+      this.loading = false;
+      return;
+    }
 
     let memberName: string | undefined;
     try {
@@ -117,23 +150,42 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
         '⚠️ メンバー一覧がまだ読み込まれていません。タスク取得を待機します...'
       );
       // メンバー一覧の読み込みを待つ
-      this.memberService.getMembers().subscribe({
-        next: (members) => {
-          this.members = members;
-          console.log(
-            'メンバー一覧を読み込みました（タスク取得前）:',
-            members.length,
-            '件'
-          );
-          // メンバー一覧が読み込まれたらタスクを取得
-          this.loadTasksAfterMembersLoaded(userEmail, memberName);
-        },
-        error: (error) => {
-          console.error('メンバー一覧の読み込みエラー:', error);
-          // エラーでもタスク取得は続行
-          this.loadTasksAfterMembersLoaded(userEmail, memberName);
-        },
-      });
+      this.memberService
+        .getMembers()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (members) => {
+            // ✅ 修正: コンポーネントが破棄されていないかチェック
+            if (this.destroy$.closed) {
+              return;
+            }
+            // ✅ 修正: membersが配列でない場合の処理を追加
+            if (!Array.isArray(members)) {
+              console.error('membersが配列ではありません:', members);
+              this.members = [];
+              this.loadTasksAfterMembersLoaded(userEmail, memberName);
+              return;
+            }
+            this.members = members;
+            console.log(
+              'メンバー一覧を読み込みました（タスク取得前）:',
+              members.length,
+              '件'
+            );
+            // メンバー一覧が読み込まれたらタスクを取得
+            this.loadTasksAfterMembersLoaded(userEmail, memberName);
+          },
+          error: (error) => {
+            // ✅ 修正: コンポーネントが破棄されていないかチェック
+            if (this.destroy$.closed) {
+              return;
+            }
+            console.error('メンバー一覧の読み込みエラー:', error);
+            this.members = [];
+            // エラーでもタスク取得は続行
+            this.loadTasksAfterMembersLoaded(userEmail, memberName);
+          },
+        });
     } else {
       // メンバー一覧が既に読み込まれている場合はそのままタスク取得
       this.loadTasksAfterMembersLoaded(userEmail, memberName);
@@ -145,24 +197,62 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
     userEmail: string,
     memberName: string | undefined
   ) {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
     this.taskService
       .getQuickTasks(this.daysFilter, userEmail, memberName)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (tasks: Task[]) => {
+          // ✅ 修正: コンポーネントが破棄されていないかチェック
+          if (this.destroy$.closed) {
+            return;
+          }
+          // ✅ 修正: tasksが配列でない場合の処理を追加
+          if (!Array.isArray(tasks)) {
+            console.error('tasksが配列ではありません:', tasks);
+            this.tasks = [];
+            this.filteredTasks = [];
+            this.loading = false;
+            return;
+          }
           // デバッグ: 各タスクのassignedMembersを確認
           tasks.forEach((task) => {
-            if (task.assignedMembers && task.assignedMembers.length > 0) {
+            if (
+              task &&
+              task.assignedMembers &&
+              task.assignedMembers.length > 0
+            ) {
               console.log('🔍 [loadQuickTasks] タスク:', task.taskName);
               console.log('   - assignedMembers:', task.assignedMembers);
               console.log('   - this.members.length:', this.members.length);
             }
           });
 
-          this.tasks = tasks.sort((a, b) => {
+          // ✅ 修正: null/undefinedのタスクをフィルタリング
+          const validTasks = tasks.filter((task) => task != null);
+          this.tasks = validTasks.sort((a, b) => {
+            // ✅ 修正: aまたはbがnull/undefinedの場合のチェックを追加
+            if (!a && !b) return 0;
+            if (!a) return 1;
+            if (!b) return -1;
             // まず期日でソート
-            if (a.dueDate < b.dueDate) return -1;
-            if (a.dueDate > b.dueDate) return 1;
+            const dateA = a.dueDate
+              ? (() => {
+                  const date = new Date(a.dueDate);
+                  return isNaN(date.getTime()) ? Infinity : date.getTime();
+                })()
+              : Infinity;
+            const dateB = b.dueDate
+              ? (() => {
+                  const date = new Date(b.dueDate);
+                  return isNaN(date.getTime()) ? Infinity : date.getTime();
+                })()
+              : Infinity;
+            if (dateA < dateB) return -1;
+            if (dateA > dateB) return 1;
 
             // 期日が同じ場合は優先度でソート（高、中、低の順）
             const priorityOrder: { [key: string]: number } = {
@@ -170,17 +260,29 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
               中: 2,
               低: 3,
             };
-            const priorityA = priorityOrder[a.priority] || 999;
-            const priorityB = priorityOrder[b.priority] || 999;
+            const priorityA =
+              a.priority && typeof a.priority === 'string'
+                ? priorityOrder[a.priority] || 999
+                : 999;
+            const priorityB =
+              b.priority && typeof b.priority === 'string'
+                ? priorityOrder[b.priority] || 999
+                : 999;
 
             return priorityA - priorityB;
           });
           this.filteredTasks = [...this.tasks];
           this.loading = false;
-          console.log(`✅ すぐやるタスク取得完了: ${tasks.length}件`);
+          console.log(`✅ すぐやるタスク取得完了: ${this.tasks.length}件`);
         },
         error: (err: any) => {
+          // ✅ 修正: コンポーネントが破棄されていないかチェック
+          if (this.destroy$.closed) {
+            return;
+          }
           console.error('❌ タスク読み込みエラー:', err);
+          this.tasks = [];
+          this.filteredTasks = [];
           this.loading = false;
         },
       });
@@ -188,6 +290,10 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
 
   /** 🧩 デバッグモード切替 */
   toggleDebugMode() {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
     this.debugMode = !this.debugMode;
     console.log(`🧩 デバッグモード: ${this.debugMode ? 'ON' : 'OFF'}`);
     if (this.debugMode) {
@@ -197,6 +303,10 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
 
   /** 🔍 全タスク取得（デバッグ用） */
   loadAllTasksForDebug() {
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
     // TaskService に getAllTasksForDebug() が未実装の場合、一時的にコメントアウト可
     if (!('getAllTasksForDebug' in this.taskService)) {
       console.warn('⚠️ getAllTasksForDebug() が TaskService に存在しません');
@@ -209,19 +319,42 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (tasks: Task[]) => {
-          this.allTasks = tasks;
+          // ✅ 修正: コンポーネントが破棄されていないかチェック
+          if (this.destroy$.closed) {
+            return;
+          }
+          // ✅ 修正: tasksが配列でない場合の処理を追加
+          if (!Array.isArray(tasks)) {
+            console.error('tasksが配列ではありません:', tasks);
+            this.allTasks = [];
+            this.loading = false;
+            return;
+          }
+          this.allTasks = tasks.filter((task) => task != null); // ✅ 修正: null/undefinedのタスクをフィルタリング
           this.loading = false;
-          console.log(`✅ デバッグ用タスク取得完了: ${tasks.length}件`);
+          console.log(`✅ デバッグ用タスク取得完了: ${this.allTasks.length}件`);
         },
         error: (error: any) => {
+          // ✅ 修正: コンポーネントが破棄されていないかチェック
+          if (this.destroy$.closed) {
+            return;
+          }
           console.error('❌ デバッグ用タスク取得エラー:', error);
+          this.allTasks = [];
           this.loading = false;
         },
       });
   }
 
   /** 🎨 プロジェクト名の背景色 */
-  getProjectNameStyle(task: Task) {
+  getProjectNameStyle(task: Task | null | undefined) {
+    // ✅ 修正: taskがnull/undefinedの場合のチェックを追加
+    if (!task) {
+      return {
+        backgroundColor: this.defaultThemeColor,
+        color: '#1f2933',
+      };
+    }
     const color = task.projectThemeColor || this.defaultThemeColor;
     return {
       backgroundColor: color,
@@ -242,50 +375,95 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
   }
 
   /** 📂 タスククリック時の遷移 */
-  onTaskClick(task: Task) {
+  onTaskClick(task: Task | null | undefined) {
+    // ✅ 修正: taskがnull/undefinedの場合のチェックを追加
+    if (!task) {
+      console.error('タスクが指定されていません');
+      return;
+    }
+    // ✅ 修正: コンポーネントが破棄されていないかチェック
+    if (this.destroy$.closed) {
+      return;
+    }
     if (task.id && task.projectId) {
       this.router.navigate(['/project', task.projectId, 'task', task.id]);
+    } else {
+      console.error('タスクIDまたはプロジェクトIDが指定されていません:', task);
     }
   }
 
   /** 🔢 トラッキング用ID */
-  trackByTaskId(index: number, task: Task): string {
-    return task.id ?? ''; // undefined 対策
+  trackByTaskId(index: number, task: Task | null | undefined): string {
+    // ✅ 修正: taskがnull/undefinedの場合のチェックを追加
+    if (!task) {
+      return `task-${index}`;
+    }
+    return task.id ?? `task-${index}`; // undefined 対策
   }
 
   /** 🧮 期日までの日数 */
-  getDaysUntilDue(dueDate: string): number {
-    if (!dueDate) return 0;
+  getDaysUntilDue(dueDate: string | null | undefined): number {
+    // ✅ 修正: dueDateがnull/undefined/空文字列の場合のチェックを追加
+    if (!dueDate || (typeof dueDate === 'string' && dueDate.trim() === '')) {
+      return 0;
+    }
 
     // 今日の日付をローカルタイムゾーンで取得（時刻を00:00:00に設定）
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    if (isNaN(today.getTime())) {
+      console.error('今日の日付が無効です');
+      return 0;
+    }
 
     // 期日をローカルタイムゾーンで取得
     let due: Date;
     if (typeof dueDate === 'string') {
       // 文字列形式（YYYY-MM-DD）の場合、ローカルタイムゾーンで日付を作成
-      const [year, month, day] = dueDate.split('T')[0].split('-').map(Number);
+      const dateParts = dueDate.split('T')[0].split('-').map(Number);
+      if (dateParts.length !== 3 || dateParts.some(isNaN)) {
+        console.error('無効な日付形式:', dueDate);
+        return 0;
+      }
+      const [year, month, day] = dateParts;
       due = new Date(year, month - 1, day);
       due.setHours(0, 0, 0, 0);
+      if (isNaN(due.getTime())) {
+        console.error('無効な日付:', dueDate);
+        return 0;
+      }
     } else {
       // Dateオブジェクトの場合
       due = new Date(dueDate);
       due.setHours(0, 0, 0, 0);
+      if (isNaN(due.getTime())) {
+        console.error('無効な日付:', dueDate);
+        return 0;
+      }
     }
 
     // 日数の差分を計算（ミリ秒→日数）
     const diff = due.getTime() - today.getTime();
-    return Math.floor(diff / (1000 * 60 * 60 * 24));
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    // ✅ 修正: NaNや無限大を防ぐ
+    return isNaN(days) || !isFinite(days) ? 0 : days;
   }
 
   /** ⚠️ 期限切れチェック */
-  isOverdue(dueDate: string): boolean {
+  isOverdue(dueDate: string | null | undefined): boolean {
+    // ✅ 修正: dueDateがnull/undefinedの場合のチェックを追加
+    if (!dueDate) {
+      return false;
+    }
     return this.getDaysUntilDue(dueDate) < 0;
   }
 
   /** ⏰ 近日中（2〜3日以内） */
-  isDueSoon(dueDate: string): boolean {
+  isDueSoon(dueDate: string | null | undefined): boolean {
+    // ✅ 修正: dueDateがnull/undefinedの場合のチェックを追加
+    if (!dueDate) {
+      return false;
+    }
     const days = this.getDaysUntilDue(dueDate);
     return days >= 2 && days <= 3;
   }
@@ -296,7 +474,11 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
   }
 
   /** 🧩 CSSクラス判定 */
-  getDueStatusClass(task: Task): any {
+  getDueStatusClass(task: Task | null | undefined): any {
+    // ✅ 修正: taskがnull/undefinedの場合のチェックを追加
+    if (!task) {
+      return {};
+    }
     const days = this.getDaysUntilDue(task.dueDate);
     return {
       overdue: days < 0,
@@ -307,7 +489,11 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
   }
 
   /** ステータスを翻訳 */
-  translateStatus(status: string): string {
+  translateStatus(status: string | null | undefined): string {
+    // ✅ 修正: statusがnull/undefinedの場合のチェックを追加
+    if (!status) {
+      return '';
+    }
     switch (status) {
       case '完了':
         return this.languageService.translate('progress.status.completed');
@@ -321,7 +507,11 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
   }
 
   /** 優先度を翻訳 */
-  translatePriority(priority: string): string {
+  translatePriority(priority: string | null | undefined): string {
+    // ✅ 修正: priorityがnull/undefinedの場合のチェックを追加
+    if (!priority) {
+      return '';
+    }
     switch (priority) {
       case '高':
         return this.languageService.translate('progress.priority.high');
@@ -335,12 +525,33 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
   }
 
   /** タスクの担当者を表示（カンマ区切り対応） */
-  getTaskAssigneeDisplay(task: Task): string {
+  getTaskAssigneeDisplay(task: Task | null | undefined): string {
+    // ✅ 修正: taskがnull/undefinedの場合のチェックを追加
+    if (!task) {
+      return '—';
+    }
+    // ✅ 修正: membersが配列でない場合の処理を追加
+    if (!Array.isArray(this.members)) {
+      console.error('this.membersが配列ではありません:', this.members);
+      // assigneeから取得を試みる
+      if (task.assignee && typeof task.assignee === 'string') {
+        const assigneeNames = task.assignee
+          .split(',')
+          .map((n) => n.trim())
+          .filter((n) => n.length > 0 && n !== '33333333333333333333');
+        return assigneeNames.length > 0 ? assigneeNames.join(', ') : '—';
+      }
+      return '—';
+    }
     const displayNames: string[] = [];
     const foundMemberIds = new Set<string>();
 
     // assignedMembers がある場合はそれを使用
-    if (task.assignedMembers && task.assignedMembers.length > 0) {
+    if (
+      task.assignedMembers &&
+      Array.isArray(task.assignedMembers) &&
+      task.assignedMembers.length > 0
+    ) {
       // デバッグ: assignedMembersとmembersの内容を確認
       console.log(
         '🔍 [QuickTasks getTaskAssigneeDisplay] タスク:',
@@ -350,12 +561,16 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
       console.log('   - this.members.length:', this.members.length);
       console.log(
         '   - this.membersのID一覧:',
-        this.members.map((m) => ({ id: m.id, name: m.name }))
+        this.members.map((m) => ({ id: m?.id, name: m?.name }))
       );
 
       // 各assignedMembersのIDがmembersに存在するか確認
       task.assignedMembers.forEach((memberId, index) => {
-        const member = this.members.find((m) => m.id === memberId);
+        // ✅ 修正: memberIdがnull/undefinedの場合のチェックを追加
+        if (!memberId) {
+          return;
+        }
+        const member = this.members.find((m) => m && m.id === memberId);
 
         console.log(
           `   - assignedMembers[${index}]: ${memberId} → ${
@@ -373,7 +588,7 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
           console.warn(`⚠️ メンバーID "${memberId}" が見つかりません`);
           console.warn(
             `   - 検索対象のメンバーID一覧:`,
-            this.members.map((m) => m.id)
+            this.members.map((m) => m?.id).filter((id) => id != null)
           );
 
           // メンバーが見つからない場合でも、assigneeから補完を試みる
@@ -383,7 +598,7 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
 
       // assignedMembersから取得できなかったメンバーIDがある場合、assigneeから補完を試みる
       const notFoundMemberIds = task.assignedMembers.filter(
-        (id) => !foundMemberIds.has(id)
+        (id) => id && !foundMemberIds.has(id)
       );
 
       if (notFoundMemberIds.length > 0) {
@@ -394,7 +609,7 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
         console.log('   - assignee:', task.assignee);
 
         // assigneeがある場合、それを補完として使用
-        if (task.assignee) {
+        if (task.assignee && typeof task.assignee === 'string') {
           const assigneeNames = task.assignee
             .split(',')
             .map((n) => n.trim())
@@ -424,7 +639,7 @@ export class QuickTasksComponent implements OnInit, OnDestroy {
     }
 
     // assignedMembersがない、またはメンバーが見つからない場合は assignee を使用
-    if (task.assignee) {
+    if (task.assignee && typeof task.assignee === 'string') {
       const assigneeNames = task.assignee
         .split(',')
         .map((n) => n.trim())
