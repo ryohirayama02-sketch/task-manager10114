@@ -786,14 +786,6 @@ export class LogsComponent implements OnInit, OnDestroy {
     this.applyFilters();
   }
 
-  resetPeriodFilter(): void {
-    this.periodStartDateObj = null;
-    this.periodEndDateObj = null;
-    this.periodStartDate = null;
-    this.periodEndDate = null;
-    this.applyFilters();
-  }
-
   periodLabel(): string {
     const locale =
       this.languageService.getCurrentLanguage() === 'ja' ? 'ja-JP' : 'en-US';
@@ -824,6 +816,9 @@ export class LogsComponent implements OnInit, OnDestroy {
     this.filterMembers = [];
     this.periodStartDate = null;
     this.periodEndDate = null;
+    // ✅ 修正: 期日選択欄の表示状態もリセット
+    this.periodStartDateObj = null;
+    this.periodEndDateObj = null;
     this.applyFilters();
   }
 
