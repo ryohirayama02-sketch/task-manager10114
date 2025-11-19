@@ -275,13 +275,14 @@ export class EditLogService {
     formatChangeDescription?: (log: EditLog) => string
   ): void {
     try {
+      // ✅ 修正: 言語設定に応じてヘッダーを翻訳
       const headers = [
-        '日時',
-        'ユーザー名',
-        'プロジェクト名',
-        'タスク名',
-        'アクション',
-        '変更内容',
+        this.languageService.translate('logs.timestamp'),
+        this.languageService.translate('logs.userName'),
+        this.languageService.translate('logs.field.projectName'),
+        this.languageService.translate('logs.field.taskName'),
+        this.languageService.translate('logs.action'),
+        this.languageService.translate('logs.changeDescriptionHeader'),
       ];
 
       const csvData = logs.map((log) => [
@@ -327,7 +328,10 @@ export class EditLogService {
   /** 日付をフォーマット */
   private formatDate(date: Date | string): string {
     const d = typeof date === 'string' ? new Date(date) : date;
-    return d.toLocaleString('ja-JP', {
+    // ✅ 修正: 言語設定に応じてロケールを変更
+    const locale =
+      this.languageService.getCurrentLanguage() === 'ja' ? 'ja-JP' : 'en-US';
+    return d.toLocaleString(locale, {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
