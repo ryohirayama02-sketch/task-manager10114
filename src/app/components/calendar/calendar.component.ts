@@ -860,8 +860,31 @@ export class CalendarComponent implements OnInit, OnDestroy {
       console.error('無効な日付が選択されました:', date);
       return;
     }
-    this.selectedDate = new Date(date);
-    this.currentDate = new Date(date);
+    // ✅ 修正: 表示可能な範囲内かチェック
+    if (!this.isDateInAvailableRange(date)) {
+      console.warn('選択された日付は表示可能な範囲外です:', date);
+      // 範囲外の場合は、範囲内の最も近い日付に移動
+      if (
+        this.minAvailableDate &&
+        !isNaN(this.minAvailableDate.getTime()) &&
+        date < this.minAvailableDate
+      ) {
+        this.selectedDate = new Date(this.minAvailableDate);
+        this.currentDate = new Date(this.minAvailableDate);
+      } else if (
+        this.maxAvailableDate &&
+        !isNaN(this.maxAvailableDate.getTime()) &&
+        date > this.maxAvailableDate
+      ) {
+        this.selectedDate = new Date(this.maxAvailableDate);
+        this.currentDate = new Date(this.maxAvailableDate);
+      } else {
+        return; // 範囲外の場合は何もしない
+      }
+    } else {
+      this.selectedDate = new Date(date);
+      this.currentDate = new Date(date);
+    }
     this.generateCalendarDays();
   }
 
